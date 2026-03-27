@@ -1,7 +1,7 @@
 {
-  "name": "render-gcs-upload",
+  "name": "render-image-upload",
   "version": "1.0.0",
-  "description": "Express API upload image to Google Cloud Storage on Render",
+  "description": "Express API upload image to Cloudinary on Render",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,7 +11,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.16.0",
+    "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

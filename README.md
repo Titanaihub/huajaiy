@@ -1,6 +1,6 @@
-# Render + Google Cloud Storage Upload API
+# Render + Cloudinary Upload API
 
-Node.js Express API for uploading images to Google Cloud Storage (GCS), deployable on Render.
+Node.js Express API for uploading images to Cloudinary, deployable on Render.
 
 ## 1) Local run
 
@@ -25,21 +25,13 @@ curl -X POST http://localhost:3000/upload \
   -F "image=@C:/path/to/your/image.jpg"
 ```
 
-## 3) Google Cloud setup
+## 3) Cloudinary setup
 
-1. Create GCS bucket
-2. Create service account with role:
-   - Storage Object Admin (or restricted custom role)
-3. Download JSON key
-4. Convert JSON to base64
-
-PowerShell:
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\service-account.json"))
-```
-
-5. Put value in `GCS_KEYFILE_BASE64`
+1. Sign up / login to Cloudinary
+2. Open Dashboard and copy:
+   - `Cloud name`
+   - `API Key`
+   - `API Secret`
 
 ## 4) Deploy on Render
 
@@ -47,12 +39,12 @@ PowerShell:
 2. In Render: New + > Blueprint and connect repo
 3. Render reads `render.yaml`
 4. Add Environment Variables in Render service:
-   - `GOOGLE_CLOUD_PROJECT_ID`
-   - `GCS_BUCKET_NAME`
-   - `GCS_KEYFILE_BASE64`
+   - `CLOUDINARY_CLOUD_NAME`
+   - `CLOUDINARY_API_KEY`
+   - `CLOUDINARY_API_SECRET`
 5. Deploy
 
 ## 5) Notes
 
-- This example uses `file.makePublic()` for simplicity
-- For production, prefer signed URLs and stricter IAM
+- This example uploads to the `uploads` folder in Cloudinary
+- For production, validate file types and use stricter upload presets
