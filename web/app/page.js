@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.huajaiy.com";
 
 export default function HomePage() {
+  const { data: session, status } = useSession();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,6 +53,10 @@ export default function HomePage() {
   }
 
   async function onUpload() {
+    if (status !== "authenticated") {
+      setError("กรุณาเข้าสู่ระบบด้วย LINE / Facebook ก่อน");
+      return;
+    }
     if (!file) {
       setError("กรุณาเลือกรูปก่อน");
       return;
@@ -93,6 +99,70 @@ export default function HomePage() {
         <p className="mt-1 text-sm text-slate-600">
           หน้าเบา โหลดไว สำหรับ LINE และ Facebook
         </p>
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="text-xs font-medium text-slate-700">เข้าสู่ระบบ</p>
+          <p className="mt-1 text-xs text-slate-500">
+            ครั้งแรกต้องกดยอมรับสิทธิ์ต่อแพลตฟอร์ม ครั้งถัดไปจะจำเซสชันให้
+            (ไม่มี “ล็อกอินเอง” โดยไม่ยุ่งกับ LINE/FB)
+          </p>
+          {status === "loading" ? (
+            <p className="mt-2 text-xs text-slate-500">กำลังตรวจสอบเซสชัน...</p>
+          ) : null}
+          {status === "authenticated" && session?.user ? (
+            <div className="mt-3 flex items-center gap-3">
+              {session.user.image ? (
+                <img
+                  src={session.user.image}
+                  alt=""
+                  className="h-10 w-10 rounded-full border border-slate-200"
+                />
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-900">
+                  {session.user.name || "ผู้ใช้"}
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  {session.provider || "บัญชีที่เชื่อมแล้ว"}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700"
+                onClick={() => signOut()}
+              >
+                ออก
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                className="rounded-xl bg-[#1877F2] px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
+                onClick={() => signIn("facebook")}
+                disabled={status === "loading"}
+              >
+                Facebook
+              </button>
+              <button
+                type="button"
+                className="rounded-xl bg-[#06C755] px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
+                onClick={() => signIn("line")}
+                disabled={status === "loading"}
+              >
+                LINE
+              </button>
+              <button
+                type="button"
+                className="col-span-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-400"
+                disabled
+                title="TikTok Login Kit ต้องตั้งค่า OAuth แยกตามเอกสาร TikTok — จะเพิ่มในรอบถัดไป"
+              >
+                TikTok (เร็วๆ นี้)
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 space-y-3">
           <input
