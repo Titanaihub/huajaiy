@@ -11,6 +11,45 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [resultUrl, setResultUrl] = useState("");
 
+  function loadImage(fileBlob) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(fileBlob);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(img);
+      };
+      img.onerror = () => reject(new Error("ไม่สามารถอ่านไฟล์รูปได้"));
+      img.src = objectUrl;
+    });
+  }
+
+  async function compressImage(originalFile) {
+    // ลดขนาดรูปฝั่ง client เพื่อให้อัปโหลดไวขึ้นใน in-app browser
+    const img = await loadImage(originalFile);
+    const maxSide = 1600;
+    const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
+    const width = Math.round(img.width * ratio);
+    const height = Math.round(img.height * ratio);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, width, height);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("บีบอัดรูปไม่สำเร็จ"));
+          resolve(blob);
+        },
+        "image/jpeg",
+        0.82
+      );
+    });
+  }
+
   async function onUpload() {
     if (!file) {
       setError("กรุณาเลือกรูปก่อน");
@@ -23,7 +62,11 @@ export default function HomePage() {
 
     try {
       const body = new FormData();
-      body.append("image", file);
+      const compressed = await compressImage(file);
+      const uploadFile = new File([compressed], `${Date.now()}.jpg`, {
+        type: "image/jpeg"
+      });
+      body.append("image", uploadFile);
 
       const res = await fetch(`${API_BASE}/upload`, {
         method: "POST",
@@ -56,6 +99,7 @@ export default function HomePage() {
             className="block w-full rounded-xl border border-slate-300 p-3 text-sm"
             type="file"
             accept="image/*"
+            capture="environment"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />
           <button
@@ -67,6 +111,9 @@ export default function HomePage() {
             {loading ? "กำลังอัปโหลด..." : "อัปโหลด"}
           </button>
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          ระบบจะบีบอัดรูปอัตโนมัติก่อนอัปโหลด เพื่อให้โหลดเร็วบนมือถือ
+        </p>
 
         {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
