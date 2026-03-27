@@ -127,7 +127,6 @@ export default function UploadForm() {
             </span>
           ) : null}
           <input
-            ref={inputRef}
             id="upload-file"
             className="sr-only"
             type="file"
