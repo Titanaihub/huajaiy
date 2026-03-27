@@ -1,8 +1,53 @@
+# Render Blueprint — สร้าง 2 Web Services: API (Express) + เว็บ (Next.js)
+# ใช้ได้เมื่อเชื่อม repo กับ Render → New → Blueprint
+# ไม่จำเป็นต้องรัน npm ในเครื่อง — push GitHub แล้ว deploy บน Render ได้เลย
+
 services:
+  # --- API: Cloudinary + เกม session ---
   - type: web
-    name: render-gcs-upload
+    name: huajaiy-api
     env: node
     plan: free
+    region: singapore
     buildCommand: npm install
     startCommand: npm start
-    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # JWT สมาชิก (สมัคร/ล็อกอิน) — อย่างน้อย 16 ตัว
+      - key: JWT_SECRET
+        sync: false
+      # ไม่บังคับ: หักหัวใจต่อรอบเกม (ต้องตรงกับที่เว็บคาดไว้)
+      - key: GAME_HEART_COST
+        sync: false
+
+  # --- เว็บ: Next.js (รากโฟลเดอร์ web/) ---
+  - type: web
+    name: huajaiy-web
+    env: node
+    plan: free
+    region: singapore
+    rootDir: web
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # ใส่ URL ของบริการ API ด้านบน เช่น https://huajaiy-api.onrender.com (ไม่มี / ท้าย)
+      # ตั้งหลัง deploy API ครั้งแรก แล้ว Clear build cache + Deploy ใหม่ของเว็บ
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
+      # ถ้าใช้หน้า /auth — ตั้งโดเมนเว็บจริง + secret
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false

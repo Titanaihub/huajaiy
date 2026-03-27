@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-slate-50 text-slate-900;
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+}
+
+::selection {
+  @apply bg-brand-200/80 text-slate-900;
 }

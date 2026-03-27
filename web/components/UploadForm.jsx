@@ -86,49 +86,93 @@ export default function UploadForm() {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold">อัปโหลดรูป</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        บีบอัดรูปอัตโนมัติก่อนอัปโหลด — ไม่ต้องล็อกอิน
-      </p>
+    <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft">
+      <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 md:px-8">
+        <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน
+        </p>
+      </div>
 
-      <div className="mt-4 space-y-3">
-        <input
-          className="block w-full rounded-xl border border-slate-300 p-3 text-sm"
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-        />
+      <div className="p-6 md:p-8">
+        <label
+          htmlFor="upload-file"
+          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-12 transition hover:border-brand-400 hover:bg-brand-50/40"
+        >
+          <span className="rounded-full bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
+            <svg
+              className="h-8 w-8 text-brand-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3A1.5 1.5 0 001.5 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+          </span>
+          <span className="mt-4 text-center text-sm font-medium text-slate-800">
+            แตะเพื่อเลือกไฟล์ หรือถ่ายรูป
+          </span>
+          <span className="mt-1 text-center text-xs text-slate-500">
+            รองรับ JPG, PNG, HEIC ผ่านเบราว์เซอร์
+          </span>
+          {file ? (
+            <span className="mt-3 max-w-full truncate text-xs font-medium text-brand-800">
+              {file.name}
+            </span>
+          ) : null}
+          <input
+            ref={inputRef}
+            id="upload-file"
+            className="sr-only"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+          />
+        </label>
+
         <button
-          className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="mt-6 w-full rounded-xl bg-brand-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
           type="button"
           onClick={onUpload}
           disabled={loading}
         >
-          {loading ? "กำลังอัปโหลด..." : "อัปโหลด"}
+          {loading ? "กำลังอัปโหลด…" : "อัปโหลดไปยังคลาวด์"}
         </button>
+
+        {error ? (
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-100">
+            {error}
+          </p>
+        ) : null}
+
+        {resultUrl ? (
+          <div className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              อัปโหลดสำเร็จ
+            </p>
+            <img
+              src={resultUrl}
+              alt="รูปที่อัปโหลด"
+              className="w-full rounded-lg border border-slate-200 shadow-sm"
+            />
+            <a
+              href={resultUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block break-all text-sm font-medium text-brand-800 underline-offset-2 hover:underline"
+            >
+              {resultUrl}
+            </a>
+          </div>
+        ) : null}
       </div>
-
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-
-      {resultUrl ? (
-        <div className="mt-4 space-y-2">
-          <img
-            src={resultUrl}
-            alt="uploaded"
-            className="w-full rounded-xl border border-slate-200"
-          />
-          <a
-            href={resultUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="break-all text-sm text-blue-600 underline"
-          >
-            {resultUrl}
-          </a>
-        </div>
-      ) : null}
     </section>
   );
 }

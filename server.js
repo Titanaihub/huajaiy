@@ -4,10 +4,24 @@ const cors = require("cors");
 const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const path = require("path");
+const {
+  PRIZES,
+  CARD_COUNT,
+  createSession,
+  flip: flipGame,
+  abandonSession
+} = require("./gameSession");
+const { router: authRouter } = require("./authRouter");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
 app.use(express.json());
+app.use("/api/auth", authRouter);
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: "1h"
@@ -35,6 +49,70 @@ app.get("/health", (_req, res) => {
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, message: "API is running" });
+});
+
+/** ข้อมูลกติกาเกมโดยไม่สร้าง session — ให้ฝั่งเว็บเช็กหัวใจก่อนเรียก start */
+app.get("/api/game/meta", (_req, res) => {
+  try {
+    const heartCost = Number(process.env.GAME_HEART_COST || 0);
+    return res.json({
+      ok: true,
+      heartCost,
+      cardCount: CARD_COUNT,
+      prizes: PRIZES
+    });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เริ่มรอบเกม — สุ่มกระดานฝั่งเซิร์ฟเวอร์ */
+app.post("/api/game/start", (req, res) => {
+  try {
+    const heartCost = Number(process.env.GAME_HEART_COST || 0);
+    const sessionId = createSession();
+    return res.json({
+      ok: true,
+      sessionId,
+      cardCount: CARD_COUNT,
+      prizes: PRIZES,
+      heartCost
+    });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เปิดป้ายหนึ่งใบ — ค่าใต้ป้ายอยู่ที่เซิร์ฟเวอร์เท่านั้น */
+app.post("/api/game/flip", (req, res) => {
+  try {
+    const { sessionId, index } = req.body || {};
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
+    }
+    const idx = Number(index);
+    const result = flipGame(sessionId, idx);
+    if (!result.ok) {
+      return res.status(400).json(result);
+    }
+    return res.json(result);
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ยกเลิกรอบเกม (เช่น หักหัวใจไม่สำเร็จหลัง start) */
+app.post("/api/game/abandon", (req, res) => {
+  try {
+    const { sessionId } = req.body || {};
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
+    }
+    const removed = abandonSession(sessionId);
+    return res.json({ ok: true, removed });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 app.post("/upload", upload.single("image"), async (req, res) => {

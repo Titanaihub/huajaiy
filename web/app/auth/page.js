@@ -29,9 +29,16 @@ export default function AuthPage() {
       <Link href="/" className="text-sm text-blue-600 underline">
         ← กลับหน้าแรก
       </Link>
-      <h1 className="mt-4 text-lg font-semibold">เข้าสู่ระบบ (ทดสอบ)</h1>
+      <h1 className="mt-4 text-lg font-semibold">เข้าสู่ระบบด้วยโซเชียล (ขั้นตอนหลัง)</h1>
       <p className="mt-1 text-sm text-slate-600">
-        ใช้เมื่อตั้งค่า Meta/LINE ครบแล้ว — ไม่บังคับสำหรับการอัปโหลดรูป
+        LINE / Facebook — ตั้งค่าใน Meta/LINE และ env บน Render เมื่อพร้อม · บัญชีสมาชิกแบบยูสเซอร์/รหัสผ่านใช้ที่{" "}
+        <Link href="/register" className="text-blue-600 underline">
+          สมัครสมาชิก
+        </Link>{" "}
+        /{" "}
+        <Link href="/login" className="text-blue-600 underline">
+          เข้าสู่ระบบ
+        </Link>
       </p>
 
       <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">

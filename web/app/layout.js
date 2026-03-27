@@ -1,4 +1,14 @@
 import "./globals.css";
+import { Sarabun } from "next/font/google";
+import HeartsProvider from "../components/HeartsProvider";
+import MemberAuthProvider from "../components/MemberAuthProvider";
+
+const sarabun = Sarabun({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "thai"],
+  display: "swap",
+  variable: "--font-sarabun"
+});
 
 export const metadata = {
   title: "HUAJAIY",
@@ -23,8 +33,14 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="th">
-      <body className="min-h-screen bg-slate-50">{children}</body>
+    <html lang="th" className={sarabun.variable}>
+      <body
+        className={`${sarabun.className} min-h-screen bg-slate-50 text-slate-900 antialiased`}
+      >
+        <MemberAuthProvider>
+          <HeartsProvider>{children}</HeartsProvider>
+        </MemberAuthProvider>
+      </body>
     </html>
   );
 }

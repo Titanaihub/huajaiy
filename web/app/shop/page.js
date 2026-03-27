@@ -15,7 +15,7 @@ export default function ShopPage() {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-xl font-semibold text-slate-900">ร้านค้า</h1>
         <p className="mt-2 text-sm text-slate-600">
-          ตัวอย่างสินค้าและการแถมหัวใจ — ต่อ API / ตะกร้า / ชำระเงินในขั้นถัดไป
+          ตัวอย่างสินค้า — กดรับหัวใจสาธิตเพื่อไปใช้เล่นเกม (เก็บในเบราว์เซอร์) ต่อ API / ชำระเงินจริงในขั้นถัดไป
         </p>
         <ProductGrid />
         <p className="mt-6 text-xs text-slate-500">

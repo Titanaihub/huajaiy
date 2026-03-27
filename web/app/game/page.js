@@ -18,9 +18,17 @@ export default function GamePage() {
           โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง
         </p>
         <FlipGameDemo />
-        <Link href="/" className="mt-8 inline-block text-sm text-blue-600 underline">
-          ← หน้าแรก
-        </Link>
+        <div className="mt-8 flex flex-wrap gap-4 text-sm">
+          <Link href="/" className="text-blue-600 underline hover:text-blue-800">
+            ← หน้าแรก
+          </Link>
+          <Link href="/shop" className="text-blue-600 underline hover:text-blue-800">
+            ร้านค้า
+          </Link>
+          <Link href="/cart" className="text-blue-600 underline hover:text-blue-800">
+            ตะกร้า
+          </Link>
+        </div>
       </main>
       <SiteFooter />
     </>

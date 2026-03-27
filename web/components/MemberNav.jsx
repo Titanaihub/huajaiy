@@ -1,0 +1,52 @@
+"use client";
+
+import Link from "next/link";
+import { useMemberAuth } from "./MemberAuthProvider";
+
+export default function MemberNav() {
+  const { user, loading, logout } = useMemberAuth();
+
+  if (loading) {
+    return (
+      <span className="text-xs font-medium text-slate-400" aria-live="polite">
+        …
+      </span>
+    );
+  }
+
+  if (user) {
+    const label = `${user.firstName} ${user.lastName}`.trim() || user.username;
+    return (
+      <span className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="max-w-[140px] truncate text-sm font-medium text-slate-800" title={label}>
+          {label}
+        </span>
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+        >
+          ออกจากระบบ
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex flex-wrap items-center gap-2 text-sm">
+      <Link
+        href="/register"
+        className="font-medium text-slate-600 transition hover:text-brand-800"
+      >
+        สมัครสมาชิก
+      </Link>
+      <span className="text-slate-300">|</span>
+      <Link
+        href="/login"
+        className="font-medium text-slate-600 transition hover:text-brand-800"
+      >
+        เข้าสู่ระบบ
+      </Link>
+    </span>
+  );
+}
