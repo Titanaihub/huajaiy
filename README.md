@@ -2,6 +2,10 @@
 
 Node.js Express API for uploading images to Cloudinary, deployable on Render.
 
+## Frontend (Next.js)
+
+A lightweight Next.js + Tailwind frontend is available in `web/` for Vercel deploy.
+
 ## 1) Local run
 
 1. Copy `.env.example` to `.env`
