@@ -4,7 +4,17 @@ Node.js Express API for uploading images to Cloudinary, deployable on Render.
 
 ## Frontend (Next.js)
 
-A lightweight Next.js + Tailwind frontend is available in `web/` for Vercel deploy.
+Folder `web/` — deploy on Render as a second Web Service (root directory `web`).
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Home + image upload (no login required) |
+| `/shop` | Shop placeholder |
+| `/game` | Game placeholder |
+| `/auth` | Optional Facebook/LINE login (NextAuth) |
+| `/privacy`, `/terms`, `/data-deletion` | Legal pages for Meta etc. |
+
+API service (`server.js`): `POST /upload` to Cloudinary at `api.*` or same host.
 
 ## 1) Local run
 

@@ -1,9 +1,8 @@
 import "./globals.css";
-import Providers from "./providers";
 
 export const metadata = {
-  title: "HUAJAIY Mini Upload",
-  description: "Fast lightweight uploader for LINE/FB mini app use",
+  title: "HUAJAIY",
+  description: "แพลตฟอร์มเบา โหลดไว — ร้านค้า เกม และอัปโหลดรูป",
   openGraph: {
     title: "HUAJAIY Mini Upload",
     description: "อัปโหลดรูปไว ใช้สะดวกบนมือถือ",
@@ -25,9 +24,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="th">
-      <body>
-        <Providers>{children}</Providers>
-      </body>
+      <body className="min-h-screen bg-slate-50">{children}</body>
     </html>
   );
 }

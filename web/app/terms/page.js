@@ -1,3 +1,6 @@
+import SiteFooter from "../../components/SiteFooter";
+import SiteHeader from "../../components/SiteHeader";
+
 export const metadata = {
   title: "ข้อกำหนดการให้บริการ | HUAJAIY",
   description: "ข้อกำหนดและเงื่อนไขการใช้บริการ HUAJAIY"
@@ -5,7 +8,9 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-4 py-8 text-slate-800">
+    <>
+      <SiteHeader />
+      <main className="mx-auto min-h-screen max-w-2xl px-4 py-8 text-slate-800">
       <h1 className="text-xl font-semibold text-slate-900">
         ข้อกำหนดการให้บริการ (Terms of Service)
       </h1>
@@ -90,5 +95,7 @@ export default function TermsPage() {
         หน้านี้เป็นข้อความตัวอย่างเพื่อใช้งานเบื้องต้น ควรให้ที่ปรึกษากฎหมายตรวจทานก่อนใช้งานเชิงพาณิชย์
       </p>
     </main>
+      <SiteFooter />
+    </>
   );
 }
