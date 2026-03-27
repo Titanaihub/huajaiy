@@ -15,6 +15,7 @@
    - **API (`huajaiy-api`)**  
      - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`  
      - `JWT_SECRET` — อย่างน้อย 16 ตัว (สำหรับสมาชิกสมัคร/ล็อกอิน)  
+     - **`DATABASE_URL`** — จาก PostgreSQL บน Render (แนะนำ production) — ถ้าไม่ใส่ สมาชิกใช้ไฟล์ `data/users.json` และออเดอร์บน DB จะไม่ทำงาน  
      - (ไม่บังคับ) `GAME_HEART_COST` — ถ้าตั้ง ต้องมีหัวใจพอในเบราว์เซอร์ก่อนเล่นเกม API
 5. **Deploy** ให้ API ขึ้นก่อน → คัดลอก **URL สาธารณะ** ของ API (เช่น `https://huajaiy-api.onrender.com`)
 6. เปิด service **`huajaiy-web`** → **Environment** → ตั้ง  
@@ -36,7 +37,7 @@
 | `/shop` | Demo product grid (mock data) |
 | `/shop/[id]` | Product detail (static params from mock) |
 | `/cart` | Demo cart + mock checkout (hearts grant) |
-| `/orders` | Mock order history (localStorage) |
+| `/orders` | ประวัติในเครื่อง + ออเดอร์จาก PostgreSQL (เมื่อล็อกอินและมี `DATABASE_URL`) |
 | `/game` | Flip-card demo (12 tiles, collect-first win) |
 | `/register` | สมัครสมาชิก (ชื่อ–นามสกุลไทย, เบอร์, ยูสเซอร์, รหัสผ่าน) |
 | `/login` | เข้าสู่ระบบสมาชิก |
@@ -68,6 +69,8 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 - `POST /api/auth/register` — สมัครสมาชิก (body JSON)
 - `POST /api/auth/login`
 - `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>`
+- `POST /api/orders` — บันทึกออเดอร์ (Bearer + body JSON)
+- `GET /api/orders/me` — รายการออเดอร์ของผู้ใช้ (Bearer)
 - `GET /api/game/meta`
 - `POST /api/game/start`, `POST /api/game/flip`, `POST /api/game/abandon`
 

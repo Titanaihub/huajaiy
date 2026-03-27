@@ -11,6 +11,7 @@ import {
 } from "../lib/cart";
 import { mockProducts } from "../lib/mockProducts";
 import { addOrder } from "../lib/orderHistory";
+import { postServerOrder } from "../lib/ordersApi";
 import { useHearts } from "./HeartsProvider";
 
 function resolveProduct(id) {
@@ -47,18 +48,28 @@ export default function CartContents() {
     return { price, hearts };
   }, [rows]);
 
-  function checkoutDemo() {
+  async function checkoutDemo() {
     if (rows.length === 0) return;
+    const items = rows.map(({ line, product }) => ({
+      name: product.name,
+      qty: line.qty,
+      lineSubtotal: product.price * line.qty,
+      hearts: product.hearts * line.qty
+    }));
     addOrder({
       totalPrice: totals.price,
       hearts: totals.hearts,
-      items: rows.map(({ line, product }) => ({
-        name: product.name,
-        qty: line.qty,
-        lineSubtotal: product.price * line.qty,
-        hearts: product.hearts * line.qty
-      }))
+      items
     });
+    try {
+      await postServerOrder({
+        totalPrice: totals.price,
+        heartsGranted: totals.hearts,
+        items
+      });
+    } catch {
+      /* ไม่มี DB หรือยังไม่ล็อกอิน — ใช้ประวัติในเครื่องอย่างเดียว */
+    }
     addHearts(totals.hearts);
     clearCart();
     setDoneMsg(

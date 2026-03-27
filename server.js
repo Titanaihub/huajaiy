@@ -12,6 +12,8 @@ const {
   abandonSession
 } = require("./gameSession");
 const { router: authRouter } = require("./authRouter");
+const { router: ordersRouter } = require("./ordersRouter");
+const { initDb } = require("./db/init");
 
 const app = express();
 app.use(
@@ -166,6 +168,16 @@ app.post("/upload", upload.single("image"), async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
+async function start() {
+  try {
+    await initDb();
+  } catch (e) {
+    console.error("[db] init failed:", e.message);
+    process.exit(1);
+  }
+  app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+  });
+}
+
+start();

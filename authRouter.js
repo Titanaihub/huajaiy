@@ -5,7 +5,7 @@ const {
   validateRegisterBody,
   validateLoginBody
 } = require("./authValidators");
-const userStore = require("./userStore");
+const userService = require("./services/userService");
 
 function getJwtSecret() {
   const s = process.env.JWT_SECRET;
@@ -46,7 +46,7 @@ function authMiddleware(req, res, next) {
 
 const router = express.Router();
 
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     const parsed = validateRegisterBody(req.body || {});
     if (!parsed.ok) {
@@ -54,7 +54,7 @@ router.post("/register", (req, res) => {
     }
     const { firstName, lastName, phone, username, password } = parsed.data;
     const passwordHash = bcrypt.hashSync(password, 10);
-    const user = userStore.createUser({
+    const user = await userService.createUser({
       username,
       passwordHash,
       firstName,
@@ -65,7 +65,7 @@ router.post("/register", (req, res) => {
     return res.json({
       ok: true,
       token,
-      user: userStore.publicUser(user)
+      user: userService.publicUser(user)
     });
   } catch (e) {
     if (e.code === "USERNAME_TAKEN") {
@@ -75,14 +75,14 @@ router.post("/register", (req, res) => {
   }
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const parsed = validateLoginBody(req.body || {});
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
     }
     const { username, password } = parsed.data;
-    const user = userStore.findByUsername(username);
+    const user = await userService.findByUsername(username);
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
       return res.status(401).json({
         ok: false,
@@ -93,20 +93,20 @@ router.post("/login", (req, res) => {
     return res.json({
       ok: true,
       token,
-      user: userStore.publicUser(user)
+      user: userService.publicUser(user)
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-router.get("/me", authMiddleware, (req, res) => {
+router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const user = userStore.findById(req.userId);
+    const user = await userService.findById(req.userId);
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
-    return res.json({ ok: true, user: userStore.publicUser(user) });
+    return res.json({ ok: true, user: userService.publicUser(user) });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

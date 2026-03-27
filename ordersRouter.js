@@ -1,0 +1,44 @@
+const express = require("express");
+const { authMiddleware } = require("./authRouter");
+const orderService = require("./services/orderService");
+
+const router = express.Router();
+
+router.post("/", authMiddleware, async (req, res) => {
+  try {
+    const { totalPrice, heartsGranted, items } = req.body || {};
+    const order = await orderService.createOrder(req.userId, {
+      totalPrice,
+      heartsGranted,
+      items
+    });
+    return res.json({ ok: true, order });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "ยังไม่ได้เชื่อม PostgreSQL — ตั้ง DATABASE_URL บน API แล้ว deploy ใหม่"
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const orders = await orderService.listOrdersByUserId(req.userId);
+    return res.json({ ok: true, orders });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "ยังไม่ได้เชื่อม PostgreSQL — ตั้ง DATABASE_URL บน API แล้ว deploy ใหม่"
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+module.exports = { router };

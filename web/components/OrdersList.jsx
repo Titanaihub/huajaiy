@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getOrders, subscribeOrders } from "../lib/orderHistory";
+import { fetchServerOrders } from "../lib/ordersApi";
 
 function formatThaiDate(ts) {
   try {
@@ -15,55 +16,145 @@ function formatThaiDate(ts) {
 }
 
 export default function OrdersList() {
-  const [orders, setOrders] = useState([]);
+  const [localOrders, setLocalOrders] = useState([]);
+  const [serverOrders, setServerOrders] = useState([]);
+  const [serverNote, setServerNote] = useState(null);
 
   useEffect(() => {
-    setOrders(getOrders());
-    return subscribeOrders(() => setOrders(getOrders()));
+    setLocalOrders(getOrders());
+    return subscribeOrders(() => setLocalOrders(getOrders()));
   }, []);
 
-  if (orders.length === 0) {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetchServerOrders();
+      if (cancelled) return;
+      if (res.ok && res.orders?.length) {
+        setServerOrders(res.orders);
+      }
+      if (res.error) {
+        setServerNote(res.error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const hasLocal = localOrders.length > 0;
+  const hasServer = serverOrders.length > 0;
+
+  if (!hasLocal && !hasServer) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
-        ยังไม่มีออเดอร์สาธิต — ไปที่ตะกร้าแล้วยืนยันออเดอร์เพื่อบันทึกในประวัติ
-      </p>
+      <div className="space-y-4">
+        <p className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+          ยังไม่มีออเดอร์ — ไปที่ตะกร้าแล้วยืนยันออเดอร์เพื่อบันทึกในประวัติ
+        </p>
+        {serverNote ? (
+          <p className="text-center text-xs text-amber-700">{serverNote}</p>
+        ) : null}
+      </div>
     );
   }
 
   return (
-    <ul className="space-y-4">
-      {orders.map((o) => (
-        <li
-          key={o.id}
-          className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-2">
-            <span className="font-mono text-xs text-slate-500">{o.id}</span>
-            <time className="text-xs text-slate-500" dateTime={new Date(o.at).toISOString()}>
-              {formatThaiDate(o.at)}
-            </time>
-          </div>
-          <ul className="mt-3 space-y-1 text-slate-700">
-            {(o.items || []).map((it, i) => (
-              <li key={i}>
-                {it.name} × {it.qty}{" "}
-                <span className="text-slate-500">
-                  (฿{it.lineSubtotal?.toLocaleString("th-TH") ?? "—"})
-                </span>
+    <div className="space-y-8">
+      {hasServer ? (
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            ออเดอร์บนเซิร์ฟเวอร์ (PostgreSQL)
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            จำลองออเดอร์จริงเมื่อล็อกอินและ API มี DATABASE_URL
+          </p>
+          <ul className="mt-3 space-y-4">
+            {serverOrders.map((o) => (
+              <li
+                key={o.id}
+                className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm shadow-sm"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-brand-100 pb-2">
+                  <span className="font-mono text-xs text-slate-600">{o.id}</span>
+                  <time
+                    className="text-xs text-slate-500"
+                    dateTime={new Date(o.createdAt).toISOString()}
+                  >
+                    {formatThaiDate(o.createdAt)}
+                  </time>
+                </div>
+                <ul className="mt-3 space-y-1 text-slate-700">
+                  {(o.items || []).map((it, i) => (
+                    <li key={i}>
+                      {it.name} × {it.qty}{" "}
+                      <span className="text-slate-500">
+                        (฿{Number(it.lineSubtotal).toLocaleString("th-TH")})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-brand-100 pt-2 text-slate-800">
+                  <span>ยอดรวม</span>
+                  <span className="font-semibold">
+                    ฿{Number(o.totalPrice).toLocaleString("th-TH")}
+                  </span>
+                </div>
+                <p className="mt-1 text-right text-rose-800">
+                  แถมหัวใจ ♥ {Number(o.heartsGranted).toLocaleString("th-TH")}
+                </p>
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-slate-100 pt-2 text-slate-800">
-            <span>ยอดรวม</span>
-            <span className="font-semibold">
-              ฿{Number(o.totalPrice).toLocaleString("th-TH")}
-            </span>
-          </div>
-          <p className="mt-1 text-right text-rose-800">
-            แถมหัวใจ ♥ {Number(o.hearts).toLocaleString("th-TH")}
+        </div>
+      ) : null}
+
+      {hasLocal ? (
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            ประวัติในเครื่อง (สาธิต)
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            เก็บในเบราว์เซอร์ — ไม่ต้องล็อกอิน
           </p>
-        </li>
-      ))}
-    </ul>
+          <ul className="mt-3 space-y-4">
+            {localOrders.map((o) => (
+              <li
+                key={o.id}
+                className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-2">
+                  <span className="font-mono text-xs text-slate-500">{o.id}</span>
+                  <time
+                    className="text-xs text-slate-500"
+                    dateTime={new Date(o.at).toISOString()}
+                  >
+                    {formatThaiDate(o.at)}
+                  </time>
+                </div>
+                <ul className="mt-3 space-y-1 text-slate-700">
+                  {(o.items || []).map((it, i) => (
+                    <li key={i}>
+                      {it.name} × {it.qty}{" "}
+                      <span className="text-slate-500">
+                        (฿{it.lineSubtotal?.toLocaleString("th-TH") ?? "—"})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-slate-100 pt-2 text-slate-800">
+                  <span>ยอดรวม</span>
+                  <span className="font-semibold">
+                    ฿{Number(o.totalPrice).toLocaleString("th-TH")}
+                  </span>
+                </div>
+                <p className="mt-1 text-right text-rose-800">
+                  แถมหัวใจ ♥ {Number(o.hearts).toLocaleString("th-TH")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }

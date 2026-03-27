@@ -24,6 +24,9 @@ services:
       # JWT สมาชิก (สมัคร/ล็อกอิน) — อย่างน้อย 16 ตัว
       - key: JWT_SECRET
         sync: false
+      # จาก PostgreSQL บน Render (แนะนำ) — สร้าง DB แล้วคัดลอก Internal Database URL
+      - key: DATABASE_URL
+        sync: false
       # ไม่บังคับ: หักหัวใจต่อรอบเกม (ต้องตรงกับที่เว็บคาดไว้)
       - key: GAME_HEART_COST
         sync: false
