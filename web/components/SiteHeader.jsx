@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLogo from "./BrandLogo";
 import CartBadge from "./CartBadge";
 import HeartsBadge from "./HeartsBadge";
 import MemberNav from "./MemberNav";
@@ -8,17 +9,10 @@ const navClass =
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-brand-100/90 bg-white/90 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <Link href="/" className="group flex flex-col leading-tight">
-            <span className="text-lg font-bold tracking-tight text-slate-900 transition group-hover:text-brand-800">
-              HUAJAIY
-            </span>
-            <span className="hidden text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 sm:block">
-              Commerce · Game · Media
-            </span>
-          </Link>
+          <BrandLogo />
           <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
             <HeartsBadge />
             <CartBadge />

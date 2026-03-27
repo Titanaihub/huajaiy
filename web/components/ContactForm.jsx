@@ -105,14 +105,14 @@ export default function ContactForm() {
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {done ? (
-        <p className="text-sm text-emerald-700">
+        <p className="text-sm text-brand-700">
           ส่งข้อความแล้ว — เราจะติดต่อกลับตามช่องทางที่เหมาะสม (ขณะนี้บันทึกในระบบเว็บไซต์)
         </p>
       ) : null}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-60"
       >
         {loading ? "กำลังส่ง..." : "ส่งข้อความ"}
       </button>

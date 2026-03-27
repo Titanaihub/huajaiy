@@ -94,24 +94,24 @@ export default function CartContents() {
   return (
     <div className="space-y-4">
       {doneMsg ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
           {doneMsg}
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
               href="/game"
-              className="rounded-lg bg-emerald-800 px-3 py-1.5 text-white hover:bg-emerald-900"
+              className="rounded-lg bg-brand-800 px-3 py-1.5 text-white hover:bg-brand-900"
             >
               ไปเล่นเกม
             </Link>
             <Link
               href="/shop"
-              className="rounded-lg border border-emerald-300 px-3 py-1.5 text-emerald-900 hover:bg-emerald-100"
+              className="rounded-lg border border-brand-300 px-3 py-1.5 text-brand-900 hover:bg-brand-100"
             >
               ช้อปต่อ
             </Link>
             <Link
               href="/orders"
-              className="rounded-lg border border-emerald-300 px-3 py-1.5 text-emerald-900 hover:bg-emerald-100"
+              className="rounded-lg border border-brand-300 px-3 py-1.5 text-brand-900 hover:bg-brand-100"
             >
               ดูประวัติออเดอร์
             </Link>
@@ -176,7 +176,7 @@ export default function CartContents() {
           <button
             type="button"
             onClick={checkoutDemo}
-            className="mt-4 w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-4 w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900"
           >
             ยืนยันออเดอร์ (สาธิต — ยังไม่ชำระเงินจริง)
           </button>

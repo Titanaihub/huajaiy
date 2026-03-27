@@ -286,7 +286,7 @@ export default function FlipGameDemo() {
         </p>
         <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
           {mode === "api" ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">
+            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800">
               เชื่อม API — ค่าใต้ป้ายอยู่ที่เซิร์ฟเวอร์
             </span>
           ) : (
@@ -343,15 +343,15 @@ export default function FlipGameDemo() {
       </div>
 
       {winner ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-          <p className="font-semibold text-emerald-900">
+        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-center">
+          <p className="font-semibold text-brand-900">
             รางวัล: {winner.emoji} {winner.label}
           </p>
           <button
             type="button"
             onClick={reset}
             disabled={busy}
-            className="mt-3 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-3 rounded-xl bg-brand-800 px-4 py-2 text-sm font-medium text-white hover:bg-brand-900 disabled:opacity-50"
           >
             เล่นรอบใหม่ (สุ่มกระดานใหม่)
           </button>

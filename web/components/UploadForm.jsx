@@ -86,8 +86,8 @@ export default function UploadForm() {
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-soft">
-      <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-6 py-4 md:px-8">
+    <section className="overflow-hidden rounded-2xl border border-brand-100/90 bg-white shadow-soft">
+      <div className="border-b border-brand-100/80 bg-gradient-to-r from-brand-50/90 to-white px-6 py-4 md:px-8">
         <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
         <p className="mt-1 text-sm text-slate-600">
           บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน

@@ -51,7 +51,7 @@ export default function ProductGrid() {
             <button
               type="button"
               onClick={() => putInCart(p)}
-              className="w-full rounded-xl bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              className="w-full rounded-xl bg-brand-800 py-2 text-sm font-medium text-white hover:bg-brand-900"
             >
               ใส่ตะกร้า
             </button>
@@ -64,7 +64,7 @@ export default function ProductGrid() {
             </button>
           </div>
           {lastId === p.id ? (
-            <p className="mt-2 text-center text-xs text-emerald-700">+{p.hearts} ♥ แล้ว</p>
+            <p className="mt-2 text-center text-xs text-brand-700">+{p.hearts} ♥ แล้ว</p>
           ) : null}
           {lastId === `cart-${p.id}` ? (
             <p className="mt-2 text-center text-xs text-blue-700">ใส่ตะกร้าแล้ว</p>

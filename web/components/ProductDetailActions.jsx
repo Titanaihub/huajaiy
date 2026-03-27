@@ -24,7 +24,7 @@ export default function ProductDetailActions({ product }) {
         <button
           type="button"
           onClick={putInCart}
-          className="flex-1 rounded-xl bg-slate-900 py-3 text-sm font-medium text-white hover:bg-slate-800"
+          className="flex-1 rounded-xl bg-brand-800 py-3 text-sm font-medium text-white hover:bg-brand-900"
         >
           ใส่ตะกร้า
         </button>
@@ -40,7 +40,7 @@ export default function ProductDetailActions({ product }) {
         <p className="text-center text-xs text-blue-700">ใส่ตะกร้าแล้ว</p>
       ) : null}
       {hint === "hearts" ? (
-        <p className="text-center text-xs text-emerald-700">
+        <p className="text-center text-xs text-brand-700">
           +{product.hearts} ♥ แล้ว
         </p>
       ) : null}

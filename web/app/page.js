@@ -37,7 +37,7 @@ export default function HomePage() {
       <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-8 md:pt-12">
         <section className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-8 shadow-soft md:p-10">
           <div
-            className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-brand-100/90 to-teal-50 blur-3xl"
+            className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-brand-100/90 to-brand-50 blur-3xl"
             aria-hidden
           />
           <div className="relative">
