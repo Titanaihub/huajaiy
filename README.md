@@ -15,7 +15,9 @@ npm start
 
 ## 2) API endpoint
 
-- `GET /` health check
+- `GET /` lightweight upload web page
+- `GET /health` health check
+- `GET /api/health` health check
 - `POST /upload` upload single file with field name `image`
 
 Example with curl:
@@ -23,6 +25,12 @@ Example with curl:
 ```bash
 curl -X POST http://localhost:3000/upload \
   -F "image=@C:/path/to/your/image.jpg"
+```
+
+Open lightweight web uploader:
+
+```bash
+http://localhost:3000/
 ```
 
 ## 3) Cloudinary setup

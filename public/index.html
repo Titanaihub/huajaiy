@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HUAJAIY Upload</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #f7f7fb;
+        color: #171717;
+      }
+      .wrap {
+        max-width: 560px;
+        margin: 24px auto;
+        padding: 0 12px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #ececf4;
+        border-radius: 14px;
+        padding: 16px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+      }
+      p {
+        margin: 0 0 12px;
+        color: #555;
+        font-size: 14px;
+      }
+      .row {
+        display: grid;
+        gap: 10px;
+      }
+      input[type="file"],
+      button {
+        width: 100%;
+        border-radius: 10px;
+        min-height: 44px;
+        border: 1px solid #d8d8e4;
+        background: #fff;
+      }
+      button {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .hint {
+        font-size: 12px;
+        color: #666;
+      }
+      .status {
+        margin-top: 12px;
+        font-size: 13px;
+        word-break: break-word;
+      }
+      .ok {
+        color: #0a7a35;
+      }
+      .err {
+        color: #b42318;
+      }
+      .preview {
+        display: none;
+        margin-top: 12px;
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #ececf4;
+      }
+      a {
+        color: #1947e5;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>อัปโหลดรูป</h1>
+        <p>หน้าแบบเบา โหลดไว เหมาะกับมือถือ/ลิงก์จาก LINE และ Facebook</p>
+        <div class="row">
+          <input id="file" type="file" accept="image/*" />
+          <button id="uploadBtn" type="button">อัปโหลด</button>
+          <div class="hint">รองรับไฟล์ภาพเท่านั้น (ไม่เกิน 10MB)</div>
+        </div>
+        <div id="status" class="status"></div>
+        <img id="preview" class="preview" alt="preview" />
+      </section>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById("file");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const statusEl = document.getElementById("status");
+      const previewEl = document.getElementById("preview");
+
+      function setStatus(text, isError) {
+        statusEl.className = "status " + (isError ? "err" : "ok");
+        statusEl.textContent = text;
+      }
+
+      uploadBtn.addEventListener("click", async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          setStatus("กรุณาเลือกรูปก่อนอัปโหลด", true);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        uploadBtn.disabled = true;
+        setStatus("กำลังอัปโหลด...", false);
+
+        try {
+          const res = await fetch("/upload", {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || "Upload failed");
+          }
+
+          setStatus("อัปโหลดสำเร็จ", false);
+          previewEl.src = data.publicUrl;
+          previewEl.style.display = "block";
+          statusEl.innerHTML =
+            'อัปโหลดสำเร็จ: <a href="' +
+            data.publicUrl +
+            '" target="_blank" rel="noreferrer">เปิดรูป</a>';
+        } catch (err) {
+          setStatus("อัปโหลดไม่สำเร็จ: " + err.message, true);
+          previewEl.style.display = "none";
+        } finally {
+          uploadBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
