@@ -54,13 +54,17 @@ function buildProviders() {
   return list;
 }
 
+const authSecret =
+  process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "";
+
 export const authOptions = {
   providers: buildProviders(),
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: authSecret,
+  debug: process.env.NEXTAUTH_DEBUG === "1",
   callbacks: {
     async jwt({ token, account }) {
       if (account) {
