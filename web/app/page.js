@@ -11,7 +11,20 @@ export default function HomePage() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authError, setAuthError] = useState("");
   const [resultUrl, setResultUrl] = useState("");
+
+  async function handleSignIn(provider) {
+    setAuthError("");
+    const result = await signIn(provider, { callbackUrl: "/", redirect: false });
+    if (result?.error) {
+      setAuthError(
+        "เข้าสู่ระบบไม่สำเร็จ ตรวจสอบว่าใส่ Client ID/Secret ใน Render แล้ว และ Callback URL ใน Meta/LINE ตรงกับโดเมนนี้"
+      );
+    } else if (result?.url) {
+      window.location.href = result.url;
+    }
+  }
 
   function loadImage(fileBlob) {
     return new Promise((resolve, reject) => {
@@ -139,7 +152,7 @@ export default function HomePage() {
               <button
                 type="button"
                 className="rounded-xl bg-[#1877F2] px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
-                onClick={() => signIn("facebook")}
+                onClick={() => handleSignIn("facebook")}
                 disabled={status === "loading"}
               >
                 Facebook
@@ -147,7 +160,7 @@ export default function HomePage() {
               <button
                 type="button"
                 className="rounded-xl bg-[#06C755] px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
-                onClick={() => signIn("line")}
+                onClick={() => handleSignIn("line")}
                 disabled={status === "loading"}
               >
                 LINE
@@ -162,6 +175,9 @@ export default function HomePage() {
               </button>
             </div>
           )}
+          {authError ? (
+            <p className="mt-2 text-xs text-red-600">{authError}</p>
+          ) : null}
         </div>
 
         <div className="mt-4 space-y-3">
