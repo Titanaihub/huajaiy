@@ -1,10 +1,11 @@
 import Link from "next/link";
-import SiteHeader from "../../components/SiteHeader";
+import FlipGameDemo from "../../components/FlipGameDemo";
 import SiteFooter from "../../components/SiteFooter";
+import SiteHeader from "../../components/SiteHeader";
 
 export const metadata = {
   title: "เกมเปิดป้าย | HUAJAIY",
-  description: "เกมสะสมภาพ — กำลังพัฒนา"
+  description: "เกมสะสมภาพ — ตัวอย่างฝั่งเบราว์เซอร์"
 };
 
 export default function GamePage() {
@@ -12,17 +13,12 @@ export default function GamePage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-xl font-semibold text-slate-900">เกมเปิดป้าย</h1>
+        <h1 className="text-xl font-semibold text-slate-900">เกมเปิดป้าย (สาธิต)</h1>
         <p className="mt-2 text-sm text-slate-600">
-          โครงหน้าเตรียมไว้ — จะเชื่อมกติกา 2 โหมด (เปิดเจอได้ทันที / สะสมครบก่อน) กับ API
-          ในขั้นถัดไป
+          โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง
         </p>
-        <ul className="mt-4 list-inside list-disc text-sm text-slate-700">
-          <li>กระดานป้าย / รอบการเล่น</li>
-          <li>รางวัลสิ่งของ / เงินสด + การอนุมัติ</li>
-          <li>ห้องแจกแต้ม (เจ้าของห้องกำหนดแต้มต่อคน)</li>
-        </ul>
-        <Link href="/" className="mt-6 inline-block text-sm text-blue-600 underline">
+        <FlipGameDemo />
+        <Link href="/" className="mt-8 inline-block text-sm text-blue-600 underline">
           ← หน้าแรก
         </Link>
       </main>

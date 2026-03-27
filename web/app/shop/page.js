@@ -1,10 +1,11 @@
 import Link from "next/link";
-import SiteHeader from "../../components/SiteHeader";
+import ProductGrid from "../../components/ProductGrid";
 import SiteFooter from "../../components/SiteFooter";
+import SiteHeader from "../../components/SiteHeader";
 
 export const metadata = {
   title: "ร้านค้า | HUAJAIY",
-  description: "ร้านค้าและสินค้า — กำลังพัฒนา"
+  description: "ร้านค้าและสินค้า — ตัวอย่าง"
 };
 
 export default function ShopPage() {
@@ -14,14 +15,13 @@ export default function ShopPage() {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-xl font-semibold text-slate-900">ร้านค้า</h1>
         <p className="mt-2 text-sm text-slate-600">
-          โครงหน้าเตรียมไว้ — จะเชื่อมสินค้า ราคา แต้ม/หัวใจ และออเดอร์ในขั้นถัดไป
+          ตัวอย่างสินค้าและการแถมหัวใจ — ต่อ API / ตะกร้า / ชำระเงินในขั้นถัดไป
         </p>
-        <ul className="mt-4 list-inside list-disc text-sm text-slate-700">
-          <li>รายการสินค้า / ตะกร้า</li>
-          <li>ยืนยันออเดอร์ → แจกหัวใจ/แต้ม</li>
-          <li>โค้ดแจกแต้ม (ขายนอกเว็บ)</li>
-        </ul>
-        <Link href="/" className="mt-6 inline-block text-sm text-blue-600 underline">
+        <ProductGrid />
+        <p className="mt-6 text-xs text-slate-500">
+          โค้ดแจกแต้มจากกล่องพัสดุ / ยืนยันออเดอร์ → แจกหัวใจ — ออกแบบใน API ภายหลัง
+        </p>
+        <Link href="/" className="mt-4 inline-block text-sm text-blue-600 underline">
           ← หน้าแรก
         </Link>
       </main>

@@ -9,8 +9,8 @@ Folder `web/` — deploy on Render as a second Web Service (root directory `web`
 | Route | Purpose |
 |-------|---------|
 | `/` | Home + image upload (no login required) |
-| `/shop` | Shop placeholder |
-| `/game` | Game placeholder |
+| `/shop` | Demo product grid (mock data) |
+| `/game` | Flip-card demo (12 tiles, collect-first win) |
 | `/auth` | Optional Facebook/LINE login (NextAuth) |
 | `/privacy`, `/terms`, `/data-deletion` | Legal pages for Meta etc. |
 
