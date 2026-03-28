@@ -1,0 +1,89 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useMemberAuth } from "./MemberAuthProvider";
+
+const linkBase =
+  "block rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-brand-50 hover:text-brand-900";
+const linkActive = "bg-brand-100 text-brand-900";
+const linkIdle = "text-slate-700";
+
+function NavLink({ href, children }) {
+  const pathname = usePathname();
+  const active = pathname === href || (href !== "/account" && pathname.startsWith(href));
+  return (
+    <Link href={href} className={`${linkBase} ${active ? linkActive : linkIdle}`}>
+      {children}
+    </Link>
+  );
+}
+
+export default function AccountBackOfficeShell({ children }) {
+  const { user } = useMemberAuth();
+  const isOwner = user && (user.role === "owner" || user.role === "admin");
+
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <h1 className="text-xl font-semibold text-slate-900">หลังบ้านสมาชิก</h1>
+      <p className="mt-1 text-sm text-slate-600">
+        จัดการบัญชี ออเดอร์ และข้อมูลที่เกี่ยวกับคุณ
+      </p>
+
+      <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
+        <nav
+          className="shrink-0 lg:w-56"
+          aria-label="เมนูหลังบ้านสมาชิก"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            เมนู
+          </p>
+          <ul className="mt-3 space-y-1">
+            <li>
+              <NavLink href="/account">ภาพรวม</NavLink>
+            </li>
+            <li>
+              <NavLink href="/account/profile">ข้อมูลส่วนตัว</NavLink>
+            </li>
+            <li>
+              <NavLink href="/account/orders">ออเดอร์ของฉัน</NavLink>
+            </li>
+            <li>
+              <NavLink href="/account/shops">ร้านของฉัน</NavLink>
+            </li>
+            <li className="pt-2 border-t border-slate-100">
+              <Link
+                href="/game"
+                className={`${linkBase} ${linkIdle}`}
+              >
+                เกมพลิกการ์ด
+              </Link>
+            </li>
+            {isOwner ? (
+              <li>
+                <Link
+                  href="/owner"
+                  className={`${linkBase} ${linkIdle}`}
+                >
+                  แผงเจ้าของร้าน
+                </Link>
+              </li>
+            ) : null}
+            {user?.role === "admin" ? (
+              <li>
+                <Link
+                  href="/admin"
+                  className={`${linkBase} ${linkIdle}`}
+                >
+                  แอดมิน
+                </Link>
+              </li>
+            ) : null}
+          </ul>
+        </nav>
+
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </main>
+  );
+}

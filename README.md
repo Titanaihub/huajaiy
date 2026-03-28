@@ -41,7 +41,10 @@
 | `/game` | Flip-card demo (12 tiles, collect-first win) |
 | `/register` | สมัครสมาชิก (ชื่อ–นามสกุลไทย, เบอร์, ยูสเซอร์, รหัสผ่าน) |
 | `/login` | เข้าสู่ระบบสมาชิก |
-| `/account` | บัญชีสมาชิก — แก้เพศ/วันเกิด/ที่อยู่จัดส่ง, ขอเปลี่ยนชื่อผ่านแอดมิน |
+| `/account` | หลังบ้านสมาชิก — ภาพรวม หัวใจในระบบ ออเดอร์ล่าสุด |
+| `/account/profile` | โปรไฟล์ — เพศ วันเกิด ที่อยู่จัดส่ง คำขอเปลี่ยนชื่อ |
+| `/account/orders` | ออเดอร์ของฉัน (เซิร์ฟเวอร์ + ประวัติในคอมพิวเตอร์) |
+| `/account/shops` | ร้านที่ผูกกับบัญชี |
 | `/admin` | หลังบ้านแอดมิน — รายชื่อสมาชิก, ค้นหา, รายละเอียด, คำขอเปลี่ยนชื่อ (ต้อง `role = admin`) |
 | `/auth` | Facebook/LINE (NextAuth — ขั้นตอนหลัง) |
 | `/contact` | Contact form (stored in server logs via `POST /api/inquiry`) |
@@ -78,7 +81,9 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 - `POST /upload` field `image`
 - `POST /api/auth/register` — สมัครสมาชิก (body JSON)
 - `POST /api/auth/login`
-- `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>`
+- `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>` (รวม `heartsBalance`)
+- `PATCH /api/auth/profile`, `POST /api/auth/name-change-request`, `GET /api/auth/name-change-requests/mine`
+- `GET /api/auth/shops/mine` — ร้านที่ `owner_user_id` ตรงกับผู้ใช้ (Bearer)
 - `POST /api/orders` — บันทึกออเดอร์ (Bearer + body JSON)
 - `GET /api/orders/me` — รายการออเดอร์ของผู้ใช้ (Bearer)
 - **แอดมิน** (Bearer + `users.role = 'admin'`): `GET /api/admin/members` · `GET /api/admin/members/:id` · **`GET /api/admin/members/:id/full`** (ออเดอร์ ร้าน สถิติ) · `POST /api/admin/members/:id/hearts` `{ "delta": number }` · `POST /api/admin/members/:id/password` `{ "newPassword": "..." }` · `GET /api/admin/shops` (ร้านทั้งระบบ) · `GET /api/admin/game` (กติกา รางวัล สถานะ session เกม) · `GET /api/admin/name-change-requests` · `POST .../approve|reject` · `GET /api/admin/ping` — หน้าเว็บ **`/admin`**

@@ -148,6 +148,7 @@ async function createUser({
 
 function publicUser(u) {
   if (!u) return null;
+  const hb = u.heartsBalance;
   return {
     id: u.id,
     username: u.username,
@@ -158,7 +159,9 @@ function publicUser(u) {
     gender: u.gender ?? null,
     birthDate: u.birthDate ?? null,
     shippingAddress: u.shippingAddress ?? null,
-    role: u.role || MEMBER
+    role: u.role || MEMBER,
+    heartsBalance:
+      hb == null ? 0 : Math.max(0, Math.floor(Number(hb) || 0))
   };
 }
 

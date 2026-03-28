@@ -34,7 +34,7 @@ export default function AccountProfileForm() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login?next=/account");
+      router.replace("/login?next=/account/profile");
     }
   }, [loading, user, router]);
 
@@ -112,29 +112,11 @@ export default function AccountProfileForm() {
   const isThai = (user.countryCode || "TH") === "TH";
 
   return (
-    <div className="flex flex-col gap-10 lg:flex-row">
-      <nav className="shrink-0 lg:w-52">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-          เมนูบัญชี
-        </p>
-        <ul className="mt-3 space-y-2 text-sm">
-          <li>
-            <span className="font-semibold text-brand-800">ข้อมูลส่วนตัว</span>
-          </li>
-          <li className="text-slate-400">หัวใจแดง (ร้าน) — เร็วๆ นี้</li>
-          <li className="text-slate-400">หัวใจชมพู (กลาง) — เร็วๆ นี้</li>
-          <li className="text-slate-400">ประวัติรางวัล — เร็วๆ นี้</li>
-        </ul>
-      </nav>
-
-      <div className="min-w-0 flex-1 space-y-10">
+    <div className="space-y-10">
         <section>
-          <h2 className="text-lg font-semibold text-slate-900">
-            ข้อมูลส่วนตัว
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            ชื่อ–นามสกุลในระบบแก้เองไม่ได้ — ต้องขอแอดมินในฟอร์มด้านล่าง
-          </p>
+          <h3 className="text-base font-semibold text-slate-900">
+            ข้อมูลในระบบ
+          </h3>
 
           <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
             <dl className="grid gap-2 sm:grid-cols-2">
@@ -218,9 +200,9 @@ export default function AccountProfileForm() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-slate-900">
             ขอเปลี่ยนชื่อ–นามสกุล (ผ่านแอดมิน)
-          </h2>
+          </h3>
           <p className="mt-1 text-sm text-slate-600">
             {isThai
               ? "กรอกชื่อ–นามสกุลใหม่เป็นภาษาไทยให้ถูกต้องตามบัตรประชาชน"
@@ -303,11 +285,10 @@ export default function AccountProfileForm() {
         </section>
 
         <p className="text-sm text-slate-600">
-          <Link href="/" className="text-brand-800 underline">
-            ← หน้าแรก
+          <Link href="/account" className="text-brand-800 underline">
+            ← ภาพรวมบัญชี
           </Link>
         </p>
-      </div>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export default function MemberNav() {
           href="/account"
           className="font-medium text-brand-700 transition hover:text-brand-900"
         >
-          บัญชี
+          หลังบ้าน
         </Link>
         {user.role === "admin" ? (
           <Link

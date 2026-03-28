@@ -5,7 +5,7 @@ import SiteHeader from "../../components/SiteHeader";
 
 export const metadata = {
   title: "ประวัติออเดอร์ | HUAJAIY",
-  description: "ประวัติออเดอร์สาธิต (เก็บในเบราว์เซอร์)"
+  description: "ประวัติออเดอร์ในคอมพิวเตอร์และบนเซิร์ฟเวอร์"
 };
 
 export default function OrdersPage() {
@@ -13,9 +13,13 @@ export default function OrdersPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-xl font-semibold text-slate-900">ประวัติออเดอร์ (สาธิต)</h1>
+        <h1 className="text-xl font-semibold text-slate-900">ประวัติออเดอร์</h1>
         <p className="mt-2 text-sm text-slate-600">
-          บันทึกเมื่อกดยืนยันออเดอร์ในตะกร้า — เก็บในเครื่องเท่านั้น
+          มีทั้งประวัติในคอมพิวเตอร์ (สาธิต) และออเดอร์บนเซิร์ฟเวอร์เมื่อล็อกอิน — สมาชิกใช้{" "}
+          <Link href="/account/orders" className="font-medium text-brand-800 underline hover:text-brand-950">
+            ออเดอร์ของฉัน
+          </Link>{" "}
+          ในหลังบ้านได้
         </p>
         <div className="mt-6">
           <OrdersList />

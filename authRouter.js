@@ -8,6 +8,7 @@ const {
 } = require("./authValidators");
 const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
+const shopService = require("./services/shopService");
 const {
   validateProfilePatch,
   validateNameChangeRequest
@@ -246,6 +247,16 @@ router.get("/name-change-requests/mine", authMiddleware, async (req, res) => {
   try {
     const requests = await nameChangeRequestService.listForUser(req.userId);
     return res.json({ ok: true, requests });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ร้านที่บัญชีนี้เป็นเจ้าของ — ไม่จำกัด role (สมาชิกทั่วไปได้ []) */
+router.get("/shops/mine", authMiddleware, async (req, res) => {
+  try {
+    const shops = await shopService.listByOwner(req.userId);
+    return res.json({ ok: true, shops });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

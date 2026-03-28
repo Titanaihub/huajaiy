@@ -129,3 +129,14 @@ export async function apiGetMyNameChangeRequests(token) {
   }
   return data;
 }
+
+export async function apiGetMyShops(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/shops/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดร้านของฉันไม่สำเร็จ");
+  }
+  return data;
+}
