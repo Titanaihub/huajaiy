@@ -102,6 +102,7 @@ export default function AdminCentralGamePanel() {
   const [newRedHeart, setNewRedHeart] = useState(0);
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
+  const [savingAll, setSavingAll] = useState(false);
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -232,59 +233,8 @@ export default function AdminCentralGamePanel() {
     }
   }
 
-  async function saveMeta(e) {
-    e.preventDefault();
-    if (!selectedId) return;
-    const token = getMemberToken();
-    setMsg("");
-    try {
-      const counts = setSizes
-        .slice(0, setCount)
-        .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
-      await apiAdminCentralGamePatch(token, selectedId, {
-        title,
-        setCount,
-        setImageCounts: counts,
-        tileCount: counts.reduce((a, b) => a + b, 0),
-        pinkHeartCost,
-        redHeartCost
-      });
-      setMsg("บันทึกโครงเกมแล้ว");
-      await loadList();
-      await loadDetail(selectedId);
-    } catch (e) {
-      setMsg(e.message || String(e));
-    }
-  }
-
-  async function saveImages() {
-    if (!selectedId) return;
-    const token = getMemberToken();
-    const images = [];
-    for (let s = 0; s < setCount; s += 1) {
-      const url = imageMap[`${s}-0`];
-      if (!url || String(url).startsWith("blob:")) {
-        setMsg(
-          `ชุด ${s + 1}: ยังไม่มีรูป หรือกำลังอัปโหลด — รอจนเห็นรูปในช่องแล้วค่อยกดบันทึกรูป`
-        );
-        return;
-      }
-      images.push({ setIndex: s, imageUrl: url });
-    }
-    setMsg("");
-    try {
-      await apiAdminCentralGamePutImages(token, selectedId, images, { oneImagePerSet: true });
-      setMsg("บันทึกรูปแล้ว (ชุดละ 1 ไฟล์ — ระบบคัดลอกไปทุกป้ายในชุด)");
-      await loadDetail(selectedId);
-    } catch (e) {
-      setMsg(e.message || String(e));
-    }
-  }
-
-  async function saveRules() {
-    if (!selectedId) return;
-    const token = getMemberToken();
-    const payload = rules.map((r, idx) => ({
+  function rulesPayload() {
+    return rules.map((r, idx) => ({
       setIndex: Math.floor(Number(r.setIndex)),
       needCount: Math.floor(Number(r.needCount)),
       prizeCategory: r.prizeCategory,
@@ -298,13 +248,119 @@ export default function AdminCentralGamePanel() {
           ? null
           : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
     }));
+  }
+
+  async function persistMeta() {
+    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+    const token = getMemberToken();
+    if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
+    const t = String(title || "").trim();
+    if (!t) throw new Error("กรุณากรอกชื่อเกม");
+    const counts = setSizes
+      .slice(0, setCount)
+      .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
+    await apiAdminCentralGamePatch(token, selectedId, {
+      title: t,
+      setCount,
+      setImageCounts: counts,
+      tileCount: counts.reduce((a, b) => a + b, 0),
+      pinkHeartCost,
+      redHeartCost
+    });
+  }
+
+  function imagesReadyForSave() {
+    for (let s = 0; s < setCount; s += 1) {
+      const url = imageMap[`${s}-0`];
+      if (!url || String(url).startsWith("blob:")) return false;
+    }
+    return true;
+  }
+
+  async function persistImages() {
+    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+    const token = getMemberToken();
+    if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
+    const images = [];
+    for (let s = 0; s < setCount; s += 1) {
+      const url = imageMap[`${s}-0`];
+      if (!url || String(url).startsWith("blob:")) {
+        throw new Error(
+          `ชุด ${s + 1}: ยังไม่มีรูปหรือกำลังอัปโหลด — รอจนเห็นรูปจากระบบแล้วค่อยบันทึกรูป`
+        );
+      }
+      images.push({ setIndex: s, imageUrl: url });
+    }
+    await apiAdminCentralGamePutImages(token, selectedId, images, { oneImagePerSet: true });
+  }
+
+  async function persistRules() {
+    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+    const token = getMemberToken();
+    if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
+    await apiAdminCentralGamePutRules(token, selectedId, rulesPayload());
+  }
+
+  async function saveMeta(e) {
+    e.preventDefault();
     setMsg("");
     try {
-      await apiAdminCentralGamePutRules(token, selectedId, payload);
+      await persistMeta();
+      setMsg("บันทึกโครงเกมแล้ว");
+      await loadList();
+      await loadDetail(selectedId);
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
+  async function saveImages() {
+    setMsg("");
+    try {
+      await persistImages();
+      setMsg("บันทึกรูปแล้ว (ชุดละ 1 ไฟล์ — ระบบคัดลอกไปทุกป้ายในชุด)");
+      await loadDetail(selectedId);
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
+  async function saveRules() {
+    setMsg("");
+    try {
+      await persistRules();
       setMsg("บันทึกกติการางวัลแล้ว");
       await loadDetail(selectedId);
     } catch (e) {
       setMsg(e.message || String(e));
+    }
+  }
+
+  /** บันทึกโครง + รูป (ถ้าครบ) + กติกา ในครั้งเดียว — ลดปัญหากดบันทึกไม่ครบขั้น */
+  async function saveAllGameData() {
+    if (!selectedId || savingAll) return;
+    setSavingAll(true);
+    setErr("");
+    setMsg("");
+    const parts = [];
+    try {
+      await persistMeta();
+      parts.push("โครง");
+      if (imagesReadyForSave()) {
+        await persistImages();
+        parts.push("รูป");
+      } else {
+        parts.push("รูปยังไม่ครบ (ข้าม)");
+      }
+      await persistRules();
+      parts.push("กติกา");
+      await loadList();
+      await loadDetail(selectedId);
+      setMsg(`บันทึกข้อมูลแล้ว — ${parts.join(" · ")}`);
+    } catch (e) {
+      setMsg(e.message || String(e));
+    } finally {
+      setSavingAll(false);
     }
   }
 
@@ -430,9 +486,9 @@ export default function AdminCentralGamePanel() {
 
   return (
     <section className="space-y-8 text-sm">
-      <p className="text-slate-600">
-        <strong>โครงกระดาน:</strong> กำหนดกี่ชุด และ<strong>แต่ละชุดมีกี่ภาพไม่จำเป็นต้องเท่ากัน</strong> (เช่น ชุด 1 มี 7 ภาพ ชุด 2 มี 5 ภาพ) — จำนวนป้ายรวม = ผลรวมภาพทุกชุด
-        · <strong>รูป:</strong> อัปโหลด<strong>ชุดละ 1 ไฟล์</strong> (ป้ายทุกใบในชุดเดียวกันใช้รูปเดียวกัน) · <strong>กติการางวัล:</strong> เรียงลำดับการตรวจ — ระบบใช้กติกาแรกที่เข้าเงื่อนไขและมีรางวัลจริงเพื่อจบรอบ
+      <p className="text-sm text-slate-600">
+        <strong>เกมส่วนกลาง:</strong> แต่ละชุดมีจำนวนป้ายได้คนละค่า · ชุดละ 1 รูป (ป้ายในชุดใช้รูปเดียวกัน) · กติกาเรียงลำดับการตรวจจนจบรอบ — ใช้ปุ่ม{" "}
+        <strong className="text-slate-800">บันทึกข้อมูล</strong> ด้านล่างฟอร์มแก้ไขเพื่อบันทึกครั้งเดียว
       </p>
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
@@ -465,30 +521,9 @@ export default function AdminCentralGamePanel() {
               className="mt-1 w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
-          <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-white p-3">
-            <p className="text-xs font-medium text-slate-700">จำนวนภาพในแต่ละชุด (ไม่ต้องเท่ากัน)</p>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-              {newSetSizes.slice(0, newSets).map((n, idx) => (
-                <div key={idx}>
-                  <label className="text-[10px] text-slate-500">ชุดที่ {idx + 1}</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={n}
-                    onChange={(e) => {
-                      const v = Math.max(1, parseInt(e.target.value, 10) || 1);
-                      setNewSetSizes((prev) => {
-                        const next = [...prev];
-                        next[idx] = v;
-                        return next;
-                      });
-                    }}
-                    className="mt-0.5 w-full rounded border border-slate-300 px-2 py-1 text-sm"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <p className="sm:col-span-2 text-xs text-slate-500">
+            เริ่มต้นชุดละ 4 ป้าย — หลังสร้างแล้วเลือกเกมด้านล่างเพื่อปรับจำนวนป้ายและอัปโหลดรูปทีละชุดในฟอร์มเดียว
+          </p>
           <div>
             <label className="text-xs text-slate-600">ป้ายรวม (ผลรวมทุกชุด)</label>
             <p className="mt-2 font-mono text-slate-800">{newTileCount}</p>
@@ -625,16 +660,16 @@ export default function AdminCentralGamePanel() {
       ) : null}
 
       {selectedId ? (
-        <div id="central-game-editor" className="space-y-6 scroll-mt-24">
+        <div id="central-game-editor" className="relative space-y-6 scroll-mt-24 pb-28">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
-          <form onSubmit={saveMeta} className="rounded-xl border border-slate-200 p-4 space-y-4">
+          <form onSubmit={saveMeta} noValidate className="rounded-xl border border-slate-200 p-4 space-y-4">
             <div>
               <h3 className="font-semibold text-slate-900">โครงชุดและรูปภาพ</h3>
               <p className="mt-1 text-xs text-slate-500">
-                แต่ละแถว = <strong>จำนวนป้ายในชุด</strong> + <strong>อัปโหลด 1 รูป</strong> (ป้ายในชุดเดียวกันใช้รูปเดียวกัน) · รวม{" "}
-                <span className="font-mono text-slate-700">{tileCount}</span> ป้ายบนกระดาน · แก้จำนวนชุดหรือป้ายแล้วกด{" "}
-                <strong>บันทึกโครง</strong> · อัปโหลดครบแล้วกด <strong>บันทึกรูป</strong>
+                แต่ละแถว = <strong>จำนวนป้าย</strong> + <strong>รูป 1 ไฟล์</strong> · รวม{" "}
+                <span className="font-mono text-slate-700">{tileCount}</span> ป้าย — แนะนำกด{" "}
+                <strong>บันทึกข้อมูล</strong> แถบล่างจอ · หรือแยกกดบันทึกโครง / รูป / กติกา
               </p>
             </div>
 
@@ -645,7 +680,7 @@ export default function AdminCentralGamePanel() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1 w-full rounded-lg border px-3 py-2"
-                  required
+                  placeholder="ชื่อเกม"
                 />
               </div>
               <div>
@@ -751,16 +786,19 @@ export default function AdminCentralGamePanel() {
               ถ้าเปลี่ยนจำนวนป้ายในชุด ให้กดบันทึกโครง แล้วตรวจกติกา — จากนั้นบันทึกรูปเมื่อครบ
             </p>
 
-            <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-              <button type="submit" className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
-                บันทึกโครง
+            <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                แยกขั้นตอน
+              </span>
+              <button type="submit" className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50">
+                บันทึกโครงอย่างเดียว
               </button>
               <button
                 type="button"
                 onClick={() => saveImages()}
-                className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-900 hover:bg-rose-100"
               >
-                บันทึกรูป ({setCount} ชุด)
+                บันทึกรูปอย่างเดียว
               </button>
             </div>
           </form>
@@ -936,9 +974,30 @@ export default function AdminCentralGamePanel() {
             <button
               type="button"
               onClick={() => saveRules()}
-              className="mt-4 rounded-lg bg-indigo-700 px-4 py-2 font-semibold text-white"
+              className="mt-4 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-900 hover:bg-indigo-100"
             >
-              บันทึกกติกา
+              บันทึกกติกาอย่างเดียว
+            </button>
+          </div>
+
+          <div
+            className="sticky bottom-2 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
+            role="region"
+            aria-label="บันทึกข้อมูลเกม"
+          >
+            <div>
+              <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+                บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบและอัปโหลดแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป)
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={savingAll || loading || !selectedId}
+              onClick={() => saveAllGameData()}
+              className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
             </button>
           </div>
 
