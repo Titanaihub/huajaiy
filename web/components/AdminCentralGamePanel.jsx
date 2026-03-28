@@ -99,6 +99,8 @@ export default function AdminCentralGamePanel() {
   const [newSetSizes, setNewSetSizes] = useState([4, 4, 4, 4, 4]);
   const [newPinkHeart, setNewPinkHeart] = useState(0);
   const [newRedHeart, setNewRedHeart] = useState(0);
+  /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
+  const [publishPrompt, setPublishPrompt] = useState(null);
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -208,9 +210,14 @@ export default function AdminCentralGamePanel() {
         pinkHeartCost: newPinkHeart,
         redHeartCost: newRedHeart
       });
-      setMsg("สร้างเกมแล้ว — เลือกจากรายการแล้วอัปโหลดรูป + กติกา");
+      const gid = data.snapshot?.game?.id;
+      const gtitle = data.snapshot?.game?.title || newTitle;
+      setMsg("สร้างเกมแล้ว — กดเผยแพร่ด้านล่างเมื่อพร้อม หรือตั้งรูปและกติกาก่อน");
       await loadList();
-      if (data.snapshot?.game?.id) setSelectedId(data.snapshot.game.id);
+      if (gid) {
+        setSelectedId(gid);
+        setPublishPrompt({ id: gid, title: gtitle });
+      }
     } catch (e) {
       setMsg(e.message || String(e));
     }
@@ -286,13 +293,29 @@ export default function AdminCentralGamePanel() {
     }
   }
 
+  async function publishGameById(id) {
+    const token = getMemberToken();
+    if (!token || !id) return;
+    setMsg("");
+    try {
+      await apiAdminCentralGameActivate(token, id);
+      setSelectedId(id);
+      setPublishPrompt((p) => (p?.id === id ? null : p));
+      setMsg("เผยแพร่แล้ว — เกมนี้แสดงที่หน้าแรก (ทางลัด) และหน้าเกม");
+      await loadList();
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
   async function activate() {
     if (!selectedId) return;
     const token = getMemberToken();
     setMsg("");
     try {
       await apiAdminCentralGameActivate(token, selectedId);
-      setMsg("เปิดใช้เกมนี้เป็นส่วนกลางแล้ว — หน้า /game จะใช้ชุดนี้");
+      setPublishPrompt((p) => (p?.id === selectedId ? null : p));
+      setMsg("เผยแพร่แล้ว — เกมนี้แสดงที่หน้าแรกและหน้าเกม");
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
@@ -468,6 +491,34 @@ export default function AdminCentralGamePanel() {
           </div>
         </form>
       </div>
+
+      {publishPrompt ? (
+        <div
+          className="rounded-2xl border-2 border-brand-500 bg-gradient-to-br from-brand-50 to-white p-5 shadow-md"
+          role="status"
+        >
+          <p className="font-semibold text-slate-900">สร้างเกม「{publishPrompt.title}」แล้ว</p>
+          <p className="mt-2 text-sm text-slate-600">
+            กด <strong>เผยแพร่บนเว็บ</strong> เพื่อให้โผล่ในเมนูหลักและการ์ด「เกม」ที่หน้าแรก — แนะนำให้บันทึกรูปและกติกาก่อนถ้ายังไม่ครบ
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => publishGameById(publishPrompt.id)}
+              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-900"
+            >
+              เผยแพร่บนเว็บ
+            </button>
+            <button
+              type="button"
+              onClick={() => setPublishPrompt(null)}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              ภายหลัง
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div>
         <label className="text-xs font-medium text-slate-600">เลือกเกมแก้ไข</label>
@@ -818,7 +869,7 @@ export default function AdminCentralGamePanel() {
               onClick={() => activate()}
               className="rounded-lg bg-green-700 px-4 py-2 font-semibold text-white"
             >
-              เปิดใช้เกมนี้ (ส่วนกลาง)
+              เผยแพร่ / เปิดใช้บนเว็บ
             </button>
             <button
               type="button"
