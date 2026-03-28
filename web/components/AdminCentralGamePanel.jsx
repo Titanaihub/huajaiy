@@ -259,6 +259,8 @@ export default function AdminCentralGamePanel() {
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
+  /** เผยแพร่ / ปิดใช้ / ลบ — กันซ้ำและให้เห็นสถานะ */
+  const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
   const [createExpanded, setCreateExpanded] = useState(false);
 
@@ -489,8 +491,16 @@ export default function AdminCentralGamePanel() {
   }
 
   async function publishGameById(id) {
+    if (!id) {
+      setMsg("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
+      return;
+    }
     const token = getMemberToken();
-    if (!token || !id) return;
+    if (!token) {
+      setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองกดเผยแพร่อีกครั้ง");
+      return;
+    }
+    setGameActionBusy(true);
     setMsg("");
     try {
       await apiAdminCentralGameActivate(token, id);
@@ -500,12 +510,22 @@ export default function AdminCentralGamePanel() {
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
+    } finally {
+      setGameActionBusy(false);
     }
   }
 
   async function activate() {
-    if (!selectedId) return;
+    if (!selectedId) {
+      setMsg("ยังไม่ได้เลือกเกม — คลิกแถวในตาราง「รายการเกม」ก่อน แล้วค่อยกดเผยแพร่");
+      return;
+    }
     const token = getMemberToken();
+    if (!token) {
+      setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+      return;
+    }
+    setGameActionBusy(true);
     setMsg("");
     try {
       await apiAdminCentralGameActivate(token, selectedId);
@@ -514,12 +534,22 @@ export default function AdminCentralGamePanel() {
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
+    } finally {
+      setGameActionBusy(false);
     }
   }
 
   async function deactivate() {
-    if (!selectedId) return;
+    if (!selectedId) {
+      setMsg("ยังไม่ได้เลือกเกม — คลิกแถวในตารางก่อน");
+      return;
+    }
     const token = getMemberToken();
+    if (!token) {
+      setMsg("หมดเซสชัน — ล็อกอินใหม่");
+      return;
+    }
+    setGameActionBusy(true);
     setMsg("");
     try {
       await apiAdminCentralGameDeactivate(token, selectedId);
@@ -527,12 +557,19 @@ export default function AdminCentralGamePanel() {
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
+    } finally {
+      setGameActionBusy(false);
     }
   }
 
   async function removeGame() {
     if (!selectedId || !window.confirm("ลบเกมนี้ถาวร?")) return;
     const token = getMemberToken();
+    if (!token) {
+      setMsg("หมดเซสชัน — ล็อกอินใหม่");
+      return;
+    }
+    setGameActionBusy(true);
     setMsg("");
     try {
       await apiAdminCentralGameDelete(token, selectedId);
@@ -541,6 +578,8 @@ export default function AdminCentralGamePanel() {
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
+    } finally {
+      setGameActionBusy(false);
     }
   }
 
@@ -719,8 +758,10 @@ export default function AdminCentralGamePanel() {
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
+              disabled={gameActionBusy}
+              aria-busy={gameActionBusy}
               onClick={() => publishGameById(publishPrompt.id)}
-              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-900"
+              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-50"
             >
               เผยแพร่บนเว็บ
             </button>
@@ -805,7 +846,7 @@ export default function AdminCentralGamePanel() {
       ) : null}
 
       {selectedId ? (
-        <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-36">
+        <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-44 sm:pb-48">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
           <p className="text-xs text-slate-600">
@@ -1047,48 +1088,56 @@ export default function AdminCentralGamePanel() {
           </form>
 
           <div
-            className="sticky bottom-2 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md"
+            className="pointer-events-none fixed inset-x-0 bottom-0 z-[80] flex justify-center px-0 sm:px-4"
+            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom, 0px))" }}
             role="region"
             aria-label="บันทึกและเผยแพร่เกม"
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
-                <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-                  บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป)
-                </p>
+            <div className="pointer-events-auto mx-auto w-full max-w-5xl rounded-t-2xl border border-b-0 border-slate-200 bg-white/98 px-4 py-3 shadow-[0_-12px_40px_rgba(0,0,0,0.14)] backdrop-blur-md sm:rounded-t-xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+                    บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป) · กดเผยแพร่หลังเลือกเกมใน
+                    ตาราง
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={savingAll || loading || gameActionBusy || !selectedId}
+                  onClick={() => saveAllGameData()}
+                  className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={savingAll || loading || !selectedId}
-                onClick={() => saveAllGameData()}
-                className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3">
-              <button
-                type="button"
-                onClick={() => activate()}
-                className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white hover:bg-green-800"
-              >
-                เผยแพร่บนเว็บ
-              </button>
-              <button
-                type="button"
-                onClick={() => deactivate()}
-                className="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
-              >
-                ปิดใช้เกมนี้
-              </button>
-              <button
-                type="button"
-                onClick={() => removeGame()}
-                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100"
-              >
-                ลบเกม
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+                <button
+                  type="button"
+                  disabled={gameActionBusy || savingAll || !selectedId}
+                  aria-busy={gameActionBusy}
+                  onClick={() => activate()}
+                  className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  เผยแพร่บนเว็บ
+                </button>
+                <button
+                  type="button"
+                  disabled={gameActionBusy || savingAll || !selectedId}
+                  onClick={() => deactivate()}
+                  className="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ปิดใช้เกมนี้
+                </button>
+                <button
+                  type="button"
+                  disabled={gameActionBusy || savingAll || !selectedId}
+                  onClick={() => removeGame()}
+                  className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ลบเกม
+                </button>
+              </div>
             </div>
           </div>
         </div>
