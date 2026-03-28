@@ -68,6 +68,7 @@ export default function AdminDashboard() {
     if (typeof window === "undefined") return;
     const tabParam = new URLSearchParams(window.location.search).get("tab");
     if (tabParam === "shops") setTab("shops");
+    if (tabParam === "centralGame") setTab("centralGame");
   }, []);
 
   /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
@@ -844,8 +845,21 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "game" ? (
         <section className="space-y-4">
+          <div className="rounded-xl border border-brand-200 bg-brand-50/60 px-4 py-3 text-sm text-slate-800">
+            <p className="font-semibold text-slate-900">แก้ไขเกมที่ผู้เล่นเห็นจริง</p>
+            <p className="mt-1 text-slate-700">
+              ไปที่แท็บ <strong>เกมส่วนกลาง</strong> — สร้างเกม อัปโหลดรูป ตั้งกติการางวัล แล้วกดเผยแพร่
+            </p>
+            <button
+              type="button"
+              onClick={() => setTab("centralGame")}
+              className="mt-3 rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+            >
+              ไปตั้งค่าเกมส่วนกลาง
+            </button>
+          </div>
           <p className="text-sm text-slate-600">
-            หน้าเกมใช้<strong>เกมส่วนกลาง</strong>เมื่อมีเกมที่เปิดใช้งานในแท็บ「เกมส่วนกลาง」— หากยังไม่ตั้งค่า ระบบจะใช้<strong>กติกาเริ่มต้น</strong>ของเว็บ
+            หน้าเกมใช้<strong>เกมส่วนกลาง</strong>เมื่อมีเกมที่เปิดใช้งาน — หากยังไม่ตั้งค่า ระบบจะใช้<strong>กติกาเริ่มต้น</strong>ของเซิร์ฟเวอร์ (อ่านอย่างเดียวด้านล่าง)
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -918,8 +932,12 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-base font-semibold text-slate-900">กติกาเริ่มต้น (เมื่อไม่ใช้เกมส่วนกลาง)</h3>
+              <details className="group rounded-xl border border-slate-200 bg-slate-50/80">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-900">
+                  กติกาเริ่มต้นของเซิร์ฟเวอร์ (สำรอง — ไม่ใช่ที่แก้ในเกมส่วนกลาง)
+                </summary>
+                <div className="space-y-2 border-t border-slate-200 px-4 pb-4 pt-2">
+                <h3 className="text-base font-semibold text-slate-900 sr-only">กติกาเริ่มต้น</h3>
                 <dl className="grid gap-2 text-sm sm:grid-cols-2">
                   <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <dt className="text-xs font-semibold uppercase text-slate-500">จำนวนการ์ดบนกระดาน</dt>
@@ -940,7 +958,7 @@ export default function AdminDashboard() {
                   </div>
                 </dl>
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-800">รางวัล (กติกาเริ่มต้น)</h4>
+                  <h4 className="text-sm font-semibold text-slate-800">รางวัล (กติกาเริ่มต้น — โค้ดเดิม)</h4>
                   <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                     <table className="min-w-full text-left text-sm">
                       <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
@@ -967,7 +985,8 @@ export default function AdminDashboard() {
                     </table>
                   </div>
                 </div>
-              </div>
+                </div>
+              </details>
             </div>
           ) : (
             <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>

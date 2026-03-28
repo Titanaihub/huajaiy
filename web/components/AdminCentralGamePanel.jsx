@@ -105,6 +105,8 @@ export default function AdminCentralGamePanel() {
   const [savingAll, setSavingAll] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
   const [createExpanded, setCreateExpanded] = useState(false);
+  /** แก้ไขเกม: แยกแท็บให้ไม่เลื่อนยาวและไม่รู้สึกซ้ำ */
+  const [editorTab, setEditorTab] = useState("layout");
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -131,6 +133,10 @@ export default function AdminCentralGamePanel() {
   useEffect(() => {
     loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    if (selectedId) setEditorTab("layout");
+  }, [selectedId]);
 
   const loadDetail = useCallback(async (id) => {
     if (!id) return;
@@ -302,41 +308,6 @@ export default function AdminCentralGamePanel() {
     const token = getMemberToken();
     if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
     await apiAdminCentralGamePutRules(token, selectedId, rulesPayload());
-  }
-
-  async function saveMeta(e) {
-    e.preventDefault();
-    setMsg("");
-    try {
-      await persistMeta();
-      setMsg("บันทึกโครงเกมแล้ว");
-      await loadList();
-      await loadDetail(selectedId);
-    } catch (e) {
-      setMsg(e.message || String(e));
-    }
-  }
-
-  async function saveImages() {
-    setMsg("");
-    try {
-      await persistImages();
-      setMsg("บันทึกรูปแล้ว (ชุดละ 1 ไฟล์ — ระบบคัดลอกไปทุกป้ายในชุด)");
-      await loadDetail(selectedId);
-    } catch (e) {
-      setMsg(e.message || String(e));
-    }
-  }
-
-  async function saveRules() {
-    setMsg("");
-    try {
-      await persistRules();
-      setMsg("บันทึกกติการางวัลแล้ว");
-      await loadDetail(selectedId);
-    } catch (e) {
-      setMsg(e.message || String(e));
-    }
   }
 
   /** บันทึกโครง + รูป (ถ้าครบ) + กติกา ในครั้งเดียว — ลดปัญหากดบันทึกไม่ครบขั้น */
@@ -683,16 +654,48 @@ export default function AdminCentralGamePanel() {
       ) : null}
 
       {selectedId ? (
-        <div id="central-game-editor" className="relative space-y-6 scroll-mt-24 pb-28">
+        <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-36">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
-          <form onSubmit={saveMeta} noValidate className="rounded-xl border border-slate-200 p-4 space-y-4">
+          <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setEditorTab("layout")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                editorTab === "layout"
+                  ? "bg-brand-800 text-white"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              1 · โครงและรูป
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorTab("rules")}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                editorTab === "rules"
+                  ? "bg-brand-800 text-white"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              2 · กติกาและรางวัล ({rules.length})
+            </button>
+          </div>
+          <p className="text-xs text-slate-600">
+            เกมพลิกป้าย — แต่ละชุดใช้รูปเดียวกันทุกป้าย · กด <strong>บันทึกข้อมูล</strong> แถบล่างครั้งเดียว (บันทึกโครง + กติกา และรูปถ้าครบ)
+          </p>
+
+          {editorTab === "layout" ? (
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            noValidate
+            className="rounded-xl border border-slate-200 p-4 space-y-4"
+          >
             <div>
               <h3 className="font-semibold text-slate-900">โครงชุดและรูปภาพ</h3>
               <p className="mt-1 text-xs text-slate-500">
                 แต่ละแถว = <strong>จำนวนป้าย</strong> + <strong>รูป 1 ไฟล์</strong> · รวม{" "}
-                <span className="font-mono text-slate-700">{tileCount}</span> ป้าย — แนะนำกด{" "}
-                <strong>บันทึกข้อมูล</strong> แถบล่างจอ · หรือแยกกดบันทึกโครง / รูป / กติกา
+                <span className="font-mono text-slate-700">{tileCount}</span> ป้าย
               </p>
             </div>
 
@@ -806,26 +809,12 @@ export default function AdminCentralGamePanel() {
             </div>
 
             <p className="text-[10px] text-amber-800">
-              ถ้าเปลี่ยนจำนวนป้ายในชุด ให้กดบันทึกโครง แล้วตรวจกติกา — จากนั้นบันทึกรูปเมื่อครบ
+              เปลี่ยนจำนวนป้ายแล้วไปแท็บ「กติกา」ตรวจเงื่อนไขให้ตรงชุด — จากนั้นกดบันทึกข้อมูลด้านล่าง
             </p>
-
-            <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                แยกขั้นตอน
-              </span>
-              <button type="submit" className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50">
-                บันทึกโครงอย่างเดียว
-              </button>
-              <button
-                type="button"
-                onClick={() => saveImages()}
-                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-900 hover:bg-rose-100"
-              >
-                บันทึกรูปอย่างเดียว
-              </button>
-            </div>
           </form>
+          ) : null}
 
+          {editorTab === "rules" ? (
           <div className="rounded-xl border border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -994,58 +983,53 @@ export default function AdminCentralGamePanel() {
               );
               })}
             </div>
-            <button
-              type="button"
-              onClick={() => saveRules()}
-              className="mt-4 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-900 hover:bg-indigo-100"
-            >
-              บันทึกกติกาอย่างเดียว
-            </button>
           </div>
+          ) : null}
 
           <div
-            className="sticky bottom-2 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
+            className="sticky bottom-2 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md"
             role="region"
-            aria-label="บันทึกข้อมูลเกม"
+            aria-label="บันทึกและเผยแพร่เกม"
           >
-            <div>
-              <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-                บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบและอัปโหลดแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป)
-              </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
+                <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+                  บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป)
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={savingAll || loading || !selectedId}
+                onClick={() => saveAllGameData()}
+                className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+              </button>
             </div>
-            <button
-              type="button"
-              disabled={savingAll || loading || !selectedId}
-              onClick={() => saveAllGameData()}
-              className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => activate()}
-              className="rounded-lg bg-green-700 px-4 py-2 font-semibold text-white"
-            >
-              เผยแพร่ / เปิดใช้บนเว็บ
-            </button>
-            <button
-              type="button"
-              onClick={() => deactivate()}
-              className="rounded-lg border border-slate-400 px-4 py-2"
-            >
-              ปิดใช้เกมนี้
-            </button>
-            <button
-              type="button"
-              onClick={() => removeGame()}
-              className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-red-900"
-            >
-              ลบเกม
-            </button>
+            <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+              <button
+                type="button"
+                onClick={() => activate()}
+                className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white hover:bg-green-800"
+              >
+                เผยแพร่บนเว็บ
+              </button>
+              <button
+                type="button"
+                onClick={() => deactivate()}
+                className="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+              >
+                ปิดใช้เกมนี้
+              </button>
+              <button
+                type="button"
+                onClick={() => removeGame()}
+                className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100"
+              >
+                ลบเกม
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
