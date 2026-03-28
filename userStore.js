@@ -43,6 +43,7 @@ function findByPhone(phone) {
   return readUsers().find((x) => x.phone === p) || null;
 }
 
+/** ชื่อกับนามสกุลต้องตรงคู่กันทั้งสองช่องจึงถือว่าเป็นคนเดียวกัน */
 function findByThaiFullName(firstName, lastName) {
   const fn = String(firstName || "").trim();
   const ln = String(lastName || "").trim();

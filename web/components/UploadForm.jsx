@@ -88,10 +88,10 @@ export default function UploadForm({ showCardHeader = true }) {
   return (
     <section
       id="upload"
-      className="surface-game scroll-mt-24 overflow-hidden"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-brand-100/90 bg-white shadow-soft"
     >
       {showCardHeader ? (
-        <div className="border-b border-white/60 bg-gradient-to-r from-rose-50/95 via-white/80 to-pink-50/70 px-6 py-4 backdrop-blur-sm md:px-8">
+        <div className="border-b border-brand-100/80 bg-gradient-to-r from-brand-50/90 to-white px-6 py-4 md:px-8">
           <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
           <p className="mt-1 text-sm text-slate-600">
             บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน
@@ -142,7 +142,7 @@ export default function UploadForm({ showCardHeader = true }) {
         </label>
 
         <button
-          className="mt-6 w-full rounded-xl bg-gradient-to-r from-rose-600 to-red-500 px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_24px_-6px_rgb(225_29_72/0.45)] transition hover:from-rose-700 hover:to-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-6 w-full rounded-xl bg-brand-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
           type="button"
           onClick={onUpload}
           disabled={loading}
@@ -157,7 +157,7 @@ export default function UploadForm({ showCardHeader = true }) {
         ) : null}
 
         {resultUrl ? (
-          <div className="mt-6 space-y-3 rounded-xl border border-white/70 bg-white/65 p-4 shadow-inner backdrop-blur-sm">
+          <div className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               อัปโหลดสำเร็จ
             </p>

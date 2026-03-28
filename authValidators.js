@@ -1,6 +1,7 @@
 /** ตรวจข้อมูลสมาชิก — ชื่อ–นามสกุลเป็นภาษาไทยเท่านั้น */
 
 const THAI_ONLY = /^[\u0E00-\u0E7F]{1,50}$/;
+const HAS_LATIN = /[A-Za-z]/;
 const USERNAME = /^[a-z0-9_]{3,32}$/;
 const PHONE = /^0[0-9]{9}$/;
 
@@ -9,10 +10,21 @@ function cleanStr(v) {
   return String(v).trim();
 }
 
-function validateThaiName(label, value) {
+/**
+ * @param {{ lastNameEnglishHint?: boolean }} [opts]
+ *   lastNameEnglishHint — ถ้ามีตัวอักษรอังกฤษ แจ้งแบบเน้นคนไทยให้กรอกไทย
+ */
+function validateThaiName(label, value, opts = {}) {
   const s = cleanStr(value);
   if (!s) return { ok: false, error: `กรุณากรอก${label}` };
   if (!THAI_ONLY.test(s)) {
+    if (opts.lastNameEnglishHint && HAS_LATIN.test(s)) {
+      return {
+        ok: false,
+        error:
+          "หากเป็นคนไทยกรุณากรอกนามสกุลเป็นภาษาไทยให้ตรงตามบัตรประชาชน (ไม่ใช้ตัวอักษรอังกฤษ)"
+      };
+    }
     return {
       ok: false,
       error: `${label}ต้องเป็นภาษาไทยเท่านั้น (ไม่มีเลขหรืออักษรอังกฤษ)`
@@ -57,7 +69,9 @@ function validatePassword(value) {
 function validateRegisterBody(body) {
   const first = validateThaiName("ชื่อ", body.firstName);
   if (!first.ok) return first;
-  const last = validateThaiName("นามสกุล", body.lastName);
+  const last = validateThaiName("นามสกุล", body.lastName, {
+    lastNameEnglishHint: true
+  });
   if (!last.ok) return last;
   const phone = validatePhone(body.phone);
   if (!phone.ok) return phone;

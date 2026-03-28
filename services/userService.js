@@ -51,6 +51,7 @@ async function findByPhone(phone) {
   return rowToUser(r.rows[0]);
 }
 
+/** หาผู้ใช้ที่ชื่อและนามสกุลตรงกันทั้งคู่เท่านั้น (ไม่ถือว่าซ้ำถ้าตรงแค่อย่างใดอย่างหนึ่ง) */
 async function findByThaiFullName(firstName, lastName) {
   const fn = String(firstName ?? "").trim();
   const ln = String(lastName ?? "").trim();

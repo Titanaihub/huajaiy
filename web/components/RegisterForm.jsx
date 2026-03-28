@@ -15,7 +15,11 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
+  const [lastNameHint, setLastNameHint] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const lastNameEnglishMessage =
+    "หากเป็นคนไทยกรุณากรอกนามสกุลเป็นภาษาไทยให้ตรงตามบัตรประชาชน (ไม่ใช้ตัวอักษรอังกฤษ)";
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -47,9 +51,6 @@ export default function RegisterForm() {
           กรุณากรอกข้อมูลจริงให้ถูกต้อง
           ข้อมูลผิดอาจแก้ไขภายหลังได้ยากและอาจเสียสิทธิ์รับรางวัล
         </p>
-        <p className="text-xs text-slate-600">
-          เบอร์โทร 10 หลัก · ชื่อผู้ใช้ภาษาอังกฤษตัวเล็ก (a–z, ตัวเลข, _)
-        </p>
       </div>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
@@ -57,7 +58,8 @@ export default function RegisterForm() {
             htmlFor="firstName"
             className="block text-sm font-medium leading-snug text-slate-700"
           >
-            ชื่อ (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน
+            ชื่อ (ภาษาไทย) ไม่ต้องใส่คำนำหน้า เช่น นาย นาง นางสาว
+            กรุณากรอกให้ตรงตามบัตรประชาชน
           </label>
           <input
             id="firstName"
@@ -78,11 +80,23 @@ export default function RegisterForm() {
           <input
             id="lastName"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setLastName(v);
+              if (!/[A-Za-z]/.test(v)) setLastNameHint("");
+            }}
+            onBlur={() => {
+              const t = lastName.trim();
+              if (t && /[A-Za-z]/.test(t)) setLastNameHint(lastNameEnglishMessage);
+              else setLastNameHint("");
+            }}
             className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
             required
             autoComplete="family-name"
           />
+          {lastNameHint ? (
+            <p className="mt-1.5 text-sm text-amber-800">{lastNameHint}</p>
+          ) : null}
         </div>
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-slate-700">

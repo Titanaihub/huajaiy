@@ -7,143 +7,35 @@
     @apply scroll-smooth;
   }
   body {
-    @apply min-h-screen text-slate-900;
-    background-color: #fff5f9;
+    @apply min-h-screen bg-brand-50 text-slate-900;
   }
 }
 
 ::selection {
-  background-color: rgb(240 171 252 / 0.9);
-  color: #0f172a;
+  @apply bg-brand-200 text-slate-900;
 }
 
-/**
- * Premium game-app backdrop: bright mesh + soft radial glows (fixed, non-interactive).
- */
-.game-app-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.game-app-backdrop__mesh {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      ellipse 100% 60% at 50% -15%,
-      rgba(255, 255, 255, 0.92) 0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at 12% 22%,
-      rgba(255, 105, 180, 0.42) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 92% 12%,
-      rgba(255, 45, 85, 0.38) 0%,
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 78% 88%,
-      rgba(255, 59, 92, 0.32) 0%,
-      transparent 48%
-    ),
-    radial-gradient(
-      circle at 8% 82%,
-      rgba(255, 192, 220, 0.55) 0%,
-      transparent 44%
-    ),
-    linear-gradient(
-      168deg,
-      #fff8fd 0%,
-      #ffe8f4 14%,
-      #ffc4df 32%,
-      #ff7eb3 52%,
-      #ff4d6d 72%,
-      #ff2d4a 86%,
-      #fff0f5 100%
-    );
-}
-
-.game-app-backdrop__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(72px);
-  opacity: 0.72;
-  mix-blend-mode: normal;
-}
-
-.game-app-backdrop__blob--1 {
-  width: min(100vw, 520px);
-  height: min(100vw, 520px);
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 140, 190, 0.5) 35%,
-    rgba(255, 60, 100, 0.25) 60%,
-    transparent 72%
-  );
-  top: -12%;
-  right: -18%;
-}
-
-.game-app-backdrop__blob--2 {
-  width: min(90vw, 420px);
-  height: min(90vw, 420px);
-  background: radial-gradient(
-    circle,
-    rgba(255, 77, 109, 0.55) 0%,
-    rgba(255, 20, 70, 0.35) 45%,
-    transparent 68%
-  );
-  bottom: -8%;
-  left: -14%;
-  opacity: 0.58;
-}
-
-.game-app-backdrop__blob--3 {
-  width: min(70vw, 320px);
-  height: min(70vw, 320px);
-  background: radial-gradient(
-    circle,
-    rgba(255, 182, 220, 0.75) 0%,
-    rgba(255, 105, 160, 0.35) 50%,
-    transparent 70%
-  );
-  top: 38%;
-  left: 50%;
-  transform: translateX(-45%);
-  opacity: 0.45;
-  filter: blur(88px);
-}
-
-@layer components {
-  /**
-   * Glass panels — border/bg opacity must be plain CSS; Tailwind @apply
-   * does not accept utilities like bg-white/78 (build fails on Render).
-   */
-  .surface-game {
-    @apply rounded-2xl shadow-game-sm backdrop-blur-md;
-    border: 1px solid rgb(255 255 255 / 0.75);
-    background-color: rgb(255 255 255 / 0.78);
-    box-shadow:
-      0 10px 36px -10px rgb(225 29 72 / 0.22),
-      0 2px 12px -2px rgb(255 255 255 / 0.55),
-      inset 0 1px 0 0 rgb(255 255 255 / 0.9);
+@keyframes huajaiy-heart-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+}
 
-  .surface-game-hero {
-    @apply rounded-3xl shadow-game backdrop-blur-lg;
-    border: 1px solid rgb(255 255 255 / 0.8);
-    background-color: rgb(255 255 255 / 0.8);
-    box-shadow:
-      0 16px 48px -12px rgb(225 29 72 / 0.3),
-      0 4px 16px -4px rgb(251 113 133 / 0.25),
-      inset 0 1px 0 0 rgb(255 255 255 / 0.95);
+.heart-logo-blink {
+  animation: huajaiy-heart-blink 1.15s ease-in-out infinite;
+  color: #db2777;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart-logo-blink {
+    animation: none;
+    opacity: 1;
   }
 }
 

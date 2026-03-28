@@ -2,24 +2,16 @@ import Link from "next/link";
 import BrandLogo from "./BrandLogo";
 
 const linkClass =
-  "text-rose-100/90 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-300";
+  "text-slate-400 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400";
 
 export default function SiteFooter() {
   return (
-    <footer className="relative mt-16 overflow-hidden border-t border-white/25 bg-gradient-to-br from-rose-600 via-rose-500 to-pink-400 shadow-[0_-12px_40px_-16px_rgb(225_29_72/0.35)]">
-      <div
-        className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full bg-white/20 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-red-500/30 blur-3xl"
-        aria-hidden
-      />
-      <div className="relative mx-auto max-w-5xl px-4 py-10">
+    <footer className="mt-16 border-t border-rose-900/80 bg-rose-950">
+      <div className="mx-auto max-w-5xl px-4 py-10">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div>
             <BrandLogo variant="footer" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-rose-50/90">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
               แพลตฟอร์มร้านค้า เกม และการอัปโหลดสื่อ — ออกแบบให้ใช้งานบนมือถือได้สะดวก
             </p>
           </div>
@@ -39,7 +31,7 @@ export default function SiteFooter() {
               </Link>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-rose-200/90">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 บริการ
               </span>
               <Link href="/" className={linkClass}>
@@ -63,7 +55,7 @@ export default function SiteFooter() {
             </div>
           </div>
         </div>
-        <p className="mt-10 border-t border-white/20 pt-6 text-center text-xs text-rose-100/80">
+        <p className="mt-10 border-t border-rose-900/60 pt-6 text-center text-xs text-slate-500">
           © {new Date().getFullYear()} HUAJAIY — สงวนลิขสิทธิ์
         </p>
       </div>

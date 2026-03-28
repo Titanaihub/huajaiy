@@ -12,12 +12,12 @@ export default function BrandLogo({
     ? "text-base font-bold tracking-tight text-white transition group-hover:text-brand-300"
     : "text-lg font-bold tracking-tight text-slate-900 transition group-hover:text-brand-800 sm:text-xl";
   const subClass = compact
-    ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-rose-200/85"
+    ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400"
     : "hidden text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 sm:block";
 
   const heartClass = compact
     ? "h-7 w-7 text-rose-200 sm:h-8 sm:w-8"
-    : "h-8 w-8 text-[#be123c] sm:h-9 sm:w-9";
+    : "heart-logo-blink h-8 w-8 sm:h-9 sm:w-9";
 
   return (
     <Link

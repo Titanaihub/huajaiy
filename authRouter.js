@@ -103,7 +103,8 @@ router.post("/register", async (req, res) => {
     if (e.code === "FULL_NAME_TAKEN") {
       return res.status(400).json({
         ok: false,
-        error: "ชื่อและนามสกุลนี้เคยใช้สมัครสมาชิกแล้ว"
+        error:
+          "ชื่อและนามสกุลคู่นี้เคยใช้สมัครสมาชิกแล้ว (ระบบเทียบทั้งชื่อและนามสกุลให้ตรงกันพร้อมกัน)"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });
