@@ -185,6 +185,9 @@ module.exports = {
   validateLoginBody,
   validateRegisterNames,
   parseDuplicateAcknowledged,
+  validateUsername,
+  validatePassword,
+  validatePhone,
   COUNTRY_TH,
   COUNTRY_NON_TH
 };

@@ -34,7 +34,7 @@ export default function AccountProfileForm() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login");
+      router.replace("/login?next=/account");
     }
   }, [loading, user, router]);
 

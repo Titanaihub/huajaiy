@@ -96,5 +96,7 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 
 ## หมายเหตุ
 
+- **สร้างแอดมินโดยไม่สมัครผ่านเว็บ:** ใน **`huajaiy-api`** ตั้ง **`BOOTSTRAP_ADMIN_USERNAME`**, **`BOOTSTRAP_ADMIN_PASSWORD`**, **`BOOTSTRAP_ADMIN_PHONE`** (เบอร์ 10 หลัก) → Save → Deploy — API สร้างบัญชีแอดมินให้ ล็อกอินด้วย username/รหัสนั้น แล้ว**ลบ env ทั้งสามทิ้ง**
+- **หรือ** มีสมาชิกแล้วอยากแค่ยกเป็นแอดมิน (ไม่เปลี่ยนรหัส): **`PROMOTE_ADMIN_USERNAME`** → Deploy (ดู log `[admin]`)
 - อัปโหลดไปโฟลเดอร์ `uploads` ใน Cloudinary — production ควรจำกัดประเภทไฟล์และ preset เพิ่มเติม
 - ข้อความติดต่อจาก `/contact` ปรากฏใน **Logs** ของ service `huajaiy-web` บน Render (ค้นหา `[HUAJAIY inquiry]`)

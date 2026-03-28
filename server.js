@@ -16,6 +16,8 @@ const { router: ordersRouter } = require("./ordersRouter");
 const { router: adminRouter } = require("./adminRouter");
 const { router: ownerRouter } = require("./ownerRouter");
 const { initDb } = require("./db/init");
+const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
+const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -177,6 +179,12 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 async function start() {
   try {
     await initDb();
+    try {
+      await bootstrapAdminFromEnv();
+      await promoteAdminFromEnv();
+    } catch (e) {
+      console.error("[admin] bootstrap/promote:", e.message);
+    }
   } catch (e) {
     console.error("[db] init failed:", e.message);
     process.exit(1);

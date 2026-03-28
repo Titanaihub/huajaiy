@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-export default function LoginForm() {
+export default function LoginForm({ redirectAfterLogin = null }) {
   const router = useRouter();
   const { login } = useMemberAuth();
   const [username, setUsername] = useState("");
@@ -19,7 +19,7 @@ export default function LoginForm() {
     setLoading(true);
     try {
       await login(username, password);
-      router.push("/");
+      router.push(redirectAfterLogin || "/");
     } catch (err) {
       setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
     } finally {

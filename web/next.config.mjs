@@ -8,6 +8,10 @@ const nextConfig = {
     const api = raw.replace(/\/$/, "");
     return [
       {
+        source: "/api/health",
+        destination: `${api}/api/health`
+      },
+      {
         source: "/api/game/:path*",
         destination: `${api}/api/game/:path*`
       }

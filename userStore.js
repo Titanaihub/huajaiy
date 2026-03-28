@@ -68,7 +68,8 @@ function createUser({
   lastName,
   phone,
   countryCode = "TH",
-  registrationIp = null
+  registrationIp = null,
+  role = MEMBER
 }) {
   const users = readUsers();
   const un = String(username).toLowerCase();
@@ -93,7 +94,7 @@ function createUser({
     countryCode: String(countryCode || "TH").toUpperCase().slice(0, 8),
     registrationIp:
       registrationIp == null ? null : String(registrationIp).slice(0, 64),
-    role: MEMBER,
+    role: role || MEMBER,
     createdAt: new Date().toISOString()
   };
   users.push(user);

@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
 const userStore = require("../userStore");
-const { MEMBER } = require("../constants/roles");
+const { MEMBER, ADMIN } = require("../constants/roles");
 
 function normalizeBirthDate(v) {
   if (v == null) return null;
@@ -87,7 +87,8 @@ async function createUser({
   lastName,
   phone,
   countryCode = "TH",
-  registrationIp = null
+  registrationIp = null,
+  role = MEMBER
 }) {
   const pool = getPool();
   const un = String(username).toLowerCase();
@@ -96,6 +97,7 @@ async function createUser({
     registrationIp == null
       ? null
       : String(registrationIp).slice(0, 64);
+  const rle = role || MEMBER;
   if (!pool) {
     return userStore.createUser({
       username: un,
@@ -104,7 +106,8 @@ async function createUser({
       lastName,
       phone,
       countryCode: cc,
-      registrationIp: ip
+      registrationIp: ip,
+      role: rle
     });
   }
 
@@ -118,10 +121,10 @@ async function createUser({
   const id = crypto.randomUUID();
   try {
     const r = await pool.query(
-      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip, role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [id, un, passwordHash, firstName, lastName, phone, cc, ip]
+      [id, un, passwordHash, firstName, lastName, phone, cc, ip, rle]
     );
     return rowToUser(r.rows[0]);
   } catch (e) {
@@ -165,6 +168,19 @@ async function updateProfile(userId, { gender, birthDate, shippingAddress }) {
   await pool.query(
     `UPDATE users SET gender = $2, birth_date = $3, shipping_address = $4 WHERE id = $1`,
     [userId, gender, birthDate || null, shippingAddress]
+  );
+  return findById(userId);
+}
+
+async function setPasswordAndRole(userId, passwordHash, role = ADMIN) {
+  const pool = getPool();
+  if (!pool) {
+    userStore.updateUser(userId, { passwordHash, role });
+    return findById(userId);
+  }
+  await pool.query(
+    `UPDATE users SET password_hash = $2, role = $3 WHERE id = $1`,
+    [userId, passwordHash, role]
   );
   return findById(userId);
 }
@@ -274,6 +290,7 @@ module.exports = {
   findByPhone,
   findByThaiFullName,
   createUser,
+  setPasswordAndRole,
   updateProfile,
   updateOfficialNames,
   publicUser,
