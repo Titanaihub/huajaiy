@@ -350,7 +350,7 @@ async function replaceRules(gameId, rules) {
       const cap = setImageCounts[setIndex] ?? 0;
       if (needCount < 1 || needCount > cap) {
         const e = new Error(
-          `ในชุด ${setIndex + 1} มี ${cap} ป้าย — ต้องเปิดครบต้องอยู่ระหว่าง 1 ถึง ${cap}`
+          `ในชุด ${setIndex + 1} มี ${cap} ป้าย — ค่า "ต้องเปิดครบ" ต้องอยู่ระหว่าง 1 ถึง ${cap}`
         );
         e.code = "VALIDATION";
         throw e;
