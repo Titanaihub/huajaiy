@@ -72,11 +72,167 @@ const emptyRule = () => ({
   prizeTotalQty: 1
 });
 
+function emptyRuleForSet(setIdx) {
+  return { ...emptyRule(), setIndex: setIdx };
+}
+
 function resizeSetSizes(prev, n, fill) {
   const out = prev.slice(0, n).map((x) => Math.max(1, parseInt(String(x), 10) || 1));
   const f = Math.max(1, parseInt(String(fill), 10) || 1);
   while (out.length < n) out.push(out[out.length - 1] ?? f);
   return out;
+}
+
+/** แถวกติกา — ใช้ทั้งแบบผูกชุด (ไม่โชว์เลขชุด) และแบมแก้ชุดเอง */
+function RuleEditorRow({
+  r,
+  idx,
+  needCap,
+  showSetPicker,
+  setCount,
+  setSizes,
+  updateRule,
+  setRules
+}) {
+  const si = Math.min(
+    setCount - 1,
+    Math.max(0, Math.floor(Number(r.setIndex)) || 0)
+  );
+  const cap = needCap ?? Math.max(1, parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1);
+  return (
+    <div className="grid min-w-[680px] gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
+      {showSetPicker ? (
+        <div className="sm:col-span-1">
+          <label className="text-[10px] text-slate-500">ชุด (0=ชุด1)</label>
+          <input
+            type="number"
+            min={0}
+            max={Math.max(0, setCount - 1)}
+            value={r.setIndex}
+            onChange={(e) => updateRule(idx, "setIndex", e.target.value)}
+            className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          />
+        </div>
+      ) : null}
+      <div className="sm:col-span-1">
+        <label className="text-[10px] text-slate-500">ลำดับตรวจ</label>
+        <input
+          type="number"
+          value={r.sortOrder}
+          onChange={(e) => updateRule(idx, "sortOrder", e.target.value)}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+        />
+      </div>
+      <div className="sm:col-span-1">
+        <label className="text-[10px] text-slate-500">เปิดครบ (สูงสุด {cap})</label>
+        <input
+          type="number"
+          min={1}
+          max={cap}
+          value={r.needCount}
+          onChange={(e) => updateRule(idx, "needCount", e.target.value)}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+        />
+      </div>
+      <div className="sm:col-span-1">
+        <label className="text-[10px] text-slate-500">จำนวนรางวัล</label>
+        {r.prizeCategory === "none" ? (
+          <div
+            className="mt-1 rounded border border-dashed border-slate-200 bg-slate-50 px-1 py-1.5 text-center text-[10px] leading-tight text-slate-500"
+            title="หมวดไม่มีรางวัล"
+          >
+            ไม่จำกัด
+          </div>
+        ) : (
+          <input
+            type="number"
+            min={1}
+            max={999999}
+            value={r.prizeTotalQty ?? 1}
+            onChange={(e) =>
+              updateRule(idx, "prizeTotalQty", Math.max(1, parseInt(e.target.value, 10) || 1))
+            }
+            className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          />
+        )}
+      </div>
+      <div className="sm:col-span-2">
+        <label className="text-[10px] text-slate-500">หมวดรางวัล</label>
+        <select
+          value={r.prizeCategory}
+          onChange={(e) => {
+            const v = e.target.value;
+            setRules((prev) =>
+              prev.map((row, j) =>
+                j === idx
+                  ? {
+                      ...row,
+                      prizeCategory: v,
+                      prizeTotalQty: v === "none" ? null : (row.prizeTotalQty ?? 1)
+                    }
+                  : row
+              )
+            );
+          }}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+        >
+          <option value="cash">เงินสด</option>
+          <option value="item">สิ่งของ</option>
+          <option value="voucher">บัตรกำนัล</option>
+          <option value="none">ไม่มีรางวัล</option>
+        </select>
+      </div>
+      <div className="sm:col-span-2">
+        <label className="text-[10px] text-slate-500">หัวข้อรางวัล</label>
+        <input
+          value={r.prizeTitle}
+          onChange={(e) => updateRule(idx, "prizeTitle", e.target.value)}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          placeholder="เช่น รางวัลที่ 1"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <label className="text-[10px] text-slate-500">รายละเอียด</label>
+        <input
+          value={r.prizeValueText}
+          onChange={(e) => updateRule(idx, "prizeValueText", e.target.value)}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          placeholder="เช่น 1000"
+        />
+      </div>
+      <div className={showSetPicker ? "sm:col-span-2" : "sm:col-span-3"}>
+        <label className="text-[10px] text-slate-500">หน่วย</label>
+        <select
+          value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
+          onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+        >
+          {UNITS.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="sm:col-span-12">
+        <label className="text-[10px] text-slate-500">หมายเหตุ</label>
+        <input
+          value={r.description}
+          onChange={(e) => updateRule(idx, "description", e.target.value)}
+          className="mt-1 w-full rounded border px-2 py-1 text-xs"
+        />
+      </div>
+      <div className="sm:col-span-12">
+        <button
+          type="button"
+          onClick={() => setRules((prev) => prev.filter((_, j) => j !== idx))}
+          className="text-xs text-red-700 underline"
+        >
+          ลบแถว
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function AdminCentralGamePanel() {
@@ -105,8 +261,6 @@ export default function AdminCentralGamePanel() {
   const [savingAll, setSavingAll] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
   const [createExpanded, setCreateExpanded] = useState(false);
-  /** แก้ไขเกม: แยกแท็บให้ไม่เลื่อนยาวและไม่รู้สึกซ้ำ */
-  const [editorTab, setEditorTab] = useState("layout");
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -133,10 +287,6 @@ export default function AdminCentralGamePanel() {
   useEffect(() => {
     loadList();
   }, [loadList]);
-
-  useEffect(() => {
-    if (selectedId) setEditorTab("layout");
-  }, [selectedId]);
 
   const loadDetail = useCallback(async (id) => {
     if (!id) return;
@@ -467,7 +617,8 @@ export default function AdminCentralGamePanel() {
       <details className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
         <summary className="cursor-pointer font-medium text-slate-800">คำอธิบายสั้น (กดเปิด)</summary>
         <p className="mt-2 border-t border-slate-100 pt-2">
-          เลือกเกมจากตาราง → แก้โครง รูป กติกา → กด <strong>บันทึกข้อมูล</strong> แถบล่าง → กด <strong>เผยแพร่</strong> เพื่อให้เล่นที่หน้าเกม
+          เลือกเกมจากตาราง → แต่ละชุดตั้งป้าย รูป และกติกาในแถวเดียวกัน → กด <strong>บันทึกข้อมูล</strong> แถบล่าง →{" "}
+          <strong>เผยแพร่</strong> เมื่อพร้อม
         </p>
       </details>
       {err ? <p className="text-red-600">{err}</p> : null}
@@ -657,35 +808,11 @@ export default function AdminCentralGamePanel() {
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-36">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
-          <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setEditorTab("layout")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                editorTab === "layout"
-                  ? "bg-brand-800 text-white"
-                  : "text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              1 · โครงและรูป
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditorTab("rules")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                editorTab === "rules"
-                  ? "bg-brand-800 text-white"
-                  : "text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              2 · กติกาและรางวัล ({rules.length})
-            </button>
-          </div>
           <p className="text-xs text-slate-600">
-            เกมพลิกป้าย — แต่ละชุดใช้รูปเดียวกันทุกป้าย · กด <strong>บันทึกข้อมูล</strong> แถบล่างครั้งเดียว (บันทึกโครง + กติกา และรูปถ้าครบ)
+            แต่ละชุด = <strong>จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
+            <strong>บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
           </p>
 
-          {editorTab === "layout" ? (
           <form
             onSubmit={(e) => e.preventDefault()}
             noValidate
@@ -694,8 +821,7 @@ export default function AdminCentralGamePanel() {
             <div>
               <h3 className="font-semibold text-slate-900">โครงชุดและรูปภาพ</h3>
               <p className="mt-1 text-xs text-slate-500">
-                แต่ละแถว = <strong>จำนวนป้าย</strong> + <strong>รูป 1 ไฟล์</strong> · รวม{" "}
-                <span className="font-mono text-slate-700">{tileCount}</span> ป้าย
+                รวม <span className="font-mono text-slate-700">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
               </p>
             </div>
 
@@ -749,242 +875,176 @@ export default function AdminCentralGamePanel() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-slate-700">แต่ละชุด — จำนวนป้าย + รูป</p>
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-slate-700">
+                แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัลของชุดนี้ (เลื่อนแนวนอนได้ถ้าจอแคบ)
+              </p>
               {Array.from({ length: setCount }, (_, s) => {
                 const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
                 const preview = imageMap[`${s}-0`];
+                const ruleEntries = rules
+                  .map((r, idx) => ({ r, idx }))
+                  .filter(
+                    ({ r }) => (Math.max(0, Math.floor(Number(r.setIndex)) || 0)) === s
+                  )
+                  .sort(
+                    (a, b) => (Number(a.r.sortOrder) || 0) - (Number(b.r.sortOrder) || 0)
+                  );
+
+                function addRuleForThisSet() {
+                  const maxSo = ruleEntries.reduce(
+                    (m, x) => Math.max(m, Number(x.r.sortOrder) || 0),
+                    -1
+                  );
+                  setRules((prev) => [
+                    ...prev,
+                    { ...emptyRuleForSet(s), sortOrder: maxSo + 1 }
+                  ]);
+                }
+
                 return (
                   <div
                     key={s}
-                    className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3"
+                    className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 xl:flex-row xl:items-stretch"
                   >
-                    <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-slate-800">ชุดที่ {s + 1}</span>
-                      <label className="mt-1 text-[10px] text-slate-500">จำนวนป้ายในชุดนี้</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={cap}
-                        onChange={(e) => {
-                          const v = Math.max(1, parseInt(e.target.value, 10) || 1);
-                          setSetSizes((prev) => {
-                            const next = [...prev];
-                            next[s] = v;
-                            return next;
-                          });
-                        }}
-                        className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-                      />
-                    </div>
-                    <div className="w-28 shrink-0 sm:w-32">
-                      <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
-                      <div className="aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
-                        {preview ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={preview} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center p-1 text-center text-[10px] leading-tight text-slate-400">
-                            เลือกรูป
-                          </div>
-                        )}
+                    <div className="flex flex-shrink-0 flex-wrap items-end gap-4 border-b border-slate-200 pb-4 xl:w-[min(100%,320px)] xl:border-b-0 xl:border-r xl:pb-0 xl:pr-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-slate-800">ชุดที่ {s + 1}</span>
+                        <label className="mt-1 text-[10px] text-slate-500">จำนวนป้ายในชุดนี้</label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={cap}
+                          onChange={(e) => {
+                            const v = Math.max(1, parseInt(e.target.value, 10) || 1);
+                            setSetSizes((prev) => {
+                              const next = [...prev];
+                              next[s] = v;
+                              return next;
+                            });
+                          }}
+                          className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                      <div className="w-28 shrink-0 sm:w-32">
+                        <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
+                        <div className="aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                          {preview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={preview} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full items-center justify-center p-1 text-center text-[10px] leading-tight text-slate-400">
+                              เลือกรูป
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="min-w-[180px] flex-1">
+                        <label className="text-[10px] font-medium text-slate-600">
+                          อัปโหลดรูปชุดนี้ (1 ไฟล์)
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] || null;
+                            void onPickImage(s, 0, f);
+                            e.target.value = "";
+                          }}
+                        />
                       </div>
                     </div>
-                    <div className="min-w-[200px] flex-1">
-                      <label className="text-[10px] font-medium text-slate-600">อัปโหลดรูปชุดนี้ (1 ไฟล์)</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0] || null;
-                          void onPickImage(s, 0, f);
-                          e.target.value = "";
-                        }}
-                      />
+
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-slate-800">
+                          กติกาและรางวัล — ชุดที่ {s + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={addRuleForThisSet}
+                          className="text-xs font-medium text-brand-800 underline hover:text-brand-950"
+                        >
+                          + เพิ่มแถวกติกา
+                        </button>
+                      </div>
+                      {ruleEntries.length === 0 ? (
+                        <p className="text-[11px] text-slate-500">
+                          ยังไม่มีแถว — กดเพิ่มถ้าต้องการเงื่อนไขในชุดนี้
+                        </p>
+                      ) : null}
+                      <div className="space-y-3 overflow-x-auto pb-1">
+                        {ruleEntries.map(({ r, idx }) => (
+                          <RuleEditorRow
+                            key={idx}
+                            r={r}
+                            idx={idx}
+                            needCap={cap}
+                            showSetPicker={false}
+                            setCount={setCount}
+                            setSizes={setSizes}
+                            updateRule={updateRule}
+                            setRules={setRules}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 );
               })}
+
+              {(() => {
+                const orphans = rules
+                  .map((r, idx) => ({ r, idx }))
+                  .filter(({ r }) => {
+                    const si = Math.floor(Number(r.setIndex));
+                    if (Number.isNaN(si)) return true;
+                    return si < 0 || si >= setCount;
+                  });
+                if (orphans.length === 0) return null;
+                return (
+                  <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-4">
+                    <p className="text-sm font-semibold text-amber-950">
+                      กติกาที่อ้างอิงชุดไม่ถูกต้อง
+                    </p>
+                    <p className="mt-1 text-xs text-amber-900">
+                      มักเกิดหลังลดจำนวนชุด — แก้เลขชุดหรือลบแถว
+                    </p>
+                    <div className="mt-3 space-y-3 overflow-x-auto">
+                      {orphans.map(({ r, idx }) => {
+                        const siClamp = Math.min(
+                          setCount - 1,
+                          Math.max(0, Math.floor(Number(r.setIndex)) || 0)
+                        );
+                        const capOr = Math.max(
+                          1,
+                          parseInt(String(setSizes[siClamp] ?? setSizes[0]), 10) || 1
+                        );
+                        return (
+                          <RuleEditorRow
+                            key={idx}
+                            r={r}
+                            idx={idx}
+                            needCap={capOr}
+                            showSetPicker
+                            setCount={setCount}
+                            setSizes={setSizes}
+                            updateRule={updateRule}
+                            setRules={setRules}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <p className="text-[10px] text-amber-800">
-              เปลี่ยนจำนวนป้ายแล้วไปแท็บ「กติกา」ตรวจเงื่อนไขให้ตรงชุด — จากนั้นกดบันทึกข้อมูลด้านล่าง
+              ลดจำนวนชุดแล้วมีกล่องสีเหลือง — แก้ให้หมดแล้วกดบันทึกข้อมูลด้านล่าง
             </p>
           </form>
-          ) : null}
-
-          {editorTab === "rules" ? (
-          <div className="rounded-xl border border-slate-200 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="font-semibold">กำหนดรางวัล (กติกา)</h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  เรียงจากบนลงล่าง = ลำดับที่ระบบตรวจ · &quot;ต้องเปิดครบ&quot; ไม่เกินจำนวนป้ายในชุดนั้น ·
-                  หมวด <strong>ไม่มีรางวัล</strong> = ไม่ต้องระบุจำนวนรางวัล (ไม่จำกัด) · หมวดอื่น = จำนวนรางวัลที่จัด (แสดงให้ผู้เล่น) ·
-                  เลขชุด 0 = ชุดที่ 1
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setRules((r) => [...r, emptyRule()])}
-                className="text-xs text-brand-800 underline"
-              >
-                + แถวกติกา
-              </button>
-            </div>
-            <div className="mt-3 space-y-4 overflow-x-auto">
-              {rules.map((r, idx) => {
-                const si = Math.min(
-                  setCount - 1,
-                  Math.max(0, Math.floor(Number(r.setIndex)) || 0)
-                );
-                const cap = Math.max(
-                  1,
-                  parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1
-                );
-                return (
-                <div
-                  key={idx}
-                  className="grid min-w-[640px] gap-2 rounded-lg border border-slate-100 p-3 sm:grid-cols-12"
-                >
-                  <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">ลำดับตรวจ</label>
-                    <input
-                      type="number"
-                      value={r.sortOrder}
-                      onChange={(e) => updateRule(idx, "sortOrder", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    />
-                  </div>
-                  <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">ชุด (0=ชุด1)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={Math.max(0, setCount - 1)}
-                      value={r.setIndex}
-                      onChange={(e) => updateRule(idx, "setIndex", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    />
-                  </div>
-                  <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">เปิดครบ (สูงสุด {cap})</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={cap}
-                      value={r.needCount}
-                      onChange={(e) => updateRule(idx, "needCount", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    />
-                  </div>
-                  <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">จำนวนรางวัล (ชิ้น)</label>
-                    {r.prizeCategory === "none" ? (
-                      <div
-                        className="mt-1 rounded border border-dashed border-slate-200 bg-slate-50 px-1 py-1.5 text-center text-[10px] leading-tight text-slate-500"
-                        title="หมวดไม่มีรางวัล — ไม่ต้องระบุจำนวน"
-                      >
-                        ไม่จำกัด
-                      </div>
-                    ) : (
-                      <input
-                        type="number"
-                        min={1}
-                        max={999999}
-                        value={r.prizeTotalQty ?? 1}
-                        onChange={(e) =>
-                          updateRule(
-                            idx,
-                            "prizeTotalQty",
-                            Math.max(1, parseInt(e.target.value, 10) || 1)
-                          )
-                        }
-                        className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                      />
-                    )}
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] text-slate-500">หมวดรางวัล</label>
-                    <select
-                      value={r.prizeCategory}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setRules((prev) =>
-                          prev.map((row, j) =>
-                            j === idx
-                              ? {
-                                  ...row,
-                                  prizeCategory: v,
-                                  prizeTotalQty: v === "none" ? null : (row.prizeTotalQty ?? 1)
-                                }
-                              : row
-                          )
-                        );
-                      }}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    >
-                      <option value="cash">เงินสด</option>
-                      <option value="item">สิ่งของ</option>
-                      <option value="voucher">บัตรกำนัล</option>
-                      <option value="none">ไม่มีรางวัล</option>
-                    </select>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] text-slate-500">หัวข้อรางวัล</label>
-                    <input
-                      value={r.prizeTitle}
-                      onChange={(e) => updateRule(idx, "prizeTitle", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                      placeholder="เช่น รางวัลที่ 1"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] text-slate-500">รายละเอียด (เช่น 1000)</label>
-                    <input
-                      value={r.prizeValueText}
-                      onChange={(e) => updateRule(idx, "prizeValueText", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] text-slate-500">หน่วย</label>
-                    <select
-                      value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
-                      onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
-                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    >
-                      {UNITS.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="sm:col-span-12">
-                    <label className="text-[10px] text-slate-500">หมายเหตุ</label>
-                    <input
-                      value={r.description}
-                      onChange={(e) => updateRule(idx, "description", e.target.value)}
-                      className="mt-1 w-full rounded border px-2 py-1 text-xs"
-                    />
-                  </div>
-                  <div className="sm:col-span-12">
-                    <button
-                      type="button"
-                      onClick={() => setRules((prev) => prev.filter((_, j) => j !== idx))}
-                      className="text-xs text-red-700 underline"
-                    >
-                      ลบแถว
-                    </button>
-                  </div>
-                </div>
-              );
-              })}
-            </div>
-          </div>
-          ) : null}
 
           <div
             className="sticky bottom-2 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur-md"
