@@ -11,6 +11,8 @@ function rowToUser(row) {
     firstName: row.first_name,
     lastName: row.last_name,
     phone: row.phone,
+    countryCode: row.country_code || "TH",
+    registrationIp: row.registration_ip || null,
     role: row.role || MEMBER,
     createdAt: row.created_at
   };
@@ -68,16 +70,31 @@ async function findByThaiFullName(firstName, lastName) {
   return rowToUser(r.rows[0]);
 }
 
-async function createUser({ username, passwordHash, firstName, lastName, phone }) {
+async function createUser({
+  username,
+  passwordHash,
+  firstName,
+  lastName,
+  phone,
+  countryCode = "TH",
+  registrationIp = null
+}) {
   const pool = getPool();
   const un = String(username).toLowerCase();
+  const cc = String(countryCode || "TH").toUpperCase().slice(0, 8);
+  const ip =
+    registrationIp == null
+      ? null
+      : String(registrationIp).slice(0, 64);
   if (!pool) {
     return userStore.createUser({
       username: un,
       passwordHash,
       firstName,
       lastName,
-      phone
+      phone,
+      countryCode: cc,
+      registrationIp: ip
     });
   }
 
@@ -87,20 +104,14 @@ async function createUser({ username, passwordHash, firstName, lastName, phone }
     err.code = "PHONE_TAKEN";
     throw err;
   }
-  const existingName = await findByThaiFullName(firstName, lastName);
-  if (existingName) {
-    const err = new Error("FULL_NAME_TAKEN");
-    err.code = "FULL_NAME_TAKEN";
-    throw err;
-  }
 
   const id = crypto.randomUUID();
   try {
     const r = await pool.query(
-      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [id, un, passwordHash, firstName, lastName, phone]
+      [id, un, passwordHash, firstName, lastName, phone, cc, ip]
     );
     return rowToUser(r.rows[0]);
   } catch (e) {

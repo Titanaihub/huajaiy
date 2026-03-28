@@ -25,15 +25,38 @@ export function clearMemberToken() {
   window.localStorage.removeItem(MEMBER_TOKEN_KEY);
 }
 
+export async function apiCheckDuplicateName(payload) {
+  const r = await fetch(`${apiRoot()}/api/auth/check-duplicate-name`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const ct = r.headers.get("content-type") || "";
+  const data = ct.includes("application/json")
+    ? await r.json().catch(() => ({}))
+    : {};
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ตรวจสอบชื่อไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiRegister(payload) {
   const r = await fetch(`${apiRoot()}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-  const data = await r.json().catch(() => ({}));
+  const ct = r.headers.get("content-type") || "";
+  const data = ct.includes("application/json")
+    ? await r.json().catch(() => ({}))
+    : {};
   if (!r.ok || !data.ok) {
-    throw new Error(data.error || "สมัครสมาชิกไม่สำเร็จ");
+    const fallback =
+      r.status === 0 || r.status >= 500
+        ? "เซิร์ฟเวอร์ไม่ตอบหรือผิดพลาด — ลองใหม่ภายหลัง"
+        : "สมัครสมาชิกไม่สำเร็จ";
+    throw new Error(data.error || fallback);
   }
   return data;
 }

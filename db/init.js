@@ -27,6 +27,14 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'member';
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS country_code VARCHAR(8) NOT NULL DEFAULT 'TH';
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS registration_ip VARCHAR(64);
+    `);
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`
     );

@@ -52,7 +52,15 @@ function findByThaiFullName(firstName, lastName) {
   );
 }
 
-function createUser({ username, passwordHash, firstName, lastName, phone }) {
+function createUser({
+  username,
+  passwordHash,
+  firstName,
+  lastName,
+  phone,
+  countryCode = "TH",
+  registrationIp = null
+}) {
   const users = readUsers();
   const un = String(username).toLowerCase();
   if (users.some((x) => x.username === un)) {
@@ -66,13 +74,6 @@ function createUser({ username, passwordHash, firstName, lastName, phone }) {
     err.code = "PHONE_TAKEN";
     throw err;
   }
-  const fn = String(firstName || "").trim();
-  const ln = String(lastName || "").trim();
-  if (users.some((x) => x.firstName === fn && x.lastName === ln)) {
-    const err = new Error("FULL_NAME_TAKEN");
-    err.code = "FULL_NAME_TAKEN";
-    throw err;
-  }
   const user = {
     id: crypto.randomUUID(),
     username: un,
@@ -80,6 +81,9 @@ function createUser({ username, passwordHash, firstName, lastName, phone }) {
     firstName,
     lastName,
     phone,
+    countryCode: String(countryCode || "TH").toUpperCase().slice(0, 8),
+    registrationIp:
+      registrationIp == null ? null : String(registrationIp).slice(0, 64),
     role: MEMBER,
     createdAt: new Date().toISOString()
   };

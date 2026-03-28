@@ -1,9 +1,14 @@
-/** ตรวจข้อมูลสมาชิก — ชื่อ–นามสกุลเป็นภาษาไทยเท่านั้น */
+/** ตรวจข้อมูลสมาชิก — ชื่อตามประเทศที่เลือก */
 
 const THAI_ONLY = /^[\u0E00-\u0E7F]{1,50}$/;
+const THAI_SCRIPT = /[\u0E00-\u0E7F]/;
 const HAS_LATIN = /[A-Za-z]/;
+const LATIN_NAME = /^(?=.*[A-Za-z])[A-Za-z\s\-'.]{2,50}$/;
 const USERNAME = /^[a-z0-9_]{3,32}$/;
 const PHONE = /^0[0-9]{9}$/;
+
+const COUNTRY_TH = "TH";
+const COUNTRY_NON_TH = "NON_TH";
 
 function cleanStr(v) {
   if (v == null) return "";
@@ -11,13 +16,19 @@ function cleanStr(v) {
 }
 
 /**
- * @param {{ lastNameEnglishHint?: boolean }} [opts]
- *   lastNameEnglishHint — ถ้ามีตัวอักษรอังกฤษ แจ้งแบบเน้นคนไทยให้กรอกไทย
+ * @param {{ firstNameEnglishHint?: boolean, lastNameEnglishHint?: boolean }} [opts]
  */
 function validateThaiName(label, value, opts = {}) {
   const s = cleanStr(value);
   if (!s) return { ok: false, error: `กรุณากรอก${label}` };
   if (!THAI_ONLY.test(s)) {
+    if (opts.firstNameEnglishHint && HAS_LATIN.test(s)) {
+      return {
+        ok: false,
+        error:
+          "หากเป็นคนไทยกรุณากรอกชื่อเป็นภาษาไทยให้ตรงตามบัตรประชาชน (ไม่ใช้ตัวอักษรอังกฤษ)"
+      };
+    }
     if (opts.lastNameEnglishHint && HAS_LATIN.test(s)) {
       return {
         ok: false,
@@ -31,6 +42,66 @@ function validateThaiName(label, value, opts = {}) {
     };
   }
   return { ok: true, value: s };
+}
+
+function validateLatinName(label, value) {
+  const s = cleanStr(value);
+  if (!s) return { ok: false, error: `กรุณากรอก${label}` };
+  if (THAI_SCRIPT.test(s)) {
+    return {
+      ok: false,
+      error: `หากถือเอกสารไทยให้เลือก "ประเทศไทย" แล้วกรอก${label}เป็นภาษาไทย`
+    };
+  }
+  if (!LATIN_NAME.test(s)) {
+    return {
+      ok: false,
+      error: `${label} (ภาษาอังกฤษ) ใช้ได้เฉพาะ A–z ช่องว่าง . ' - ความยาว 2–50 ตัว`
+    };
+  }
+  return { ok: true, value: s };
+}
+
+function validateCountryCode(value) {
+  const c = cleanStr(value).toUpperCase();
+  if (c === COUNTRY_TH) return { ok: true, value: COUNTRY_TH };
+  if (c === COUNTRY_NON_TH) return { ok: true, value: COUNTRY_NON_TH };
+  return {
+    ok: false,
+    error: 'กรุณาเลือกประเทศ — "ประเทศไทย" หรือ "ต่างประเทศ (ชื่อภาษาอังกฤษ)"'
+  };
+}
+
+/** ใช้ทั้ง register และ check-duplicate */
+function validateRegisterNames(countryCode, firstName, lastName) {
+  const country = validateCountryCode(countryCode);
+  if (!country.ok) return country;
+  if (country.value === COUNTRY_TH) {
+    const first = validateThaiName("ชื่อ", firstName, {
+      firstNameEnglishHint: true
+    });
+    if (!first.ok) return first;
+    const last = validateThaiName("นามสกุล", lastName, {
+      lastNameEnglishHint: true
+    });
+    if (!last.ok) return last;
+    return {
+      ok: true,
+      firstName: first.value,
+      lastName: last.value,
+      countryCode: country.value
+    };
+  }
+  const first = validateLatinName("ชื่อ", firstName);
+  if (!first.ok) return first;
+  const last = validateLatinName("นามสกุล", lastName);
+  if (!last.ok) return last;
+  return {
+    ok: true,
+    firstName: first.value,
+    lastName: last.value,
+    countryCode: country.value
+  };
 }
 
 function validatePhone(value) {
@@ -66,13 +137,14 @@ function validatePassword(value) {
   return { ok: true, value: s };
 }
 
+function parseDuplicateAcknowledged(body) {
+  const v = body?.duplicateNameAcknowledged;
+  return v === true || v === "true" || v === 1;
+}
+
 function validateRegisterBody(body) {
-  const first = validateThaiName("ชื่อ", body.firstName);
-  if (!first.ok) return first;
-  const last = validateThaiName("นามสกุล", body.lastName, {
-    lastNameEnglishHint: true
-  });
-  if (!last.ok) return last;
+  const names = validateRegisterNames(body.countryCode, body.firstName, body.lastName);
+  if (!names.ok) return names;
   const phone = validatePhone(body.phone);
   if (!phone.ok) return phone;
   const user = validateUsername(body.username);
@@ -86,11 +158,13 @@ function validateRegisterBody(body) {
   return {
     ok: true,
     data: {
-      firstName: first.value,
-      lastName: last.value,
+      firstName: names.firstName,
+      lastName: names.lastName,
+      countryCode: names.countryCode,
       phone: phone.value,
       username: user.value,
-      password: pass.value
+      password: pass.value,
+      duplicateNameAcknowledged: parseDuplicateAcknowledged(body)
     }
   };
 }
@@ -108,5 +182,9 @@ function validateLoginBody(body) {
 
 module.exports = {
   validateRegisterBody,
-  validateLoginBody
+  validateLoginBody,
+  validateRegisterNames,
+  parseDuplicateAcknowledged,
+  COUNTRY_TH,
+  COUNTRY_NON_TH
 };

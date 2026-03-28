@@ -18,6 +18,7 @@ const { router: ownerRouter } = require("./ownerRouter");
 const { initDb } = require("./db/init");
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: true,

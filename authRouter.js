@@ -3,7 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
   validateRegisterBody,
-  validateLoginBody
+  validateLoginBody,
+  validateRegisterNames
 } = require("./authValidators");
 const userService = require("./services/userService");
 const { MEMBER } = require("./constants/roles");
@@ -69,20 +70,70 @@ function requireRole(...allowed) {
 
 const router = express.Router();
 
+function clientIp(req) {
+  const xf = req.headers["x-forwarded-for"];
+  if (typeof xf === "string" && xf.length > 0) {
+    return xf.split(",")[0].trim().slice(0, 64);
+  }
+  if (Array.isArray(xf) && xf[0]) {
+    return String(xf[0]).trim().slice(0, 64);
+  }
+  const ra = req.socket?.remoteAddress || req.connection?.remoteAddress;
+  return ra ? String(ra).slice(0, 64) : null;
+}
+
+router.post("/check-duplicate-name", async (req, res) => {
+  try {
+    const n = validateRegisterNames(
+      req.body?.countryCode,
+      req.body?.firstName,
+      req.body?.lastName
+    );
+    if (!n.ok) {
+      return res.status(400).json({ ok: false, error: n.error });
+    }
+    const dup = await userService.findByThaiFullName(n.firstName, n.lastName);
+    return res.json({ ok: true, duplicate: Boolean(dup) });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 router.post("/register", async (req, res) => {
   try {
     const parsed = validateRegisterBody(req.body || {});
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
     }
-    const { firstName, lastName, phone, username, password } = parsed.data;
+    const {
+      firstName,
+      lastName,
+      phone,
+      username,
+      password,
+      countryCode,
+      duplicateNameAcknowledged
+    } = parsed.data;
+
+    const dup = await userService.findByThaiFullName(firstName, lastName);
+    if (dup && !duplicateNameAcknowledged) {
+      return res.status(400).json({
+        ok: false,
+        code: "DUPLICATE_NAME_NEED_ACK",
+        error:
+          "ชื่อและนามสกุลคู่นี้เคยมีในระบบแล้ว — คุณแน่ใจหรือไม่ว่าไม่ได้สมัครซ้ำ? หากเป็นคนละคน (ชื่อ–นามสกุลซ้ำกัน) ให้เลือก \"ไม่เคยสมัครมาก่อน\" แล้วสมัครอีกครั้ง"
+      });
+    }
+
     const passwordHash = bcrypt.hashSync(password, 10);
     const user = await userService.createUser({
       username,
       passwordHash,
       firstName,
       lastName,
-      phone
+      phone,
+      countryCode,
+      registrationIp: clientIp(req)
     });
     const token = signToken(user);
     return res.json({
@@ -98,13 +149,6 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({
         ok: false,
         error: "เบอร์โทรนี้เคยใช้สมัครสมาชิกแล้ว"
-      });
-    }
-    if (e.code === "FULL_NAME_TAKEN") {
-      return res.status(400).json({
-        ok: false,
-        error:
-          "ชื่อและนามสกุลคู่นี้เคยใช้สมัครสมาชิกแล้ว (ระบบเทียบทั้งชื่อและนามสกุลให้ตรงกันพร้อมกัน)"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });

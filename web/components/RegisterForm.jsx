@@ -2,12 +2,29 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { apiCheckDuplicateName } from "../lib/memberApi";
+import {
+  COUNTRY_NON_TH,
+  COUNTRY_TH,
+  firstNameEnglishHint,
+  lastNameEnglishHint,
+  shouldShowLatinThaiHint,
+  shouldShowThaiEnglishHint,
+  validateNamesForCountry,
+  validateRegisterFormClient
+} from "../lib/registerValidation";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+const inputBase =
+  "mt-1 w-full rounded-xl border px-3 py-2 text-sm transition-colors";
+const inputNormal = "border-slate-300";
+const inputWarn = "border-amber-500 bg-amber-50/40 ring-1 ring-amber-400/80";
 
 export default function RegisterForm() {
   const router = useRouter();
   const { register } = useMemberAuth();
+  const [countryCode, setCountryCode] = useState(COUNTRY_TH);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -15,24 +32,101 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
-  const [lastNameHint, setLastNameHint] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nameDuplicate, setNameDuplicate] = useState(false);
+  const [dupCheckPending, setDupCheckPending] = useState(false);
+  const [duplicateChoice, setDuplicateChoice] = useState("");
+  const prevDupRef = useRef(false);
 
-  const lastNameEnglishMessage =
-    "หากเป็นคนไทยกรุณากรอกนามสกุลเป็นภาษาไทยให้ตรงตามบัตรประชาชน (ไม่ใช้ตัวอักษรอังกฤษ)";
+  const namesParsed = validateNamesForCountry(
+    countryCode,
+    firstName,
+    lastName
+  );
+  const namesValid = namesParsed.ok === true;
+
+  useEffect(() => {
+    const v = validateNamesForCountry(countryCode, firstName, lastName);
+    if (!v.ok) {
+      setNameDuplicate(false);
+      setDupCheckPending(false);
+      return;
+    }
+    setDupCheckPending(true);
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const r = await apiCheckDuplicateName({
+          countryCode,
+          firstName: v.firstName,
+          lastName: v.lastName
+        });
+        if (!cancelled) {
+          setNameDuplicate(Boolean(r.duplicate));
+          setDupCheckPending(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setNameDuplicate(false);
+          setDupCheckPending(false);
+        }
+      }
+    }, 450);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [countryCode, firstName, lastName]);
+
+  useEffect(() => {
+    if (nameDuplicate && !prevDupRef.current) {
+      setDuplicateChoice("");
+    }
+    prevDupRef.current = nameDuplicate;
+  }, [nameDuplicate]);
+
+  const firstThaiWarn = shouldShowThaiEnglishHint(countryCode, firstName);
+  const lastThaiWarn = shouldShowThaiEnglishHint(countryCode, lastName);
+  const firstLatinWarn = shouldShowLatinThaiHint(countryCode, firstName);
+  const lastLatinWarn = shouldShowLatinThaiHint(countryCode, lastName);
+
+  const duplicateNameAcknowledged =
+    nameDuplicate === true && duplicateChoice === "first_time";
+
+  const submitBlocked =
+    loading ||
+    (namesValid && dupCheckPending) ||
+    (nameDuplicate === true && duplicateChoice !== "first_time");
 
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
+    const local = validateRegisterFormClient({
+      countryCode,
+      firstName,
+      lastName,
+      phone,
+      username,
+      password,
+      passwordConfirm,
+      nameDuplicate: nameDuplicate === true,
+      duplicateChoice
+    });
+    if (!local.ok) {
+      setError(local.error);
+      return;
+    }
     setLoading(true);
     try {
       await register({
+        countryCode,
         firstName,
         lastName,
         phone,
         username,
         password,
-        passwordConfirm
+        passwordConfirm,
+        duplicateNameAcknowledged
       });
       router.push("/");
     } catch (err) {
@@ -55,49 +149,161 @@ export default function RegisterForm() {
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
           <label
+            htmlFor="countryCode"
+            className="block text-sm font-medium text-slate-700"
+          >
+            ประเทศ / ประเภทเอกสารชื่อ–นามสกุล
+          </label>
+          <select
+            id="countryCode"
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className={`${inputBase} ${inputNormal} bg-white`}
+          >
+            <option value={COUNTRY_TH}>
+              ประเทศไทย — กรอกชื่อ–นามสกุลภาษาไทย (ตามบัตรประชาชน)
+            </option>
+            <option value={COUNTRY_NON_TH}>
+              ต่างประเทศ — กรอกชื่อ–นามสกุลภาษาอังกฤษ (ตามหนังสือเดินทาง)
+            </option>
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            หากเลือกไทย ต้องใช้ตัวอักษรไทยเท่านั้น — หากเลือกต่างประเทศ
+            ใช้ตัวอักษรอังกฤษเท่านั้น
+          </p>
+        </div>
+
+        <div>
+          <label
             htmlFor="firstName"
             className="block text-sm font-medium leading-snug text-slate-700"
           >
-            ชื่อ (ภาษาไทย) ไม่ต้องใส่คำนำหน้า เช่น นาย นาง นางสาว
-            กรุณากรอกให้ตรงตามบัตรประชาชน
+            {countryCode === COUNTRY_TH ? (
+              <>
+                <span className="block">
+                  ชื่อ (ภาษาไทย) ไม่ต้องใส่คำนำหน้า เช่น นาย นาง นางสาว
+                </span>
+                <span className="block">กรุณากรอกให้ตรงตามบัตรประชาชน</span>
+              </>
+            ) : (
+              <span className="block">ชื่อ (ภาษาอังกฤษ)</span>
+            )}
           </label>
           <input
             id="firstName"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className={`${inputBase} ${
+              firstThaiWarn || firstLatinWarn ? inputWarn : inputNormal
+            }`}
             required
             autoComplete="given-name"
+            aria-invalid={firstThaiWarn || firstLatinWarn}
           />
+          {firstThaiWarn ? (
+            <p className="mt-1.5 text-sm font-medium text-amber-900">
+              {firstNameEnglishHint}
+            </p>
+          ) : null}
+          {firstLatinWarn ? (
+            <p className="mt-1.5 text-sm font-medium text-amber-900">
+              หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot; แล้วกรอกชื่อเป็นภาษาไทย
+            </p>
+          ) : null}
         </div>
+
         <div>
           <label
             htmlFor="lastName"
             className="block text-sm font-medium leading-snug text-slate-700"
           >
-            นามสกุล (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน
+            {countryCode === COUNTRY_TH
+              ? "นามสกุล (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน"
+              : "นามสกุล (ภาษาอังกฤษ)"}
           </label>
           <input
             id="lastName"
             value={lastName}
-            onChange={(e) => {
-              const v = e.target.value;
-              setLastName(v);
-              if (!/[A-Za-z]/.test(v)) setLastNameHint("");
-            }}
-            onBlur={() => {
-              const t = lastName.trim();
-              if (t && /[A-Za-z]/.test(t)) setLastNameHint(lastNameEnglishMessage);
-              else setLastNameHint("");
-            }}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            onChange={(e) => setLastName(e.target.value)}
+            className={`${inputBase} ${
+              lastThaiWarn || lastLatinWarn ? inputWarn : inputNormal
+            }`}
             required
             autoComplete="family-name"
+            aria-invalid={lastThaiWarn || lastLatinWarn}
           />
-          {lastNameHint ? (
-            <p className="mt-1.5 text-sm text-amber-800">{lastNameHint}</p>
+          {lastThaiWarn ? (
+            <p className="mt-1.5 text-sm font-medium text-amber-900">
+              {lastNameEnglishHint}
+            </p>
+          ) : null}
+          {lastLatinWarn ? (
+            <p className="mt-1.5 text-sm font-medium text-amber-900">
+              หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot;
+              แล้วกรอกนามสกุลเป็นภาษาไทย
+            </p>
           ) : null}
         </div>
+
+        {nameDuplicate === true && namesValid && !dupCheckPending ? (
+          <div
+            className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-slate-800"
+            role="status"
+          >
+            <p className="font-semibold text-amber-950">
+              ชื่อและนามสกุลคู่นี้เคยมีในระบบแล้ว
+            </p>
+            <p className="mt-2 leading-relaxed">
+              คุณแน่ใจหรือไม่ว่าไม่ได้สมัครซ้ำซ้อน?
+              คนละคนแต่ชื่อ–นามสกุลซ้ำกันมีได้ — หากเป็นคุณคนเดิมที่เคยสมัครแล้ว
+              กรุณาเข้าสู่ระบบแทน
+            </p>
+            <p className="mt-2 text-xs text-slate-600">
+              ระบบบันทึกที่อยู่ IP ตอนสมัครเพื่อช่วยตรวจสอบการใช้งาน
+            </p>
+            <fieldset className="mt-4 space-y-2">
+              <legend className="sr-only">สถานะการสมัครก่อนหน้า</legend>
+              <label className="flex cursor-pointer items-start gap-2">
+                <input
+                  type="radio"
+                  name="dupChoice"
+                  value="repeat"
+                  checked={duplicateChoice === "repeat"}
+                  onChange={() => setDuplicateChoice("repeat")}
+                  className="mt-1"
+                />
+                <span>เคยสมัครมาก่อน (ใช้บัญชีเดิม — ไปเข้าสู่ระบบ)</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-2">
+                <input
+                  type="radio"
+                  name="dupChoice"
+                  value="first_time"
+                  checked={duplicateChoice === "first_time"}
+                  onChange={() => setDuplicateChoice("first_time")}
+                  className="mt-1"
+                />
+                <span>
+                  ไม่เคยสมัครมาก่อน (เป็นคนละคน / ชื่อ–นามสกุลซ้ำ — ยืนยันให้สมัครได้)
+                </span>
+              </label>
+            </fieldset>
+            {duplicateChoice === "repeat" ? (
+              <p className="mt-3 text-sm font-medium text-rose-800">
+                กรุณา{" "}
+                <Link href="/login" className="underline">
+                  เข้าสู่ระบบ
+                </Link>{" "}
+                แทนการสมัครใหม่
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {namesValid && dupCheckPending ? (
+          <p className="text-xs text-slate-500">กำลังตรวจสอบชื่อในระบบ…</p>
+        ) : null}
+
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
             เบอร์โทรศัพท์
@@ -157,8 +363,8 @@ export default function RegisterForm() {
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button
           type="submit"
-          disabled={loading}
-          className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-60"
+          disabled={submitBlocked}
+          className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "กำลังส่ง..." : "สมัครสมาชิก"}
         </button>
