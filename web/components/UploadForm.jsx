@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getApiBase } from "../lib/config";
 
-export default function UploadForm() {
+export default function UploadForm({ showCardHeader = true }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -86,15 +86,20 @@ export default function UploadForm() {
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-brand-100/90 bg-white shadow-soft">
-      <div className="border-b border-brand-100/80 bg-gradient-to-r from-brand-50/90 to-white px-6 py-4 md:px-8">
-        <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน
-        </p>
-      </div>
+    <section
+      id="upload"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-brand-100/90 bg-white shadow-soft"
+    >
+      {showCardHeader ? (
+        <div className="border-b border-brand-100/80 bg-gradient-to-r from-brand-50/90 to-white px-6 py-4 md:px-8">
+          <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน
+          </p>
+        </div>
+      ) : null}
 
-      <div className="p-6 md:p-8">
+      <div className={`p-6 md:p-8 ${showCardHeader ? "" : "pt-8"}`}>
         <label
           htmlFor="upload-file"
           className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-12 transition hover:border-brand-400 hover:bg-brand-50/40"

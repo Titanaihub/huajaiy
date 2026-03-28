@@ -14,3 +14,13 @@
 ::selection {
   @apply bg-brand-200/80 text-slate-900;
 }
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

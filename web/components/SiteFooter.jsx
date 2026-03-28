@@ -34,6 +34,18 @@ export default function SiteFooter() {
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 บริการ
               </span>
+              <Link href="/" className={linkClass}>
+                หน้าแรก
+              </Link>
+              <Link href="/shop" className={linkClass}>
+                ร้านค้า
+              </Link>
+              <Link href="/cart" className={linkClass}>
+                ตะกร้า
+              </Link>
+              <Link href="/game" className={linkClass}>
+                เกม
+              </Link>
               <Link href="/contact" className={linkClass}>
                 ติดต่อ
               </Link>
