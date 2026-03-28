@@ -11,6 +11,7 @@ import {
 import {
   apiLogin,
   apiMe,
+  apiPatchProfile,
   apiRegister,
   clearMemberToken,
   getMemberToken,
@@ -72,6 +73,16 @@ export default function MemberAuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const patchProfile = useCallback(async (payload) => {
+    const token = getMemberToken();
+    if (!token) {
+      throw new Error("ไม่ได้เข้าสู่ระบบ");
+    }
+    const data = await apiPatchProfile(token, payload);
+    setUser(data.user);
+    return data;
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -79,9 +90,10 @@ export default function MemberAuthProvider({ children }) {
       login,
       register,
       logout,
-      refresh
+      refresh,
+      patchProfile
     }),
-    [user, loading, login, register, logout, refresh]
+    [user, loading, login, register, logout, refresh, patchProfile]
   );
 
   return (

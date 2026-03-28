@@ -21,6 +21,12 @@ export default function MemberNav() {
         <span className="max-w-[140px] truncate text-sm font-medium text-slate-800" title={label}>
           {label}
         </span>
+        <Link
+          href="/account"
+          className="font-medium text-brand-700 transition hover:text-brand-900"
+        >
+          บัญชี
+        </Link>
         {user.role === "admin" ? (
           <Link
             href="/admin"

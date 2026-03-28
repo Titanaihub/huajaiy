@@ -86,3 +86,46 @@ export async function apiMe(token) {
   }
   return data;
 }
+
+export async function apiPatchProfile(token, body) {
+  const r = await fetch(`${apiRoot()}/api/auth/profile`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "บันทึกโปรไฟล์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiPostNameChangeRequest(token, body) {
+  const r = await fetch(`${apiRoot()}/api/auth/name-change-request`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ส่งคำขอไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiGetMyNameChangeRequests(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/name-change-requests/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติคำขอไม่สำเร็จ");
+  }
+  return data;
+}

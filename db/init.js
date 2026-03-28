@@ -35,6 +35,38 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS registration_ip VARCHAR(64);
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS gender VARCHAR(16);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS birth_date DATE;
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_address TEXT;
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS name_change_requests (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        requested_first_name VARCHAR(64) NOT NULL,
+        requested_last_name VARCHAR(64) NOT NULL,
+        reason TEXT NOT NULL,
+        status VARCHAR(16) NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        resolved_at TIMESTAMPTZ,
+        resolver_note TEXT
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_ncr_pending ON name_change_requests(status) WHERE status = 'pending';`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_ncr_user ON name_change_requests(user_id);`
+    );
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`
     );

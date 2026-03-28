@@ -7,6 +7,11 @@ const {
   validateRegisterNames
 } = require("./authValidators");
 const userService = require("./services/userService");
+const nameChangeRequestService = require("./services/nameChangeRequestService");
+const {
+  validateProfilePatch,
+  validateNameChangeRequest
+} = require("./profileValidators");
 const { MEMBER } = require("./constants/roles");
 
 function getJwtSecret() {
@@ -187,6 +192,60 @@ router.get("/me", authMiddleware, async (req, res) => {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
     return res.json({ ok: true, user: userService.publicUser(user) });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.patch("/profile", authMiddleware, async (req, res) => {
+  try {
+    const parsed = validateProfilePatch(req.body || {});
+    if (!parsed.ok) {
+      return res.status(400).json({ ok: false, error: parsed.error });
+    }
+    const user = await userService.updateProfile(req.userId, parsed.data);
+    if (!user) {
+      return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    return res.json({ ok: true, user: userService.publicUser(user) });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.post("/name-change-request", authMiddleware, async (req, res) => {
+  try {
+    const u = await userService.findById(req.userId);
+    if (!u) {
+      return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    const parsed = validateNameChangeRequest(
+      u.countryCode || "TH",
+      req.body || {}
+    );
+    if (!parsed.ok) {
+      return res.status(400).json({ ok: false, error: parsed.error });
+    }
+    const rec = await nameChangeRequestService.createRequest(
+      req.userId,
+      parsed.data
+    );
+    return res.json({ ok: true, request: rec });
+  } catch (e) {
+    if (e.code === "PENDING_NAME_CHANGE_EXISTS") {
+      return res.status(400).json({
+        ok: false,
+        error: "มีคำขอเปลี่ยนชื่อที่รอดำเนินการอยู่แล้ว — รอแอดมินพิจารณาก่อนส่งใหม่"
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get("/name-change-requests/mine", authMiddleware, async (req, res) => {
+  try {
+    const requests = await nameChangeRequestService.listForUser(req.userId);
+    return res.json({ ok: true, requests });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

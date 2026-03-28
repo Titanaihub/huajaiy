@@ -29,6 +29,15 @@ function writeUsers(users) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2), "utf8");
 }
 
+function updateUser(id, patch) {
+  const users = readUsers();
+  const i = users.findIndex((x) => x.id === id);
+  if (i < 0) return null;
+  users[i] = { ...users[i], ...patch };
+  writeUsers(users);
+  return users[i];
+}
+
 function findByUsername(username) {
   const u = String(username || "").toLowerCase();
   return readUsers().find((x) => x.username === u) || null;
@@ -100,8 +109,40 @@ function publicUser(u) {
     firstName: u.firstName,
     lastName: u.lastName,
     phone: u.phone,
+    countryCode: u.countryCode || "TH",
+    gender: u.gender ?? null,
+    birthDate: u.birthDate ?? null,
+    shippingAddress: u.shippingAddress ?? null,
     role: u.role || MEMBER
   };
+}
+
+function rowHaystack(u) {
+  return [u.username, u.firstName, u.lastName, String(u.phone || ""), u.id]
+    .join(" ")
+    .toLowerCase();
+}
+
+function filterUsersByQuery(users, q) {
+  const qt = String(q || "").trim().toLowerCase();
+  if (!qt) return users;
+  return users.filter((u) => rowHaystack(u).includes(qt));
+}
+
+/** รายการสำหรับแอดมิน — เรียงใหม่ก่อน */
+function listForAdmin({ q = "", limit = 50, offset = 0 } = {}) {
+  const lim = Math.min(Math.max(Number(limit) || 50, 1), 100);
+  const off = Math.max(Number(offset) || 0, 0);
+  let users = readUsers();
+  users = filterUsersByQuery(users, q);
+  users.sort((a, b) =>
+    String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
+  );
+  return users.slice(off, off + lim);
+}
+
+function countForAdmin({ q = "" } = {}) {
+  return filterUsersByQuery(readUsers(), q).length;
 }
 
 module.exports = {
@@ -110,5 +151,8 @@ module.exports = {
   findByPhone,
   findByThaiFullName,
   createUser,
-  publicUser
+  updateUser,
+  publicUser,
+  listForAdmin,
+  countForAdmin
 };

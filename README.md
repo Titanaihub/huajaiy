@@ -41,6 +41,8 @@
 | `/game` | Flip-card demo (12 tiles, collect-first win) |
 | `/register` | สมัครสมาชิก (ชื่อ–นามสกุลไทย, เบอร์, ยูสเซอร์, รหัสผ่าน) |
 | `/login` | เข้าสู่ระบบสมาชิก |
+| `/account` | บัญชีสมาชิก — แก้เพศ/วันเกิด/ที่อยู่จัดส่ง, ขอเปลี่ยนชื่อผ่านแอดมิน |
+| `/admin` | หลังบ้านแอดมิน — รายชื่อสมาชิก, ค้นหา, รายละเอียด, คำขอเปลี่ยนชื่อ (ต้อง `role = admin`) |
 | `/auth` | Facebook/LINE (NextAuth — ขั้นตอนหลัง) |
 | `/contact` | Contact form (stored in server logs via `POST /api/inquiry`) |
 | `/privacy`, `/terms`, `/data-deletion` | Legal pages for Meta etc. |
@@ -50,6 +52,14 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 **สมาชิก:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` (Authorization: Bearer …)
 
 เกม (สุ่มกระดานฝั่งเซิร์ฟเวอร์): `GET/POST /api/game/*` — ฝั่ง Next rewrite `/api/game/*` ไปที่ `NEXT_PUBLIC_API_BASE_URL`
+
+---
+
+## การเก็บข้อมูลสมาชิก (ถาวร vs หายตอน deploy)
+
+- **มี `DATABASE_URL` (เช่น PostgreSQL บน Render):** ข้อมูลยูสเซอร์ โปรไฟล์ และคำขอเปลี่ยนชื่อเก็บในฐานข้อมูล — **ไม่หายเพราะอัปเว็บหรือ redeploy** ตราบใดที่ instance DB เดิมยังอยู่
+- **ไม่มี `DATABASE_URL`:** API ใช้ไฟล์ **`data/users.json`** และ **`data/name_change_requests.json`** บนดิสก์ของ service API — บน Render ดิสก์ของ Web Service มักเป็น **ephemeral** จึง **อาจถูกล้างเมื่อ redeploy / สร้าง instance ใหม่** ถ้าต้องการข้อมูลถาวรโดยไม่ใช้ Postgres ต้องใช้ **Persistent Disk** หรือย้ายไปใช้ DB
+- **เบราว์เซอร์:** โทเค็นล็อกอินสมาชิกอยู่ที่ **localStorage** — ไม่เกี่ยวกับ deploy แต่ถ้าผู้ใช้ล้างข้อมูลเว็บหรือเปลี่ยนเครื่องจะต้องล็อกอินใหม่
 
 ---
 
@@ -71,6 +81,7 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 - `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>`
 - `POST /api/orders` — บันทึกออเดอร์ (Bearer + body JSON)
 - `GET /api/orders/me` — รายการออเดอร์ของผู้ใช้ (Bearer)
+- **แอดมิน** (Bearer + `users.role = 'admin'`): `GET /api/admin/members` (query `q`, `limit`, `offset`) · `GET /api/admin/members/:id` · `GET /api/admin/name-change-requests` · `POST /api/admin/name-change-requests/:id/approve|reject` (body ไม่บังคับ: `{ "note": "..." }`) · `GET /api/admin/ping` — หน้าเว็บ **`/admin`**
 - `GET /api/game/meta`
 - `POST /api/game/start`, `POST /api/game/flip`, `POST /api/game/abandon`
 
