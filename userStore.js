@@ -38,12 +38,38 @@ function findById(id) {
   return readUsers().find((x) => x.id === id) || null;
 }
 
+function findByPhone(phone) {
+  const p = String(phone || "").trim();
+  return readUsers().find((x) => x.phone === p) || null;
+}
+
+function findByThaiFullName(firstName, lastName) {
+  const fn = String(firstName || "").trim();
+  const ln = String(lastName || "").trim();
+  return (
+    readUsers().find((x) => x.firstName === fn && x.lastName === ln) || null
+  );
+}
+
 function createUser({ username, passwordHash, firstName, lastName, phone }) {
   const users = readUsers();
   const un = String(username).toLowerCase();
   if (users.some((x) => x.username === un)) {
     const err = new Error("USERNAME_TAKEN");
     err.code = "USERNAME_TAKEN";
+    throw err;
+  }
+  const p = String(phone || "").trim();
+  if (users.some((x) => x.phone === p)) {
+    const err = new Error("PHONE_TAKEN");
+    err.code = "PHONE_TAKEN";
+    throw err;
+  }
+  const fn = String(firstName || "").trim();
+  const ln = String(lastName || "").trim();
+  if (users.some((x) => x.firstName === fn && x.lastName === ln)) {
+    const err = new Error("FULL_NAME_TAKEN");
+    err.code = "FULL_NAME_TAKEN";
     throw err;
   }
   const user = {
@@ -76,6 +102,8 @@ function publicUser(u) {
 module.exports = {
   findByUsername,
   findById,
+  findByPhone,
+  findByThaiFullName,
   createUser,
   publicUser
 };

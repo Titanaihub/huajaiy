@@ -94,6 +94,18 @@ router.post("/register", async (req, res) => {
     if (e.code === "USERNAME_TAKEN") {
       return res.status(400).json({ ok: false, error: "ชื่อผู้ใช้นี้ถูกใช้แล้ว" });
     }
+    if (e.code === "PHONE_TAKEN") {
+      return res.status(400).json({
+        ok: false,
+        error: "เบอร์โทรนี้เคยใช้สมัครสมาชิกแล้ว"
+      });
+    }
+    if (e.code === "FULL_NAME_TAKEN") {
+      return res.status(400).json({
+        ok: false,
+        error: "ชื่อและนามสกุลนี้เคยใช้สมัครสมาชิกแล้ว"
+      });
+    }
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

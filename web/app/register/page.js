@@ -4,7 +4,8 @@ import SiteHeader from "../../components/SiteHeader";
 
 export const metadata = {
   title: "สมัครสมาชิก | HUAJAIY",
-  description: "สมัครสมาชิก — ชื่อนามสกุลภาษาไทย เบอร์โทร ชื่อผู้ใช้ รหัสผ่าน"
+  description:
+    "สมัครสมาชิก — 1 คนต่อ 1 บัญชี กรอกข้อมูลตามบัตรประชาชน เบอร์โทร ชื่อผู้ใช้ รหัสผ่าน"
 };
 
 export default function RegisterPage() {

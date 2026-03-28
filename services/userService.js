@@ -37,6 +37,36 @@ async function findById(id) {
   return rowToUser(r.rows[0]);
 }
 
+async function findByPhone(phone) {
+  const p = String(phone ?? "").trim();
+  if (!p) return null;
+  const pool = getPool();
+  if (!pool) {
+    return userStore.findByPhone(p);
+  }
+  const r = await pool.query("SELECT * FROM users WHERE phone = $1 LIMIT 1", [
+    p
+  ]);
+  if (r.rows.length === 0) return null;
+  return rowToUser(r.rows[0]);
+}
+
+async function findByThaiFullName(firstName, lastName) {
+  const fn = String(firstName ?? "").trim();
+  const ln = String(lastName ?? "").trim();
+  if (!fn || !ln) return null;
+  const pool = getPool();
+  if (!pool) {
+    return userStore.findByThaiFullName(fn, ln);
+  }
+  const r = await pool.query(
+    "SELECT * FROM users WHERE first_name = $1 AND last_name = $2 LIMIT 1",
+    [fn, ln]
+  );
+  if (r.rows.length === 0) return null;
+  return rowToUser(r.rows[0]);
+}
+
 async function createUser({ username, passwordHash, firstName, lastName, phone }) {
   const pool = getPool();
   const un = String(username).toLowerCase();
@@ -49,6 +79,20 @@ async function createUser({ username, passwordHash, firstName, lastName, phone }
       phone
     });
   }
+
+  const existingPhone = await findByPhone(phone);
+  if (existingPhone) {
+    const err = new Error("PHONE_TAKEN");
+    err.code = "PHONE_TAKEN";
+    throw err;
+  }
+  const existingName = await findByThaiFullName(firstName, lastName);
+  if (existingName) {
+    const err = new Error("FULL_NAME_TAKEN");
+    err.code = "FULL_NAME_TAKEN";
+    throw err;
+  }
+
   const id = crypto.randomUUID();
   try {
     const r = await pool.query(
@@ -60,9 +104,15 @@ async function createUser({ username, passwordHash, firstName, lastName, phone }
     return rowToUser(r.rows[0]);
   } catch (e) {
     if (e.code === "23505") {
-      const err = new Error("USERNAME_TAKEN");
-      err.code = "USERNAME_TAKEN";
-      throw err;
+      const d = String(e.detail || "").toLowerCase();
+      if (d.includes("(phone)")) {
+        const pe = new Error("PHONE_TAKEN");
+        pe.code = "PHONE_TAKEN";
+        throw pe;
+      }
+      const ue = new Error("USERNAME_TAKEN");
+      ue.code = "USERNAME_TAKEN";
+      throw ue;
     }
     throw e;
   }
@@ -83,6 +133,8 @@ function publicUser(u) {
 module.exports = {
   findByUsername,
   findById,
+  findByPhone,
+  findByThaiFullName,
   createUser,
   publicUser
 };

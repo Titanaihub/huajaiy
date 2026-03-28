@@ -30,6 +30,16 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`
     );
+    try {
+      await client.query(
+        `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone_unique ON users(phone);`
+      );
+    } catch (e) {
+      console.warn(
+        "[db] ไม่สามารถสร้าง unique index เบอร์โทรได้ (อาจมีเบอร์ซ้ำในระบบ):",
+        e.message
+      );
+    }
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS orders (

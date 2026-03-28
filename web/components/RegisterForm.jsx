@@ -41,13 +41,23 @@ export default function RegisterForm() {
   return (
     <>
       <h1 className="text-xl font-semibold text-slate-900">สมัครสมาชิก</h1>
-      <p className="mt-2 text-sm text-slate-600">
-        ชื่อ–นามสกุลเป็นภาษาไทยเท่านั้น · เบอร์โทร 10 หลัก · ชื่อผู้ใช้ภาษาอังกฤษตัวเล็ก
-      </p>
+      <div className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+        <p className="font-semibold text-slate-800">1 คนต่อ 1 บัญชีเท่านั้น</p>
+        <p>
+          กรุณากรอกข้อมูลจริงให้ถูกต้อง
+          ข้อมูลผิดอาจแก้ไขภายหลังได้ยากและอาจเสียสิทธิ์รับรางวัล
+        </p>
+        <p className="text-xs text-slate-600">
+          เบอร์โทร 10 หลัก · ชื่อผู้ใช้ภาษาอังกฤษตัวเล็ก (a–z, ตัวเลข, _)
+        </p>
+      </div>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-slate-700">
-            ชื่อ (ภาษาไทย)
+          <label
+            htmlFor="firstName"
+            className="block text-sm font-medium leading-snug text-slate-700"
+          >
+            ชื่อ (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน
           </label>
           <input
             id="firstName"
@@ -59,8 +69,11 @@ export default function RegisterForm() {
           />
         </div>
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-slate-700">
-            นามสกุล (ภาษาไทย)
+          <label
+            htmlFor="lastName"
+            className="block text-sm font-medium leading-snug text-slate-700"
+          >
+            นามสกุล (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน
           </label>
           <input
             id="lastName"
