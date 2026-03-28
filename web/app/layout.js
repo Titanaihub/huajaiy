@@ -23,6 +23,9 @@ export const metadata = {
   ...(metadataBase ? { metadataBase } : {}),
   title: "HUAJAIY",
   description: "แพลตฟอร์มเบา โหลดไว — ร้านค้า เกม และอัปโหลดรูป",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }]
+  },
   openGraph: {
     title: "HUAJAIY",
     description: "ร้านค้า เกม อัปโหลดรูป — ใช้งานบนมือถือได้สะดวก",
