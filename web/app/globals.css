@@ -13,7 +13,8 @@
 }
 
 ::selection {
-  @apply bg-fuchsia-300/90 text-slate-900;
+  background-color: rgb(240 171 252 / 0.9);
+  color: #0f172a;
 }
 
 /**
@@ -121,9 +122,14 @@
 }
 
 @layer components {
-  /** Readable glass panel on vibrant background */
+  /**
+   * Glass panels — border/bg opacity must be plain CSS; Tailwind @apply
+   * does not accept utilities like bg-white/78 (build fails on Render).
+   */
   .surface-game {
-    @apply rounded-2xl border border-white/75 bg-white/78 shadow-game-sm backdrop-blur-md;
+    @apply rounded-2xl shadow-game-sm backdrop-blur-md;
+    border: 1px solid rgb(255 255 255 / 0.75);
+    background-color: rgb(255 255 255 / 0.78);
     box-shadow:
       0 10px 36px -10px rgb(225 29 72 / 0.22),
       0 2px 12px -2px rgb(255 255 255 / 0.55),
@@ -131,7 +137,9 @@
   }
 
   .surface-game-hero {
-    @apply rounded-3xl border border-white/80 bg-white/80 shadow-game backdrop-blur-lg;
+    @apply rounded-3xl shadow-game backdrop-blur-lg;
+    border: 1px solid rgb(255 255 255 / 0.8);
+    background-color: rgb(255 255 255 / 0.8);
     box-shadow:
       0 16px 48px -12px rgb(225 29 72 / 0.3),
       0 4px 16px -4px rgb(251 113 133 / 0.25),
