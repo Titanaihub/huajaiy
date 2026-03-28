@@ -11,6 +11,39 @@ function requirePool() {
   return pool;
 }
 
+/** @returns {number[]} ความยาว = setCount แต่ละชุดมีกี่ภาพ */
+function normalizeSetImageCounts(setCount, rawJson, imagesPerSetFallback) {
+  const sc = Math.max(1, Math.floor(Number(setCount) || 0));
+  const fb = Math.max(1, Math.floor(Number(imagesPerSetFallback) || 1));
+  let arr = null;
+  if (rawJson != null) {
+    if (typeof rawJson === "string") {
+      try {
+        arr = JSON.parse(rawJson);
+      } catch {
+        arr = null;
+      }
+    } else if (Array.isArray(rawJson)) {
+      arr = rawJson;
+    }
+  }
+  if (!Array.isArray(arr) || arr.length === 0) {
+    return Array.from({ length: sc }, () => fb);
+  }
+  const nums = arr.map((x) => Math.max(1, Math.floor(Number(x)) || 1));
+  if (nums.length >= sc) {
+    return nums.slice(0, sc);
+  }
+  const out = nums.slice();
+  const pad = out.length ? out[out.length - 1] : fb;
+  while (out.length < sc) out.push(pad);
+  return out;
+}
+
+function sumSizes(sizes) {
+  return sizes.reduce((a, b) => a + b, 0);
+}
+
 function rowGame(row) {
   const legacyHeart = Math.max(0, Math.floor(Number(row.heart_cost) || 0));
   let pinkHeartCost = Math.max(0, Math.floor(Number(row.pink_heart_cost) || 0));
@@ -18,12 +51,22 @@ function rowGame(row) {
   if (pinkHeartCost === 0 && redHeartCost === 0 && legacyHeart > 0) {
     pinkHeartCost = legacyHeart;
   }
+  const setCount = Math.max(1, Math.floor(Number(row.set_count) || 0));
+  const imagesPerSetCol = Math.max(1, Math.floor(Number(row.images_per_set) || 1));
+  const setImageCounts = normalizeSetImageCounts(
+    setCount,
+    row.set_image_counts,
+    imagesPerSetCol
+  );
+  const tileCount = Math.max(1, Math.floor(Number(row.tile_count) || 0));
+  const imagesPerSet = Math.max(...setImageCounts, 1);
   return {
     id: row.id,
     title: row.title,
-    tileCount: row.tile_count,
-    setCount: row.set_count,
-    imagesPerSet: row.images_per_set,
+    tileCount,
+    setCount,
+    setImageCounts,
+    imagesPerSet,
     pinkHeartCost,
     redHeartCost,
     heartCost: pinkHeartCost + redHeartCost,
@@ -112,6 +155,7 @@ async function createGame({
   tileCount,
   setCount,
   imagesPerSet,
+  setImageCounts: setImageCountsBody,
   heartCost = 0,
   pinkHeartCost,
   redHeartCost,
@@ -119,26 +163,31 @@ async function createGame({
 }) {
   const pool = requirePool();
   const t = String(title || "").trim().slice(0, 200);
-  const tc = Math.floor(Number(tileCount) || 0);
-  const sc = Math.floor(Number(setCount) || 0);
-  const m = Math.floor(Number(imagesPerSet) || 0);
+  const sc = Math.max(1, Math.floor(Number(setCount) || 0));
+  const m = Math.max(1, Math.floor(Number(imagesPerSet) || 0));
+  let sizes;
+  if (Array.isArray(setImageCountsBody) && setImageCountsBody.length > 0) {
+    sizes = normalizeSetImageCounts(sc, setImageCountsBody, m);
+  } else {
+    sizes = Array.from({ length: sc }, () => m);
+  }
   if (!t) {
     const e = new Error("ต้องมีชื่อเกม");
     e.code = "VALIDATION";
     throw e;
   }
-  if (sc < 1 || m < 1 || tc < 1) {
-    const e = new Error("จำนวนชุด ภาพต่อชุด และป้ายต้องมากกว่า 0");
+  const tc = sumSizes(sizes);
+  if (tileCount != null && Math.floor(Number(tileCount) || 0) !== tc) {
+    const e = new Error(`จำนวนป้ายรวมต้องเท่ากับ ${tc} (ผลรวมภาพแต่ละชุด)`);
     e.code = "VALIDATION";
     throw e;
   }
-  if (tc !== sc * m) {
-    const e = new Error(
-      `จำนวนป้าย (${tc}) ต้องเท่ากับ ชุด×ภาพต่อชุด = ${sc}×${m} = ${sc * m}`
-    );
+  if (sc < 1 || tc < 1) {
+    const e = new Error("จำนวนชุดและป้ายรวมต้องมากกว่า 0");
     e.code = "VALIDATION";
     throw e;
   }
+  const maxPer = Math.max(...sizes, 1);
   const id = crypto.randomUUID();
   const { pink, red } = normalizePinkRedCosts(
     { heartCost, pinkHeartCost, redHeartCost },
@@ -147,9 +196,9 @@ async function createGame({
   );
   const heartSum = pink + red;
   await pool.query(
-    `INSERT INTO central_games (id, title, tile_count, set_count, images_per_set, heart_cost, pink_heart_cost, red_heart_cost, is_active, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, FALSE, $9)`,
-    [id, t, tc, sc, m, heartSum, pink, red, createdBy]
+    `INSERT INTO central_games (id, title, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, is_active, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, FALSE, $10)`,
+    [id, t, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, createdBy]
   );
   return getGameSnapshotById(id);
 }
@@ -160,13 +209,26 @@ async function updateGameMeta(gameId, patch) {
   if (cur.rows.length === 0) return null;
   const c = rowGame(cur.rows[0]);
   const title = patch.title != null ? String(patch.title).trim().slice(0, 200) : c.title;
-  const tc =
-    patch.tileCount != null ? Math.floor(Number(patch.tileCount) || 0) : c.tileCount;
-  const sc = patch.setCount != null ? Math.floor(Number(patch.setCount) || 0) : c.setCount;
-  const m =
-    patch.imagesPerSet != null
-      ? Math.floor(Number(patch.imagesPerSet) || 0)
-      : c.imagesPerSet;
+  const sc = patch.setCount != null ? Math.max(1, Math.floor(Number(patch.setCount) || 0)) : c.setCount;
+  let sizes;
+  if (Array.isArray(patch.setImageCounts) && patch.setImageCounts.length > 0) {
+    sizes = normalizeSetImageCounts(sc, patch.setImageCounts, c.imagesPerSet);
+  } else if (
+    patch.imagesPerSet != null &&
+    patch.setImageCounts == null
+  ) {
+    const m = Math.max(1, Math.floor(Number(patch.imagesPerSet) || 0));
+    sizes = Array.from({ length: sc }, () => m);
+  } else {
+    sizes = normalizeSetImageCounts(sc, c.setImageCounts, c.imagesPerSet);
+  }
+  const tc = sumSizes(sizes);
+  if (patch.tileCount != null && Math.floor(Number(patch.tileCount) || 0) !== tc) {
+    const e = new Error(`จำนวนป้ายรวมต้องเท่ากับ ${tc} (ผลรวมภาพแต่ละชุด)`);
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const maxPer = Math.max(...sizes, 1);
   let pink = c.pinkHeartCost;
   let red = c.redHeartCost;
   if (patch.pinkHeartCost != null) {
@@ -189,14 +251,9 @@ async function updateGameMeta(gameId, patch) {
     e.code = "VALIDATION";
     throw e;
   }
-  if (tc !== sc * m) {
-    const e = new Error(`จำนวนป้าย (${tc}) ต้องเท่ากับ ${sc}×${m} = ${sc * m}`);
-    e.code = "VALIDATION";
-    throw e;
-  }
   await pool.query(
-    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, heart_cost = $6, pink_heart_cost = $7, red_heart_cost = $8, updated_at = NOW() WHERE id = $1`,
-    [gameId, title, tc, sc, m, heartSum, pink, red]
+    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, updated_at = NOW() WHERE id = $1`,
+    [gameId, title, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red]
   );
   return getGameSnapshotById(gameId);
 }
@@ -209,7 +266,7 @@ async function replaceImages(gameId, images) {
     e.code = "NOT_FOUND";
     throw e;
   }
-  const { setCount, imagesPerSet } = snap.game;
+  const { setCount, setImageCounts } = snap.game;
   if (!Array.isArray(images)) {
     const e = new Error("images ต้องเป็นอาร์เรย์");
     e.code = "VALIDATION";
@@ -223,8 +280,9 @@ async function replaceImages(gameId, images) {
       const si = Math.floor(Number(row.setIndex));
       const ii = Math.floor(Number(row.imageIndex));
       const url = String(row.imageUrl || "").trim().slice(0, 2000);
-      if (si < 0 || si >= setCount || ii < 0 || ii >= imagesPerSet) {
-        const e = new Error(`ภาพชุด ${si} ลำดับ ${ii} อยู่นอกขอบเขต`);
+      const cap = setImageCounts[si] ?? 0;
+      if (si < 0 || si >= setCount || ii < 0 || ii >= cap) {
+        const e = new Error(`ภาพชุด ${si + 1} ลำดับ ${ii} อยู่นอกขอบเขต (ชุดนี้มี ${cap} ภาพ)`);
         e.code = "VALIDATION";
         throw e;
       }
@@ -239,9 +297,9 @@ async function replaceImages(gameId, images) {
         [gameId, si, ii, url]
       );
     }
-    const expected = setCount * imagesPerSet;
+    const expected = setImageCounts.reduce((a, b) => a + b, 0);
     if (images.length !== expected) {
-      const e = new Error(`ต้องอัปโหลดครบ ${expected} ภาพ (ชุด×ภาพต่อชุด)`);
+      const e = new Error(`ต้องอัปโหลดครบ ${expected} ภาพ (ผลรวมทุกชุด)`);
       e.code = "VALIDATION";
       throw e;
     }
@@ -264,7 +322,7 @@ async function replaceRules(gameId, rules) {
     e.code = "NOT_FOUND";
     throw e;
   }
-  const { setCount, imagesPerSet } = snap.game;
+  const { setCount, setImageCounts } = snap.game;
   if (!Array.isArray(rules)) {
     const e = new Error("rules ต้องเป็นอาร์เรย์");
     e.code = "VALIDATION";
@@ -289,8 +347,11 @@ async function replaceRules(gameId, rules) {
         e.code = "VALIDATION";
         throw e;
       }
-      if (needCount < 1 || needCount > imagesPerSet) {
-        const e = new Error(`needCount ต้องอยู่ระหว่าง 1 ถึง ${imagesPerSet}`);
+      const cap = setImageCounts[setIndex] ?? 0;
+      if (needCount < 1 || needCount > cap) {
+        const e = new Error(
+          `ในชุด ${setIndex + 1} มี ${cap} ป้าย — ต้องเปิดครบต้องอยู่ระหว่าง 1 ถึง ${cap}`
+        );
         e.code = "VALIDATION";
         throw e;
       }
@@ -333,7 +394,7 @@ async function assertGamePlayable(snapshot) {
     throw e;
   }
   const { game, imageUrl, rules } = snapshot;
-  const expected = game.setCount * game.imagesPerSet;
+  const expected = game.tileCount;
   if (imageUrl.size !== expected) {
     const e = new Error(`ต้องอัปโหลดรูปครบ ${expected} ช่องก่อนเปิดใช้เกม`);
     e.code = "VALIDATION";
@@ -344,6 +405,18 @@ async function assertGamePlayable(snapshot) {
     const e = new Error("ต้องมีอย่างน้อยหนึ่งกติกาที่มีรางวัล (ไม่ใช่แค่ \"ไม่มีรางวัล\")");
     e.code = "VALIDATION";
     throw e;
+  }
+  const { setCount, setImageCounts } = game;
+  for (let s = 0; s < setCount; s += 1) {
+    const n = setImageCounts[s] ?? 0;
+    for (let i = 0; i < n; i += 1) {
+      const u = imageUrl.get(`${s}-${i}`);
+      if (!u || (!String(u).startsWith("http://") && !String(u).startsWith("https://"))) {
+        const e = new Error(`ขาดรูปชุด ${s + 1} ภาพ ${i + 1} หรือ URL ไม่ถูกต้อง`);
+        e.code = "VALIDATION";
+        throw e;
+      }
+    }
   }
 }
 
@@ -391,33 +464,36 @@ async function deleteGame(gameId) {
   await pool.query(`DELETE FROM central_games WHERE id = $1`, [gameId]);
 }
 
-function prizesForClient(rules, imagesPerSet) {
+function prizesForClient(rules, setImageCounts) {
   const catLabel = {
     cash: "เงินสด",
     item: "สิ่งของ",
     voucher: "บัตรกำนัล",
     none: "ไม่มีรางวัล"
   };
-  return rules.map((r) => ({
-    key: r.id,
-    ruleId: r.id,
-    setIndex: r.setIndex,
-    need: r.needCount,
-    imagesPerSet,
-    label: formatRuleLabel(r, catLabel, imagesPerSet),
-    prizeCategory: r.prizeCategory,
-    prizeTitle: r.prizeTitle
-  }));
+  return rules.map((r) => {
+    const cap = setImageCounts[r.setIndex] ?? setImageCounts[0] ?? 1;
+    return {
+      key: r.id,
+      ruleId: r.id,
+      setIndex: r.setIndex,
+      need: r.needCount,
+      imagesPerSet: cap,
+      label: formatRuleLabel(r, catLabel, cap),
+      prizeCategory: r.prizeCategory,
+      prizeTitle: r.prizeTitle
+    };
+  });
 }
 
-function formatRuleLabel(r, catLabel, imagesPerSet) {
+function formatRuleLabel(r, catLabel, imagesInThisSet) {
   const cat = catLabel[r.prizeCategory] || r.prizeCategory;
   if (r.prizeCategory === "none") {
-    return `ชุด ${r.setIndex + 1}: ไม่แจกรางวัล (เงื่อนไขในชุด ${r.needCount}/${imagesPerSet} ป้าย — ไม่จบเกม)`;
+    return `ชุด ${r.setIndex + 1}: ไม่แจกรางวัล (เงื่อนไข ${r.needCount}/${imagesInThisSet} ป้ายในชุด — ไม่จบเกม)`;
   }
   const val = [r.prizeValueText, r.prizeUnit].filter(Boolean).join(" ");
   const head = r.prizeTitle || cat;
-  return `ชุด ${r.setIndex + 1}: เปิดในชุดครบ ${r.needCount}/${imagesPerSet} ป้าย → ${head}${val ? ` (${val})` : ""}`;
+  return `ชุด ${r.setIndex + 1}: เปิดในชุดครบ ${r.needCount}/${imagesInThisSet} ป้าย → ${head}${val ? ` (${val})` : ""}`;
 }
 
 function formatWinnerDisplay(r) {

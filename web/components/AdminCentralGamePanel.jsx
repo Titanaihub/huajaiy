@@ -71,6 +71,13 @@ const emptyRule = () => ({
   description: ""
 });
 
+function resizeSetSizes(prev, n, fill) {
+  const out = prev.slice(0, n).map((x) => Math.max(1, parseInt(String(x), 10) || 1));
+  const f = Math.max(1, parseInt(String(fill), 10) || 1);
+  while (out.length < n) out.push(out[out.length - 1] ?? f);
+  return out;
+}
+
 export default function AdminCentralGamePanel() {
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -80,7 +87,7 @@ export default function AdminCentralGamePanel() {
 
   const [title, setTitle] = useState("");
   const [setCount, setSetCount] = useState(5);
-  const [imagesPerSet, setImagesPerSet] = useState(4);
+  const [setSizes, setSetSizes] = useState([4, 4, 4, 4, 4]);
   const [pinkHeartCost, setPinkHeartCost] = useState(0);
   const [redHeartCost, setRedHeartCost] = useState(0);
 
@@ -89,12 +96,19 @@ export default function AdminCentralGamePanel() {
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
   const [newSets, setNewSets] = useState(5);
-  const [newPerSet, setNewPerSet] = useState(4);
+  const [newSetSizes, setNewSetSizes] = useState([4, 4, 4, 4, 4]);
   const [newPinkHeart, setNewPinkHeart] = useState(0);
   const [newRedHeart, setNewRedHeart] = useState(0);
 
-  const tileCount = setCount * imagesPerSet;
-  const expectedSlots = useMemo(() => setCount * imagesPerSet, [setCount, imagesPerSet]);
+  const tileCount = useMemo(
+    () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
+    [setSizes]
+  );
+  const newTileCount = useMemo(
+    () => newSetSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
+    [newSetSizes]
+  );
+  const expectedSlots = tileCount;
 
   const loadList = useCallback(async () => {
     const token = getMemberToken();
@@ -129,7 +143,19 @@ export default function AdminCentralGamePanel() {
       }
       setTitle(g.title);
       setSetCount(g.setCount);
-      setImagesPerSet(g.imagesPerSet);
+      const sc = Math.max(1, g.setCount || 1);
+      const fromApi = Array.isArray(g.setImageCounts) ? g.setImageCounts : null;
+      if (fromApi && fromApi.length) {
+        setSetSizes(
+          resizeSetSizes(
+            fromApi.map((x) => Math.max(1, parseInt(String(x), 10) || 1)),
+            sc,
+            g.imagesPerSet || 4
+          )
+        );
+      } else {
+        setSetSizes(Array(sc).fill(Math.max(1, g.imagesPerSet || 4)));
+      }
       setPinkHeartCost(
         typeof g.pinkHeartCost === "number" ? g.pinkHeartCost : g.heartCost ?? 0
       );
@@ -170,11 +196,14 @@ export default function AdminCentralGamePanel() {
     if (!token) return;
     setMsg("");
     try {
+      const counts = newSetSizes
+        .slice(0, newSets)
+        .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
       const data = await apiAdminCentralGameCreate(token, {
         title: newTitle,
         setCount: newSets,
-        imagesPerSet: newPerSet,
-        tileCount: newSets * newPerSet,
+        setImageCounts: counts,
+        tileCount: counts.reduce((a, b) => a + b, 0),
         pinkHeartCost: newPinkHeart,
         redHeartCost: newRedHeart
       });
@@ -192,11 +221,14 @@ export default function AdminCentralGamePanel() {
     const token = getMemberToken();
     setMsg("");
     try {
+      const counts = setSizes
+        .slice(0, setCount)
+        .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
       await apiAdminCentralGamePatch(token, selectedId, {
         title,
         setCount,
-        imagesPerSet,
-        tileCount: setCount * imagesPerSet,
+        setImageCounts: counts,
+        tileCount: counts.reduce((a, b) => a + b, 0),
         pinkHeartCost,
         redHeartCost
       });
@@ -213,7 +245,8 @@ export default function AdminCentralGamePanel() {
     const token = getMemberToken();
     const images = [];
     for (let s = 0; s < setCount; s += 1) {
-      for (let i = 0; i < imagesPerSet; i += 1) {
+      const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
+      for (let i = 0; i < cap; i += 1) {
         const url = imageMap[`${s}-${i}`];
         if (!url) {
           setMsg(`ยังไม่มีรูปชุด ${s + 1} ภาพ ${i + 1}`);
@@ -316,8 +349,8 @@ export default function AdminCentralGamePanel() {
   return (
     <section className="space-y-8 text-sm">
       <p className="text-slate-600">
-        กำหนดจำนวนป้าย = จำนวนชุด × ภาพต่อชุด · อัปโหลดรูปแต่ละช่อง · กติกาเรียงตามลำดับ — ระบบจะตรวจกติกาแรกที่เข้าเงื่อนไข (ชุดใดเปิดครบกี่ป้าย)
-        ที่มีรางวัลจริง) เป็นการจบรอบ
+        <strong>โครงกระดาน:</strong> กำหนดกี่ชุด และ<strong>แต่ละชุดมีกี่ภาพไม่จำเป็นต้องเท่ากัน</strong> (เช่น ชุด 1 มี 7 ภาพ ชุด 2 มี 5 ภาพ) — จำนวนป้ายรวม = ผลรวมภาพทุกชุด
+        · อัปโหลดรูปครบทุกช่อง · <strong>กติการางวัล:</strong> เรียงลำดับการตรวจ — ระบบใช้กติกาแรกที่เข้าเงื่อนไขและมีรางวัลจริงเพื่อจบรอบ
       </p>
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
@@ -336,29 +369,47 @@ export default function AdminCentralGamePanel() {
               required
             />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className="text-xs text-slate-600">จำนวนชุดภาพ</label>
             <input
               type="number"
               min={1}
               value={newSets}
-              onChange={(e) => setNewSets(parseInt(e.target.value, 10) || 1)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              onChange={(e) => {
+                const n = Math.max(1, parseInt(e.target.value, 10) || 1);
+                setNewSets(n);
+                setNewSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
+              }}
+              className="mt-1 w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2"
             />
           </div>
-          <div>
-            <label className="text-xs text-slate-600">ภาพต่อชุด</label>
-            <input
-              type="number"
-              min={1}
-              value={newPerSet}
-              onChange={(e) => setNewPerSet(parseInt(e.target.value, 10) || 1)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            />
+          <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-white p-3">
+            <p className="text-xs font-medium text-slate-700">จำนวนภาพในแต่ละชุด (ไม่ต้องเท่ากัน)</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+              {newSetSizes.slice(0, newSets).map((n, idx) => (
+                <div key={idx}>
+                  <label className="text-[10px] text-slate-500">ชุดที่ {idx + 1}</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={n}
+                    onChange={(e) => {
+                      const v = Math.max(1, parseInt(e.target.value, 10) || 1);
+                      setNewSetSizes((prev) => {
+                        const next = [...prev];
+                        next[idx] = v;
+                        return next;
+                      });
+                    }}
+                    className="mt-0.5 w-full rounded border border-slate-300 px-2 py-1 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
           <div>
-            <label className="text-xs text-slate-600">ป้ายรวม (คำนวณอัตโนมัติ)</label>
-            <p className="mt-2 font-mono text-slate-800">{newSets * newPerSet}</p>
+            <label className="text-xs text-slate-600">ป้ายรวม (ผลรวมทุกชุด)</label>
+            <p className="mt-2 font-mono text-slate-800">{newTileCount}</p>
           </div>
           <div>
             <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
@@ -431,25 +482,46 @@ export default function AdminCentralGamePanel() {
                   required
                 />
               </div>
-              <div>
+              <div className="sm:col-span-2">
                 <label className="text-xs text-slate-600">จำนวนชุด</label>
                 <input
                   type="number"
                   min={1}
                   value={setCount}
-                  onChange={(e) => setSetCount(parseInt(e.target.value, 10) || 1)}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
+                  onChange={(e) => {
+                    const n = Math.max(1, parseInt(e.target.value, 10) || 1);
+                    setSetCount(n);
+                    setSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
+                  }}
+                  className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2"
                 />
               </div>
-              <div>
-                <label className="text-xs text-slate-600">ภาพต่อชุด</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={imagesPerSet}
-                  onChange={(e) => setImagesPerSet(parseInt(e.target.value, 10) || 1)}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                />
+              <div className="sm:col-span-2 rounded-lg border border-slate-100 bg-slate-50/80 p-3">
+                <p className="text-xs font-medium text-slate-700">ภาพต่อชุด (แต่ละชุดตั้งค่าแยก)</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                  {setSizes.slice(0, setCount).map((n, idx) => (
+                    <div key={idx}>
+                      <label className="text-[10px] text-slate-500">ชุดที่ {idx + 1}</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={n}
+                        onChange={(e) => {
+                          const v = Math.max(1, parseInt(e.target.value, 10) || 1);
+                          setSetSizes((prev) => {
+                            const next = [...prev];
+                            next[idx] = v;
+                            return next;
+                          });
+                        }}
+                        className="mt-0.5 w-full rounded border px-2 py-1 text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[10px] text-amber-800">
+                  ถ้าเปลี่ยนจำนวนภาพในชุด ให้ตรวจรูปและกติกาใหม่ แล้วบันทึกโครง → บันทึกรูป → บันทึกกติกา
+                </p>
               </div>
               <div>
                 <label className="text-xs text-slate-600">ป้ายรวม</label>
@@ -484,14 +556,18 @@ export default function AdminCentralGamePanel() {
           <div className="rounded-xl border border-slate-200 p-4">
             <h3 className="font-semibold">อัปโหลดภาพแต่ละชุด</h3>
             <p className="mt-1 text-xs text-slate-500">
-              ชุด {setCount} × ภาพ {imagesPerSet} = {expectedSlots} ช่อง
+              รวม {expectedSlots} ช่อง — แต่ละชุดมีจำนวนภาพตามที่ตั้งใน「โครงเกม」
             </p>
             <div className="mt-4 space-y-6">
-              {Array.from({ length: setCount }, (_, s) => (
+              {Array.from({ length: setCount }, (_, s) => {
+                const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
+                return (
                 <div key={s} className="rounded-lg border border-slate-100 p-3">
-                  <p className="text-xs font-semibold text-slate-700">ชุดที่ {s + 1}</p>
+                  <p className="text-xs font-semibold text-slate-700">
+                    ชุดที่ {s + 1} — {cap} ภาพ
+                  </p>
                   <div className="mt-2 flex flex-wrap gap-3">
-                    {Array.from({ length: imagesPerSet }, (_, i) => (
+                    {Array.from({ length: cap }, (_, i) => (
                       <div key={i} className="w-28 shrink-0">
                         <p className="text-[10px] text-slate-500">ภาพ {i + 1}</p>
                         <div className="mt-1 aspect-square overflow-hidden rounded-lg border bg-slate-100">
@@ -516,7 +592,8 @@ export default function AdminCentralGamePanel() {
                     ))}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
             <button
               type="button"
@@ -529,23 +606,37 @@ export default function AdminCentralGamePanel() {
 
           <div className="rounded-xl border border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-semibold">กติการางวัล (เรียงลำดับการตรวจ)</h3>
+              <div>
+                <h3 className="font-semibold">กำหนดรางวัล (กติกา)</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  เรียงจากบนลงล่าง = ลำดับที่ระบบตรวจ · &quot;ต้องเปิดครบ&quot; ไม่เกินจำนวนป้ายในชุดนั้น · เลขชุด 0 = ชุดที่ 1
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setRules((r) => [...r, emptyRule()])}
                 className="text-xs text-brand-800 underline"
               >
-                + แถว
+                + แถวกติกา
               </button>
             </div>
             <div className="mt-3 space-y-4 overflow-x-auto">
-              {rules.map((r, idx) => (
+              {rules.map((r, idx) => {
+                const si = Math.min(
+                  setCount - 1,
+                  Math.max(0, Math.floor(Number(r.setIndex)) || 0)
+                );
+                const cap = Math.max(
+                  1,
+                  parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1
+                );
+                return (
                 <div
                   key={idx}
                   className="grid min-w-[640px] gap-2 rounded-lg border border-slate-100 p-3 sm:grid-cols-12"
                 >
                   <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">ลำดับ</label>
+                    <label className="text-[10px] text-slate-500">ลำดับตรวจ</label>
                     <input
                       type="number"
                       value={r.sortOrder}
@@ -554,22 +645,22 @@ export default function AdminCentralGamePanel() {
                     />
                   </div>
                   <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">ชุด (0=1)</label>
+                    <label className="text-[10px] text-slate-500">ชุด (0=ชุด1)</label>
                     <input
                       type="number"
                       min={0}
-                      max={setCount - 1}
+                      max={Math.max(0, setCount - 1)}
                       value={r.setIndex}
                       onChange={(e) => updateRule(idx, "setIndex", e.target.value)}
                       className="mt-1 w-full rounded border px-1 py-1 text-xs"
                     />
                   </div>
                   <div className="sm:col-span-1">
-                    <label className="text-[10px] text-slate-500">ต้องเปิดครบ</label>
+                    <label className="text-[10px] text-slate-500">เปิดครบ (สูงสุด {cap})</label>
                     <input
                       type="number"
                       min={1}
-                      max={imagesPerSet}
+                      max={cap}
                       value={r.needCount}
                       onChange={(e) => updateRule(idx, "needCount", e.target.value)}
                       className="mt-1 w-full rounded border px-1 py-1 text-xs"
@@ -637,7 +728,8 @@ export default function AdminCentralGamePanel() {
                     </button>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
             <button
               type="button"

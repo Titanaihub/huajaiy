@@ -365,7 +365,7 @@ router.get("/game", authMiddleware, requireRole("admin"), async (_req, res) => {
           game: c.game,
           rulesCount: c.rules.length,
           imagesFilled: c.imageUrl.size,
-          expectedImages: c.game.setCount * c.game.imagesPerSet,
+          expectedImages: c.game.tileCount,
           ...getAdminSnapshotCentral(
             c.game.tileCount,
             c.game.setCount,
@@ -421,6 +421,7 @@ router.post(
         heartCost: req.body?.heartCost,
         pinkHeartCost: req.body?.pinkHeartCost,
         redHeartCost: req.body?.redHeartCost,
+        setImageCounts: req.body?.setImageCounts,
         createdBy: req.userId
       });
       return res.json({ ok: true, game: snap.game, snapshot: snap });

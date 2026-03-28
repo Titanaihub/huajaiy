@@ -15,10 +15,11 @@ function shuffle(arr) {
   return a;
 }
 
-function buildDeck(setCount, imagesPerSet) {
+function buildDeck(setImageCounts) {
   const cells = [];
-  for (let s = 0; s < setCount; s += 1) {
-    for (let i = 0; i < imagesPerSet; i += 1) {
+  for (let s = 0; s < setImageCounts.length; s += 1) {
+    const n = setImageCounts[s] || 0;
+    for (let i = 0; i < n; i += 1) {
       cells.push({ setIndex: s, imageIndex: i });
     }
   }
@@ -55,8 +56,8 @@ function imageUrlForCell(snapshot, setIndex, imageIndex) {
  */
 function createSession(snapshot) {
   const { game, imageUrl, rules } = snapshot;
-  const { setCount, imagesPerSet, tileCount, id: gameId } = game;
-  const deck = buildDeck(setCount, imagesPerSet);
+  const { setImageCounts, tileCount, id: gameId } = game;
+  const deck = buildDeck(setImageCounts);
   if (deck.length !== tileCount) {
     throw new Error("deck length mismatch");
   }

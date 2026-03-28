@@ -243,6 +243,30 @@ async function initDb() {
       WHERE heart_cost IS DISTINCT FROM (pink_heart_cost + red_heart_cost);
     `);
 
+    await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS set_image_counts JSONB;
+    `);
+    await client.query(`
+      UPDATE central_games g
+      SET set_image_counts = to_jsonb(
+        ARRAY(SELECT g.images_per_set FROM generate_series(1, g.set_count) AS s(i))
+      )
+      WHERE g.set_image_counts IS NULL AND g.set_count > 0;
+    `);
+    await client.query(`
+      ALTER TABLE central_games DROP CONSTRAINT IF EXISTS central_games_dims_check;
+    `);
+    await client.query(`
+      ALTER TABLE central_games DROP CONSTRAINT IF EXISTS central_games_basic_check;
+    `);
+    await client.query(`
+      ALTER TABLE central_games
+      ADD CONSTRAINT central_games_basic_check CHECK (
+        tile_count > 0 AND set_count > 0 AND images_per_set > 0
+      );
+    `);
+
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, hearts, central_games)"
     );

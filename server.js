@@ -88,7 +88,8 @@ function centralMetaFromSnap(snap) {
     cardCount: snap.game.tileCount,
     setCount: snap.game.setCount,
     imagesPerSet: snap.game.imagesPerSet,
-    prizes: centralGameService.prizesForClient(snap.rules, snap.game.imagesPerSet)
+    setImageCounts: snap.game.setImageCounts,
+    prizes: centralGameService.prizesForClient(snap.rules, snap.game.setImageCounts)
   };
 }
 

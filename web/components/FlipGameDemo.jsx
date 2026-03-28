@@ -96,6 +96,7 @@ export default function FlipGameDemo() {
   });
   const [setCounts, setSetCounts] = useState([]);
   const [imagesPerSet, setImagesPerSet] = useState(4);
+  const [setImageCounts, setSetImageCounts] = useState([]);
   const [centralTitle, setCentralTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [bootError, setBootError] = useState(null);
@@ -150,12 +151,17 @@ export default function FlipGameDemo() {
     setFlips(0);
     if (isCentral) {
       const sc = Number(data.setCount) || 1;
-      setImagesPerSet(Number(data.imagesPerSet) || 4);
+      const sic = Array.isArray(data.setImageCounts) ? data.setImageCounts : [];
+      setSetImageCounts(sic);
+      setImagesPerSet(
+        sic.length ? Math.max(...sic.map((x) => Number(x) || 0), 1) : Number(data.imagesPerSet) || 4
+      );
       setCentralTitle(String(data.title || "เกมส่วนกลาง"));
       setSetCounts(Array.from({ length: sc }, () => 0));
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     } else {
       setSetCounts([]);
+      setSetImageCounts([]);
       setCentralTitle("");
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     }
@@ -456,7 +462,9 @@ export default function FlipGameDemo() {
         ) : null}
         <p className="mt-1 text-xs text-slate-500">
           {mode === "api" && apiGameMode === "central"
-            ? `แต่ละชุดมี ${imagesPerSet} แบบภาพ — สุ่มตำแหน่งบนกระดานใหม่ทุกรอบ`
+            ? setImageCounts.length > 0
+              ? `ป้ายในชุดไม่เท่ากัน: ${setImageCounts.map((x, i) => `ช.${i + 1}=${x}`).join(" · ")} — สุ่มตำแหน่งใหม่ทุกรอบ`
+              : `แต่ละชุดมีสูงสุด ${imagesPerSet} แบบภาพ — สุ่มตำแหน่งใหม่ทุกรอบ`
             : "กระดาน 12 ป้าย = 💵×5 + ☕×4 + 🎫×3 — สุ่มตำแหน่งใหม่ทุกรอบ"}
         </p>
         <p className="mt-1 text-xs">เปิดป้ายแล้ว: {flips} ครั้ง</p>
