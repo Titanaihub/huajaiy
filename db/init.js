@@ -176,6 +176,42 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id UUID PRIMARY KEY,
+        shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        price_thb INTEGER NOT NULL DEFAULT 0,
+        stock_qty INTEGER NOT NULL DEFAULT 0,
+        category VARCHAR(64) NOT NULL DEFAULT '',
+        image_url TEXT,
+        hearts_bonus INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT products_price_check CHECK (price_thb >= 0),
+        CONSTRAINT products_stock_check CHECK (stock_qty >= 0)
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_products_shop ON products(shop_id);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_products_shop_active ON products(shop_id) WHERE active = TRUE;`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_products_category ON products(category) WHERE active = TRUE;`
+    );
+
+    await client.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS shipping_snapshot TEXT;
+    `);
+    await client.query(`
+      ALTER TABLE orders
+      ADD COLUMN IF NOT EXISTS order_kind VARCHAR(24) NOT NULL DEFAULT 'legacy';
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS central_games (
         id UUID PRIMARY KEY,
         title VARCHAR(200) NOT NULL,
@@ -287,7 +323,7 @@ async function initDb() {
     `);
 
     console.log(
-      "[db] PostgreSQL schema พร้อม (users, orders, shops, hearts, central_games)"
+      "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"
     );
   } finally {
     client.release();

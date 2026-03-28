@@ -6,7 +6,15 @@ const router = express.Router();
 
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { totalPrice, heartsGranted, items } = req.body || {};
+    const body = req.body || {};
+    if (body.kind === "marketplace") {
+      const order = await orderService.createMarketplaceOrder(req.userId, {
+        lines: body.lines,
+        shippingAddress: body.shippingAddress
+      });
+      return res.json({ ok: true, order });
+    }
+    const { totalPrice, heartsGranted, items } = body;
     const order = await orderService.createOrder(req.userId, {
       totalPrice,
       heartsGranted,
@@ -20,6 +28,12 @@ router.post("/", authMiddleware, async (req, res) => {
         error:
           "ระบบบันทึกออเดอร์ยังไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
+    }
+    if (e.code === "VALIDATION" || e.code === "STOCK") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

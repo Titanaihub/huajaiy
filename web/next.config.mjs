@@ -18,6 +18,14 @@ const nextConfig = {
       {
         source: "/api/hearts/:path*",
         destination: `${api}/api/hearts/:path*`
+      },
+      {
+        source: "/api/marketplace/:path*",
+        destination: `${api}/api/marketplace/:path*`
+      },
+      {
+        source: "/api/shops/:path*",
+        destination: `${api}/api/shops/:path*`
       }
     ];
   }

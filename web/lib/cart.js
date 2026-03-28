@@ -1,6 +1,6 @@
 /** ตะกร้าฝั่งเบราว์เซอร์ (สาธิต) — ต่อ API / ชำระเงินจริงภายหลัง */
 
-const STORAGE_KEY = "huajaiy_cart_v1";
+const STORAGE_KEY = "huajaiy_cart_v2";
 
 function persist(lines) {
   if (typeof window === "undefined") return;

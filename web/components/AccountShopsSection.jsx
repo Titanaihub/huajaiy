@@ -98,9 +98,15 @@ export default function AccountShopsSection() {
                 <Link href="/shop" className="font-medium text-brand-800 hover:underline">
                   ไปหน้าร้านค้า
                 </Link>
+                <Link
+                  href={`/account/shops/${s.id}/products`}
+                  className="font-medium text-brand-800 hover:underline"
+                >
+                  จัดการสินค้า
+                </Link>
                 {canOwnerPanel ? (
                   <Link href="/owner" className="font-medium text-brand-800 hover:underline">
-                    จัดการ (เจ้าของร้าน)
+                    แผงเจ้าของร้าน
                   </Link>
                 ) : null}
               </div>

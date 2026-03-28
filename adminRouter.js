@@ -351,6 +351,59 @@ router.get("/shops", authMiddleware, requireRole("admin"), async (_req, res) => 
   }
 });
 
+/** สร้างร้าน — slug ภาษาอังกฤษตัวเล็ก a-z0-9- */
+router.post("/shops", authMiddleware, requireRole("admin"), async (req, res) => {
+  try {
+    const name = String((req.body || {}).name || "").trim().slice(0, 255);
+    let slug = String((req.body || {}).slug || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64);
+    const ownerUserId = (req.body || {}).ownerUserId;
+    if (!name) {
+      return res.status(400).json({ ok: false, error: "กรุณากรอกชื่อร้าน" });
+    }
+    if (!slug) {
+      return res.status(400).json({
+        ok: false,
+        error: "กรุณากรอก slug (เช่น my-shop)"
+      });
+    }
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
+      return res.status(400).json({
+        ok: false,
+        error: "slug ใช้ได้เฉพาะ a-z 0-9 และ -"
+      });
+    }
+    let owner = null;
+    if (ownerUserId != null && String(ownerUserId).trim() !== "") {
+      if (!isUuidParam(ownerUserId)) {
+        return res.status(400).json({ ok: false, error: "ownerUserId ไม่ถูกต้อง" });
+      }
+      owner = await userService.findById(String(ownerUserId).trim());
+      if (!owner) {
+        return res.status(400).json({ ok: false, error: "ไม่พบสมาชิกเจ้าของร้าน" });
+      }
+    }
+    const shop = await shopService.createShop({
+      name,
+      slug,
+      ownerUserId: owner ? owner.id : null
+    });
+    return res.json({ ok: true, shop });
+  } catch (e) {
+    if (e.code === "23505" || /unique/i.test(String(e.message))) {
+      return res.status(409).json({ ok: false, error: "slug นี้มีในระบบแล้ว" });
+    }
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: "ยังไม่มีฐานข้อมูล" });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** เกมพลิกการ์ด — legacy + เกมส่วนกลาง (central_games) */
 router.get("/game", authMiddleware, requireRole("admin"), async (_req, res) => {
   try {

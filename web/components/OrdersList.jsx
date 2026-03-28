@@ -16,6 +16,18 @@ function formatThaiDate(ts) {
   }
 }
 
+function orderStatusLabel(o) {
+  if (o.orderKind === "marketplace") {
+    if (o.status === "pending_payment") return "รอชำระเงิน";
+    if (o.status === "paid") return "ชำระแล้ว";
+    if (o.status === "shipped") return "จัดส่งแล้ว";
+    if (o.status === "delivered") return "ส่งถึงแล้ว";
+    return o.status || "—";
+  }
+  if (o.status === "demo_completed") return "สำเร็จ (สาธิต)";
+  return o.status || "—";
+}
+
 export default function OrdersList() {
   const [localOrders, setLocalOrders] = useState([]);
   const [serverOrders, setServerOrders] = useState([]);
@@ -90,19 +102,33 @@ export default function OrdersList() {
                     </li>
                   ))}
                 </ul>
+                <p className="mt-2 text-xs text-slate-600">
+                  สถานะ: <strong>{orderStatusLabel(o)}</strong>
+                  {o.orderKind === "marketplace" ? (
+                    <span className="ml-2 text-slate-500">(มาร์เก็ตเพลส)</span>
+                  ) : null}
+                </p>
+                {o.shippingSnapshot ? (
+                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white/60 p-2 text-xs text-slate-700">
+                    <span className="font-semibold text-slate-800">จัดส่ง: </span>
+                    {o.shippingSnapshot}
+                  </p>
+                ) : null}
                 <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-brand-100 pt-2 text-slate-800">
                   <span>ยอดรวม</span>
                   <span className="font-semibold">
                     ฿{Number(o.totalPrice).toLocaleString("th-TH")}
                   </span>
                 </div>
-                <p className="mt-1 flex flex-wrap items-center justify-end gap-1 text-right text-rose-800">
-                  <span>แถมหัวใจ</span>
-                  <InlineHeart size="sm" className="text-rose-700" />
-                  <span>
-                    {Number(o.heartsGranted).toLocaleString("th-TH")}
-                  </span>
-                </p>
+                {Number(o.heartsGranted) > 0 ? (
+                  <p className="mt-1 flex flex-wrap items-center justify-end gap-1 text-right text-rose-800">
+                    <span>แถมหัวใจ</span>
+                    <InlineHeart size="sm" className="text-rose-700" />
+                    <span>
+                      {Number(o.heartsGranted).toLocaleString("th-TH")}
+                    </span>
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
