@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
+import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminAdjustMemberHearts,
@@ -57,7 +58,7 @@ export default function AdminDashboard() {
   const [shopsLoading, setShopsLoading] = useState(false);
   const [shopsErr, setShopsErr] = useState("");
 
-  /** @type {null | { heartCost: number, cardCount: number, prizes: array, activeSessions: number, sessionsPlaying: number, sessionsFinished: number, pruneAfterMs: number, persistenceNote?: string }} */
+  /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
   const [gameInfo, setGameInfo] = useState(null);
   const [gameLoading, setGameLoading] = useState(false);
   const [gameErr, setGameErr] = useState("");
@@ -130,6 +131,27 @@ export default function AdminDashboard() {
     if (tab !== "shops") return;
     loadShopsAll();
   }, [tab, loadShopsAll]);
+
+  const loadGameInfo = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) return;
+    setGameLoading(true);
+    setGameErr("");
+    try {
+      const data = await apiAdminGame(token);
+      setGameInfo(data);
+    } catch (e) {
+      setGameErr(e.message || String(e));
+      setGameInfo(null);
+    } finally {
+      setGameLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "game") return;
+    loadGameInfo();
+  }, [tab, loadGameInfo]);
 
   async function reloadMemberFull(id) {
     const token = getMemberToken();
@@ -290,6 +312,17 @@ export default function AdminDashboard() {
           }`}
         >
           เกมและรางวัล
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("centralGame")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "centralGame"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          เกมส่วนกลาง
         </button>
         <button
           type="button"
@@ -702,8 +735,8 @@ export default function AdminDashboard() {
       ) : tab === "game" ? (
         <section className="space-y-4">
           <p className="text-sm text-slate-600">
-            เกมพลิกการ์ดที่หน้า <code className="rounded bg-slate-100 px-1">/game</code> — รางวัลและจำนวนการ์ดต่อประเภทกำหนดในไฟล์{" "}
-            <code className="rounded bg-slate-100 px-1">gameSession.js</code> (ค่า <code className="rounded bg-slate-100 px-1">PRIZES</code>)
+            หน้า <code className="rounded bg-slate-100 px-1">/game</code> ใช้<strong>เกมส่วนกลาง</strong>ถ้ามีเกมที่เปิดใช้งานในแท็บ「เกมส่วนกลาง」— ไม่งั้นใช้กติกาเดิมจาก{" "}
+            <code className="rounded bg-slate-100 px-1">gameSession.js</code>
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -723,61 +756,121 @@ export default function AdminDashboard() {
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                 {gameInfo.persistenceNote}
               </div>
-              <dl className="grid gap-2 text-sm sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <dt className="text-xs font-semibold uppercase text-slate-500">หัวใจต่อรอบ (GAME_HEART_COST)</dt>
-                  <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.heartCost}</dd>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <dt className="text-xs font-semibold uppercase text-slate-500">จำนวนการ์ดบนกระดาน</dt>
-                  <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.cardCount}</dd>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <dt className="text-xs font-semibold uppercase text-slate-500">Session ที่ยังอยู่ในหน่วยความจำ</dt>
-                  <dd className="mt-1 font-semibold text-slate-900">
-                    ทั้งหมด {gameInfo.activeSessions} · กำลังเล่น {gameInfo.sessionsPlaying} · จบแล้วยังไม่หมดอายุ{" "}
-                    {gameInfo.sessionsFinished}
-                  </dd>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                  <dt className="text-xs font-semibold uppercase text-slate-500">ลบ session เก่าหลัง</dt>
-                  <dd className="mt-1 text-slate-800">
-                    {Math.round((gameInfo.pruneAfterMs || 0) / 60000)} นาที (ไม่ได้ใช้งาน)
-                  </dd>
-                </div>
-              </dl>
-              <div>
-                <h3 className="text-sm font-semibold text-slate-800">รางวัล — เปิดครบตามจำนวนใต้คอลัมน์ &quot;ต้องครบ&quot; ถึงชนะ</h3>
-                <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <table className="min-w-full text-left text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
-                      <tr>
-                        <th className="px-3 py-2">key</th>
-                        <th className="px-3 py-2">รางวัล</th>
-                        <th className="px-3 py-2">ต้องครบ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(gameInfo.prizes || []).map((p) => (
-                        <tr key={p.key} className="border-b border-slate-100">
-                          <td className="px-3 py-2 font-mono text-xs">{p.key}</td>
-                          <td className="px-3 py-2">
-                            <span className="mr-1" aria-hidden>
-                              {p.emoji}
-                            </span>
-                            {p.label}
-                          </td>
-                          <td className="px-3 py-2">{p.need}</td>
+              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <p className="text-xs font-semibold uppercase text-slate-500">หัวใจต่อรอบเมื่อเล่นแบบ legacy (GAME_HEART_COST)</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.heartCost}</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  เกมส่วนกลางตั้งค่าหักหัวใจต่อรอบในแต่ละเกม (ไม่ใช่ค่านี้)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-slate-900">เกมส่วนกลาง (กำลังใช้งานบน /game)</h3>
+                {gameInfo.central ? (
+                  <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-sm">
+                    <p className="font-medium text-slate-900">{gameInfo.central.game?.title || "—"}</p>
+                    <dl className="grid gap-2 sm:grid-cols-2">
+                      <div>
+                        <dt className="text-xs text-slate-600">ป้าย / ชุด / ภาพต่อชุด</dt>
+                        <dd className="font-semibold">
+                          {gameInfo.central.tileCount} = {gameInfo.central.setCount}×{gameInfo.central.imagesPerSet}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-slate-600">อัปโหลดภาพ</dt>
+                        <dd className="font-semibold">
+                          {gameInfo.central.imagesFilled}/{gameInfo.central.expectedImages}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-slate-600">Session ในหน่วยความจำ</dt>
+                        <dd className="font-semibold">
+                          ทั้งหมด {gameInfo.central.activeSessions} · เล่นอยู่ {gameInfo.central.sessionsPlaying} · จบแล้ว{" "}
+                          {gameInfo.central.sessionsFinished}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-slate-600">กติกา (แถว)</dt>
+                        <dd className="font-semibold">{gameInfo.central.rulesCount}</dd>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-slate-600">หักหัวใจต่อรอบ (ชมพู / แดง)</dt>
+                        <dd className="font-semibold text-slate-900">
+                          ชมพู {gameInfo.central.game?.pinkHeartCost ?? 0} · แดง{" "}
+                          {gameInfo.central.game?.redHeartCost ?? 0}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    ยังไม่มีเกมส่วนกลางที่เปิดใช้งาน — ผู้เล่นจะได้กติกา legacy
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-slate-900">กติกา legacy (gameSession.js)</h3>
+                <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <dt className="text-xs font-semibold uppercase text-slate-500">จำนวนการ์ดบนกระดาน</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.legacy?.cardCount ?? "—"}</dd>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <dt className="text-xs font-semibold uppercase text-slate-500">Session ในหน่วยความจำ (legacy)</dt>
+                    <dd className="mt-1 font-semibold text-slate-900">
+                      ทั้งหมด {gameInfo.legacy?.activeSessions ?? 0} · กำลังเล่น {gameInfo.legacy?.sessionsPlaying ?? 0} · จบแล้วยังไม่หมดอายุ{" "}
+                      {gameInfo.legacy?.sessionsFinished ?? 0}
+                    </dd>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
+                    <dt className="text-xs font-semibold uppercase text-slate-500">ลบ session เก่าหลัง</dt>
+                    <dd className="mt-1 text-slate-800">
+                      {Math.round((gameInfo.legacy?.pruneAfterMs || 0) / 60000)} นาที (ไม่ได้ใช้งาน)
+                    </dd>
+                  </div>
+                </dl>
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-800">รางวัล legacy</h4>
+                  <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <table className="min-w-full text-left text-sm">
+                      <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+                        <tr>
+                          <th className="px-3 py-2">key</th>
+                          <th className="px-3 py-2">รางวัล</th>
+                          <th className="px-3 py-2">ต้องครบ</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {(gameInfo.legacy?.prizes || []).map((p) => (
+                          <tr key={p.key} className="border-b border-slate-100">
+                            <td className="px-3 py-2 font-mono text-xs">{p.key}</td>
+                            <td className="px-3 py-2">
+                              <span className="mr-1" aria-hidden>
+                                {p.emoji}
+                              </span>
+                              {p.label}
+                            </td>
+                            <td className="px-3 py-2">{p.need}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>
           )}
+        </section>
+      ) : tab === "centralGame" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900">ตั้งค่าเกมส่วนกลาง</h2>
+          <p className="text-sm text-slate-600">
+            สร้างเกม อัปโหลดภาพแต่ละชุด กำหนดเงื่อนไขรางวัล แล้วเปิดใช้งาน — ผู้เล่นที่หน้า /game จะได้เกมนี้ทันที
+          </p>
+          <AdminCentralGamePanel />
         </section>
       ) : tab === "heartPackages" ? (
         <section className="space-y-4">

@@ -7,6 +7,8 @@ const nameChangeRequestService = require("./services/nameChangeRequestService");
 const orderService = require("./services/orderService");
 const shopService = require("./services/shopService");
 const { getAdminSnapshot } = require("./gameSession");
+const { getAdminSnapshotCentral } = require("./centralGameSession");
+const centralGameService = require("./services/centralGameService");
 const heartPackageService = require("./services/heartPackageService");
 const heartPurchaseService = require("./services/heartPurchaseService");
 
@@ -349,22 +351,266 @@ router.get("/shops", authMiddleware, requireRole("admin"), async (_req, res) => 
   }
 });
 
-/** เกมพลิกการ์ด — รางวัลจากโค้ด + สถานะ session ในหน่วยความจำ */
-router.get("/game", authMiddleware, requireRole("admin"), (_req, res) => {
+/** เกมพลิกการ์ด — legacy + เกมส่วนกลาง (central_games) */
+router.get("/game", authMiddleware, requireRole("admin"), async (_req, res) => {
   try {
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
-    const snap = getAdminSnapshot();
+    const legacy = getAdminSnapshot();
+    let central = null;
+    try {
+      const c = await centralGameService.getActiveGameSnapshot();
+      if (c) {
+        central = {
+          active: true,
+          game: c.game,
+          rulesCount: c.rules.length,
+          imagesFilled: c.imageUrl.size,
+          expectedImages: c.game.setCount * c.game.imagesPerSet,
+          ...getAdminSnapshotCentral(
+            c.game.tileCount,
+            c.game.setCount,
+            c.game.imagesPerSet,
+            c.rules.length
+          )
+        };
+      }
+    } catch (e) {
+      if (e.code !== "DB_REQUIRED") throw e;
+    }
     return res.json({
       ok: true,
       heartCost,
-      ...snap,
+      legacy,
+      central,
       persistenceNote:
-        "รอบเกมอยู่ในหน่วยความจำของเซิร์ฟเวอร์ — หลัง redeploy หรือรีสตาร์ท session จะหาย · ยังไม่มีตารางบันทึกผู้ชนะหรือรางวัลต่อสมาชิกในฐานข้อมูล"
+        "รอบเกมอยู่ในหน่วยความจำ — redeploy/restart ล้าง session · เกมส่วนกลางตั้งค่าในแท็บ「เกมส่วนกลาง」"
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });
+
+router.get(
+  "/central-games",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const games = await centralGameService.listGamesForAdmin();
+      return res.json({ ok: true, games });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/central-games",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const snap = await centralGameService.createGame({
+        title: req.body?.title,
+        tileCount: req.body?.tileCount,
+        setCount: req.body?.setCount,
+        imagesPerSet: req.body?.imagesPerSet,
+        heartCost: req.body?.heartCost,
+        pinkHeartCost: req.body?.pinkHeartCost,
+        redHeartCost: req.body?.redHeartCost,
+        createdBy: req.userId
+      });
+      return res.json({ ok: true, game: snap.game, snapshot: snap });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.get(
+  "/central-games/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const snap = await centralGameService.getGameSnapshotById(id);
+      if (!snap) {
+        return res.status(404).json({ ok: false, error: "ไม่พบเกม" });
+      }
+      const images = [];
+      for (const [k, url] of snap.imageUrl.entries()) {
+        const [si, ii] = k.split("-").map(Number);
+        images.push({ setIndex: si, imageIndex: ii, imageUrl: url });
+      }
+      images.sort((a, b) => a.setIndex - b.setIndex || a.imageIndex - b.imageIndex);
+      return res.json({
+        ok: true,
+        game: snap.game,
+        images,
+        rules: snap.rules
+      });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.patch(
+  "/central-games/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const snap = await centralGameService.updateGameMeta(id, req.body || {});
+      if (!snap) {
+        return res.status(404).json({ ok: false, error: "ไม่พบเกม" });
+      }
+      return res.json({ ok: true, snapshot: snap });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.put(
+  "/central-games/:id/images",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const snap = await centralGameService.replaceImages(id, req.body?.images);
+      return res.json({ ok: true, snapshot: snap });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.put(
+  "/central-games/:id/rules",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const snap = await centralGameService.replaceRules(id, req.body?.rules);
+      return res.json({ ok: true, snapshot: snap });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/central-games/:id/activate",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const snap = await centralGameService.setActiveGame(id);
+      return res.json({ ok: true, snapshot: snap });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/central-games/:id/deactivate",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      await centralGameService.deactivateGame(id);
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.delete(
+  "/central-games/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      await centralGameService.deleteGame(id);
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
 
 /** คำขอเปลี่ยนชื่อ–นามสกุลที่รอดำเนินการ */
 router.get(

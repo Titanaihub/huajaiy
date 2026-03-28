@@ -5,6 +5,8 @@ import {
   DEFAULT_HEARTS,
   addHearts as addHeartsRaw,
   getHearts,
+  getPinkHearts,
+  getRedHearts,
   setHearts as setHeartsRaw,
   subscribeHearts,
   trySpend as trySpendRaw
@@ -22,23 +24,32 @@ export function useHearts() {
 
 export default function HeartsProvider({ children }) {
   const [hearts, setHeartsState] = useState(DEFAULT_HEARTS);
+  const [pinkHearts, setPinkHeartsState] = useState(0);
+  const [redHearts, setRedHeartsState] = useState(0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setHeartsState(getHearts());
+    function sync() {
+      setPinkHeartsState(getPinkHearts());
+      setRedHeartsState(getRedHearts());
+      setHeartsState(getHearts());
+    }
+    sync();
     setReady(true);
-    return subscribeHearts(() => setHeartsState(getHearts()));
+    return subscribeHearts(sync);
   }, []);
 
   const value = useMemo(
     () => ({
       hearts,
+      pinkHearts,
+      redHearts,
       ready,
       addHearts: (n) => addHeartsRaw(n),
       setHearts: (n) => setHeartsRaw(n),
       trySpend: (n) => trySpendRaw(n)
     }),
-    [hearts, ready]
+    [hearts, pinkHearts, redHearts, ready]
   );
 
   return (

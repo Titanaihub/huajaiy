@@ -7,7 +7,7 @@ import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function HeartsBadge() {
   const { user, loading: authLoading } = useMemberAuth();
-  const { hearts, ready } = useHearts();
+  const { pinkHearts, redHearts, ready } = useHearts();
 
   if (user && !authLoading) {
     const pink = Number(user.pinkHeartsBalance ?? 0);
@@ -36,13 +36,26 @@ export default function HeartsBadge() {
   return (
     <Link
       href="/shop"
-      className="inline-flex items-center gap-1.5 rounded-full border border-brand-200/95 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-900 shadow-sm transition hover:border-brand-300 hover:bg-brand-100"
-      title="หัวใจสาธิตในเครื่อง — เข้าสู่ระบบเพื่อดูยอดบนเซิร์ฟเวอร์"
+      className="inline-flex items-center gap-2 rounded-full border border-brand-200/95 bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-900 shadow-sm transition hover:border-brand-300 hover:bg-brand-100"
+      title="หัวใจชมพูและแดงสาธิตในเครื่อง — เข้าสู่ระบบเพื่อดูยอดบนเซิร์ฟเวอร์"
     >
-      <HeartIcon className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
-      <span className="tabular-nums text-brand-900">
-        {ready ? hearts.toLocaleString("th-TH") : "—"}
-      </span>
+      {ready ? (
+        <>
+          <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจชมพู">
+            <HeartIcon className="h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
+            {pinkHearts.toLocaleString("th-TH")}
+          </span>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจแดง">
+            <HeartIcon className="h-3.5 w-3.5 shrink-0 text-red-600" aria-hidden />
+            {redHearts.toLocaleString("th-TH")}
+          </span>
+        </>
+      ) : (
+        <span className="tabular-nums text-brand-900">—</span>
+      )}
     </Link>
   );
 }

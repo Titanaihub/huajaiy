@@ -175,8 +175,76 @@ async function initDb() {
       `CREATE INDEX IF NOT EXISTS idx_shops_owner ON shops(owner_user_id);`
     );
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS central_games (
+        id UUID PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        tile_count INTEGER NOT NULL,
+        set_count INTEGER NOT NULL,
+        images_per_set INTEGER NOT NULL,
+        heart_cost INTEGER NOT NULL DEFAULT 0,
+        is_active BOOLEAN NOT NULL DEFAULT FALSE,
+        created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT central_games_dims_check CHECK (
+          tile_count > 0 AND set_count > 0 AND images_per_set > 0
+          AND tile_count = set_count * images_per_set
+        )
+      );
+    `);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_central_games_one_active
+      ON central_games (is_active) WHERE (is_active = TRUE);
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS central_game_images (
+        game_id UUID NOT NULL REFERENCES central_games(id) ON DELETE CASCADE,
+        set_index INTEGER NOT NULL,
+        image_index INTEGER NOT NULL,
+        image_url TEXT NOT NULL,
+        PRIMARY KEY (game_id, set_index, image_index)
+      );
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS central_game_rules (
+        id UUID PRIMARY KEY,
+        game_id UUID NOT NULL REFERENCES central_games(id) ON DELETE CASCADE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        set_index INTEGER NOT NULL,
+        need_count INTEGER NOT NULL,
+        prize_category VARCHAR(16) NOT NULL,
+        prize_title VARCHAR(200),
+        prize_value_text VARCHAR(200),
+        prize_unit VARCHAR(32),
+        description TEXT
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_rules_game ON central_game_rules(game_id);`
+    );
+
+    await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS pink_heart_cost INTEGER NOT NULL DEFAULT 0;
+    `);
+    await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS red_heart_cost INTEGER NOT NULL DEFAULT 0;
+    `);
+    await client.query(`
+      UPDATE central_games
+      SET pink_heart_cost = GREATEST(0, COALESCE(heart_cost, 0))
+      WHERE pink_heart_cost = 0 AND red_heart_cost = 0 AND COALESCE(heart_cost, 0) > 0;
+    `);
+    await client.query(`
+      UPDATE central_games
+      SET heart_cost = pink_heart_cost + red_heart_cost
+      WHERE heart_cost IS DISTINCT FROM (pink_heart_cost + red_heart_cost);
+    `);
+
     console.log(
-      "[db] PostgreSQL schema พร้อม (users, orders, shops, heart_packages, heart_purchases)"
+      "[db] PostgreSQL schema พร้อม (users, orders, shops, hearts, central_games)"
     );
   } finally {
     client.release();

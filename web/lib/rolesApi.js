@@ -118,6 +118,116 @@ export async function apiAdminGame(token) {
   return data;
 }
 
+export async function apiAdminCentralGamesList(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/central-games`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดรายการเกมไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGameDetail(token, id) {
+  const r = await fetch(`${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดเกมไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGameCreate(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/central-games`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "สร้างเกมไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGamePatch(token, id, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "บันทึกไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGamePutImages(token, id, images) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}/images`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ images })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "บันทึกรูปไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGamePutRules(token, id, rules) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}/rules`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ rules })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "บันทึกกติกาไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGameActivate(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}/activate`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "เปิดใช้เกมไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGameDeactivate(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}/deactivate`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ปิดใช้ไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCentralGameDelete(token, id) {
+  const r = await fetch(`${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ลบเกมไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminNameChangeRequests(token) {
   const r = await fetch(`${apiRoot()}/api/admin/name-change-requests`, {
     headers: { Authorization: `Bearer ${token}` }

@@ -19,6 +19,8 @@ const { router: heartsRouter } = require("./heartsRouter");
 const { initDb } = require("./db/init");
 const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
 const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
+const centralGameService = require("./services/centralGameService");
+const centralGameSession = require("./centralGameSession");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -64,11 +66,42 @@ app.get("/api/health", (_req, res) => {
 });
 
 /** ข้อมูลกติกาเกมโดยไม่สร้าง session — ให้ฝั่งเว็บเช็กหัวใจก่อนเรียก start */
-app.get("/api/game/meta", (_req, res) => {
+async function getActiveCentralSnapshot() {
   try {
+    return await centralGameService.getActiveGameSnapshot();
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") return null;
+    throw e;
+  }
+}
+
+function centralMetaFromSnap(snap) {
+  const pink = snap.game.pinkHeartCost ?? 0;
+  const red = snap.game.redHeartCost ?? 0;
+  return {
+    gameMode: "central",
+    gameId: snap.game.id,
+    title: snap.game.title,
+    pinkHeartCost: pink,
+    redHeartCost: red,
+    heartCost: pink + red,
+    cardCount: snap.game.tileCount,
+    setCount: snap.game.setCount,
+    imagesPerSet: snap.game.imagesPerSet,
+    prizes: centralGameService.prizesForClient(snap.rules, snap.game.imagesPerSet)
+  };
+}
+
+app.get("/api/game/meta", async (_req, res) => {
+  try {
+    const snap = await getActiveCentralSnapshot();
+    if (snap) {
+      return res.json({ ok: true, ...centralMetaFromSnap(snap) });
+    }
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
     return res.json({
       ok: true,
+      gameMode: "legacy",
       heartCost,
       cardCount: CARD_COUNT,
       prizes: PRIZES
@@ -78,13 +111,23 @@ app.get("/api/game/meta", (_req, res) => {
   }
 });
 
-/** เริ่มรอบเกม — สุ่มกระดานฝั่งเซิร์ฟเวอร์ */
-app.post("/api/game/start", (req, res) => {
+/** เริ่มรอบเกม — ถ้ามีเกมส่วนกลาง active ใช้ central ไม่งั้น legacy */
+app.post("/api/game/start", async (_req, res) => {
   try {
+    const snap = await getActiveCentralSnapshot();
+    if (snap) {
+      const sessionId = centralGameSession.createSession(snap);
+      return res.json({
+        ok: true,
+        sessionId,
+        ...centralMetaFromSnap(snap)
+      });
+    }
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
     const sessionId = createSession();
     return res.json({
       ok: true,
+      gameMode: "legacy",
       sessionId,
       cardCount: CARD_COUNT,
       prizes: PRIZES,
@@ -95,30 +138,41 @@ app.post("/api/game/start", (req, res) => {
   }
 });
 
-/** เปิดป้ายหนึ่งใบ — ค่าใต้ป้ายอยู่ที่เซิร์ฟเวอร์เท่านั้น */
-app.post("/api/game/flip", (req, res) => {
+/** เปิดป้าย — ลอง central ก่อนเมื่อมีเกมส่วนกลาง active */
+app.post("/api/game/flip", async (req, res) => {
   try {
     const { sessionId, index } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
     const idx = Number(index);
+    const snap = await getActiveCentralSnapshot();
+    if (snap) {
+      const r = centralGameSession.flip(sessionId, idx);
+      if (r.ok) return res.json(r);
+      if (r.error !== "ไม่พบรอบเกม หรือหมดอายุ") {
+        return res.status(400).json(r);
+      }
+    }
     const result = flipGame(sessionId, idx);
     if (!result.ok) {
       return res.status(400).json(result);
     }
-    return res.json(result);
+    return res.json({ ...result, gameMode: "legacy" });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-/** ยกเลิกรอบเกม (เช่น หักหัวใจไม่สำเร็จหลัง start) */
-app.post("/api/game/abandon", (req, res) => {
+app.post("/api/game/abandon", async (req, res) => {
   try {
     const { sessionId } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
+    }
+    const snap = await getActiveCentralSnapshot();
+    if (snap && centralGameSession.abandonSession(sessionId)) {
+      return res.json({ ok: true, removed: true });
     }
     const removed = abandonSession(sessionId);
     return res.json({ ok: true, removed });
