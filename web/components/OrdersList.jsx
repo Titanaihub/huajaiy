@@ -63,12 +63,8 @@ export default function OrdersList() {
     <div className="space-y-8">
       {hasServer ? (
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">
-            ออเดอร์บนเซิร์ฟเวอร์ (PostgreSQL)
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            จำลองออเดอร์จริงเมื่อล็อกอินและ API มี DATABASE_URL
-          </p>
+          <h2 className="text-sm font-semibold text-slate-900">ออเดอร์ที่บันทึกในระบบ</h2>
+          <p className="mt-1 text-xs text-slate-500">ยืนยันแล้วจากตะกร้าขณะล็อกอิน</p>
           <ul className="mt-3 space-y-4">
             {serverOrders.map((o) => (
               <li

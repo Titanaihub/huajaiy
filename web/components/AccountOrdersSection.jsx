@@ -28,8 +28,7 @@ export default function AccountOrdersSection() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-slate-900">ออเดอร์ของฉัน</h2>
       <p className="text-sm text-slate-600">
-        ออเดอร์ที่บันทึกบนเซิร์ฟเวอร์เมื่อคุณล็อกอินและยืนยันตะกร้า (ต้องมี{" "}
-        <code className="rounded bg-slate-100 px-1 text-xs">DATABASE_URL</code> ที่ API) — ด้านล่างยังมีประวัติในคอมพิวเตอร์ (สาธิต) หากเคยใช้
+        ออเดอร์ที่บันทึกในบัญชีของคุณหลังล็อกอินและยืนยันตะกร้า — หากมีประวัติทดลองในเครื่องจะแสดงแยกด้านล่าง
       </p>
       <OrdersList />
       <p className="text-sm text-slate-600">

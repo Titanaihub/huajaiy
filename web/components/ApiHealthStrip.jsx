@@ -39,9 +39,7 @@ export default function ApiHealthStrip() {
   }
   return (
     <p className="mt-3 text-xs text-amber-800" role="alert">
-      ยังเชื่อมต่อ API ไม่ได้ — ตรวจ{" "}
-      <code className="rounded bg-amber-100/80 px-1">NEXT_PUBLIC_API_BASE_URL</code>{" "}
-      บน Render แล้ว Clear build cache & deploy
+      ยังเชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — ลองรีเฟรชหรือกลับมาใหม่ภายหลัง หากยังไม่หายกรุณาติดต่อผู้ดูแลเว็บไซต์
     </p>
   );
 }

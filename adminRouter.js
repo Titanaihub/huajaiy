@@ -178,7 +178,7 @@ router.get(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       return res.status(500).json({ ok: false, error: e.message });
@@ -198,7 +198,7 @@ router.post(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       if (e.code === "VALIDATION") {
@@ -228,7 +228,7 @@ router.patch(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       if (e.code === "VALIDATION") {
@@ -251,7 +251,7 @@ router.get(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       return res.status(500).json({ ok: false, error: e.message });
@@ -276,7 +276,7 @@ router.post(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       if (e.code === "NOT_FOUND" || e.code === "BAD_STATUS") {
@@ -304,7 +304,7 @@ router.post(
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
-          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
       }
       if (e.code === "NOT_FOUND") {
@@ -383,7 +383,7 @@ router.get("/game", authMiddleware, requireRole("admin"), async (_req, res) => {
       legacy,
       central,
       persistenceNote:
-        "รอบเกมอยู่ในหน่วยความจำ — redeploy/restart ล้าง session · เกมส่วนกลางตั้งค่าในแท็บ「เกมส่วนกลาง」"
+        "รอบเกมที่กำลังเล่นจะถูกล้างเมื่อรีสตาร์ทหรืออัปเดตเซิร์ฟเวอร์ — ผู้เล่นที่ค้างอาจต้องเริ่มรอบใหม่ · เกมส่วนกลางตั้งค่าในแท็บ「เกมส่วนกลาง」"
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
@@ -400,7 +400,10 @@ router.get(
       return res.json({ ok: true, games });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }
@@ -427,7 +430,10 @@ router.post(
       return res.json({ ok: true, game: snap.game, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       if (e.code === "VALIDATION") {
         return res.status(400).json({ ok: false, error: e.message });
@@ -465,7 +471,10 @@ router.get(
       });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }
@@ -489,7 +498,10 @@ router.patch(
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       if (e.code === "VALIDATION") {
         return res.status(400).json({ ok: false, error: e.message });
@@ -515,7 +527,10 @@ router.put(
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
         return res.status(400).json({ ok: false, error: e.message });
@@ -539,7 +554,10 @@ router.put(
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
         return res.status(400).json({ ok: false, error: e.message });
@@ -563,7 +581,10 @@ router.post(
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
         return res.status(400).json({ ok: false, error: e.message });
@@ -587,7 +608,10 @@ router.post(
       return res.json({ ok: true });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }
@@ -608,7 +632,10 @@ router.delete(
       return res.json({ ok: true });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
-        return res.status(503).json({ ok: false, error: "ต้องมี PostgreSQL" });
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }

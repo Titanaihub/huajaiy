@@ -18,7 +18,7 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(503).json({
         ok: false,
         error:
-          "ยังไม่ได้เชื่อม PostgreSQL — ตั้ง DATABASE_URL บน API แล้ว deploy ใหม่"
+          "ระบบบันทึกออเดอร์ยังไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });
@@ -34,7 +34,7 @@ router.get("/me", authMiddleware, async (req, res) => {
       return res.status(503).json({
         ok: false,
         error:
-          "ยังไม่ได้เชื่อม PostgreSQL — ตั้ง DATABASE_URL บน API แล้ว deploy ใหม่"
+          "ระบบบันทึกออเดอร์ยังไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });

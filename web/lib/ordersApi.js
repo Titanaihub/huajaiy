@@ -5,7 +5,7 @@ function apiRoot() {
   return getApiBase().replace(/\/$/, "");
 }
 
-/** บันทึกออเดอร์บนเซิร์ฟเวอร์ (ต้องล็อกอิน + มี DATABASE_URL ที่ API) */
+/** บันทึกออเดอร์บนเซิร์ฟเวอร์ (ต้องล็อกอิน) */
 export async function postServerOrder(body) {
   const token = getMemberToken();
   if (!token) return { ok: false, skipped: true };

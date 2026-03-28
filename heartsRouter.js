@@ -14,7 +14,7 @@ router.get("/packages", async (_req, res) => {
       return res.status(503).json({
         ok: false,
         error:
-          "ระบบซื้อหัวใจต้องใช้ PostgreSQL — ตั้ง DATABASE_URL ที่ API"
+          "การซื้อหัวใจชั่วคราวไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });
@@ -39,7 +39,7 @@ router.post("/purchases", authMiddleware, async (req, res) => {
       return res.status(503).json({
         ok: false,
         error:
-          "ระบบซื้อหัวใจต้องใช้ PostgreSQL — ตั้ง DATABASE_URL ที่ API"
+          "การซื้อหัวใจชั่วคราวไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
     }
     if (e.code === "VALIDATION") {
@@ -61,7 +61,7 @@ router.get("/purchases/mine", authMiddleware, async (req, res) => {
       return res.status(503).json({
         ok: false,
         error:
-          "ระบบซื้อหัวใจต้องใช้ PostgreSQL — ตั้ง DATABASE_URL ที่ API"
+          "การซื้อหัวใจชั่วคราวไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
       });
     }
     return res.status(500).json({ ok: false, error: e.message });

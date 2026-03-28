@@ -695,8 +695,7 @@ export default function AdminDashboard() {
       ) : tab === "shops" ? (
         <section className="space-y-4">
           <p className="text-sm text-slate-600">
-            ร้านในตาราง <code className="rounded bg-slate-100 px-1">shops</code> — เชื่อมเจ้าของด้วย{" "}
-            <code className="rounded bg-slate-100 px-1">owner_user_id</code>
+            ร้านที่ลงทะเบียนในฐานข้อมูล — แต่ละร้านผูกกับบัญชีเจ้าของ
           </p>
           {shopsErr ? <p className="text-sm text-red-600">{shopsErr}</p> : null}
           {shopsLoading ? (
@@ -735,8 +734,7 @@ export default function AdminDashboard() {
       ) : tab === "game" ? (
         <section className="space-y-4">
           <p className="text-sm text-slate-600">
-            หน้า <code className="rounded bg-slate-100 px-1">/game</code> ใช้<strong>เกมส่วนกลาง</strong>ถ้ามีเกมที่เปิดใช้งานในแท็บ「เกมส่วนกลาง」— ไม่งั้นใช้กติกาเดิมจาก{" "}
-            <code className="rounded bg-slate-100 px-1">gameSession.js</code>
+            หน้าเกมใช้<strong>เกมส่วนกลาง</strong>เมื่อมีเกมที่เปิดใช้งานในแท็บ「เกมส่วนกลาง」— หากยังไม่ตั้งค่า ระบบจะใช้<strong>กติกาเริ่มต้น</strong>ของเว็บ
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -757,7 +755,7 @@ export default function AdminDashboard() {
                 {gameInfo.persistenceNote}
               </div>
               <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase text-slate-500">หัวใจต่อรอบเมื่อเล่นแบบ legacy (GAME_HEART_COST)</p>
+                <p className="text-xs font-semibold uppercase text-slate-500">หัวใจต่อรอบ (กติกาเริ่มต้น / สำรอง)</p>
                 <p className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.heartCost}</p>
                 <p className="mt-2 text-xs text-slate-500">
                   เกมส่วนกลางตั้งค่าหักหัวใจต่อรอบในแต่ละเกม (ไม่ใช่ค่านี้)
@@ -783,7 +781,7 @@ export default function AdminDashboard() {
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-slate-600">Session ในหน่วยความจำ</dt>
+                        <dt className="text-xs text-slate-600">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ</dt>
                         <dd className="font-semibold">
                           ทั้งหมด {gameInfo.central.activeSessions} · เล่นอยู่ {gameInfo.central.sessionsPlaying} · จบแล้ว{" "}
                           {gameInfo.central.sessionsFinished}
@@ -804,39 +802,39 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    ยังไม่มีเกมส่วนกลางที่เปิดใช้งาน — ผู้เล่นจะได้กติกา legacy
+                    ยังไม่มีเกมส่วนกลางที่เปิดใช้งาน — ผู้เล่นจะได้กติกาเริ่มต้น
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-base font-semibold text-slate-900">กติกา legacy (gameSession.js)</h3>
+                <h3 className="text-base font-semibold text-slate-900">กติกาเริ่มต้น (เมื่อไม่ใช้เกมส่วนกลาง)</h3>
                 <dl className="grid gap-2 text-sm sm:grid-cols-2">
                   <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <dt className="text-xs font-semibold uppercase text-slate-500">จำนวนการ์ดบนกระดาน</dt>
                     <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.legacy?.cardCount ?? "—"}</dd>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                    <dt className="text-xs font-semibold uppercase text-slate-500">Session ในหน่วยความจำ (legacy)</dt>
+                    <dt className="text-xs font-semibold uppercase text-slate-500">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ (กติกาเริ่มต้น)</dt>
                     <dd className="mt-1 font-semibold text-slate-900">
                       ทั้งหมด {gameInfo.legacy?.activeSessions ?? 0} · กำลังเล่น {gameInfo.legacy?.sessionsPlaying ?? 0} · จบแล้วยังไม่หมดอายุ{" "}
                       {gameInfo.legacy?.sessionsFinished ?? 0}
                     </dd>
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
-                    <dt className="text-xs font-semibold uppercase text-slate-500">ลบ session เก่าหลัง</dt>
+                    <dt className="text-xs font-semibold uppercase text-slate-500">ล้างรอบที่จบแล้วหลังครบกำหนด</dt>
                     <dd className="mt-1 text-slate-800">
                       {Math.round((gameInfo.legacy?.pruneAfterMs || 0) / 60000)} นาที (ไม่ได้ใช้งาน)
                     </dd>
                   </div>
                 </dl>
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-800">รางวัล legacy</h4>
+                  <h4 className="text-sm font-semibold text-slate-800">รางวัล (กติกาเริ่มต้น)</h4>
                   <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                     <table className="min-w-full text-left text-sm">
                       <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
                         <tr>
-                          <th className="px-3 py-2">key</th>
+                          <th className="px-3 py-2">รหัส</th>
                           <th className="px-3 py-2">รางวัล</th>
                           <th className="px-3 py-2">ต้องครบ</th>
                         </tr>
