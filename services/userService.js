@@ -11,6 +11,7 @@ function normalizeBirthDate(v) {
 }
 
 function rowToUser(row) {
+  const hb = row.hearts_balance;
   return {
     id: row.id,
     username: row.username,
@@ -24,6 +25,8 @@ function rowToUser(row) {
     birthDate: normalizeBirthDate(row.birth_date),
     shippingAddress: row.shipping_address || null,
     role: row.role || MEMBER,
+    heartsBalance:
+      hb == null ? 0 : Math.max(0, Math.floor(Number(hb) || 0)),
     createdAt: row.created_at
   };
 }
@@ -185,6 +188,40 @@ async function setPasswordAndRole(userId, passwordHash, role = ADMIN) {
   return findById(userId);
 }
 
+async function setPasswordHashOnly(userId, passwordHash) {
+  const pool = getPool();
+  if (!pool) {
+    userStore.updateUser(userId, { passwordHash });
+    return findById(userId);
+  }
+  await pool.query(
+    `UPDATE users SET password_hash = $2 WHERE id = $1`,
+    [userId, passwordHash]
+  );
+  return findById(userId);
+}
+
+/** บวก/ลบหัวใจในฐานข้อมูล (ยอดรวมไม่ต่ำกว่า 0) */
+async function adjustHeartsBalance(userId, delta) {
+  const d = Math.floor(Number(delta) || 0);
+  if (d === 0) return findById(userId);
+  const pool = getPool();
+  if (!pool) {
+    const u = userStore.findById(userId);
+    if (!u) return null;
+    const cur = Math.max(0, Math.floor(Number(u.heartsBalance) || 0));
+    userStore.updateUser(userId, {
+      heartsBalance: Math.max(0, cur + d)
+    });
+    return findById(userId);
+  }
+  await pool.query(
+    `UPDATE users SET hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0) + $2) WHERE id = $1`,
+    [userId, d]
+  );
+  return findById(userId);
+}
+
 async function updateOfficialNames(userId, firstName, lastName) {
   const pool = getPool();
   if (!pool) {
@@ -217,6 +254,7 @@ function adminMemberListItem(u) {
     role: u.role || MEMBER,
     gender: u.gender ?? null,
     birthDate: u.birthDate ?? null,
+    heartsBalance: Math.max(0, Math.floor(Number(u.heartsBalance) || 0)),
     createdAt: createdAtIso(u)
   };
 }
@@ -227,7 +265,9 @@ function adminMemberDetail(u) {
   return {
     ...adminMemberListItem(u),
     shippingAddress: u.shippingAddress ?? null,
-    registrationIp: u.registrationIp ?? null
+    registrationIp: u.registrationIp ?? null,
+    passwordNote:
+      "รหัสผ่านเก็บเป็นแฮชเท่านั้น — ไม่มีใครดูข้อความจริงได้ ใช้ปุ่มตั้งรหัสใหม่ด้านล่าง"
   };
 }
 
@@ -291,6 +331,8 @@ module.exports = {
   findByThaiFullName,
   createUser,
   setPasswordAndRole,
+  setPasswordHashOnly,
+  adjustHeartsBalance,
   updateProfile,
   updateOfficialNames,
   publicUser,

@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMemberToken } from "../lib/memberApi";
 import {
+  apiAdminAdjustMemberHearts,
   apiAdminApproveNameChange,
   apiAdminListMembers,
-  apiAdminMember,
+  apiAdminMemberFull,
   apiAdminNameChangeRequests,
-  apiAdminRejectNameChange
+  apiAdminRejectNameChange,
+  apiAdminSetMemberPassword,
+  apiAdminShops
 } from "../lib/rolesApi";
 
 const PAGE_SIZE = 25;
@@ -30,15 +33,25 @@ export default function AdminDashboard() {
   const [listErr, setListErr] = useState("");
 
   const [selectedId, setSelectedId] = useState(null);
-  const [detail, setDetail] = useState(null);
+  /** @type {null | { user: object, orders: array, shops: array, stats: object, nameChangeRequestPending: boolean, heartsNote?: string }} */
+  const [memberFull, setMemberFull] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
+  const [heartDelta, setHeartDelta] = useState("");
+  const [heartBusy, setHeartBusy] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [passBusy, setPassBusy] = useState(false);
+  const [panelMsg, setPanelMsg] = useState("");
 
   const [requests, setRequests] = useState([]);
   const [reqLoading, setReqLoading] = useState(false);
   const [reqErr, setReqErr] = useState("");
   const [reqNote, setReqNote] = useState("");
   const [reqBusyId, setReqBusyId] = useState(null);
+
+  const [shopsAll, setShopsAll] = useState([]);
+  const [shopsLoading, setShopsLoading] = useState(false);
+  const [shopsErr, setShopsErr] = useState("");
 
   const loadMembers = useCallback(async () => {
     const token = getMemberToken();
@@ -88,16 +101,53 @@ export default function AdminDashboard() {
     loadRequests();
   }, [tab, loadRequests]);
 
+  const loadShopsAll = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) return;
+    setShopsLoading(true);
+    setShopsErr("");
+    try {
+      const data = await apiAdminShops(token);
+      setShopsAll(data.shops || []);
+    } catch (e) {
+      setShopsErr(e.message || String(e));
+      setShopsAll([]);
+    } finally {
+      setShopsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "shops") return;
+    loadShopsAll();
+  }, [tab, loadShopsAll]);
+
+  async function reloadMemberFull(id) {
+    const token = getMemberToken();
+    if (!token || !id) return;
+    const data = await apiAdminMemberFull(token, id);
+    setMemberFull({
+      user: data.user,
+      orders: data.orders || [],
+      shops: data.shops || [],
+      stats: data.stats || {},
+      nameChangeRequestPending: Boolean(data.nameChangeRequestPending),
+      heartsNote: data.heartsNote
+    });
+  }
+
   async function openDetail(id) {
     setSelectedId(id);
-    setDetail(null);
+    setMemberFull(null);
     setDetailErr("");
+    setPanelMsg("");
+    setHeartDelta("");
+    setNewPassword("");
     const token = getMemberToken();
     if (!token) return;
     setDetailLoading(true);
     try {
-      const data = await apiAdminMember(token, id);
-      setDetail(data.user);
+      await reloadMemberFull(id);
     } catch (e) {
       setDetailErr(e.message || String(e));
     } finally {
@@ -111,7 +161,6 @@ export default function AdminDashboard() {
     setQSubmit(q.trim());
   }
 
-  const maxOffset = Math.max(0, total - PAGE_SIZE);
   const canPrev = offset > 0;
   const canNext = offset + PAGE_SIZE < total;
 
@@ -147,6 +196,51 @@ export default function AdminDashboard() {
     }
   }
 
+  async function submitHeartAdjust(e) {
+    e.preventDefault();
+    if (!selectedId) return;
+    const d = parseInt(heartDelta, 10);
+    if (!Number.isFinite(d) || d === 0) {
+      setPanelMsg("ใส่ตัวเลขเต็ม บวกเพิ่ม ลบลด (ไม่ใช่ 0)");
+      return;
+    }
+    const token = getMemberToken();
+    if (!token) return;
+    setHeartBusy(true);
+    setPanelMsg("");
+    try {
+      await apiAdminAdjustMemberHearts(token, selectedId, d);
+      setHeartDelta("");
+      await reloadMemberFull(selectedId);
+      await loadMembers();
+      setPanelMsg("ปรับหัวใจในระบบแล้ว");
+    } catch (err) {
+      setPanelMsg(err.message || String(err));
+    } finally {
+      setHeartBusy(false);
+    }
+  }
+
+  async function submitNewPassword(e) {
+    e.preventDefault();
+    if (!selectedId || !newPassword.trim()) return;
+    const token = getMemberToken();
+    if (!token) return;
+    setPassBusy(true);
+    setPanelMsg("");
+    try {
+      await apiAdminSetMemberPassword(token, selectedId, newPassword);
+      setNewPassword("");
+      setPanelMsg("ตั้งรหัสผ่านใหม่แล้ว — แจ้งสมาชิกให้ล็อกอินด้วยรหัสใหม่");
+    } catch (err) {
+      setPanelMsg(err.message || String(err));
+    } finally {
+      setPassBusy(false);
+    }
+  }
+
+  const detail = memberFull?.user;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
@@ -160,6 +254,17 @@ export default function AdminDashboard() {
           }`}
         >
           สมาชิก
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("shops")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "shops"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          ร้านทั้งหมด
         </button>
         <button
           type="button"
@@ -198,7 +303,7 @@ export default function AdminDashboard() {
           </form>
 
           <p className="text-xs text-slate-500">
-            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ
+            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · คอลัมน์หัวใจ = ยอดบนเซิร์ฟเวอร์ (ไม่ใช่ในเบราว์เซอร์)
           </p>
 
           {listErr ? <p className="text-sm text-red-600">{listErr}</p> : null}
@@ -212,6 +317,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ยูสเซอร์</th>
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
                     <th className="px-3 py-2">เบอร์</th>
+                    <th className="px-3 py-2">หัวใจ (DB)</th>
                     <th className="px-3 py-2">บทบาท</th>
                     <th className="px-3 py-2">สมัคร</th>
                     <th className="px-3 py-2 w-24" />
@@ -220,7 +326,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -237,6 +343,9 @@ export default function AdminDashboard() {
                           {u.firstName} {u.lastName}
                         </td>
                         <td className="px-3 py-2">{u.phone}</td>
+                        <td className="px-3 py-2 font-medium text-pink-700">
+                          {u.heartsBalance ?? 0}
+                        </td>
                         <td className="px-3 py-2">{roleLabel(u.role)}</td>
                         <td className="px-3 py-2 text-xs text-slate-600">
                           {u.createdAt
@@ -249,7 +358,7 @@ export default function AdminDashboard() {
                             onClick={() => openDetail(u.id)}
                             className="text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
                           >
-                            ดูรายละเอียด
+                            ดูทั้งหมด
                           </button>
                         </td>
                       </tr>
@@ -280,72 +389,239 @@ export default function AdminDashboard() {
           </div>
 
           {selectedId ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-900">
-                รายละเอียดสมาชิก
+                โปรไฟล์และกิจกรรม (สมาชิก)
               </h3>
               {detailLoading ? (
-                <p className="mt-2 text-sm text-slate-500">กำลังโหลด…</p>
+                <p className="text-sm text-slate-500">กำลังโหลด…</p>
               ) : detailErr ? (
-                <p className="mt-2 text-sm text-red-600">{detailErr}</p>
-              ) : detail ? (
-                <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                <p className="text-sm text-red-600">{detailErr}</p>
+              ) : detail && memberFull ? (
+                <>
+                  {panelMsg ? (
+                    <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                      {panelMsg}
+                    </p>
+                  ) : null}
+                  {memberFull.heartsNote ? (
+                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      {memberFull.heartsNote}
+                    </p>
+                  ) : null}
+
+                  <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="text-slate-500">id</dt>
+                      <dd className="font-mono text-xs break-all">{detail.id}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">ยูสเซอร์</dt>
+                      <dd className="font-medium">{detail.username}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">ชื่อ–นามสกุล (ในระบบ)</dt>
+                      <dd>
+                        {detail.firstName} {detail.lastName}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">เบอร์โทร</dt>
+                      <dd>{detail.phone}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">บทบาท</dt>
+                      <dd>{roleLabel(detail.role)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">หัวใจในระบบ (DB)</dt>
+                      <dd className="text-lg font-semibold text-pink-700">
+                        {detail.heartsBalance ?? 0}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">ออเดอร์ (จาก DB)</dt>
+                      <dd>
+                        {memberFull.stats?.orderCount ?? 0} รายการ · หัวใจที่ออเดอร์มอบรวม{" "}
+                        {memberFull.stats?.totalHeartsGrantedFromOrders ?? 0}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">คำขอเปลี่ยนชื่อค้าง</dt>
+                      <dd>{memberFull.nameChangeRequestPending ? "มี — ดูแท็บคำขอ" : "ไม่มี"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">รหัสผ่าน</dt>
+                      <dd className="text-slate-700">{detail.passwordNote}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">เพศ / วันเกิด</dt>
+                      <dd>
+                        {detail.gender || "—"} · {detail.birthDate || "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">IP ตอนสมัคร</dt>
+                      <dd className="font-mono text-xs">{detail.registrationIp || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">สมัครเมื่อ</dt>
+                      <dd>
+                        {detail.createdAt
+                          ? new Date(detail.createdAt).toLocaleString("th-TH")
+                          : "—"}
+                      </dd>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <dt className="text-slate-500">ที่อยู่จัดส่ง</dt>
+                      <dd className="whitespace-pre-wrap text-slate-800">
+                        {detail.shippingAddress || "—"}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
+                    <h4 className="text-xs font-semibold uppercase text-slate-600">
+                      ปรับหัวใจในระบบ (เซิร์ฟเวอร์)
+                    </h4>
+                    <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-2">
+                      <input
+                        type="number"
+                        value={heartDelta}
+                        onChange={(e) => setHeartDelta(e.target.value)}
+                        placeholder="เช่น 10 หรือ -5"
+                        className="w-32 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                      />
+                      <button
+                        type="submit"
+                        disabled={heartBusy}
+                        className="rounded-lg bg-pink-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-pink-800 disabled:opacity-50"
+                      >
+                        {heartBusy ? "…" : "บันทึก"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
+                    <h4 className="text-xs font-semibold uppercase text-slate-600">
+                      ตั้งรหัสผ่านใหม่ให้สมาชิก
+                    </h4>
+                    <form onSubmit={submitNewPassword} className="mt-2 flex flex-wrap items-end gap-2">
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="รหัสใหม่ (อย่างน้อย 6 ตัว)"
+                        className="min-w-[200px] flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="submit"
+                        disabled={passBusy}
+                        className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+                      >
+                        {passBusy ? "…" : "ตั้งรหัส"}
+                      </button>
+                    </form>
+                  </div>
+
                   <div>
-                    <dt className="text-slate-500">id</dt>
-                    <dd className="font-mono text-xs break-all">{detail.id}</dd>
+                    <h4 className="text-xs font-semibold uppercase text-slate-600">
+                      ร้านที่เป็นของสมาชิกนี้
+                    </h4>
+                    {memberFull.shops.length === 0 ? (
+                      <p className="mt-1 text-sm text-slate-500">ยังไม่มีร้านในฐานข้อมูล</p>
+                    ) : (
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {memberFull.shops.map((s) => (
+                          <li key={s.id} className="rounded border border-slate-100 px-2 py-1">
+                            <span className="font-medium">{s.name}</span>{" "}
+                            <code className="text-xs text-slate-600">{s.slug}</code>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
+
                   <div>
-                    <dt className="text-slate-500">ยูสเซอร์</dt>
-                    <dd className="font-medium">{detail.username}</dd>
+                    <h4 className="text-xs font-semibold uppercase text-slate-600">
+                      ออเดอร์ล่าสุด (สูงสุด 100 รายการ)
+                    </h4>
+                    {memberFull.orders.length === 0 ? (
+                      <p className="mt-1 text-sm text-slate-500">ไม่มีออเดอร์ในฐานข้อมูล</p>
+                    ) : (
+                      <div className="mt-2 overflow-x-auto">
+                        <table className="min-w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="py-1 pr-2">เมื่อ</th>
+                              <th className="py-1 pr-2">ราคา</th>
+                              <th className="py-1 pr-2">หัวใจมอบ</th>
+                              <th className="py-1">สถานะ</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {memberFull.orders.map((o) => (
+                              <tr key={o.id} className="border-b border-slate-100">
+                                <td className="py-1 pr-2 whitespace-nowrap">
+                                  {o.createdAt
+                                    ? new Date(o.createdAt).toLocaleString("th-TH")
+                                    : "—"}
+                                </td>
+                                <td className="py-1 pr-2">{o.totalPrice}</td>
+                                <td className="py-1 pr-2">{o.heartsGranted}</td>
+                                <td className="py-1">{o.status}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <dt className="text-slate-500">ชื่อ–นามสกุล</dt>
-                    <dd>
-                      {detail.firstName} {detail.lastName}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">เบอร์</dt>
-                    <dd>{detail.phone}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">ประเทศชื่อ</dt>
-                    <dd>{detail.countryCode === "TH" ? "ไทย" : detail.countryCode}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">บทบาท</dt>
-                    <dd>{roleLabel(detail.role)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">เพศ</dt>
-                    <dd>{detail.gender || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">วันเกิด</dt>
-                    <dd>{detail.birthDate || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">IP ตอนสมัคร</dt>
-                    <dd className="font-mono text-xs">{detail.registrationIp || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">สมัครเมื่อ</dt>
-                    <dd>
-                      {detail.createdAt
-                        ? new Date(detail.createdAt).toLocaleString("th-TH")
-                        : "—"}
-                    </dd>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <dt className="text-slate-500">ที่อยู่จัดส่ง</dt>
-                    <dd className="whitespace-pre-wrap text-slate-800">
-                      {detail.shippingAddress || "—"}
-                    </dd>
-                  </div>
-                </dl>
+                </>
               ) : null}
             </div>
           ) : null}
+        </section>
+      ) : tab === "shops" ? (
+        <section className="space-y-4">
+          <p className="text-sm text-slate-600">
+            ร้านในตาราง <code className="rounded bg-slate-100 px-1">shops</code> — เชื่อมเจ้าของด้วย{" "}
+            <code className="rounded bg-slate-100 px-1">owner_user_id</code>
+          </p>
+          {shopsErr ? <p className="text-sm text-red-600">{shopsErr}</p> : null}
+          {shopsLoading ? (
+            <p className="text-sm text-slate-500">กำลังโหลด…</p>
+          ) : shopsAll.length === 0 ? (
+            <p className="text-sm text-slate-500">ยังไม่มีร้านในฐานข้อมูล</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">ชื่อร้าน</th>
+                    <th className="px-3 py-2">slug</th>
+                    <th className="px-3 py-2">เจ้าของ (ยูสเซอร์)</th>
+                    <th className="px-3 py-2">สร้างเมื่อ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shopsAll.map((s) => (
+                    <tr key={s.id} className="border-b border-slate-100">
+                      <td className="px-3 py-2 font-medium">{s.name}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{s.slug}</td>
+                      <td className="px-3 py-2">{s.ownerUsername || "—"}</td>
+                      <td className="px-3 py-2 text-xs text-slate-600">
+                        {s.createdAt
+                          ? new Date(s.createdAt).toLocaleString("th-TH")
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       ) : (
         <section className="space-y-4">
@@ -389,8 +665,7 @@ export default function AdminDashboard() {
                     {r.countryCode === "TH" ? "ไทย" : r.countryCode}
                   </p>
                   <p className="mt-2 text-sm text-slate-700">
-                    <span className="font-medium text-slate-800">เหตุผล:</span>{" "}
-                    {r.reason}
+                    <span className="font-medium text-slate-800">เหตุผล:</span> {r.reason}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button

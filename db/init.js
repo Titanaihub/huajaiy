@@ -47,6 +47,10 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS shipping_address TEXT;
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS hearts_balance INTEGER NOT NULL DEFAULT 0;
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS name_change_requests (

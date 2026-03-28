@@ -55,6 +55,59 @@ export async function apiAdminMember(token, id) {
   return data;
 }
 
+export async function apiAdminMemberFull(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/full`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดข้อมูลสมาชิกไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminAdjustMemberHearts(token, id, delta) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/hearts`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ delta })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ปรับหัวใจไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminSetMemberPassword(token, id, newPassword) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ newPassword })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ตั้งรหัสไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminShops(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/shops`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดร้านไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminNameChangeRequests(token) {
   const r = await fetch(`${apiRoot()}/api/admin/name-change-requests`, {
     headers: { Authorization: `Bearer ${token}` }

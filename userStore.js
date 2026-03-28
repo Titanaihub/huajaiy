@@ -40,11 +40,15 @@ function updateUser(id, patch) {
 
 function findByUsername(username) {
   const u = String(username || "").toLowerCase();
-  return readUsers().find((x) => x.username === u) || null;
+  const x = readUsers().find((row) => row.username === u) || null;
+  if (!x) return null;
+  return { ...x, heartsBalance: x.heartsBalance == null ? 0 : x.heartsBalance };
 }
 
 function findById(id) {
-  return readUsers().find((x) => x.id === id) || null;
+  const u = readUsers().find((x) => x.id === id) || null;
+  if (u && u.heartsBalance == null) return { ...u, heartsBalance: 0 };
+  return u;
 }
 
 function findByPhone(phone) {
@@ -95,6 +99,7 @@ function createUser({
     registrationIp:
       registrationIp == null ? null : String(registrationIp).slice(0, 64),
     role: role || MEMBER,
+    heartsBalance: 0,
     createdAt: new Date().toISOString()
   };
   users.push(user);

@@ -12,4 +12,18 @@ async function listByOwner(ownerUserId) {
   return r.rows;
 }
 
-module.exports = { listByOwner };
+/** แอดมิน — ร้านทั้งหมดพร้อมเจ้าของ */
+async function listAllForAdmin() {
+  const pool = getPool();
+  if (!pool) return [];
+  const r = await pool.query(`
+    SELECT s.id, s.slug, s.name, s.owner_user_id AS "ownerUserId",
+           s.created_at AS "createdAt", u.username AS "ownerUsername"
+    FROM shops s
+    LEFT JOIN users u ON u.id = s.owner_user_id
+    ORDER BY s.created_at DESC
+  `);
+  return r.rows;
+}
+
+module.exports = { listByOwner, listAllForAdmin };
