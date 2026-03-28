@@ -12,7 +12,11 @@ import {
 import InlineHeart from "./InlineHeart";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-/** เกมส่วนกลาง: ล็อกอิน = ยอดชมพู/แดงบนเซิร์ฟเวอร์ (ให้ตรงกับป้ายหัวใจ) · ไม่ล็อกอิน = กระเป๋าสาธิตในเครื่อง */
+/**
+ * เกมส่วนกลาง: ไม่ล็อกอิน = กระเป๋าสาธิต (ชมพู/แดงแยกตามฟิลด์)
+ * ล็อกอิน = ยอดบัญชีบนเซิร์ฟเวอร์ — ใช้ยอดรวมชมพู+แดง เทียบกับค่าใช้รอบรวม (ชมพู+แดง)
+ * เพื่อไม่ให้ติดบล็อกเมื่อมีแต่ชมพูแต่เกมตั้งหักแดงเล็กน้อยโดยไม่ตั้งใจ
+ */
 function canAffordCentralEntry(user, pinkCost, redCost) {
   const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
   const r = Math.max(0, Math.floor(Number(redCost)) || 0);
@@ -20,13 +24,15 @@ function canAffordCentralEntry(user, pinkCost, redCost) {
   if (user) {
     const pu = Math.max(0, Math.floor(Number(user.pinkHeartsBalance)) || 0);
     const ru = Math.max(0, Math.floor(Number(user.redHeartsBalance)) || 0);
-    return pu >= p && ru >= r;
+    const need = p + r;
+    const have = pu + ru;
+    return have >= need;
   }
   return canAffordPinkRed(p, r);
 }
 
 /**
- * อนุญาตเริ่มรอบเมื่อผ่าน canAfford — ไม่ล็อกอินหักจาก localStorage · ล็อกอินยังไม่มี API หัก DB (แค่เช็กยอดให้ตรงป้าย)
+ * อนุญาตเริ่มรอบเมื่อผ่าน canAfford — ไม่ล็อกอินหักจาก localStorage · ล็อกอินยังไม่มี API หัก DB
  */
 function spendCentralEntryOrFail(user, pinkCost, redCost) {
   const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
@@ -218,7 +224,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r)) {
             setBootError(
               user
-                ? "หัวใจชมพู/แดงในบัญชีไม่พอต่อรอบนี้ — ให้แอดมินปรับยอด หรือตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ"
+                ? "หัวใจในบัญชี (รวมชมพู+แดง) ไม่พอต่อรอบนี้ — ให้แอดมินปรับยอด หรือตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ"
                 : "หัวใจชมพูหรือแดงไม่พอสำหรับรอบนี้ — ไปร้านค้า (สาธิต) หรือล็อกอินเพื่อใช้ยอดบัญชี / เล่นโหมดออฟไลน์"
             );
             applyLocalDeck();
@@ -454,8 +460,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-semibold">มีเกมส่วนกลางเผยแพร่แล้ว แต่ตอนนี้แสดงโหมดสาธิตในเครื่อง</p>
           <p className="mt-1 text-amber-900/95">
-            สาเหตุที่พบบ่อย: <strong>หัวใจไม่พอต่อรอบ</strong> (ถ้าล็อกอินแล้วใช้ยอดบัญชีตามป้ายหัวใจ — ไม่ใช่แค่สาธิตในเครื่อง) · หรือเรียก API
-            ไม่สำเร็จ (ดูข้อความสีส้มด้านล่าง) — ตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ หรือให้แอดมินปรับยอดหัวใจ
+            สาเหตุที่พบบ่อย: <strong>หัวใจรวมในบัญชีไม่พอต่อรอบ</strong> (ล็อกอิน = นับชมพู+แดงรวมกันเทียบกับค่าใช้รอบ) · หรือเรียก API ไม่สำเร็จ
+            (ดูข้อความสีส้มด้านล่าง) — ตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ หรือให้แอดมินปรับยอด
           </p>
         </div>
       ) : null}
@@ -485,7 +491,11 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           )}
           {mode === "api" && apiGameMode === "central" && (pinkHeartCost > 0 || redHeartCost > 0) ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-              <span>{user ? "หักต่อรอบ (ตามยอดบัญชี — ยังไม่หัก DB อัตโนมัติ):" : "หักต่อรอบ (สาธิตในเครื่อง):"}</span>
+              <span>
+                {user
+                  ? "หักต่อรอบ (เช็กยอดรวมชมพู+แดงในบัญชี — ยังไม่หัก DB อัตโนมัติ):"
+                  : "หักต่อรอบ (สาธิตในเครื่อง):"}
+              </span>
               {pinkHeartCost > 0 ? (
                 <span className="inline-flex items-center gap-0.5 text-rose-600">
                   <InlineHeart size="sm" className="text-rose-400" />
