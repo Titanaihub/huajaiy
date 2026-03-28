@@ -37,8 +37,12 @@ export default function SiteHeader() {
           <Link href="/contact" className={navClass}>
             ติดต่อ
           </Link>
-          <Link href="/auth" className={navClass}>
-            โซเชียล
+          <Link
+            href="/auth"
+            className={navClass}
+            title="เข้าด้วย Facebook หรือ LINE (NextAuth)"
+          >
+            FB · LINE
           </Link>
           <span className="hidden h-4 w-px bg-slate-200 sm:inline-block" />
           <MemberNav />

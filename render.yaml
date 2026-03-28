@@ -49,6 +49,8 @@ services:
       # ตั้งหลัง deploy API ครั้งแรก แล้ว Clear build cache + Deploy ใหม่ของเว็บ
       - key: NEXT_PUBLIC_API_BASE_URL
         sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
       # ถ้าใช้หน้า /auth — ตั้งโดเมนเว็บจริง + secret
       - key: NEXTAUTH_URL
         sync: false

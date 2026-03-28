@@ -29,17 +29,32 @@ export default function AuthPage() {
       <Link href="/" className="text-sm text-blue-600 underline">
         ← กลับหน้าแรก
       </Link>
-      <h1 className="mt-4 text-lg font-semibold">เข้าสู่ระบบด้วยโซเชียล (ขั้นตอนหลัง)</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        LINE / Facebook — ตั้งค่าใน Meta/LINE และ env บน Render เมื่อพร้อม · บัญชีสมาชิกแบบยูสเซอร์/รหัสผ่านใช้ที่{" "}
-        <Link href="/register" className="text-blue-600 underline">
-          สมัครสมาชิก
-        </Link>{" "}
-        /{" "}
-        <Link href="/login" className="text-blue-600 underline">
-          เข้าสู่ระบบ
-        </Link>
+      <h1 className="mt-4 text-lg font-semibold">เข้าด้วย Facebook หรือ LINE</h1>
+      <p className="mt-2 text-sm text-slate-600">
+        แบบนี้ใช้ <strong>NextAuth</strong> แยกจากสมาชิกแบบยูสเซอร์/รหัสผ่านของเว็บ
       </p>
+      <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+        <li>
+          สมาชิกแบบยูส/รหัสผ่าน →{" "}
+          <Link href="/register" className="text-brand-800 underline">
+            สมัคร
+          </Link>{" "}
+          /{" "}
+          <Link href="/login" className="text-brand-800 underline">
+            เข้าสู่ระบบ
+          </Link>
+        </li>
+        <li>
+          ตั้งค่า Meta / LINE + env บน Render ตาม{" "}
+          <code className="rounded bg-slate-100 px-1">web/.env.example</code>
+        </li>
+        <li>
+          ใน Meta ใส่ Valid OAuth Redirect URI ให้ตรงกับโดเมนจริง เช่น{" "}
+          <code className="break-all rounded bg-slate-100 px-1 text-xs">
+            https://huajaiy.com/api/auth/callback/facebook
+          </code>
+        </li>
+      </ol>
 
       <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
         {status === "loading" ? (

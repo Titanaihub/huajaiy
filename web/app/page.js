@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ApiHealthStrip from "../components/ApiHealthStrip";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 import UploadForm from "../components/UploadForm";
@@ -26,6 +27,12 @@ const actions = [
     href: "/contact",
     title: "ติดต่อ",
     desc: "ส่งข้อความถึงทีมงาน",
+    accent: "border-slate-200 bg-white"
+  },
+  {
+    href: "/auth",
+    title: "Facebook · LINE",
+    desc: "เข้าด้วยบัญชีโซเชียล (NextAuth) — สมาชิกยูส/รหัสผ่านที่ล็อกอิน/สมัคร",
     accent: "border-slate-200 bg-white"
   }
 ];
@@ -55,6 +62,7 @@ export default function HomePage() {
               ใช้งานผ่านเบราว์เซอร์ — ร้านค้า เกม และเครื่องมืออัปโหลดในที่เดียว
               พร้อมขยายต่อยอดเมื่อคุณพร้อมเปิดให้บริการจริง
             </p>
+            <ApiHealthStrip />
           </div>
         </section>
 
