@@ -68,7 +68,8 @@ const emptyRule = () => ({
   prizeValueText: "",
   prizeUnit: "บาท",
   sortOrder: 0,
-  description: ""
+  description: "",
+  prizeTotalQty: 1
 });
 
 function resizeSetSizes(prev, n, fill) {
@@ -178,7 +179,8 @@ export default function AdminCentralGamePanel() {
               prizeValueText: r.prizeValueText || "",
               prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
               sortOrder: r.sortOrder,
-              description: r.description || ""
+              description: r.description || "",
+              prizeTotalQty: Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
             }))
           : [emptyRule()]
       );
@@ -281,7 +283,8 @@ export default function AdminCentralGamePanel() {
       prizeValueText: r.prizeValueText,
       prizeUnit: r.prizeUnit,
       sortOrder: r.sortOrder != null ? Number(r.sortOrder) : idx,
-      description: r.description
+      description: r.description,
+      prizeTotalQty: Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
     }));
     setMsg("");
     try {
@@ -732,7 +735,8 @@ export default function AdminCentralGamePanel() {
               <div>
                 <h3 className="font-semibold">กำหนดรางวัล (กติกา)</h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  เรียงจากบนลงล่าง = ลำดับที่ระบบตรวจ · &quot;ต้องเปิดครบ&quot; ไม่เกินจำนวนป้ายในชุดนั้น · เลขชุด 0 = ชุดที่ 1
+                  เรียงจากบนลงล่าง = ลำดับที่ระบบตรวจ · &quot;ต้องเปิดครบ&quot; ไม่เกินจำนวนป้ายในชุดนั้น ·
+                  &quot;จำนวนรางวัล&quot; = งานนี้มีรางวัลชุดนี้กี่ชิ้น/ที่ (แสดงให้ผู้เล่น) · เลขชุด 0 = ชุดที่ 1
                 </p>
               </div>
               <button
@@ -786,6 +790,23 @@ export default function AdminCentralGamePanel() {
                       max={cap}
                       value={r.needCount}
                       onChange={(e) => updateRule(idx, "needCount", e.target.value)}
+                      className="mt-1 w-full rounded border px-1 py-1 text-xs"
+                    />
+                  </div>
+                  <div className="sm:col-span-1">
+                    <label className="text-[10px] text-slate-500">จำนวนรางวัล (ชิ้น)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={999999}
+                      value={r.prizeTotalQty ?? 1}
+                      onChange={(e) =>
+                        updateRule(
+                          idx,
+                          "prizeTotalQty",
+                          Math.max(1, parseInt(e.target.value, 10) || 1)
+                        )
+                      }
                       className="mt-1 w-full rounded border px-1 py-1 text-xs"
                     />
                   </div>

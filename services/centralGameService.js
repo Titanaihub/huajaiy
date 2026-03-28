@@ -11,6 +11,19 @@ function requirePool() {
   return pool;
 }
 
+/** URL ภาพหน้าป้าย (ว่าง = ไม่ตั้ง) — ต้อง http(s) */
+function normalizeTileBackCoverUrl(raw) {
+  if (raw == null) return null;
+  const s = String(raw).trim().slice(0, 2000);
+  if (!s) return null;
+  if (!s.startsWith("http://") && !s.startsWith("https://")) {
+    const e = new Error("ภาพหน้าป้ายต้องเป็น URL (http/https)");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  return s;
+}
+
 /** @returns {number[]} ความยาว = setCount แต่ละชุดมีกี่ภาพ */
 function normalizeSetImageCounts(setCount, rawJson, imagesPerSetFallback) {
   const sc = Math.max(1, Math.floor(Number(setCount) || 0));
@@ -73,7 +86,11 @@ function rowGame(row) {
     isActive: Boolean(row.is_active),
     createdBy: row.created_by,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    tileBackCoverUrl:
+      row.tile_back_cover_url != null && String(row.tile_back_cover_url).trim()
+        ? String(row.tile_back_cover_url).trim()
+        : null
   };
 }
 
@@ -88,7 +105,11 @@ function rowRule(row) {
     prizeTitle: row.prize_title || "",
     prizeValueText: row.prize_value_text || "",
     prizeUnit: row.prize_unit || "",
-    description: row.description || ""
+    description: row.description || "",
+    prizeTotalQty: Math.max(
+      1,
+      Math.floor(Number(row.prize_total_qty)) || 1
+    )
   };
 }
 
@@ -159,6 +180,7 @@ async function createGame({
   heartCost = 0,
   pinkHeartCost,
   redHeartCost,
+  tileBackCoverUrl,
   createdBy = null
 }) {
   const pool = requirePool();
@@ -251,9 +273,19 @@ async function updateGameMeta(gameId, patch) {
     e.code = "VALIDATION";
     throw e;
   }
+  let coverSql = "";
+  const params = [gameId, title, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red];
+  if (patch.tileBackCoverUrl !== undefined) {
+    const v =
+      patch.tileBackCoverUrl === null || patch.tileBackCoverUrl === ""
+        ? null
+        : normalizeTileBackCoverUrl(patch.tileBackCoverUrl);
+    params.push(v);
+    coverSql = `, tile_back_cover_url = $${params.length}`;
+  }
   await pool.query(
-    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, updated_at = NOW() WHERE id = $1`,
-    [gameId, title, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red]
+    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, updated_at = NOW()${coverSql} WHERE id = $1`,
+    params
   );
   return getGameSnapshotById(gameId);
 }
@@ -406,11 +438,15 @@ async function replaceRules(gameId, rules) {
         throw e;
       }
       const id = crypto.randomUUID();
+      const prizeTotalQty = Math.max(
+        1,
+        Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1)
+      );
       await client.query(
         `INSERT INTO central_game_rules (
           id, game_id, sort_order, set_index, need_count, prize_category,
-          prize_title, prize_value_text, prize_unit, description
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          prize_title, prize_value_text, prize_unit, description, prize_total_qty
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           id,
           gameId,
@@ -421,7 +457,8 @@ async function replaceRules(gameId, rules) {
           String(r.prizeTitle || "").slice(0, 200),
           String(r.prizeValueText || "").slice(0, 200),
           String(r.prizeUnit || "").slice(0, 32),
-          String(r.description || "").slice(0, 2000)
+          String(r.description || "").slice(0, 2000),
+          prizeTotalQty
         ]
       );
       order += 1;
@@ -531,7 +568,8 @@ function prizesForClient(rules, setImageCounts) {
       imagesPerSet: cap,
       label: formatRuleLabel(r, catLabel, cap),
       prizeCategory: r.prizeCategory,
-      prizeTitle: r.prizeTitle
+      prizeTitle: r.prizeTitle,
+      totalPrizeQty: r.prizeTotalQty ?? 1
     };
   });
 }
@@ -543,7 +581,9 @@ function formatRuleLabel(r, catLabel, imagesInThisSet) {
   }
   const val = [r.prizeValueText, r.prizeUnit].filter(Boolean).join(" ");
   const head = r.prizeTitle || cat;
-  return `ชุด ${r.setIndex + 1}: เปิดในชุดครบ ${r.needCount}/${imagesInThisSet} ป้าย → ${head}${val ? ` (${val})` : ""}`;
+  const qty = Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1));
+  const qtyPart = ` · จัดรางวัลรวม ${qty} ชิ้น/ที่`;
+  return `ชุด ${r.setIndex + 1}: เปิดในชุดครบ ${r.needCount}/${imagesInThisSet} ป้าย → ${head}${val ? ` (${val})` : ""}${qtyPart}`;
 }
 
 function formatWinnerDisplay(r) {
