@@ -33,7 +33,7 @@ export default async function GamePage() {
             ? "เกมส่วนกลางที่เผยแพร่แล้ว — เปิดป้ายตามกติกา ลุ้นรางวัล"
             : "โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง"}
         </p>
-        <FlipGameDemo />
+        <FlipGameDemo serverCentralPublished={Boolean(centralMeta)} />
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
           <Link href="/" className="text-blue-600 underline hover:text-blue-800">
             ← หน้าแรก

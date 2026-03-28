@@ -77,7 +77,11 @@ async function fetchGameAbandon(sessionId) {
   }
 }
 
-export default function FlipGameDemo() {
+/**
+ * @param {{ serverCentralPublished?: boolean }} props
+ * เซิร์ฟเวอร์หน้าเกมรู้แล้วว่ามีเกมเผยแพร่ — ใช้เตือนเมื่อฝั่งเบราว์เซอร์ตกไปโหมดสาธิต (หัวใจไม่พอ / API ล้ม)
+ */
+export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [mode, setMode] = useState(null);
   /** @type {'central' | 'legacy' | null} */
   const [apiGameMode, setApiGameMode] = useState(null);
@@ -407,6 +411,15 @@ export default function FlipGameDemo() {
 
   return (
     <div className="mt-6 space-y-4">
+      {serverCentralPublished && mode === "local" ? (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-semibold">มีเกมส่วนกลางเผยแพร่แล้ว แต่ตอนนี้แสดงโหมดสาธิตในเครื่อง</p>
+          <p className="mt-1 text-amber-900/95">
+            สาเหตุที่พบบ่อย: <strong>หัวใจชมพู/แดงไม่พอ</strong>ต่อรอบที่ตั้งในแอดมิน · หรือเบราว์เซอร์เรียก API ไม่สำเร็จ
+            (ดูข้อความสีส้มด้านล่าง) — ลองตั้งค่าหักหัวใจเป็น 0 ในแท็บเกมส่วนกลางเพื่อทดสอบ หรือเพิ่มหัวใจในบัญชี
+          </p>
+        </div>
+      ) : null}
       <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
         <p>
           <strong>
