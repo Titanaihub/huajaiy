@@ -258,7 +258,7 @@ async function updateGameMeta(gameId, patch) {
   return getGameSnapshotById(gameId);
 }
 
-async function replaceImages(gameId, images) {
+async function replaceImages(gameId, images, options = {}) {
   const pool = requirePool();
   const snap = await getGameSnapshotById(gameId);
   if (!snap) {
@@ -272,37 +272,87 @@ async function replaceImages(gameId, images) {
     e.code = "VALIDATION";
     throw e;
   }
+  const oneImagePerSet = Boolean(options.oneImagePerSet);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     await client.query(`DELETE FROM central_game_images WHERE game_id = $1`, [gameId]);
-    for (const row of images) {
-      const si = Math.floor(Number(row.setIndex));
-      const ii = Math.floor(Number(row.imageIndex));
-      const url = String(row.imageUrl || "").trim().slice(0, 2000);
-      const cap = setImageCounts[si] ?? 0;
-      if (si < 0 || si >= setCount || ii < 0 || ii >= cap) {
-        const e = new Error(`ภาพชุด ${si + 1} ลำดับ ${ii} อยู่นอกขอบเขต (ชุดนี้มี ${cap} ภาพ)`);
+
+    if (oneImagePerSet) {
+      if (images.length !== setCount) {
+        const e = new Error(`ต้องส่งรูปครบทุกชุด (${setCount} ชุด) — ชุดละ 1 ไฟล์`);
         e.code = "VALIDATION";
         throw e;
       }
-      if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        const e = new Error("ต้องเป็น URL รูป (http/https)");
+      const bySet = new Map();
+      for (const row of images) {
+        const si = Math.floor(Number(row.setIndex));
+        const url = String(row.imageUrl || "").trim().slice(0, 2000);
+        if (si < 0 || si >= setCount) {
+          const e = new Error(`setIndex ${si} อยู่นอกช่วง`);
+          e.code = "VALIDATION";
+          throw e;
+        }
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+          const e = new Error("ต้องเป็น URL รูป (http/https)");
+          e.code = "VALIDATION";
+          throw e;
+        }
+        if (bySet.has(si)) {
+          const e = new Error(`ชุด ${si + 1} ซ้ำในรายการรูป`);
+          e.code = "VALIDATION";
+          throw e;
+        }
+        bySet.set(si, url);
+      }
+      for (let s = 0; s < setCount; s += 1) {
+        if (!bySet.has(s)) {
+          const e = new Error(`ขาดรูปสำหรับชุด ${s + 1}`);
+          e.code = "VALIDATION";
+          throw e;
+        }
+      }
+      for (let s = 0; s < setCount; s += 1) {
+        const url = bySet.get(s);
+        const cap = setImageCounts[s] ?? 0;
+        for (let ii = 0; ii < cap; ii += 1) {
+          await client.query(
+            `INSERT INTO central_game_images (game_id, set_index, image_index, image_url)
+             VALUES ($1, $2, $3, $4)`,
+            [gameId, s, ii, url]
+          );
+        }
+      }
+    } else {
+      for (const row of images) {
+        const si = Math.floor(Number(row.setIndex));
+        const ii = Math.floor(Number(row.imageIndex));
+        const url = String(row.imageUrl || "").trim().slice(0, 2000);
+        const cap = setImageCounts[si] ?? 0;
+        if (si < 0 || si >= setCount || ii < 0 || ii >= cap) {
+          const e = new Error(`ภาพชุด ${si + 1} ลำดับ ${ii} อยู่นอกขอบเขต (ชุดนี้มี ${cap} ภาพ)`);
+          e.code = "VALIDATION";
+          throw e;
+        }
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+          const e = new Error("ต้องเป็น URL รูป (http/https)");
+          e.code = "VALIDATION";
+          throw e;
+        }
+        await client.query(
+          `INSERT INTO central_game_images (game_id, set_index, image_index, image_url)
+           VALUES ($1, $2, $3, $4)`,
+          [gameId, si, ii, url]
+        );
+      }
+      const expected = setImageCounts.reduce((a, b) => a + b, 0);
+      if (images.length !== expected) {
+        const e = new Error(`ต้องอัปโหลดครบ ${expected} ภาพ (ผลรวมทุกชุด)`);
         e.code = "VALIDATION";
         throw e;
       }
-      await client.query(
-        `INSERT INTO central_game_images (game_id, set_index, image_index, image_url)
-         VALUES ($1, $2, $3, $4)`,
-        [gameId, si, ii, url]
-      );
     }
-    const expected = setImageCounts.reduce((a, b) => a + b, 0);
-    if (images.length !== expected) {
-      const e = new Error(`ต้องอัปโหลดครบ ${expected} ภาพ (ผลรวมทุกชุด)`);
-      e.code = "VALIDATION";
-      throw e;
-    }
+
     await client.query("COMMIT");
   } catch (e) {
     await client.query("ROLLBACK");

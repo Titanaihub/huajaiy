@@ -164,7 +164,7 @@ export async function apiAdminCentralGamePatch(token, id, body) {
   return data;
 }
 
-export async function apiAdminCentralGamePutImages(token, id, images) {
+export async function apiAdminCentralGamePutImages(token, id, images, options = {}) {
   const r = await fetch(
     `${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}/images`,
     {
@@ -173,7 +173,10 @@ export async function apiAdminCentralGamePutImages(token, id, images) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ images })
+      body: JSON.stringify({
+        images,
+        oneImagePerSet: Boolean(options.oneImagePerSet)
+      })
     }
   );
   const data = await r.json().catch(() => ({}));

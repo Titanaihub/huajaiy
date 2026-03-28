@@ -509,7 +509,9 @@ router.put(
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
       }
-      const snap = await centralGameService.replaceImages(id, req.body?.images);
+      const snap = await centralGameService.replaceImages(id, req.body?.images, {
+        oneImagePerSet: Boolean(req.body?.oneImagePerSet)
+      });
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {

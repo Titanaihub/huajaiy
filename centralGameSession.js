@@ -48,7 +48,10 @@ function checkWin(session) {
 }
 
 function imageUrlForCell(snapshot, setIndex, imageIndex) {
-  return snapshot.imageUrl.get(`${setIndex}-${imageIndex}`) || "";
+  const k = `${setIndex}-${imageIndex}`;
+  const direct = snapshot.imageUrl.get(k);
+  if (direct) return direct;
+  return snapshot.imageUrl.get(`${setIndex}-0`) || "";
 }
 
 /**

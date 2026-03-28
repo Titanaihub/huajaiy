@@ -162,7 +162,8 @@ export default function AdminCentralGamePanel() {
       setRedHeartCost(typeof g.redHeartCost === "number" ? g.redHeartCost : 0);
       const map = {};
       for (const im of data.images || []) {
-        map[`${im.setIndex}-${im.imageIndex}`] = im.imageUrl;
+        const k0 = `${im.setIndex}-0`;
+        if (map[k0] === undefined) map[k0] = im.imageUrl;
       }
       setImageMap(map);
       setRules(
@@ -245,20 +246,17 @@ export default function AdminCentralGamePanel() {
     const token = getMemberToken();
     const images = [];
     for (let s = 0; s < setCount; s += 1) {
-      const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
-      for (let i = 0; i < cap; i += 1) {
-        const url = imageMap[`${s}-${i}`];
-        if (!url) {
-          setMsg(`ยังไม่มีรูปชุด ${s + 1} ภาพ ${i + 1}`);
-          return;
-        }
-        images.push({ setIndex: s, imageIndex: i, imageUrl: url });
+      const url = imageMap[`${s}-0`];
+      if (!url) {
+        setMsg(`ยังไม่มีรูปสำหรับชุด ${s + 1}`);
+        return;
       }
+      images.push({ setIndex: s, imageUrl: url });
     }
     setMsg("");
     try {
-      await apiAdminCentralGamePutImages(token, selectedId, images);
-      setMsg("บันทึกรูปครบทุกช่องแล้ว");
+      await apiAdminCentralGamePutImages(token, selectedId, images, { oneImagePerSet: true });
+      setMsg("บันทึกรูปแล้ว (ชุดละ 1 ไฟล์ — ระบบคัดลอกไปทุกป้ายในชุด)");
       await loadDetail(selectedId);
     } catch (e) {
       setMsg(e.message || String(e));
@@ -350,7 +348,7 @@ export default function AdminCentralGamePanel() {
     <section className="space-y-8 text-sm">
       <p className="text-slate-600">
         <strong>โครงกระดาน:</strong> กำหนดกี่ชุด และ<strong>แต่ละชุดมีกี่ภาพไม่จำเป็นต้องเท่ากัน</strong> (เช่น ชุด 1 มี 7 ภาพ ชุด 2 มี 5 ภาพ) — จำนวนป้ายรวม = ผลรวมภาพทุกชุด
-        · อัปโหลดรูปครบทุกช่อง · <strong>กติการางวัล:</strong> เรียงลำดับการตรวจ — ระบบใช้กติกาแรกที่เข้าเงื่อนไขและมีรางวัลจริงเพื่อจบรอบ
+        · <strong>รูป:</strong> อัปโหลด<strong>ชุดละ 1 ไฟล์</strong> (ป้ายทุกใบในชุดเดียวกันใช้รูปเดียวกัน) · <strong>กติการางวัล:</strong> เรียงลำดับการตรวจ — ระบบใช้กติกาแรกที่เข้าเงื่อนไขและมีรางวัลจริงเพื่อจบรอบ
       </p>
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
@@ -466,8 +464,56 @@ export default function AdminCentralGamePanel() {
         </button>
       </div>
 
+      {games.length > 0 ? (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+              <tr>
+                <th className="px-3 py-2">เกม</th>
+                <th className="px-3 py-2">ป้าย</th>
+                <th className="px-3 py-2">สถานะ</th>
+                <th className="px-3 py-2 text-right">การทำงาน</th>
+              </tr>
+            </thead>
+            <tbody>
+              {games.map((g) => (
+                <tr key={g.id} className="border-b border-slate-100">
+                  <td className="px-3 py-2 font-medium text-slate-900">{g.title}</td>
+                  <td className="px-3 py-2 tabular-nums text-slate-700">{g.tileCount}</td>
+                  <td className="px-3 py-2">
+                    {g.isActive ? (
+                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                        กำลังใช้
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-500">ไม่ได้ใช้</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => openEditGame(g.id)}
+                      className="mr-2 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                    >
+                      แก้ไข
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteGameById(g.id, g.title)}
+                      className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-800 hover:bg-red-100"
+                    >
+                      ลบ
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
       {selectedId ? (
-        <div className="space-y-6">
+        <div id="central-game-editor" className="space-y-6 scroll-mt-24">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
           <form onSubmit={saveMeta} className="rounded-xl border border-slate-200 p-4 space-y-3">
@@ -554,45 +600,42 @@ export default function AdminCentralGamePanel() {
           </form>
 
           <div className="rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold">อัปโหลดภาพแต่ละชุด</h3>
+            <h3 className="font-semibold">อัปโหลดรูปแต่ละชุด</h3>
             <p className="mt-1 text-xs text-slate-500">
-              รวม {expectedSlots} ช่อง — แต่ละชุดมีจำนวนภาพตามที่ตั้งใน「โครงเกม」
+              <strong>ชุดละ 1 ไฟล์</strong> — รวม {expectedSlots} ป้ายบนกระดาน · ป้ายทุกใบในชุดเดียวกันใช้รูปเดียวกัน
             </p>
-            <div className="mt-4 space-y-6">
+            <div className="mt-4 space-y-4">
               {Array.from({ length: setCount }, (_, s) => {
                 const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
                 return (
-                <div key={s} className="rounded-lg border border-slate-100 p-3">
-                  <p className="text-xs font-semibold text-slate-700">
-                    ชุดที่ {s + 1} — {cap} ภาพ
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-3">
-                    {Array.from({ length: cap }, (_, i) => (
-                      <div key={i} className="w-28 shrink-0">
-                        <p className="text-[10px] text-slate-500">ภาพ {i + 1}</p>
-                        <div className="mt-1 aspect-square overflow-hidden rounded-lg border bg-slate-100">
-                          {imageMap[`${s}-${i}`] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={imageMap[`${s}-${i}`]}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : null}
-                        </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="mt-1 w-full text-[10px]"
-                          onChange={(e) =>
-                            onPickImage(s, i, e.target.files?.[0] || null)
-                          }
-                        />
+                  <div key={s} className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-100 p-3">
+                    <div className="w-36 shrink-0">
+                      <p className="text-xs font-semibold text-slate-800">
+                        ชุดที่ {s + 1}
+                      </p>
+                      <p className="text-[10px] text-slate-500">{cap} ป้ายบนกระดาน (รูปเดียวกัน)</p>
+                      <div className="mt-2 aspect-square w-full overflow-hidden rounded-lg border bg-slate-100">
+                        {imageMap[`${s}-0`] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={imageMap[`${s}-0`]}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : null}
                       </div>
-                    ))}
+                    </div>
+                    <div className="min-w-[200px] flex-1">
+                      <label className="text-[10px] font-medium text-slate-600">เลือกไฟล์รูปชุดนี้</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="mt-1 block w-full text-xs"
+                        onChange={(e) => onPickSetImage(s, e.target.files?.[0] || null)}
+                      />
+                    </div>
                   </div>
-                </div>
-              );
+                );
               })}
             </div>
             <button
@@ -600,7 +643,7 @@ export default function AdminCentralGamePanel() {
               onClick={() => saveImages()}
               className="mt-4 rounded-lg bg-rose-700 px-4 py-2 font-semibold text-white"
             >
-              บันทึกรูปทั้งหมด ({expectedSlots} ช่อง)
+              บันทึกรูปแต่ละชุด ({setCount} ไฟล์)
             </button>
           </div>
 
