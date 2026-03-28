@@ -13,6 +13,7 @@ import { mockProducts } from "../lib/mockProducts";
 import { addOrder } from "../lib/orderHistory";
 import { postServerOrder } from "../lib/ordersApi";
 import { useHearts } from "./HeartsProvider";
+import InlineHeart from "./InlineHeart";
 
 function resolveProduct(id) {
   return mockProducts.find((p) => p.id === id) || null;
@@ -128,9 +129,12 @@ export default function CartContents() {
             >
               <div>
                 <p className="font-medium text-slate-900">{product.name}</p>
-                <p className="text-sm text-slate-600">
-                  ฿{product.price.toLocaleString("th-TH")} / ชิ้น · แถม ♥{" "}
-                  {product.hearts} / ชิ้น
+                <p className="flex flex-wrap items-center gap-1 text-sm text-slate-600">
+                  <span>
+                    ฿{product.price.toLocaleString("th-TH")} / ชิ้น · แถม
+                  </span>
+                  <InlineHeart size="sm" className="text-brand-700" />
+                  <span>{product.hearts} / ชิ้น</span>
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -171,7 +175,10 @@ export default function CartContents() {
           </p>
           <p className="mt-1 flex justify-between text-rose-800">
             <span>หัวใจที่จะได้เมื่อยืนยัน</span>
-            <span className="font-semibold">♥ {totals.hearts}</span>
+            <span className="inline-flex items-center gap-1 font-semibold">
+              <InlineHeart size="md" className="text-rose-700" />
+              {totals.hearts}
+            </span>
           </p>
           <button
             type="button"

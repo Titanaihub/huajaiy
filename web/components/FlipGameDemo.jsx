@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { gameApiUrl } from "../lib/config";
 import { addHearts, getHearts, trySpend } from "../lib/hearts";
+import InlineHeart from "./InlineHeart";
 
 const PRIZES = [
   { key: "cash", label: "เงินสด 1,000 บาท", emoji: "💵", need: 5 },
@@ -295,7 +296,13 @@ export default function FlipGameDemo() {
             </span>
           )}
           {heartCost > 0 && mode === "api" ? (
-            <span>หัก ♥ {heartCost} ต่อรอบ (จากกระเป๋าในเครื่อง)</span>
+            <span className="inline-flex items-center gap-1">
+              <span>หัก</span>
+              <InlineHeart size="sm" className="text-brand-700" />
+              <span>
+                {heartCost} ต่อรอบ (จากกระเป๋าในเครื่อง)
+              </span>
+            </span>
           ) : null}
         </p>
         {bootError ? (

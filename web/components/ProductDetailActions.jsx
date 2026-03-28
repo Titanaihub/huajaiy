@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { addToCart } from "../lib/cart";
 import { useHearts } from "./HeartsProvider";
+import InlineHeart from "./InlineHeart";
 
 export default function ProductDetailActions({ product }) {
   const { addHearts } = useHearts();
@@ -40,8 +41,10 @@ export default function ProductDetailActions({ product }) {
         <p className="text-center text-xs text-blue-700">ใส่ตะกร้าแล้ว</p>
       ) : null}
       {hint === "hearts" ? (
-        <p className="text-center text-xs text-brand-700">
-          +{product.hearts} ♥ แล้ว
+        <p className="flex items-center justify-center gap-1 text-center text-xs text-brand-700">
+          <span>+{product.hearts}</span>
+          <InlineHeart size="md" />
+          <span>แล้ว</span>
         </p>
       ) : null}
     </div>

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { addToCart } from "../lib/cart";
 import { mockProducts } from "../lib/mockProducts";
 import { useHearts } from "./HeartsProvider";
+import InlineHeart from "./InlineHeart";
 
 export default function ProductGrid() {
   const { addHearts } = useHearts();
@@ -64,7 +65,11 @@ export default function ProductGrid() {
             </button>
           </div>
           {lastId === p.id ? (
-            <p className="mt-2 text-center text-xs text-brand-700">+{p.hearts} ♥ แล้ว</p>
+            <p className="mt-2 flex items-center justify-center gap-1 text-center text-xs text-brand-700">
+              <span>+{p.hearts}</span>
+              <InlineHeart size="md" />
+              <span>แล้ว</span>
+            </p>
           ) : null}
           {lastId === `cart-${p.id}` ? (
             <p className="mt-2 text-center text-xs text-blue-700">ใส่ตะกร้าแล้ว</p>

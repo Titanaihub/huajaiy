@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
+import HeartIcon from "./HeartIcon";
 
 /**
- * โลโก้หัวใจ + ชื่อแบรนด์ — รูปอยู่ที่ /huajaiy-heart-logo.png
+ * โลโก้: หัวใจชมพูเข้มในแคปซูล + ชื่อแบรนด์ (ไม่ใช้รูปแบบอักขระ ♥ ที่แตกต่างกันตามฟอนต์)
  */
 export default function BrandLogo({
   variant = "header"
@@ -15,31 +15,20 @@ export default function BrandLogo({
     ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400"
     : "hidden text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 sm:block";
 
+  const pillClass = compact
+    ? "inline-flex shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 px-2 py-1.5 shadow-sm"
+    : "inline-flex shrink-0 items-center justify-center rounded-full border border-brand-200/90 bg-brand-50/95 px-2 py-1.5 shadow-sm sm:px-2.5 sm:py-2";
+  const heartClass = compact
+    ? "h-6 w-6 text-rose-300"
+    : "h-7 w-7 text-brand-700 sm:h-8 sm:w-8";
+
   return (
     <Link
       href="/"
       className="group flex items-center gap-2.5 sm:gap-3"
     >
-      <span
-        className={
-          compact
-            ? "relative block shrink-0"
-            : "relative block shrink-0 drop-shadow-sm"
-        }
-      >
-        <Image
-          src="/huajaiy-heart-logo.png"
-          alt="HUAJAIY"
-          width={compact ? 100 : 128}
-          height={compact ? 28 : 36}
-          className={
-            compact
-              ? "h-7 w-auto max-w-[100px] object-contain object-left"
-              : "h-9 w-auto max-w-[128px] object-contain object-left sm:h-10"
-          }
-          priority={!compact}
-          sizes="(max-width: 640px) 100px, 128px"
-        />
+      <span className={pillClass}>
+        <HeartIcon className={heartClass} aria-hidden />
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
         <span className={titleClass}>HUAJAIY</span>

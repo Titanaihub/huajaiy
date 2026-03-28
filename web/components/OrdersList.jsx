@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineHeart from "./InlineHeart";
 import { getOrders, subscribeOrders } from "../lib/orderHistory";
 import { fetchServerOrders } from "../lib/ordersApi";
 
@@ -99,8 +100,12 @@ export default function OrdersList() {
                     ฿{Number(o.totalPrice).toLocaleString("th-TH")}
                   </span>
                 </div>
-                <p className="mt-1 text-right text-rose-800">
-                  แถมหัวใจ ♥ {Number(o.heartsGranted).toLocaleString("th-TH")}
+                <p className="mt-1 flex flex-wrap items-center justify-end gap-1 text-right text-rose-800">
+                  <span>แถมหัวใจ</span>
+                  <InlineHeart size="sm" className="text-rose-700" />
+                  <span>
+                    {Number(o.heartsGranted).toLocaleString("th-TH")}
+                  </span>
                 </p>
               </li>
             ))}
@@ -147,8 +152,10 @@ export default function OrdersList() {
                     ฿{Number(o.totalPrice).toLocaleString("th-TH")}
                   </span>
                 </div>
-                <p className="mt-1 text-right text-rose-800">
-                  แถมหัวใจ ♥ {Number(o.hearts).toLocaleString("th-TH")}
+                <p className="mt-1 flex flex-wrap items-center justify-end gap-1 text-right text-rose-800">
+                  <span>แถมหัวใจ</span>
+                  <InlineHeart size="sm" className="text-rose-700" />
+                  <span>{Number(o.hearts).toLocaleString("th-TH")}</span>
                 </p>
               </li>
             ))}
