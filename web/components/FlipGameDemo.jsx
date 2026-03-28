@@ -10,6 +10,33 @@ import {
   trySpendPinkRed
 } from "../lib/hearts";
 import InlineHeart from "./InlineHeart";
+import { useMemberAuth } from "./MemberAuthProvider";
+
+/** เกมส่วนกลาง: ล็อกอิน = ยอดชมพู/แดงบนเซิร์ฟเวอร์ (ให้ตรงกับป้ายหัวใจ) · ไม่ล็อกอิน = กระเป๋าสาธิตในเครื่อง */
+function canAffordCentralEntry(user, pinkCost, redCost) {
+  const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
+  const r = Math.max(0, Math.floor(Number(redCost)) || 0);
+  if (p === 0 && r === 0) return true;
+  if (user) {
+    const pu = Math.max(0, Math.floor(Number(user.pinkHeartsBalance)) || 0);
+    const ru = Math.max(0, Math.floor(Number(user.redHeartsBalance)) || 0);
+    return pu >= p && ru >= r;
+  }
+  return canAffordPinkRed(p, r);
+}
+
+/**
+ * อนุญาตเริ่มรอบเมื่อผ่าน canAfford — ไม่ล็อกอินหักจาก localStorage · ล็อกอินยังไม่มี API หัก DB (แค่เช็กยอดให้ตรงป้าย)
+ */
+function spendCentralEntryOrFail(user, pinkCost, redCost) {
+  const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
+  const r = Math.max(0, Math.floor(Number(redCost)) || 0);
+  if (p === 0 && r === 0) return true;
+  if (user) {
+    return canAffordCentralEntry(user, p, r);
+  }
+  return trySpendPinkRed(p, r);
+}
 
 const PRIZES = [
   { key: "cash", label: "เงินสด 1,000 บาท", emoji: "💵", need: 5 },
@@ -82,6 +109,7 @@ async function fetchGameAbandon(sessionId) {
  * เซิร์ฟเวอร์หน้าเกมรู้แล้วว่ามีเกมเผยแพร่ — ใช้เตือนเมื่อฝั่งเบราว์เซอร์ตกไปโหมดสาธิต (หัวใจไม่พอ / API ล้ม)
  */
 export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
+  const { user, loading: authLoading } = useMemberAuth();
   const [mode, setMode] = useState(null);
   /** @type {'central' | 'legacy' | null} */
   const [apiGameMode, setApiGameMode] = useState(null);
@@ -173,6 +201,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
     let cancelled = false;
     (async () => {
       try {
@@ -186,9 +215,11 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !canAffordPinkRed(p, r)) {
+          if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r)) {
             setBootError(
-              "หัวใจชมพูหรือแดงไม่พอสำหรับรอบนี้ — ไปร้านค้า (สาธิต) หรือเล่นโหมดออฟไลน์"
+              user
+                ? "หัวใจชมพู/แดงในบัญชีไม่พอต่อรอบนี้ — ให้แอดมินปรับยอด หรือตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ"
+                : "หัวใจชมพูหรือแดงไม่พอสำหรับรอบนี้ — ไปร้านค้า (สาธิต) หรือล็อกอินเพื่อใช้ยอดบัญชี / เล่นโหมดออฟไลน์"
             );
             applyLocalDeck();
             return;
@@ -208,9 +239,13 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !trySpendPinkRed(p, r)) {
+          if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
             void fetchGameAbandon(data.sessionId);
-            setBootError("หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์");
+            setBootError(
+              user
+                ? "หัวใจในบัญชีไม่พอเริ่มรอบ — ปรับยอดหรือตั้งค่าหักหัวใจเป็น 0"
+                : "หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์"
+            );
             applyLocalDeck();
             return;
           }
@@ -234,7 +269,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     return () => {
       cancelled = true;
     };
-  }, [applyApiSession, applyLocalDeck]);
+  }, [applyApiSession, applyLocalDeck, authLoading, user?.id]);
 
   const localCounts = useMemo(() => {
     const c = { cash: 0, coffee: 0, discount: 0 };
@@ -352,8 +387,12 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !canAffordPinkRed(p, r)) {
-            setBootError("หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์");
+          if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r)) {
+            setBootError(
+              user
+                ? "หัวใจในบัญชีไม่พอ — ปรับยอดหรือตั้งหักหัวใจเป็น 0"
+                : "หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์"
+            );
             applyLocalDeck();
             return;
           }
@@ -369,9 +408,9 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !trySpendPinkRed(p, r)) {
+          if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
             void fetchGameAbandon(data.sessionId);
-            setBootError("หัวใจไม่พอ");
+            setBootError(user ? "หัวใจในบัญชีไม่พอ" : "หัวใจไม่พอ");
             applyLocalDeck();
             return;
           }
@@ -415,8 +454,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-semibold">มีเกมส่วนกลางเผยแพร่แล้ว แต่ตอนนี้แสดงโหมดสาธิตในเครื่อง</p>
           <p className="mt-1 text-amber-900/95">
-            สาเหตุที่พบบ่อย: <strong>หัวใจชมพู/แดงไม่พอ</strong>ต่อรอบที่ตั้งในแอดมิน · หรือเบราว์เซอร์เรียก API ไม่สำเร็จ
-            (ดูข้อความสีส้มด้านล่าง) — ลองตั้งค่าหักหัวใจเป็น 0 ในแท็บเกมส่วนกลางเพื่อทดสอบ หรือเพิ่มหัวใจในบัญชี
+            สาเหตุที่พบบ่อย: <strong>หัวใจไม่พอต่อรอบ</strong> (ถ้าล็อกอินแล้วใช้ยอดบัญชีตามป้ายหัวใจ — ไม่ใช่แค่สาธิตในเครื่อง) · หรือเรียก API
+            ไม่สำเร็จ (ดูข้อความสีส้มด้านล่าง) — ตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ หรือให้แอดมินปรับยอดหัวใจ
           </p>
         </div>
       ) : null}
@@ -446,7 +485,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           )}
           {mode === "api" && apiGameMode === "central" && (pinkHeartCost > 0 || redHeartCost > 0) ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-              <span>หักต่อรอบ (สาธิตในเครื่อง):</span>
+              <span>{user ? "หักต่อรอบ (ตามยอดบัญชี — ยังไม่หัก DB อัตโนมัติ):" : "หักต่อรอบ (สาธิตในเครื่อง):"}</span>
               {pinkHeartCost > 0 ? (
                 <span className="inline-flex items-center gap-0.5 text-rose-600">
                   <InlineHeart size="sm" className="text-rose-400" />
