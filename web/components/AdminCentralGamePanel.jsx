@@ -174,7 +174,7 @@ export default function AdminCentralGamePanel() {
               prizeCategory: r.prizeCategory,
               prizeTitle: r.prizeTitle || "",
               prizeValueText: r.prizeValueText || "",
-              prizeUnit: r.prizeUnit || "",
+              prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
               sortOrder: r.sortOrder,
               description: r.description || ""
             }))
@@ -741,17 +741,17 @@ export default function AdminCentralGamePanel() {
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-[10px] text-slate-500">หน่วย</label>
-                    <input
-                      list={`units-${idx}`}
-                      value={r.prizeUnit}
+                    <select
+                      value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
                       onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
                       className="mt-1 w-full rounded border px-1 py-1 text-xs"
-                    />
-                    <datalist id={`units-${idx}`}>
+                    >
                       {UNITS.map((u) => (
-                        <option key={u} value={u} />
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
                       ))}
-                    </datalist>
+                    </select>
                   </div>
                   <div className="sm:col-span-12">
                     <label className="text-[10px] text-slate-500">หมายเหตุ</label>
