@@ -7,6 +7,8 @@ const nameChangeRequestService = require("./services/nameChangeRequestService");
 const orderService = require("./services/orderService");
 const shopService = require("./services/shopService");
 const { getAdminSnapshot } = require("./gameSession");
+const heartPackageService = require("./services/heartPackageService");
+const heartPurchaseService = require("./services/heartPurchaseService");
 
 const router = express.Router();
 
@@ -76,7 +78,7 @@ router.get(
         stats,
         nameChangeRequestPending,
         heartsNote:
-          "ยอด hearts_balance อยู่บนเซิร์ฟเวอร์ — หัวใจในเบราว์เซอร์ (localStorage) เป็นคนละกระเป๋า จนกว่าจะผูกกับ API"
+          "หัวใจชมพู/แดงอยู่บนเซิร์ฟเวอร์ — ตัวเลขมุมจอ (localStorage) เป็นคนละกระเป๋ากับเกมสาธิต"
       });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message });
@@ -118,29 +120,194 @@ router.post(
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
       }
-      const delta = req.body?.delta != null ? Number(req.body.delta) : NaN;
-      if (!Number.isFinite(delta) || Math.floor(delta) !== delta) {
+      let pinkDelta = req.body?.pinkDelta != null ? Number(req.body.pinkDelta) : null;
+      let redDelta = req.body?.redDelta != null ? Number(req.body.redDelta) : null;
+      if (pinkDelta == null && redDelta == null && req.body?.delta != null) {
+        pinkDelta = Number(req.body.delta);
+        redDelta = 0;
+      }
+      if (pinkDelta == null) pinkDelta = 0;
+      if (redDelta == null) redDelta = 0;
+      if (!Number.isFinite(pinkDelta) || Math.floor(pinkDelta) !== pinkDelta) {
         return res.status(400).json({
           ok: false,
-          error: "ส่ง delta เป็นจำนวนเต็ม (บวกเพิ่ม ลบลด)"
+          error: "pinkDelta ต้องเป็นจำนวนเต็ม"
         });
       }
-      if (delta === 0) {
-        return res.status(400).json({ ok: false, error: "delta ต้องไม่เป็น 0" });
+      if (!Number.isFinite(redDelta) || Math.floor(redDelta) !== redDelta) {
+        return res.status(400).json({
+          ok: false,
+          error: "redDelta ต้องเป็นจำนวนเต็ม"
+        });
       }
-      if (Math.abs(delta) > 1_000_000) {
-        return res.status(400).json({ ok: false, error: "delta ใหญ่เกินไป" });
+      if (pinkDelta === 0 && redDelta === 0) {
+        return res.status(400).json({
+          ok: false,
+          error: "ส่ง pinkDelta หรือ redDelta อย่างน้อยหนึ่งค่า (ไม่ใช่ 0 ทั้งคู่)"
+        });
+      }
+      if (Math.abs(pinkDelta) > 1_000_000 || Math.abs(redDelta) > 1_000_000) {
+        return res.status(400).json({ ok: false, error: "ค่าปรับใหญ่เกินไป" });
       }
       const u = await userService.findById(id);
       if (!u) {
         return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
       }
-      const updated = await userService.adjustHeartsBalance(id, delta);
+      const updated = await userService.adjustDualHearts(id, pinkDelta, redDelta);
       return res.json({
         ok: true,
         user: userService.adminMemberDetail(updated)
       });
     } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.get(
+  "/heart-packages",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const packages = await heartPackageService.listAllAdmin();
+      return res.json({ ok: true, packages });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/heart-packages",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const pkg = await heartPackageService.create(req.body || {});
+      return res.json({ ok: true, package: pkg });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.patch(
+  "/heart-packages/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const pkg = await heartPackageService.update(id, req.body || {});
+      if (!pkg) {
+        return res.status(404).json({ ok: false, error: "ไม่พบแพ็กเกจ" });
+      }
+      return res.json({ ok: true, package: pkg });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.get(
+  "/heart-purchases/pending",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const purchases = await heartPurchaseService.listPendingForAdmin();
+      return res.json({ ok: true, purchases });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/heart-purchases/:id/approve",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const note = req.body?.note != null ? String(req.body.note) : null;
+      await heartPurchaseService.approve(id, req.userId, note);
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      if (e.code === "NOT_FOUND" || e.code === "BAD_STATUS") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/heart-purchases/:id/reject",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const note = req.body?.note != null ? String(req.body.note) : null;
+      await heartPurchaseService.reject(id, req.userId, note);
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ต้องมี PostgreSQL (DATABASE_URL)"
+        });
+      }
+      if (e.code === "NOT_FOUND") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
       return res.status(500).json({ ok: false, error: e.message });
     }
   }

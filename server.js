@@ -15,6 +15,7 @@ const { router: authRouter } = require("./authRouter");
 const { router: ordersRouter } = require("./ordersRouter");
 const { router: adminRouter } = require("./adminRouter");
 const { router: ownerRouter } = require("./ownerRouter");
+const { router: heartsRouter } = require("./heartsRouter");
 const { initDb } = require("./db/init");
 const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
 const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
@@ -32,6 +33,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/owner", ownerRouter);
+app.use("/api/hearts", heartsRouter);
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: "1h"

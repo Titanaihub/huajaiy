@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
+import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminAdjustMemberHearts,
@@ -38,7 +40,8 @@ export default function AdminDashboard() {
   const [memberFull, setMemberFull] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
-  const [heartDelta, setHeartDelta] = useState("");
+  const [heartPinkDelta, setHeartPinkDelta] = useState("");
+  const [heartRedDelta, setHeartRedDelta] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passBusy, setPassBusy] = useState(false);
@@ -147,7 +150,8 @@ export default function AdminDashboard() {
     setMemberFull(null);
     setDetailErr("");
     setPanelMsg("");
-    setHeartDelta("");
+    setHeartPinkDelta("");
+    setHeartRedDelta("");
     setNewPassword("");
     const token = getMemberToken();
     if (!token) return;
@@ -205,9 +209,12 @@ export default function AdminDashboard() {
   async function submitHeartAdjust(e) {
     e.preventDefault();
     if (!selectedId) return;
-    const d = parseInt(heartDelta, 10);
-    if (!Number.isFinite(d) || d === 0) {
-      setPanelMsg("ใส่ตัวเลขเต็ม บวกเพิ่ม ลบลด (ไม่ใช่ 0)");
+    const pd = parseInt(heartPinkDelta, 10);
+    const rd = parseInt(heartRedDelta, 10);
+    const pinkDelta = Number.isFinite(pd) ? pd : 0;
+    const redDelta = Number.isFinite(rd) ? rd : 0;
+    if (pinkDelta === 0 && redDelta === 0) {
+      setPanelMsg("ใส่ตัวเลขเต็มอย่างน้อยหนึ่งช่อง (ชมพูหรือแดง) — บวกเพิ่ม ลบลด");
       return;
     }
     const token = getMemberToken();
@@ -215,11 +222,12 @@ export default function AdminDashboard() {
     setHeartBusy(true);
     setPanelMsg("");
     try {
-      await apiAdminAdjustMemberHearts(token, selectedId, d);
-      setHeartDelta("");
+      await apiAdminAdjustMemberHearts(token, selectedId, { pinkDelta, redDelta });
+      setHeartPinkDelta("");
+      setHeartRedDelta("");
       await reloadMemberFull(selectedId);
       await loadMembers();
-      setPanelMsg("ปรับหัวใจในระบบแล้ว");
+      setPanelMsg("ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป)");
     } catch (err) {
       setPanelMsg(err.message || String(err));
     } finally {
@@ -285,6 +293,28 @@ export default function AdminDashboard() {
         </button>
         <button
           type="button"
+          onClick={() => setTab("heartPackages")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "heartPackages"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          แพ็กขายหัวใจ
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("heartPurchases")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "heartPurchases"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          อนุมัติสลิป
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("nameChanges")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "nameChanges"
@@ -320,7 +350,7 @@ export default function AdminDashboard() {
           </form>
 
           <p className="text-xs text-slate-500">
-            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · คอลัมน์หัวใจ = ยอดบนเซิร์ฟเวอร์ (ไม่ใช่ในเบราว์เซอร์)
+            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · หัวใจชมพู/แดง = ยอดบนเซิร์ฟเวอร์
           </p>
 
           {listErr ? <p className="text-sm text-red-600">{listErr}</p> : null}
@@ -334,7 +364,8 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ยูสเซอร์</th>
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
                     <th className="px-3 py-2">เบอร์</th>
-                    <th className="px-3 py-2">หัวใจ (DB)</th>
+                    <th className="px-3 py-2 text-rose-600">ชมพู</th>
+                    <th className="px-3 py-2 text-red-700">แดง</th>
                     <th className="px-3 py-2">บทบาท</th>
                     <th className="px-3 py-2">สมัคร</th>
                     <th className="px-3 py-2 w-24" />
@@ -343,7 +374,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -360,8 +391,11 @@ export default function AdminDashboard() {
                           {u.firstName} {u.lastName}
                         </td>
                         <td className="px-3 py-2">{u.phone}</td>
-                        <td className="px-3 py-2 font-medium text-pink-700">
-                          {u.heartsBalance ?? 0}
+                        <td className="px-3 py-2 font-medium text-rose-600">
+                          {u.pinkHeartsBalance ?? 0}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-red-700">
+                          {u.redHeartsBalance ?? 0}
                         </td>
                         <td className="px-3 py-2">{roleLabel(u.role)}</td>
                         <td className="px-3 py-2 text-xs text-slate-600">
@@ -451,9 +485,21 @@ export default function AdminDashboard() {
                       <dd>{roleLabel(detail.role)}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">หัวใจในระบบ (DB)</dt>
-                      <dd className="text-lg font-semibold text-pink-700">
-                        {detail.heartsBalance ?? 0}
+                      <dt className="text-slate-500">หัวใจชมพู (DB)</dt>
+                      <dd className="text-lg font-semibold text-rose-600">
+                        {detail.pinkHeartsBalance ?? 0}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">หัวใจแดง (DB)</dt>
+                      <dd className="text-lg font-semibold text-red-700">
+                        {detail.redHeartsBalance ?? 0}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">รวม</dt>
+                      <dd className="font-medium text-slate-800">
+                        {(detail.pinkHeartsBalance ?? 0) + (detail.redHeartsBalance ?? 0)}
                       </dd>
                     </div>
                     <div>
@@ -499,16 +545,29 @@ export default function AdminDashboard() {
 
                   <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
                     <h4 className="text-xs font-semibold uppercase text-slate-600">
-                      ปรับหัวใจในระบบ (เซิร์ฟเวอร์)
+                      เติมหัวใจให้สมาชิก (ฟรี — ไม่ผ่านสลิป)
                     </h4>
-                    <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-2">
-                      <input
-                        type="number"
-                        value={heartDelta}
-                        onChange={(e) => setHeartDelta(e.target.value)}
-                        placeholder="เช่น 10 หรือ -5"
-                        className="w-32 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-                      />
+                    <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
+                      <div>
+                        <label className="block text-[10px] font-medium text-rose-600">ชมพู Δ</label>
+                        <input
+                          type="number"
+                          value={heartPinkDelta}
+                          onChange={(e) => setHeartPinkDelta(e.target.value)}
+                          placeholder="0"
+                          className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-red-700">แดง Δ</label>
+                        <input
+                          type="number"
+                          value={heartRedDelta}
+                          onChange={(e) => setHeartRedDelta(e.target.value)}
+                          placeholder="0"
+                          className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                        />
+                      </div>
                       <button
                         type="submit"
                         disabled={heartBusy}
@@ -719,6 +778,16 @@ export default function AdminDashboard() {
           ) : (
             <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>
           )}
+        </section>
+      ) : tab === "heartPackages" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900">แพ็กเกจขายหัวใจ</h2>
+          <AdminHeartPackagesPanel />
+        </section>
+      ) : tab === "heartPurchases" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900">อนุมัติสลิปซื้อหัวใจ</h2>
+          <AdminHeartPurchasesPanel />
         </section>
       ) : (
         <section className="space-y-4">

@@ -41,20 +41,23 @@
 | `/game` | Flip-card demo (12 tiles, collect-first win) |
 | `/register` | สมัครสมาชิก (ชื่อ–นามสกุลไทย, เบอร์, ยูสเซอร์, รหัสผ่าน) |
 | `/login` | เข้าสู่ระบบสมาชิก |
-| `/account` | หลังบ้านสมาชิก — ภาพรวม หัวใจในระบบ ออเดอร์ล่าสุด |
+| `/account` | หลังบ้านสมาชิก — ภาพรวม หัวใจชมพู/แดง ออเดอร์ล่าสุด |
 | `/account/profile` | โปรไฟล์ — เพศ วันเกิด ที่อยู่จัดส่ง คำขอเปลี่ยนชื่อ |
 | `/account/orders` | ออเดอร์ของฉัน (เซิร์ฟเวอร์ + ประวัติในคอมพิวเตอร์) |
 | `/account/shops` | ร้านที่ผูกกับบัญชี |
-| `/admin` | หลังบ้านแอดมิน — รายชื่อสมาชิก, ค้นหา, รายละเอียด, คำขอเปลี่ยนชื่อ (ต้อง `role = admin`) |
+| `/account/hearts-shop` | ซื้อหัวใจ — เลือกแพ็ก อัปโหลดสลิป รอแอดมินอนุมัติ (ต้อง PostgreSQL) |
+| `/admin` | แอดมิน — สมาชิก, ร้าน, เกม, **แพ็กขายหัวใจ**, **อนุมัติสลิป**, คำขอเปลี่ยนชื่อ (`role = admin`) |
 | `/auth` | Facebook/LINE (NextAuth — ขั้นตอนหลัง) |
 | `/contact` | Contact form (stored in server logs via `POST /api/inquiry`) |
 | `/privacy`, `/terms`, `/data-deletion` | Legal pages for Meta etc. |
 
 API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเก็บที่ `data/users.json` บนเซิร์ฟเวอร์ (ไม่ commit)
 
-**สมาชิก:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` (Authorization: Bearer …)
+**สมาชิก:** `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` (Bearer — `pinkHeartsBalance`, `redHeartsBalance`)
 
-เกม (สุ่มกระดานฝั่งเซิร์ฟเวอร์): `GET/POST /api/game/*` — ฝั่ง Next rewrite `/api/game/*` ไปที่ `NEXT_PUBLIC_API_BASE_URL`
+**หัวใจ (ต้องมี DB):** `GET /api/hearts/packages` · `POST /api/hearts/purchases` (Bearer) · `GET /api/hearts/purchases/mine`
+
+เกม: `GET/POST /api/game/*` — Next rewrite `/api/game/*` และ `/api/hearts/*` ไป `NEXT_PUBLIC_API_BASE_URL`
 
 ---
 
@@ -81,14 +84,15 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 - `POST /upload` field `image`
 - `POST /api/auth/register` — สมัครสมาชิก (body JSON)
 - `POST /api/auth/login`
-- `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>` (รวม `heartsBalance`)
+- `GET /api/auth/me` — Bearer (รวม `pinkHeartsBalance`, `redHeartsBalance`, `heartsBalance`)
 - `PATCH /api/auth/profile`, `POST /api/auth/name-change-request`, `GET /api/auth/name-change-requests/mine`
 - `GET /api/auth/shops/mine` — ร้านที่ `owner_user_id` ตรงกับผู้ใช้ (Bearer)
 - `POST /api/orders` — บันทึกออเดอร์ (Bearer + body JSON)
 - `GET /api/orders/me` — รายการออเดอร์ของผู้ใช้ (Bearer)
-- **แอดมิน** (Bearer + `users.role = 'admin'`): `GET /api/admin/members` · `GET /api/admin/members/:id` · **`GET /api/admin/members/:id/full`** (ออเดอร์ ร้าน สถิติ) · `POST /api/admin/members/:id/hearts` `{ "delta": number }` · `POST /api/admin/members/:id/password` `{ "newPassword": "..." }` · `GET /api/admin/shops` (ร้านทั้งระบบ) · `GET /api/admin/game` (กติกา รางวัล สถานะ session เกม) · `GET /api/admin/name-change-requests` · `POST .../approve|reject` · `GET /api/admin/ping` — หน้าเว็บ **`/admin`**
+- **แอดมิน** (Bearer + `role = admin`): `GET /api/admin/members` · `GET /api/admin/members/:id` · **`GET /api/admin/members/:id/full`** · `POST /api/admin/members/:id/hearts` **`{ "pinkDelta": int, "redDelta": int }`** (หรือเลกาซี `{ "delta" }` = ชมพูอย่างเดียว) · `POST /api/admin/members/:id/password` · `GET /api/admin/shops` · `GET /api/admin/game` · **`GET|POST /api/admin/heart-packages`** · **`PATCH /api/admin/heart-packages/:id`** · **`GET /api/admin/heart-purchases/pending`** · **`POST /api/admin/heart-purchases/:id/approve|reject`** · `GET /api/admin/name-change-requests` · `POST .../name-change-requests/...` · `GET /api/admin/ping` — **`/admin`**
 - `GET /api/game/meta`
 - `POST /api/game/start`, `POST /api/game/flip`, `POST /api/game/abandon`
+- `GET /api/hearts/packages` · `POST /api/hearts/purchases` (Bearer) · `GET /api/hearts/purchases/mine` (Bearer)
 
 ---
 

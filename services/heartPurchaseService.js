@@ -1,0 +1,222 @@
+const crypto = require("crypto");
+const { getPool } = require("../db/pool");
+const heartPackageService = require("./heartPackageService");
+
+function rowToPurchase(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    packageId: row.package_id,
+    pinkQty: Math.max(0, Math.floor(Number(row.pink_qty) || 0)),
+    redQty: Math.max(0, Math.floor(Number(row.red_qty) || 0)),
+    priceThbSnapshot: Math.max(0, Math.floor(Number(row.price_thb_snapshot) || 0)),
+    slipUrl: row.slip_url,
+    status: row.status,
+    adminNote: row.admin_note || null,
+    createdAt: row.created_at,
+    resolvedAt: row.resolved_at || null,
+    resolvedBy: row.resolved_by || null
+  };
+}
+
+async function hasPendingForUser(userId) {
+  const pool = getPool();
+  if (!pool) return false;
+  const r = await pool.query(
+    `SELECT 1 FROM heart_purchases WHERE user_id = $1 AND status = 'pending' LIMIT 1`,
+    [userId]
+  );
+  return r.rows.length > 0;
+}
+
+async function createPurchase(userId, packageId, slipUrl) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const url = String(slipUrl || "").trim().slice(0, 2000);
+  if (!url.startsWith("https://") && !url.startsWith("http://")) {
+    const e = new Error("ต้องแนบ URL รูปสลิป (https)");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (await hasPendingForUser(userId)) {
+    const e = new Error("มีคำขอซื้อหัวใจที่รออนุมัติอยู่แล้ว — รอแอดมินก่อนส่งใหม่");
+    e.code = "PENDING_EXISTS";
+    throw e;
+  }
+  const pkg = await heartPackageService.findById(packageId);
+  if (!pkg || !pkg.active) {
+    const e = new Error("ไม่พบแพ็กเกจหรือปิดการขาย");
+    e.code = "PACKAGE_INVALID";
+    throw e;
+  }
+  if (pkg.pinkQty + pkg.redQty <= 0) {
+    const e = new Error("แพ็กเกจไม่ถูกต้อง");
+    e.code = "PACKAGE_INVALID";
+    throw e;
+  }
+  const id = crypto.randomUUID();
+  const r = await pool.query(
+    `INSERT INTO heart_purchases (
+      id, user_id, package_id, pink_qty, red_qty, price_thb_snapshot, slip_url, status
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
+    RETURNING *`,
+    [id, userId, packageId, pkg.pinkQty, pkg.redQty, pkg.priceThb, url]
+  );
+  return rowToPurchase(r.rows[0]);
+}
+
+async function listMine(userId, limit = 50) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const lim = Math.min(Math.max(Number(limit) || 50, 1), 100);
+  const r = await pool.query(
+    `SELECT * FROM heart_purchases WHERE user_id = $1
+     ORDER BY created_at DESC LIMIT $2`,
+    [userId, lim]
+  );
+  return r.rows.map(rowToPurchase);
+}
+
+async function listPendingForAdmin(limit = 100) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const lim = Math.min(Math.max(Number(limit) || 100, 1), 200);
+  const r = await pool.query(
+    `SELECT p.*, u.username AS buyer_username,
+            u.first_name AS buyer_first_name, u.last_name AS buyer_last_name,
+            pk.title AS package_title
+     FROM heart_purchases p
+     JOIN users u ON u.id = p.user_id
+     JOIN heart_packages pk ON pk.id = p.package_id
+     WHERE p.status = 'pending'
+     ORDER BY p.created_at ASC
+     LIMIT $1`,
+    [lim]
+  );
+  return r.rows.map((row) => ({
+    ...rowToPurchase(row),
+    buyerUsername: row.buyer_username,
+    buyerFirstName: row.buyer_first_name,
+    buyerLastName: row.buyer_last_name,
+    packageTitle: row.package_title
+  }));
+}
+
+async function findById(id) {
+  const pool = getPool();
+  if (!pool) return null;
+  const r = await pool.query(`SELECT * FROM heart_purchases WHERE id = $1`, [id]);
+  if (r.rows.length === 0) return null;
+  return rowToPurchase(r.rows[0]);
+}
+
+async function approve(purchaseId, adminUserId, note) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const lock = await client.query(
+      `SELECT * FROM heart_purchases WHERE id = $1 FOR UPDATE`,
+      [purchaseId]
+    );
+    if (lock.rows.length === 0) {
+      await client.query("ROLLBACK");
+      const e = new Error("ไม่พบรายการ");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const row = lock.rows[0];
+    if (row.status !== "pending") {
+      await client.query("ROLLBACK");
+      const e = new Error("รายการนี้ดำเนินการแล้ว");
+      e.code = "BAD_STATUS";
+      throw e;
+    }
+    const buyerId = row.user_id;
+    const pink = Math.max(0, Math.floor(Number(row.pink_qty) || 0));
+    const red = Math.max(0, Math.floor(Number(row.red_qty) || 0));
+    await client.query(
+      `UPDATE users SET
+        pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
+        red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
+        hearts_balance =
+          GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
+          GREATEST(0, COALESCE(red_hearts_balance, 0) + $3)
+      WHERE id = $1`,
+      [buyerId, pink, red]
+    );
+    const noteText =
+      note != null ? String(note).trim().slice(0, 500) : null;
+    await client.query(
+      `UPDATE heart_purchases SET
+        status = 'approved',
+        resolved_at = NOW(),
+        resolved_by = $2,
+        admin_note = COALESCE($3, admin_note)
+      WHERE id = $1`,
+      [purchaseId, adminUserId, noteText]
+    );
+    await client.query("COMMIT");
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+async function reject(purchaseId, adminUserId, note) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const r = await pool.query(
+    `UPDATE heart_purchases SET
+      status = 'rejected',
+      resolved_at = NOW(),
+      resolved_by = $2,
+      admin_note = $3
+    WHERE id = $1 AND status = 'pending'
+    RETURNING *`,
+    [
+      purchaseId,
+      adminUserId,
+      note != null ? String(note).trim().slice(0, 500) : null
+    ]
+  );
+  if (r.rows.length === 0) {
+    const e = new Error("ไม่พบรายการหรือดำเนินการแล้ว");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  return rowToPurchase(r.rows[0]);
+}
+
+module.exports = {
+  createPurchase,
+  listMine,
+  listPendingForAdmin,
+  findById,
+  approve,
+  reject,
+  hasPendingForUser
+};

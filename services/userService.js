@@ -11,7 +11,15 @@ function normalizeBirthDate(v) {
 }
 
 function rowToUser(row) {
-  const hb = row.hearts_balance;
+  const pink =
+    row.pink_hearts_balance == null
+      ? Math.max(0, Math.floor(Number(row.hearts_balance) || 0))
+      : Math.max(0, Math.floor(Number(row.pink_hearts_balance) || 0));
+  const red =
+    row.red_hearts_balance == null
+      ? 0
+      : Math.max(0, Math.floor(Number(row.red_hearts_balance) || 0));
+  const sum = pink + red;
   return {
     id: row.id,
     username: row.username,
@@ -25,8 +33,9 @@ function rowToUser(row) {
     birthDate: normalizeBirthDate(row.birth_date),
     shippingAddress: row.shipping_address || null,
     role: row.role || MEMBER,
-    heartsBalance:
-      hb == null ? 0 : Math.max(0, Math.floor(Number(hb) || 0)),
+    pinkHeartsBalance: pink,
+    redHeartsBalance: red,
+    heartsBalance: sum,
     createdAt: row.created_at
   };
 }
@@ -148,7 +157,14 @@ async function createUser({
 
 function publicUser(u) {
   if (!u) return null;
-  const hb = u.heartsBalance;
+  const p =
+    u.pinkHeartsBalance == null
+      ? Math.max(0, Math.floor(Number(u.heartsBalance) || 0))
+      : Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
+  const r =
+    u.redHeartsBalance == null
+      ? 0
+      : Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
   return {
     id: u.id,
     username: u.username,
@@ -160,8 +176,9 @@ function publicUser(u) {
     birthDate: u.birthDate ?? null,
     shippingAddress: u.shippingAddress ?? null,
     role: u.role || MEMBER,
-    heartsBalance:
-      hb == null ? 0 : Math.max(0, Math.floor(Number(hb) || 0))
+    pinkHeartsBalance: p,
+    redHeartsBalance: r,
+    heartsBalance: p + r
   };
 }
 
@@ -204,25 +221,43 @@ async function setPasswordHashOnly(userId, passwordHash) {
   return findById(userId);
 }
 
-/** บวก/ลบหัวใจในฐานข้อมูล (ยอดรวมไม่ต่ำกว่า 0) */
-async function adjustHeartsBalance(userId, delta) {
-  const d = Math.floor(Number(delta) || 0);
-  if (d === 0) return findById(userId);
+/** บวก/ลบหัวใจชมพู+แดง (ยอดแต่ละประเภทไม่ต่ำกว่า 0) */
+async function adjustDualHearts(userId, pinkDelta = 0, redDelta = 0) {
+  const pd = Math.floor(Number(pinkDelta) || 0);
+  const rd = Math.floor(Number(redDelta) || 0);
+  if (pd === 0 && rd === 0) return findById(userId);
   const pool = getPool();
   if (!pool) {
     const u = userStore.findById(userId);
     if (!u) return null;
-    const cur = Math.max(0, Math.floor(Number(u.heartsBalance) || 0));
+    const p = Math.max(
+      0,
+      Math.floor(Number(u.pinkHeartsBalance ?? u.heartsBalance) || 0) + pd
+    );
+    const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0) + rd);
     userStore.updateUser(userId, {
-      heartsBalance: Math.max(0, cur + d)
+      pinkHeartsBalance: p,
+      redHeartsBalance: r,
+      heartsBalance: p + r
     });
     return findById(userId);
   }
   await pool.query(
-    `UPDATE users SET hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0) + $2) WHERE id = $1`,
-    [userId, d]
+    `UPDATE users SET
+      pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
+      red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
+      hearts_balance =
+        GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
+        GREATEST(0, COALESCE(red_hearts_balance, 0) + $3)
+    WHERE id = $1`,
+    [userId, pd, rd]
   );
   return findById(userId);
+}
+
+/** ความเข้ากันได้เดิม: ปรับเฉพาะหัวใจชมพู */
+async function adjustHeartsBalance(userId, delta) {
+  return adjustDualHearts(userId, delta, 0);
 }
 
 async function updateOfficialNames(userId, firstName, lastName) {
@@ -247,6 +282,8 @@ function createdAtIso(u) {
 /** รายการสมาชิกในหลังบ้านแอดมิน (ไม่มีรหัสผ่าน) */
 function adminMemberListItem(u) {
   if (!u) return null;
+  const p = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
+  const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
   return {
     id: u.id,
     username: u.username,
@@ -257,7 +294,9 @@ function adminMemberListItem(u) {
     role: u.role || MEMBER,
     gender: u.gender ?? null,
     birthDate: u.birthDate ?? null,
-    heartsBalance: Math.max(0, Math.floor(Number(u.heartsBalance) || 0)),
+    pinkHeartsBalance: p,
+    redHeartsBalance: r,
+    heartsBalance: p + r,
     createdAt: createdAtIso(u)
   };
 }
@@ -336,6 +375,7 @@ module.exports = {
   setPasswordAndRole,
   setPasswordHashOnly,
   adjustHeartsBalance,
+  adjustDualHearts,
   updateProfile,
   updateOfficialNames,
   publicUser,

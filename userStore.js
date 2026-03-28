@@ -38,31 +38,45 @@ function updateUser(id, patch) {
   return users[i];
 }
 
+function normalizeHearts(u) {
+  if (!u) return u;
+  let p = u.pinkHeartsBalance;
+  let r = u.redHeartsBalance;
+  if (p == null && r == null) {
+    const legacy = Math.max(0, Math.floor(Number(u.heartsBalance) || 0));
+    p = legacy;
+    r = 0;
+  }
+  p = Math.max(0, Math.floor(Number(p) || 0));
+  r = Math.max(0, Math.floor(Number(r) || 0));
+  return { ...u, pinkHeartsBalance: p, redHeartsBalance: r, heartsBalance: p + r };
+}
+
 function findByUsername(username) {
   const u = String(username || "").toLowerCase();
   const x = readUsers().find((row) => row.username === u) || null;
   if (!x) return null;
-  return { ...x, heartsBalance: x.heartsBalance == null ? 0 : x.heartsBalance };
+  return normalizeHearts(x);
 }
 
 function findById(id) {
   const u = readUsers().find((x) => x.id === id) || null;
-  if (u && u.heartsBalance == null) return { ...u, heartsBalance: 0 };
-  return u;
+  if (!u) return null;
+  return normalizeHearts(u);
 }
 
 function findByPhone(phone) {
   const p = String(phone || "").trim();
-  return readUsers().find((x) => x.phone === p) || null;
+  const u = readUsers().find((x) => x.phone === p) || null;
+  return u ? normalizeHearts(u) : null;
 }
 
 /** ชื่อกับนามสกุลต้องตรงคู่กันทั้งสองช่องจึงถือว่าเป็นคนเดียวกัน */
 function findByThaiFullName(firstName, lastName) {
   const fn = String(firstName || "").trim();
   const ln = String(lastName || "").trim();
-  return (
-    readUsers().find((x) => x.firstName === fn && x.lastName === ln) || null
-  );
+  const u = readUsers().find((x) => x.firstName === fn && x.lastName === ln) || null;
+  return u ? normalizeHearts(u) : null;
 }
 
 function createUser({
@@ -99,6 +113,8 @@ function createUser({
     registrationIp:
       registrationIp == null ? null : String(registrationIp).slice(0, 64),
     role: role || MEMBER,
+    pinkHeartsBalance: 0,
+    redHeartsBalance: 0,
     heartsBalance: 0,
     createdAt: new Date().toISOString()
   };
@@ -109,17 +125,21 @@ function createUser({
 
 function publicUser(u) {
   if (!u) return null;
+  const n = normalizeHearts(u);
   return {
-    id: u.id,
-    username: u.username,
-    firstName: u.firstName,
-    lastName: u.lastName,
-    phone: u.phone,
-    countryCode: u.countryCode || "TH",
-    gender: u.gender ?? null,
-    birthDate: u.birthDate ?? null,
-    shippingAddress: u.shippingAddress ?? null,
-    role: u.role || MEMBER
+    id: n.id,
+    username: n.username,
+    firstName: n.firstName,
+    lastName: n.lastName,
+    phone: n.phone,
+    countryCode: n.countryCode || "TH",
+    gender: n.gender ?? null,
+    birthDate: n.birthDate ?? null,
+    shippingAddress: n.shippingAddress ?? null,
+    role: n.role || MEMBER,
+    pinkHeartsBalance: n.pinkHeartsBalance,
+    redHeartsBalance: n.redHeartsBalance,
+    heartsBalance: n.heartsBalance
   };
 }
 
@@ -144,7 +164,7 @@ function listForAdmin({ q = "", limit = 50, offset = 0 } = {}) {
   users.sort((a, b) =>
     String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
   );
-  return users.slice(off, off + lim);
+  return users.slice(off, off + lim).map((row) => normalizeHearts(row));
 }
 
 function countForAdmin({ q = "" } = {}) {

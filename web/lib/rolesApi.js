@@ -65,7 +65,8 @@ export async function apiAdminMemberFull(token, id) {
   return data;
 }
 
-export async function apiAdminAdjustMemberHearts(token, id, delta) {
+/** @param body {{ pinkDelta?: number, redDelta?: number } | { delta: number }} */
+export async function apiAdminAdjustMemberHearts(token, id, body) {
   const r = await fetch(
     `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/hearts`,
     {
@@ -74,7 +75,7 @@ export async function apiAdminAdjustMemberHearts(token, id, delta) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ delta })
+      body: JSON.stringify(body)
     }
   );
   const data = await r.json().catch(() => ({}));
@@ -140,6 +141,89 @@ export async function apiAdminApproveNameChange(token, id, note) {
   );
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || "อนุมัติไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminHeartPackages(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/heart-packages`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดแพ็กเกจไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCreateHeartPackage(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/heart-packages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "สร้างแพ็กเกจไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminPatchHeartPackage(token, id, body) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/heart-packages/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "บันทึกแพ็กเกจไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminPendingHeartPurchases(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/heart-purchases/pending`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดคำขอไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminApproveHeartPurchase(token, id, note) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/heart-purchases/${encodeURIComponent(id)}/approve`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(note != null && note !== "" ? { note } : {})
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "อนุมัติไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminRejectHeartPurchase(token, id, note) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/heart-purchases/${encodeURIComponent(id)}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(note != null && note !== "" ? { note } : {})
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ปฏิเสธไม่สำเร็จ");
   return data;
 }
 

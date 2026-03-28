@@ -51,6 +51,65 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS hearts_balance INTEGER NOT NULL DEFAULT 0;
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS pink_hearts_balance INTEGER NOT NULL DEFAULT 0;
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS red_hearts_balance INTEGER NOT NULL DEFAULT 0;
+    `);
+    /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
+    await client.query(`
+      UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))
+      WHERE COALESCE(pink_hearts_balance, 0) = 0
+        AND COALESCE(red_hearts_balance, 0) = 0
+        AND COALESCE(hearts_balance, 0) > 0;
+    `);
+    await client.query(`
+      UPDATE users SET
+        hearts_balance = COALESCE(pink_hearts_balance, 0) + COALESCE(red_hearts_balance, 0);
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS heart_packages (
+        id UUID PRIMARY KEY,
+        title VARCHAR(160) NOT NULL,
+        description TEXT,
+        pink_qty INTEGER NOT NULL DEFAULT 0,
+        red_qty INTEGER NOT NULL DEFAULT 0,
+        price_thb INTEGER NOT NULL DEFAULT 0,
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_heart_packages_active ON heart_packages(active) WHERE active = TRUE;`
+    );
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS heart_purchases (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        package_id UUID NOT NULL REFERENCES heart_packages(id) ON DELETE RESTRICT,
+        pink_qty INTEGER NOT NULL DEFAULT 0,
+        red_qty INTEGER NOT NULL DEFAULT 0,
+        price_thb_snapshot INTEGER NOT NULL DEFAULT 0,
+        slip_url TEXT NOT NULL,
+        status VARCHAR(16) NOT NULL DEFAULT 'pending',
+        admin_note TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        resolved_at TIMESTAMPTZ,
+        resolved_by UUID REFERENCES users(id) ON DELETE SET NULL
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_heart_purchases_pending ON heart_purchases(status) WHERE status = 'pending';`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_heart_purchases_user ON heart_purchases(user_id);`
+    );
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS name_change_requests (
@@ -117,7 +176,7 @@ async function initDb() {
     );
 
     console.log(
-      "[db] PostgreSQL schema พร้อม (users + role, orders, shops)"
+      "[db] PostgreSQL schema พร้อม (users, orders, shops, heart_packages, heart_purchases)"
     );
   } finally {
     client.release();

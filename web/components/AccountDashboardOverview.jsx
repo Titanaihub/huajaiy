@@ -78,7 +78,8 @@ export default function AccountDashboardOverview() {
     );
   }
 
-  const serverHearts = Number(user.heartsBalance ?? 0);
+  const pink = Number(user.pinkHeartsBalance ?? 0);
+  const red = Number(user.redHeartsBalance ?? 0);
   const recent = orders.slice(0, 5);
 
   return (
@@ -91,14 +92,19 @@ export default function AccountDashboardOverview() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase text-rose-800/80">
-              หัวใจในระบบ (เซิร์ฟเวอร์)
+              หัวใจชมพู (เซิร์ฟเวอร์)
             </p>
             <p className="mt-2 flex items-center gap-2 text-2xl font-bold text-rose-900">
-              <InlineHeart className="text-rose-700" />
-              {serverHearts.toLocaleString("th-TH")}
+              <InlineHeart className="text-rose-400" />
+              {pink.toLocaleString("th-TH")}
+            </p>
+            <p className="mt-2 text-xs font-semibold uppercase text-red-900/80">หัวใจแดง</p>
+            <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
+              <InlineHeart className="text-red-600" />
+              {red.toLocaleString("th-TH")}
             </p>
             <p className="mt-2 text-xs text-rose-900/70">
-              ยอดนี้ใช้กับเกม/กิจกรรมที่ผูกกับบัญชี — ตัวเลขบนหัวใจมุมจออาจมาจากเครื่องคุณ (โหมดสาธิต)
+              รวม { (pink + red).toLocaleString("th-TH") } — มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
             </p>
             <button
               type="button"
@@ -119,6 +125,11 @@ export default function AccountDashboardOverview() {
               <li>
                 <Link href="/account/orders" className="font-medium text-brand-800 hover:underline">
                   ดูออเดอร์ทั้งหมด
+                </Link>
+              </li>
+              <li>
+                <Link href="/account/hearts-shop" className="font-medium text-brand-800 hover:underline">
+                  ซื้อหัวใจ (แนบสลิป)
                 </Link>
               </li>
               <li>
