@@ -111,7 +111,6 @@ export default function AdminCentralGamePanel() {
     () => newSetSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
     [newSetSizes]
   );
-  const expectedSlots = tileCount;
 
   const loadList = useCallback(async () => {
     const token = getMemberToken();
@@ -168,7 +167,12 @@ export default function AdminCentralGamePanel() {
         const k0 = `${im.setIndex}-0`;
         if (map[k0] === undefined) map[k0] = im.imageUrl;
       }
-      setImageMap(map);
+      setImageMap((prev) => {
+        for (const v of Object.values(prev)) {
+          if (v && String(v).startsWith("blob:")) URL.revokeObjectURL(v);
+        }
+        return map;
+      });
       setRules(
         (data.rules || []).length
           ? data.rules.map((r) => ({
@@ -256,8 +260,10 @@ export default function AdminCentralGamePanel() {
     const images = [];
     for (let s = 0; s < setCount; s += 1) {
       const url = imageMap[`${s}-0`];
-      if (!url) {
-        setMsg(`ยังไม่มีรูปสำหรับชุด ${s + 1}`);
+      if (!url || String(url).startsWith("blob:")) {
+        setMsg(
+          `ชุด ${s + 1}: ยังไม่มีรูป หรือกำลังอัปโหลด — รอจนเห็นรูปในช่องแล้วค่อยกดบันทึกรูป`
+        );
         return;
       }
       images.push({ setIndex: s, imageUrl: url });
@@ -383,12 +389,29 @@ export default function AdminCentralGamePanel() {
 
   async function onPickImage(setIndex, imageIndex, file) {
     if (!file) return;
+    const slot = `${setIndex}-${imageIndex}`;
+    setImageMap((m) => {
+      const prev = m[slot];
+      if (prev && String(prev).startsWith("blob:")) URL.revokeObjectURL(prev);
+      return { ...m, [slot]: URL.createObjectURL(file) };
+    });
     setMsg("กำลังอัปโหลด…");
     try {
       const url = await uploadImageFile(file);
-      setImageMap((m) => ({ ...m, [`${setIndex}-${imageIndex}`]: url }));
-      setMsg("อัปโหลดรูปแล้ว — กดบันทึกรูปทั้งหมดเมื่อครบ");
+      setImageMap((m) => {
+        const cur = m[slot];
+        if (cur && String(cur).startsWith("blob:")) URL.revokeObjectURL(cur);
+        return { ...m, [slot]: url };
+      });
+      setMsg("อัปโหลดรูปแล้ว — กดบันทึกรูปเมื่อครบทุกชุด");
     } catch (e) {
+      setImageMap((m) => {
+        const cur = m[slot];
+        if (cur && String(cur).startsWith("blob:")) URL.revokeObjectURL(cur);
+        const next = { ...m };
+        delete next[slot];
+        return next;
+      });
       setMsg(e.message || String(e));
     }
   }
@@ -599,11 +622,19 @@ export default function AdminCentralGamePanel() {
         <div id="central-game-editor" className="space-y-6 scroll-mt-24">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
-          <form onSubmit={saveMeta} className="rounded-xl border border-slate-200 p-4 space-y-3">
-            <h3 className="font-semibold">โครงเกม</h3>
+          <form onSubmit={saveMeta} className="rounded-xl border border-slate-200 p-4 space-y-4">
+            <div>
+              <h3 className="font-semibold text-slate-900">โครงชุดและรูปภาพ</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                แต่ละแถว = <strong>จำนวนป้ายในชุด</strong> + <strong>อัปโหลด 1 รูป</strong> (ป้ายในชุดเดียวกันใช้รูปเดียวกัน) · รวม{" "}
+                <span className="font-mono text-slate-700">{tileCount}</span> ป้ายบนกระดาน · แก้จำนวนชุดหรือป้ายแล้วกด{" "}
+                <strong>บันทึกโครง</strong> · อัปโหลดครบแล้วกด <strong>บันทึกรูป</strong>
+              </p>
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="text-xs text-slate-600">ชื่อ</label>
+                <label className="text-xs text-slate-600">ชื่อเกม</label>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -611,7 +642,7 @@ export default function AdminCentralGamePanel() {
                   required
                 />
               </div>
-              <div className="sm:col-span-2">
+              <div>
                 <label className="text-xs text-slate-600">จำนวนชุด</label>
                 <input
                   type="number"
@@ -625,36 +656,9 @@ export default function AdminCentralGamePanel() {
                   className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2"
                 />
               </div>
-              <div className="sm:col-span-2 rounded-lg border border-slate-100 bg-slate-50/80 p-3">
-                <p className="text-xs font-medium text-slate-700">ภาพต่อชุด (แต่ละชุดตั้งค่าแยก)</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-                  {setSizes.slice(0, setCount).map((n, idx) => (
-                    <div key={idx}>
-                      <label className="text-[10px] text-slate-500">ชุดที่ {idx + 1}</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={n}
-                        onChange={(e) => {
-                          const v = Math.max(1, parseInt(e.target.value, 10) || 1);
-                          setSetSizes((prev) => {
-                            const next = [...prev];
-                            next[idx] = v;
-                            return next;
-                          });
-                        }}
-                        className="mt-0.5 w-full rounded border px-2 py-1 text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-2 text-[10px] text-amber-800">
-                  ถ้าเปลี่ยนจำนวนภาพในชุด ให้ตรวจรูปและกติกาใหม่ แล้วบันทึกโครง → บันทึกรูป → บันทึกกติกา
-                </p>
-              </div>
               <div>
-                <label className="text-xs text-slate-600">ป้ายรวม</label>
-                <p className="mt-2 font-mono">{tileCount}</p>
+                <label className="text-xs text-slate-600">ป้ายรวม (คำนวณอัตโนมัติ)</label>
+                <p className="mt-2 font-mono text-sm text-slate-800">{tileCount}</p>
               </div>
               <div>
                 <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
@@ -677,58 +681,83 @@ export default function AdminCentralGamePanel() {
                 />
               </div>
             </div>
-            <button type="submit" className="rounded-lg bg-slate-800 px-3 py-1.5 text-white">
-              บันทึกโครง
-            </button>
-          </form>
 
-          <div className="rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold">อัปโหลดรูปแต่ละชุด</h3>
-            <p className="mt-1 text-xs text-slate-500">
-              <strong>ชุดละ 1 ไฟล์</strong> — รวม {expectedSlots} ป้ายบนกระดาน · ป้ายทุกใบในชุดเดียวกันใช้รูปเดียวกัน
-            </p>
-            <div className="mt-4 space-y-4">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-slate-700">แต่ละชุด — จำนวนป้าย + รูป</p>
               {Array.from({ length: setCount }, (_, s) => {
                 const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
+                const preview = imageMap[`${s}-0`];
                 return (
-                  <div key={s} className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-100 p-3">
-                    <div className="w-36 shrink-0">
-                      <p className="text-xs font-semibold text-slate-800">
-                        ชุดที่ {s + 1}
-                      </p>
-                      <p className="text-[10px] text-slate-500">{cap} ป้ายบนกระดาน (รูปเดียวกัน)</p>
-                      <div className="mt-2 aspect-square w-full overflow-hidden rounded-lg border bg-slate-100">
-                        {imageMap[`${s}-0`] ? (
+                  <div
+                    key={s}
+                    className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-slate-800">ชุดที่ {s + 1}</span>
+                      <label className="mt-1 text-[10px] text-slate-500">จำนวนป้ายในชุดนี้</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={cap}
+                        onChange={(e) => {
+                          const v = Math.max(1, parseInt(e.target.value, 10) || 1);
+                          setSetSizes((prev) => {
+                            const next = [...prev];
+                            next[s] = v;
+                            return next;
+                          });
+                        }}
+                        className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                      />
+                    </div>
+                    <div className="w-28 shrink-0 sm:w-32">
+                      <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
+                      <div className="aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                        {preview ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={imageMap[`${s}-0`]}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : null}
+                          <img src={preview} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center p-1 text-center text-[10px] leading-tight text-slate-400">
+                            เลือกรูป
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="min-w-[200px] flex-1">
-                      <label className="text-[10px] font-medium text-slate-600">เลือกไฟล์รูปชุดนี้</label>
+                      <label className="text-[10px] font-medium text-slate-600">อัปโหลดรูปชุดนี้ (1 ไฟล์)</label>
                       <input
                         type="file"
                         accept="image/*"
-                        className="mt-1 block w-full text-xs"
-                        onChange={(e) => onPickSetImage(s, e.target.files?.[0] || null)}
+                        className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] || null;
+                          void onPickImage(s, 0, f);
+                          e.target.value = "";
+                        }}
                       />
                     </div>
                   </div>
                 );
               })}
             </div>
-            <button
-              type="button"
-              onClick={() => saveImages()}
-              className="mt-4 rounded-lg bg-rose-700 px-4 py-2 font-semibold text-white"
-            >
-              บันทึกรูปแต่ละชุด ({setCount} ไฟล์)
-            </button>
-          </div>
+
+            <p className="text-[10px] text-amber-800">
+              ถ้าเปลี่ยนจำนวนป้ายในชุด ให้กดบันทึกโครง แล้วตรวจกติกา — จากนั้นบันทึกรูปเมื่อครบ
+            </p>
+
+            <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+              <button type="submit" className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white">
+                บันทึกโครง
+              </button>
+              <button
+                type="button"
+                onClick={() => saveImages()}
+                className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
+              >
+                บันทึกรูป ({setCount} ชุด)
+              </button>
+            </div>
+          </form>
 
           <div className="rounded-xl border border-slate-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
