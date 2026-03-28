@@ -326,6 +326,35 @@ export default function AdminCentralGamePanel() {
     }
   }
 
+  function openEditGame(id) {
+    if (!id) return;
+    setErr("");
+    setMsg("");
+    setSelectedId(id);
+    window.setTimeout(() => {
+      document.getElementById("central-game-editor")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 150);
+  }
+
+  async function deleteGameById(id, title) {
+    if (!id || !window.confirm(`ลบเกม「${title}」ถาวร?`)) return;
+    const token = getMemberToken();
+    if (!token) return;
+    setMsg("");
+    setErr("");
+    try {
+      await apiAdminCentralGameDelete(token, id);
+      if (selectedId === id) setSelectedId("");
+      setMsg("ลบแล้ว");
+      await loadList();
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
   async function onPickImage(setIndex, imageIndex, file) {
     if (!file) return;
     setMsg("กำลังอัปโหลด…");
