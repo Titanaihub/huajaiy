@@ -109,6 +109,21 @@ export async function apiAdminShops(token) {
   return data;
 }
 
+/** @param body {{ name: string, slug?: string, ownerUsername?: string, ownerUserId?: string }} */
+export async function apiAdminCreateShop(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/shops`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "สร้างร้านไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminGame(token) {
   const r = await fetch(`${apiRoot()}/api/admin/game`, {
     headers: { Authorization: `Bearer ${token}` }

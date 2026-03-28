@@ -19,8 +19,11 @@ export default function ShopPage() {
         </p>
         <ProductGrid />
         <p className="mt-6 text-xs text-slate-500">
-          เจ้าของร้านจัดการสินค้าได้ที่บัญชี → ร้านของฉัน · แอดมินสร้างร้านผ่าน API{" "}
-          <code className="rounded bg-slate-100 px-1">POST /api/admin/shops</code>
+          แอดมินสร้างร้านได้ที่{" "}
+          <Link href="/admin?tab=shops" className="text-brand-800 underline">
+            /admin?tab=shops
+          </Link>
+          · เจ้าของลงสินค้าที่บัญชี → ร้านของฉัน
         </p>
         <Link href="/" className="mt-4 inline-block text-sm text-blue-600 underline">
           ← หน้าแรก

@@ -14,6 +14,7 @@ import {
   apiAdminRejectNameChange,
   apiAdminSetMemberPassword,
   apiAdminShops,
+  apiAdminCreateShop,
   apiAdminGame
 } from "../lib/rolesApi";
 
@@ -57,6 +58,17 @@ export default function AdminDashboard() {
   const [shopsAll, setShopsAll] = useState([]);
   const [shopsLoading, setShopsLoading] = useState(false);
   const [shopsErr, setShopsErr] = useState("");
+  const [newShopName, setNewShopName] = useState("");
+  const [newShopSlug, setNewShopSlug] = useState("");
+  const [newShopOwnerUser, setNewShopOwnerUser] = useState("");
+  const [shopCreateBusy, setShopCreateBusy] = useState(false);
+  const [shopCreateMsg, setShopCreateMsg] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const tabParam = new URLSearchParams(window.location.search).get("tab");
+    if (tabParam === "shops") setTab("shops");
+  }, []);
 
   /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
   const [gameInfo, setGameInfo] = useState(null);
@@ -695,13 +707,100 @@ export default function AdminDashboard() {
       ) : tab === "shops" ? (
         <section className="space-y-4">
           <p className="text-sm text-slate-600">
-            ร้านที่ลงทะเบียนในฐานข้อมูล — แต่ละร้านผูกกับบัญชีเจ้าของ
+            ร้านที่ลงทะเบียนในฐานข้อมูล — สร้างร้านด้านล่างได้เลย จากนั้นให้เจ้าของร้านไป{" "}
+            <Link href="/account/shops" className="font-medium text-brand-800 underline">
+              ร้านของฉัน → จัดการสินค้า
+            </Link>
           </p>
+
+          <form
+            className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 space-y-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const token = getMemberToken();
+              if (!token) return;
+              setShopCreateMsg("");
+              setShopCreateBusy(true);
+              try {
+                const body = {
+                  name: newShopName.trim(),
+                  ownerUsername: newShopOwnerUser.trim() || undefined
+                };
+                const slugTrim = newShopSlug.trim().toLowerCase();
+                if (slugTrim) body.slug = slugTrim;
+                await apiAdminCreateShop(token, body);
+                setShopCreateMsg("สร้างร้านแล้ว — แจ้งเจ้าของให้ล็อกอินแล้วเพิ่มสินค้า");
+                setNewShopName("");
+                setNewShopSlug("");
+                setNewShopOwnerUser("");
+                await loadShopsAll();
+              } catch (err) {
+                setShopCreateMsg(err.message || String(err));
+              } finally {
+                setShopCreateBusy(false);
+              }
+            }}
+          >
+            <h3 className="text-sm font-semibold text-slate-900">สร้างร้านใหม่</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="text-xs text-slate-600">ชื่อร้าน (แสดงบนเว็บ)</label>
+                <input
+                  required
+                  value={newShopName}
+                  onChange={(e) => setNewShopName(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                  placeholder="เช่น ร้านดอกไม้บ้านสวน"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">
+                  slug (ไม่บังคับ — เว้นว่างระบบสร้างให้อัตโนมัติ)
+                </label>
+                <input
+                  value={newShopSlug}
+                  onChange={(e) => setNewShopSlug(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
+                  placeholder="เช่น garden-shop"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">
+                  ยูสเซอร์เจ้าของร้าน (ไม่บังคับ)
+                </label>
+                <input
+                  value={newShopOwnerUser}
+                  onChange={(e) => setNewShopOwnerUser(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm"
+                  placeholder="ตรงกับล็อกอินสมาชิก"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={shopCreateBusy}
+              className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+            >
+              {shopCreateBusy ? "กำลังสร้าง…" : "สร้างร้าน"}
+            </button>
+            {shopCreateMsg ? (
+              <p
+                className={`text-sm ${
+                  shopCreateMsg.startsWith("สร้างร้านแล้ว")
+                    ? "text-green-800"
+                    : "text-red-600"
+                }`}
+              >
+                {shopCreateMsg}
+              </p>
+            ) : null}
+          </form>
+
           {shopsErr ? <p className="text-sm text-red-600">{shopsErr}</p> : null}
           {shopsLoading ? (
             <p className="text-sm text-slate-500">กำลังโหลด…</p>
           ) : shopsAll.length === 0 ? (
-            <p className="text-sm text-slate-500">ยังไม่มีร้านในฐานข้อมูล</p>
+            <p className="text-sm text-slate-500">ยังไม่มีร้านในฐานข้อมูล — กรอกฟอร์มด้านบน</p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
               <table className="min-w-full text-left text-sm">
@@ -710,6 +809,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ชื่อร้าน</th>
                     <th className="px-3 py-2">slug</th>
                     <th className="px-3 py-2">เจ้าของ (ยูสเซอร์)</th>
+                    <th className="px-3 py-2">ลงสินค้า</th>
                     <th className="px-3 py-2">สร้างเมื่อ</th>
                   </tr>
                 </thead>
@@ -719,6 +819,17 @@ export default function AdminDashboard() {
                       <td className="px-3 py-2 font-medium">{s.name}</td>
                       <td className="px-3 py-2 font-mono text-xs">{s.slug}</td>
                       <td className="px-3 py-2">{s.ownerUsername || "—"}</td>
+                      <td className="px-3 py-2">
+                        <Link
+                          href={`/account/shops/${s.id}/products`}
+                          className="text-brand-800 underline hover:text-brand-950"
+                        >
+                          จัดการสินค้า
+                        </Link>
+                        <p className="mt-0.5 text-[10px] text-slate-500">
+                          (เจ้าของร้านต้องล็อกอิน)
+                        </p>
+                      </td>
                       <td className="px-3 py-2 text-xs text-slate-600">
                         {s.createdAt
                           ? new Date(s.createdAt).toLocaleString("th-TH")

@@ -145,12 +145,28 @@ export default function ProductGrid() {
         </p>
       ) : null}
       {!loading && !err && products.length === 0 ? (
-        <p className="text-sm text-slate-600">
-          ยังไม่มีสินค้าในระบบ — แอดมินสร้างร้านแล้วเจ้าของร้านเพิ่มสินค้าที่{" "}
-          <Link href="/account/shops" className="font-medium text-brand-800 underline">
-            ร้านของฉัน
-          </Link>
-        </p>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+          <p className="font-semibold text-slate-900">ยังไม่มีสินค้าโชว์ — ทำตามนี้ 3 ขั้น</p>
+          <ol className="mt-3 list-decimal space-y-2 pl-5">
+            <li>
+              <strong>แอดมิน</strong> ไป{" "}
+              <Link href="/admin?tab=shops" className="font-medium text-brand-800 underline">
+                แอดมิน → แท็บร้านทั้งหมด
+              </Link>{" "}
+              กด <strong>สร้างร้าน</strong> (ใส่ชื่อร้าน + ยูสเซอร์เจ้าของถ้ามี)
+            </li>
+            <li>
+              <strong>เจ้าของร้าน</strong> ล็อกอิน →{" "}
+              <Link href="/account/shops" className="font-medium text-brand-800 underline">
+                บัญชี → ร้านของฉัน
+              </Link>{" "}
+              → <strong>จัดการสินค้า</strong> → เพิ่มสินค้า
+            </li>
+            <li>
+              รีเฟรชหน้านี้ — จะเห็นการ์ดสินค้าจริง
+            </li>
+          </ol>
+        </div>
       ) : null}
       {loading ? <p className="text-sm text-slate-500">กำลังโหลดสินค้า…</p> : null}
       {!loading && products.length > 0 ? (

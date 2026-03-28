@@ -362,14 +362,12 @@ router.post("/shops", authMiddleware, requireRole("admin"), async (req, res) => 
       .replace(/^-+|-+$/g, "")
       .slice(0, 64);
     const ownerUserId = (req.body || {}).ownerUserId;
+    const ownerUsernameRaw = String((req.body || {}).ownerUsername || "").trim();
     if (!name) {
       return res.status(400).json({ ok: false, error: "กรุณากรอกชื่อร้าน" });
     }
     if (!slug) {
-      return res.status(400).json({
-        ok: false,
-        error: "กรุณากรอก slug (เช่น my-shop)"
-      });
+      slug = `shop-${Date.now().toString(36)}`;
     }
     if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(slug)) {
       return res.status(400).json({
@@ -385,6 +383,13 @@ router.post("/shops", authMiddleware, requireRole("admin"), async (req, res) => 
       owner = await userService.findById(String(ownerUserId).trim());
       if (!owner) {
         return res.status(400).json({ ok: false, error: "ไม่พบสมาชิกเจ้าของร้าน" });
+      }
+    } else if (ownerUsernameRaw) {
+      owner = await userService.findByUsername(ownerUsernameRaw);
+      if (!owner) {
+        return res
+          .status(400)
+          .json({ ok: false, error: `ไม่พบยูสเซอร์「${ownerUsernameRaw}」` });
       }
     }
     const shop = await shopService.createShop({
