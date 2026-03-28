@@ -276,6 +276,15 @@ async function initDb() {
       ALTER TABLE central_game_rules
       ADD COLUMN IF NOT EXISTS prize_total_qty INTEGER NOT NULL DEFAULT 1;
     `);
+    await client.query(`
+      ALTER TABLE central_game_rules
+      ALTER COLUMN prize_total_qty DROP NOT NULL;
+    `);
+    await client.query(`
+      UPDATE central_game_rules
+      SET prize_total_qty = NULL
+      WHERE prize_category = 'none';
+    `);
 
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, hearts, central_games)"

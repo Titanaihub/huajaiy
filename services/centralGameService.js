@@ -106,10 +106,12 @@ function rowRule(row) {
     prizeValueText: row.prize_value_text || "",
     prizeUnit: row.prize_unit || "",
     description: row.description || "",
-    prizeTotalQty: Math.max(
-      1,
-      Math.floor(Number(row.prize_total_qty)) || 1
-    )
+    prizeTotalQty:
+      row.prize_category === "none"
+        ? null
+        : row.prize_total_qty == null
+          ? 1
+          : Math.max(1, Math.floor(Number(row.prize_total_qty)) || 1)
   };
 }
 
@@ -438,10 +440,10 @@ async function replaceRules(gameId, rules) {
         throw e;
       }
       const id = crypto.randomUUID();
-      const prizeTotalQty = Math.max(
-        1,
-        Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1)
-      );
+      const prizeTotalQty =
+        cat === "none"
+          ? null
+          : Math.max(1, Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1));
       await client.query(
         `INSERT INTO central_game_rules (
           id, game_id, sort_order, set_index, need_count, prize_category,
@@ -569,7 +571,8 @@ function prizesForClient(rules, setImageCounts) {
       label: formatRuleLabel(r, catLabel, cap),
       prizeCategory: r.prizeCategory,
       prizeTitle: r.prizeTitle,
-      totalPrizeQty: r.prizeTotalQty ?? 1
+      totalPrizeQty:
+        r.prizeCategory === "none" ? null : (r.prizeTotalQty ?? 1)
     };
   });
 }
