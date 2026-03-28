@@ -7,6 +7,18 @@ const {
 const { ADMIN } = require("../constants/roles");
 const userService = require("./userService");
 
+/** ทดลอง: เบอร์ 10 หลักที่พิมพ์ลืม 0 นำหน้า (เช่น 1234567890) → ใช้ 0 + 9 หลักหลัง */
+function resolveBootstrapPhone(raw) {
+  const s = String(raw ?? "").replace(/\s+/g, "");
+  let v = validatePhone(s);
+  if (v.ok) return v;
+  if (/^[1-9][0-9]{9}$/.test(s)) {
+    v = validatePhone(`0${s.slice(1)}`);
+    if (v.ok) return v;
+  }
+  return validatePhone(s);
+}
+
 /**
  * สร้างหรืออัปเดตบัญชีแอดมินจาก env — ไม่ต้องสมัครผ่านเว็บก่อน
  *
@@ -45,10 +57,10 @@ async function bootstrapAdminFromEnv() {
     return;
   }
 
-  const vph = validatePhone(process.env.BOOTSTRAP_ADMIN_PHONE ?? "");
+  const vph = resolveBootstrapPhone(process.env.BOOTSTRAP_ADMIN_PHONE ?? "");
   if (!vph.ok) {
     console.warn(
-      `[admin-bootstrap] ยังไม่มี user "${username}" — ตั้ง BOOTSTRAP_ADMIN_PHONE (เบอร์ 10 หลัก) แล้ว deploy อีกครั้งเพื่อสร้างบัญชีแอดมิน`
+      `[admin-bootstrap] ยังไม่มี user "${username}" — ตั้ง BOOTSTRAP_ADMIN_PHONE เป็นเบอร์ 10 หลักขึ้นต้น 0 (เช่น 0812345678) แล้ว deploy อีกครั้ง`
     );
     return;
   }
