@@ -81,7 +81,7 @@ API service (`server.js`): `POST /upload` to Cloudinary · สมาชิกเ
 - `GET /api/auth/me` — ต้องมี header `Authorization: Bearer <token>`
 - `POST /api/orders` — บันทึกออเดอร์ (Bearer + body JSON)
 - `GET /api/orders/me` — รายการออเดอร์ของผู้ใช้ (Bearer)
-- **แอดมิน** (Bearer + `users.role = 'admin'`): `GET /api/admin/members` · `GET /api/admin/members/:id` · **`GET /api/admin/members/:id/full`** (ออเดอร์ ร้าน สถิติ) · `POST /api/admin/members/:id/hearts` `{ "delta": number }` · `POST /api/admin/members/:id/password` `{ "newPassword": "..." }` · `GET /api/admin/shops` (ร้านทั้งระบบ) · `GET /api/admin/name-change-requests` · `POST .../approve|reject` · `GET /api/admin/ping` — หน้าเว็บ **`/admin`**
+- **แอดมิน** (Bearer + `users.role = 'admin'`): `GET /api/admin/members` · `GET /api/admin/members/:id` · **`GET /api/admin/members/:id/full`** (ออเดอร์ ร้าน สถิติ) · `POST /api/admin/members/:id/hearts` `{ "delta": number }` · `POST /api/admin/members/:id/password` `{ "newPassword": "..." }` · `GET /api/admin/shops` (ร้านทั้งระบบ) · `GET /api/admin/game` (กติกา รางวัล สถานะ session เกม) · `GET /api/admin/name-change-requests` · `POST .../approve|reject` · `GET /api/admin/ping` — หน้าเว็บ **`/admin`**
 - `GET /api/game/meta`
 - `POST /api/game/start`, `POST /api/game/flip`, `POST /api/game/abandon`
 

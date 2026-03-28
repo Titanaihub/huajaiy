@@ -6,6 +6,7 @@ const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
 const orderService = require("./services/orderService");
 const shopService = require("./services/shopService");
+const { getAdminSnapshot } = require("./gameSession");
 
 const router = express.Router();
 
@@ -176,6 +177,23 @@ router.get("/shops", authMiddleware, requireRole("admin"), async (_req, res) => 
   try {
     const shops = await shopService.listAllForAdmin();
     return res.json({ ok: true, shops });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เกมพลิกการ์ด — รางวัลจากโค้ด + สถานะ session ในหน่วยความจำ */
+router.get("/game", authMiddleware, requireRole("admin"), (_req, res) => {
+  try {
+    const heartCost = Number(process.env.GAME_HEART_COST || 0);
+    const snap = getAdminSnapshot();
+    return res.json({
+      ok: true,
+      heartCost,
+      ...snap,
+      persistenceNote:
+        "รอบเกมอยู่ในหน่วยความจำของเซิร์ฟเวอร์ — หลัง redeploy หรือรีสตาร์ท session จะหาย · ยังไม่มีตารางบันทึกผู้ชนะหรือรางวัลต่อสมาชิกในฐานข้อมูล"
+    });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

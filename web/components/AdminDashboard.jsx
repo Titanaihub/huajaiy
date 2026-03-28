@@ -10,7 +10,8 @@ import {
   apiAdminNameChangeRequests,
   apiAdminRejectNameChange,
   apiAdminSetMemberPassword,
-  apiAdminShops
+  apiAdminShops,
+  apiAdminGame
 } from "../lib/rolesApi";
 
 const PAGE_SIZE = 25;
@@ -52,6 +53,11 @@ export default function AdminDashboard() {
   const [shopsAll, setShopsAll] = useState([]);
   const [shopsLoading, setShopsLoading] = useState(false);
   const [shopsErr, setShopsErr] = useState("");
+
+  /** @type {null | { heartCost: number, cardCount: number, prizes: array, activeSessions: number, sessionsPlaying: number, sessionsFinished: number, pruneAfterMs: number, persistenceNote?: string }} */
+  const [gameInfo, setGameInfo] = useState(null);
+  const [gameLoading, setGameLoading] = useState(false);
+  const [gameErr, setGameErr] = useState("");
 
   const loadMembers = useCallback(async () => {
     const token = getMemberToken();
@@ -265,6 +271,17 @@ export default function AdminDashboard() {
           }`}
         >
           ร้านทั้งหมด
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("game")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "game"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          เกมและรางวัล
         </button>
         <button
           type="button"
@@ -621,6 +638,86 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+          )}
+        </section>
+      ) : tab === "game" ? (
+        <section className="space-y-4">
+          <p className="text-sm text-slate-600">
+            เกมพลิกการ์ดที่หน้า <code className="rounded bg-slate-100 px-1">/game</code> — รางวัลและจำนวนการ์ดต่อประเภทกำหนดในไฟล์{" "}
+            <code className="rounded bg-slate-100 px-1">gameSession.js</code> (ค่า <code className="rounded bg-slate-100 px-1">PRIZES</code>)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => loadGameInfo()}
+              disabled={gameLoading}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+            >
+              รีเฟรชสถานะ
+            </button>
+          </div>
+          {gameErr ? <p className="text-sm text-red-600">{gameErr}</p> : null}
+          {gameLoading && !gameInfo ? (
+            <p className="text-sm text-slate-500">กำลังโหลด…</p>
+          ) : gameInfo?.ok ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                {gameInfo.persistenceNote}
+              </div>
+              <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">หัวใจต่อรอบ (GAME_HEART_COST)</dt>
+                  <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.heartCost}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">จำนวนการ์ดบนกระดาน</dt>
+                  <dd className="mt-1 text-lg font-semibold text-slate-900">{gameInfo.cardCount}</dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">Session ที่ยังอยู่ในหน่วยความจำ</dt>
+                  <dd className="mt-1 font-semibold text-slate-900">
+                    ทั้งหมด {gameInfo.activeSessions} · กำลังเล่น {gameInfo.sessionsPlaying} · จบแล้วยังไม่หมดอายุ{" "}
+                    {gameInfo.sessionsFinished}
+                  </dd>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">ลบ session เก่าหลัง</dt>
+                  <dd className="mt-1 text-slate-800">
+                    {Math.round((gameInfo.pruneAfterMs || 0) / 60000)} นาที (ไม่ได้ใช้งาน)
+                  </dd>
+                </div>
+              </dl>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800">รางวัล — เปิดครบตามจำนวนใต้คอลัมน์ &quot;ต้องครบ&quot; ถึงชนะ</h3>
+                <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+                      <tr>
+                        <th className="px-3 py-2">key</th>
+                        <th className="px-3 py-2">รางวัล</th>
+                        <th className="px-3 py-2">ต้องครบ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(gameInfo.prizes || []).map((p) => (
+                        <tr key={p.key} className="border-b border-slate-100">
+                          <td className="px-3 py-2 font-mono text-xs">{p.key}</td>
+                          <td className="px-3 py-2">
+                            <span className="mr-1" aria-hidden>
+                              {p.emoji}
+                            </span>
+                            {p.label}
+                          </td>
+                          <td className="px-3 py-2">{p.need}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">ไม่มีข้อมูล</p>
           )}
         </section>
       ) : (

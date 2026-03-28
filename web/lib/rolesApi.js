@@ -108,6 +108,15 @@ export async function apiAdminShops(token) {
   return data;
 }
 
+export async function apiAdminGame(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/game`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดข้อมูลเกมไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminNameChangeRequests(token) {
   const r = await fetch(`${apiRoot()}/api/admin/name-change-requests`, {
     headers: { Authorization: `Bearer ${token}` }

@@ -102,10 +102,27 @@ function pruneSessions(maxAgeMs = 60 * 60 * 1000) {
 
 setInterval(() => pruneSessions(), 10 * 60 * 1000).unref();
 
+/** สรุปให้แอดมิน — ไม่เปิดเผยค่าใต้การ์ด */
+function getAdminSnapshot() {
+  let playing = 0;
+  for (const s of sessions.values()) {
+    if (!s.winner) playing += 1;
+  }
+  return {
+    activeSessions: sessions.size,
+    sessionsPlaying: playing,
+    sessionsFinished: sessions.size - playing,
+    prizes: PRIZES,
+    cardCount: CARD_COUNT,
+    pruneAfterMs: 60 * 60 * 1000
+  };
+}
+
 module.exports = {
   PRIZES,
   CARD_COUNT,
   createSession,
   flip,
-  abandonSession
+  abandonSession,
+  getAdminSnapshot
 };
