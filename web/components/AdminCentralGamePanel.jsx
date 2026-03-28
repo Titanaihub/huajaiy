@@ -100,7 +100,7 @@ function RuleEditorRow({
   );
   const cap = needCap ?? Math.max(1, parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1);
   return (
-    <div className="grid min-w-[680px] gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
+    <div className="grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
       {showSetPicker ? (
         <div className="sm:col-span-1">
           <label className="text-[10px] text-slate-500">ชุด (0=ชุด1)</label>
@@ -1015,7 +1015,7 @@ export default function AdminCentralGamePanel() {
                           ยังไม่มีแถว — กดเพิ่มถ้าต้องการเงื่อนไขในชุดนี้
                         </p>
                       ) : null}
-                      <div className="space-y-3 overflow-x-auto pb-1">
+                      <div className="space-y-3 pb-1">
                         {ruleEntries.map(({ r, idx }) => (
                           <RuleEditorRow
                             key={idx}
@@ -1052,7 +1052,7 @@ export default function AdminCentralGamePanel() {
                     <p className="mt-1 text-xs text-amber-900">
                       มักเกิดหลังลดจำนวนชุด — แก้เลขชุดหรือลบแถว
                     </p>
-                    <div className="mt-3 space-y-3 overflow-x-auto">
+                    <div className="mt-3 space-y-3">
                       {orphans.map(({ r, idx }) => {
                         const siClamp = Math.min(
                           setCount - 1,

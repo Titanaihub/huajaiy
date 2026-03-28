@@ -7,7 +7,7 @@ export async function fetchPublicCentralGameMeta() {
   const base = getApiBase().replace(/\/$/, "");
   try {
     const r = await fetch(`${base}/api/game/meta`, {
-      next: { revalidate: 30 },
+      cache: "no-store",
       headers: { Accept: "application/json" }
     });
     if (!r.ok) return null;

@@ -1,8 +1,13 @@
 import Link from "next/link";
 import FlipGameDemo from "../../components/FlipGameDemo";
+import GameApiLiveStatus from "../../components/GameApiLiveStatus";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import { fetchPublicCentralGameMeta } from "../../lib/publicGameMeta";
+
+/** หลีกเลี่ยง HTML ค้างจากตอน build — ดึงสถานะเกมเผยแพร่ใหม่ทุกครั้งที่เปิดหน้า */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata() {
   const m = await fetchPublicCentralGameMeta();
@@ -33,6 +38,7 @@ export default async function GamePage() {
             ? "เกมส่วนกลางที่เผยแพร่แล้ว — เปิดป้ายตามกติกา ลุ้นรางวัล"
             : "โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง"}
         </p>
+        <GameApiLiveStatus />
         <FlipGameDemo serverCentralPublished={Boolean(centralMeta)} />
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
           <Link href="/" className="text-blue-600 underline hover:text-blue-800">
