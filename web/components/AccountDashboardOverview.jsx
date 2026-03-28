@@ -137,6 +137,18 @@ export default function AccountDashboardOverview() {
                   ไปช้อปปิ้ง
                 </Link>
               </li>
+              <li>
+                <Link href="/account/shops" className="font-medium text-brand-800 hover:underline">
+                  ร้านของฉัน — ลงสินค้าขาย
+                </Link>
+              </li>
+              {(user.role === "owner" || user.role === "admin") && (
+                <li>
+                  <Link href="/owner" className="font-medium text-brand-800 hover:underline">
+                    คู่มือขั้นตอนขาย (เจ้าของร้าน)
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -193,18 +205,49 @@ export default function AccountDashboardOverview() {
         {!shopsLoaded ? (
           <p className="mt-3 text-sm text-slate-500">กำลังโหลด…</p>
         ) : shops.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">
-            ยังไม่มีร้านในชื่อคุณในฐานข้อมูล — หากเป็นเจ้าของร้านให้ใช้เมนู{" "}
-            <Link href="/owner" className="font-medium text-brand-800 hover:underline">
-              เจ้าของร้าน
-            </Link>
-          </p>
+          <div className="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-600">
+            <p>ยังไม่มีร้านในชื่อคุณ — ระบบลงขายจะใช้ได้หลังแอดมินสร้างร้านและผูกบัญชี</p>
+            <p className="mt-2">
+              <Link href="/account/shops" className="font-medium text-brand-800 hover:underline">
+                ไปหน้าร้านของฉัน
+              </Link>
+              {user.role === "owner" || user.role === "admin" ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <Link href="/owner" className="font-medium text-brand-800 hover:underline">
+                    ดูขั้นตอนขาย
+                  </Link>
+                </>
+              ) : null}
+              {user.role === "admin" ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <Link href="/admin?tab=shops" className="font-medium text-brand-800 hover:underline">
+                    สร้างร้าน (แอดมิน)
+                  </Link>
+                </>
+              ) : null}
+            </p>
+          </div>
         ) : (
           <ul className="mt-3 space-y-2 text-sm">
             {shops.map((s) => (
-              <li key={s.id} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                <span className="font-medium text-slate-900">{s.name}</span>{" "}
-                <span className="text-slate-500">({s.slug})</span>
+              <li
+                key={s.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2"
+              >
+                <span>
+                  <span className="font-medium text-slate-900">{s.name}</span>{" "}
+                  <span className="text-slate-500">({s.slug})</span>
+                </span>
+                <Link
+                  href={`/account/shops/${s.id}/products`}
+                  className="shrink-0 font-medium text-brand-800 hover:underline"
+                >
+                  จัดการสินค้า
+                </Link>
               </li>
             ))}
           </ul>

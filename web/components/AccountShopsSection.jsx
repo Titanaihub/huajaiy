@@ -58,24 +58,37 @@ export default function AccountShopsSection() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-slate-900">ร้านของฉัน</h2>
       <p className="text-sm text-slate-600">
-        ร้านในตาราง <code className="rounded bg-slate-100 px-1 text-xs">shops</code> ที่เชื่อมกับบัญชีคุณ (
-        <code className="rounded bg-slate-100 px-1 text-xs">owner_user_id</code>)
+        ที่นี่คือจุด<strong>ลงสินค้าเพื่อขาย</strong>: เลือกร้านแล้วกด <strong>จัดการสินค้า</strong> (ต้องมีร้านในชื่อคุณแล้ว
+        — แอดมินสร้างที่ <Link href="/admin?tab=shops" className="font-medium text-brand-800 underline">แอดมิน → ร้านทั้งหมด</Link>)
       </p>
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
       {busy ? (
         <p className="text-sm text-slate-500">กำลังโหลด…</p>
       ) : shops.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-6 text-sm text-slate-600">
-          <p>ยังไม่มีร้านในชื่อบัญชีนี้</p>
+          <p className="font-medium text-slate-800">ยังไม่มีร้าน — ยังลงขายไม่ได้</p>
+          <p className="mt-2 text-slate-600">
+            ระบบขายทำงานเมื่อแอดมินสร้างร้านและผูกบัญชีคุณแล้ว จากนั้นจะเห็นรายการร้านที่นี่และปุ่มจัดการสินค้า
+          </p>
           {canOwnerPanel ? (
-            <p className="mt-3">
-              <Link href="/owner" className="font-semibold text-brand-800 hover:underline">
-                เปิดแผงเจ้าของร้าน
-              </Link>
-            </p>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-slate-700">
+              <li>
+                <Link href="/owner" className="font-semibold text-brand-800 hover:underline">
+                  หน้าขายสินค้า (เจ้าของร้าน)
+                </Link>{" "}
+                — สรุปขั้นตอน
+              </li>
+              {user?.role === "admin" ? (
+                <li>
+                  <Link href="/admin?tab=shops" className="font-semibold text-brand-800 hover:underline">
+                    สร้างร้าน (แอดมิน)
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
           ) : (
             <p className="mt-3 text-slate-500">
-              หากคุณเป็นเจ้าของร้าน ให้ติดต่อแอดมินเพื่อตั้งบทบาทและผูกร้าน
+              ติดต่อแอดมินให้ตั้งบทบาท <span className="font-mono text-xs">owner</span> และสร้างร้านผูกยูสเซอร์คุณ
             </p>
           )}
         </div>

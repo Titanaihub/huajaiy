@@ -27,6 +27,13 @@ export default function MemberNav() {
         >
           หลังบ้าน
         </Link>
+        <Link
+          href="/account/shops"
+          className="font-medium text-brand-700 transition hover:text-brand-900"
+          title="ลงสินค้า จัดการร้าน"
+        >
+          ร้านของฉัน
+        </Link>
         {user.role === "admin" ? (
           <Link
             href="/admin"
