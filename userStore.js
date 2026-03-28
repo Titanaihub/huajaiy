@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { MEMBER } = require("./constants/roles");
 
 const DATA_FILE = path.join(__dirname, "data", "users.json");
 
@@ -52,6 +53,7 @@ function createUser({ username, passwordHash, firstName, lastName, phone }) {
     firstName,
     lastName,
     phone,
+    role: MEMBER,
     createdAt: new Date().toISOString()
   };
   users.push(user);
@@ -66,7 +68,8 @@ function publicUser(u) {
     username: u.username,
     firstName: u.firstName,
     lastName: u.lastName,
-    phone: u.phone
+    phone: u.phone,
+    role: u.role || MEMBER
   };
 }
 

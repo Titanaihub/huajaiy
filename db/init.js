@@ -19,8 +19,13 @@ async function initDb() {
         first_name VARCHAR(64) NOT NULL,
         last_name VARCHAR(64) NOT NULL,
         phone VARCHAR(16) NOT NULL,
+        role VARCHAR(32) NOT NULL DEFAULT 'member',
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'member';
     `);
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`
@@ -57,7 +62,9 @@ async function initDb() {
       `CREATE INDEX IF NOT EXISTS idx_shops_owner ON shops(owner_user_id);`
     );
 
-    console.log("[db] PostgreSQL schema พร้อม (users, orders, shops)");
+    console.log(
+      "[db] PostgreSQL schema พร้อม (users + role, orders, shops)"
+    );
   } finally {
     client.release();
   }

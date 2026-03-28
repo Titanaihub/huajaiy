@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
 const userStore = require("../userStore");
+const { MEMBER } = require("../constants/roles");
 
 function rowToUser(row) {
   return {
@@ -10,6 +11,7 @@ function rowToUser(row) {
     firstName: row.first_name,
     lastName: row.last_name,
     phone: row.phone,
+    role: row.role || MEMBER,
     createdAt: row.created_at
   };
 }
@@ -73,7 +75,8 @@ function publicUser(u) {
     username: u.username,
     firstName: u.firstName,
     lastName: u.lastName,
-    phone: u.phone
+    phone: u.phone,
+    role: u.role || MEMBER
   };
 }
 

@@ -21,6 +21,22 @@ export default function MemberNav() {
         <span className="max-w-[140px] truncate text-sm font-medium text-slate-800" title={label}>
           {label}
         </span>
+        {user.role === "admin" ? (
+          <Link
+            href="/admin"
+            className="font-medium text-brand-700 transition hover:text-brand-900"
+          >
+            แอดมิน
+          </Link>
+        ) : null}
+        {user.role === "owner" || user.role === "admin" ? (
+          <Link
+            href="/owner"
+            className="font-medium text-brand-700 transition hover:text-brand-900"
+          >
+            เจ้าของร้าน
+          </Link>
+        ) : null}
         <button
           type="button"
           onClick={() => logout()}

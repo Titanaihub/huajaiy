@@ -6,6 +6,7 @@ const {
   validateLoginBody
 } = require("./authValidators");
 const userService = require("./services/userService");
+const { MEMBER } = require("./constants/roles");
 
 function getJwtSecret() {
   const s = process.env.JWT_SECRET;
@@ -19,29 +20,51 @@ function getJwtSecret() {
 }
 
 function signToken(user) {
+  const role = user.role || MEMBER;
   return jwt.sign(
-    { sub: user.id, username: user.username },
+    { sub: user.id, username: user.username, role },
     getJwtSecret(),
     { expiresIn: "30d" }
   );
 }
 
-function authMiddleware(req, res, next) {
+/** โหลดบทบาทจาก DB ทุกครั้ง — โทเค็นเก่ายังใช้ได้ แต่ role ตามข้อมูลล่าสุด */
+async function authMiddleware(req, res, next) {
   const h = req.headers.authorization;
   if (!h || !h.startsWith("Bearer ")) {
     return res.status(401).json({ ok: false, error: "ไม่ได้เข้าสู่ระบบ" });
   }
   const token = h.slice(7);
+  let payload;
   try {
-    const payload = jwt.verify(token, getJwtSecret());
-    req.userId = payload.sub;
-    req.username = payload.username;
-    next();
+    payload = jwt.verify(token, getJwtSecret());
   } catch {
     return res
       .status(401)
       .json({ ok: false, error: "โทเค็นไม่ถูกต้องหรือหมดอายุ" });
   }
+  req.userId = payload.sub;
+  try {
+    const user = await userService.findById(req.userId);
+    if (!user) {
+      return res.status(401).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    req.username = user.username;
+    req.userRole = user.role || MEMBER;
+    next();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+}
+
+function requireRole(...allowed) {
+  return (req, res, next) => {
+    const r = req.userRole || MEMBER;
+    if (!allowed.includes(r)) {
+      return res.status(403).json({ ok: false, error: "ไม่มีสิทธิ์เข้าถึง" });
+    }
+    next();
+  };
 }
 
 const router = express.Router();
@@ -112,4 +135,4 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = { router, authMiddleware };
+module.exports = { router, authMiddleware, requireRole };

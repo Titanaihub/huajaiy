@@ -13,6 +13,8 @@ const {
 } = require("./gameSession");
 const { router: authRouter } = require("./authRouter");
 const { router: ordersRouter } = require("./ordersRouter");
+const { router: adminRouter } = require("./adminRouter");
+const { router: ownerRouter } = require("./ownerRouter");
 const { initDb } = require("./db/init");
 
 const app = express();
@@ -24,6 +26,9 @@ app.use(
 );
 app.use(express.json());
 app.use("/api/auth", authRouter);
+app.use("/api/orders", ordersRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/owner", ownerRouter);
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: "1h"
