@@ -15,7 +15,7 @@ import {
   apiAdminCentralGamesList
 } from "../lib/rolesApi";
 
-const UNITS = ["บาท", "ดอลลาร์ (USD)", "อัน", "ใบ", "กล่อง", "ชิ้น"];
+const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง"];
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
