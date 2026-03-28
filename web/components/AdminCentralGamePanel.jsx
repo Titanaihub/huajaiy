@@ -103,6 +103,8 @@ export default function AdminCentralGamePanel() {
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
+  /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
+  const [createExpanded, setCreateExpanded] = useState(false);
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -227,6 +229,7 @@ export default function AdminCentralGamePanel() {
       if (gid) {
         setSelectedId(gid);
         setPublishPrompt({ id: gid, title: gtitle });
+        setCreateExpanded(false);
       }
     } catch (e) {
       setMsg(e.message || String(e));
@@ -420,17 +423,21 @@ export default function AdminCentralGamePanel() {
     }
   }
 
-  function openEditGame(id) {
-    if (!id) return;
-    setErr("");
-    setMsg("");
-    setSelectedId(id);
+  function scrollToEditor() {
     window.setTimeout(() => {
       document.getElementById("central-game-editor")?.scrollIntoView({
         behavior: "smooth",
         block: "start"
       });
     }, 150);
+  }
+
+  function openEditGame(id) {
+    if (!id) return;
+    setErr("");
+    setMsg("");
+    setSelectedId(id);
+    scrollToEditor();
   }
 
   async function deleteGameById(id, title) {
@@ -486,77 +493,96 @@ export default function AdminCentralGamePanel() {
 
   return (
     <section className="space-y-8 text-sm">
-      <p className="text-sm text-slate-600">
-        <strong>เกมส่วนกลาง:</strong> แต่ละชุดมีจำนวนป้ายได้คนละค่า · ชุดละ 1 รูป (ป้ายในชุดใช้รูปเดียวกัน) · กติกาเรียงลำดับการตรวจจนจบรอบ — ใช้ปุ่ม{" "}
-        <strong className="text-slate-800">บันทึกข้อมูล</strong> ด้านล่างฟอร์มแก้ไขเพื่อบันทึกครั้งเดียว
-      </p>
+      <details className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+        <summary className="cursor-pointer font-medium text-slate-800">คำอธิบายสั้น (กดเปิด)</summary>
+        <p className="mt-2 border-t border-slate-100 pt-2">
+          เลือกเกมจากตาราง → แก้โครง รูป กติกา → กด <strong>บันทึกข้อมูล</strong> แถบล่าง → กด <strong>เผยแพร่</strong> เพื่อให้เล่นที่หน้าเกม
+        </p>
+      </details>
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
         <p className={msg.includes("แล้ว") ? "text-green-700" : "text-amber-800"}>{msg}</p>
       ) : null}
 
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <h3 className="font-semibold text-slate-900">สร้างเกมใหม่</h3>
-        <form onSubmit={createGame} className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label className="text-xs text-slate-600">ชื่อเกม</label>
-            <input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              required
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="text-xs text-slate-600">จำนวนชุดภาพ</label>
-            <input
-              type="number"
-              min={1}
-              value={newSets}
-              onChange={(e) => {
-                const n = Math.max(1, parseInt(e.target.value, 10) || 1);
-                setNewSets(n);
-                setNewSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
-              }}
-              className="mt-1 w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2"
-            />
-          </div>
-          <p className="sm:col-span-2 text-xs text-slate-500">
-            เริ่มต้นชุดละ 4 ป้าย — หลังสร้างแล้วเลือกเกมด้านล่างเพื่อปรับจำนวนป้ายและอัปโหลดรูปทีละชุดในฟอร์มเดียว
-          </p>
-          <div>
-            <label className="text-xs text-slate-600">ป้ายรวม (ผลรวมทุกชุด)</label>
-            <p className="mt-2 font-mono text-slate-800">{newTileCount}</p>
-          </div>
-          <div>
-            <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
-            <input
-              type="number"
-              min={0}
-              value={newPinkHeart}
-              onChange={(e) => setNewPinkHeart(parseInt(e.target.value, 10) || 0)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
-            <input
-              type="number"
-              min={0}
-              value={newRedHeart}
-              onChange={(e) => setNewRedHeart(parseInt(e.target.value, 10) || 0)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              className="rounded-lg bg-brand-800 px-4 py-2 font-semibold text-white hover:bg-brand-900"
-            >
-              สร้างเกม
-            </button>
-          </div>
-        </form>
+      <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
+        <button
+          type="button"
+          onClick={() => setCreateExpanded((v) => !v)}
+          className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold text-slate-900"
+          aria-expanded={createExpanded}
+        >
+          <span>สร้างเกมใหม่ {createExpanded ? "▼" : "▶"}</span>
+          <span className="text-xs font-normal text-slate-500">แสดงเฉพาะเมื่อต้องการสร้าง — ไม่ซ้ำกับฟอร์มแก้ไขด้านล่าง</span>
+        </button>
+        {createExpanded ? (
+          <form onSubmit={createGame} className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="text-xs text-slate-600">ชื่อเกม</label>
+              <input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+                required
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs text-slate-600">จำนวนชุดภาพ</label>
+              <input
+                type="number"
+                min={1}
+                value={newSets}
+                onChange={(e) => {
+                  const n = Math.max(1, parseInt(e.target.value, 10) || 1);
+                  setNewSets(n);
+                  setNewSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
+                }}
+                className="mt-1 w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </div>
+            <p className="sm:col-span-2 text-xs text-slate-500">
+              เริ่มต้นชุดละ 4 ป้าย — หลังสร้างแล้วเลือกเกมในตารางเพื่อแก้โครงและรูป
+            </p>
+            <div>
+              <label className="text-xs text-slate-600">ป้ายรวม</label>
+              <p className="mt-2 font-mono text-slate-800">{newTileCount}</p>
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
+              <input
+                type="number"
+                min={0}
+                value={newPinkHeart}
+                onChange={(e) => setNewPinkHeart(parseInt(e.target.value, 10) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
+              <input
+                type="number"
+                min={0}
+                value={newRedHeart}
+                onChange={(e) => setNewRedHeart(parseInt(e.target.value, 10) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              />
+            </div>
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              <button
+                type="submit"
+                className="rounded-lg bg-brand-800 px-4 py-2 font-semibold text-white hover:bg-brand-900"
+              >
+                สร้างเกม
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreateExpanded(false)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                ปิด
+              </button>
+            </div>
+          </form>
+        ) : null}
       </div>
 
       {publishPrompt ? (
@@ -587,32 +613,18 @@ export default function AdminCentralGamePanel() {
         </div>
       ) : null}
 
-      <div>
-        <label className="text-xs font-medium text-slate-600">เลือกเกมแก้ไข</label>
-        <select
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-          className="mt-1 w-full max-w-md rounded-lg border border-slate-300 px-3 py-2"
-        >
-          <option value="">— เลือก —</option>
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.title} {g.isActive ? "(กำลังใช้)" : ""} · {g.tileCount} ป้าย · ชมพู{" "}
-              {g.pinkHeartCost ?? 0} แดง {g.redHeartCost ?? 0}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={() => loadList()}
-          className="ml-2 mt-2 rounded border border-slate-300 px-2 py-1 text-xs"
-        >
-          รีเฟรชรายการ
-        </button>
-      </div>
-
       {games.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+            <h3 className="text-sm font-semibold text-slate-800">รายการเกม — คลิกแถวเพื่อเลือกแก้ไข</h3>
+            <button
+              type="button"
+              onClick={() => loadList()}
+              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+            >
+              รีเฟรชรายการ
+            </button>
+          </div>
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
               <tr>
@@ -624,7 +636,18 @@ export default function AdminCentralGamePanel() {
             </thead>
             <tbody>
               {games.map((g) => (
-                <tr key={g.id} className="border-b border-slate-100">
+                <tr
+                  key={g.id}
+                  className={`cursor-pointer border-b border-slate-100 transition hover:bg-slate-50 ${
+                    g.id === selectedId ? "bg-brand-50/80" : ""
+                  }`}
+                  onClick={() => {
+                    setErr("");
+                    setMsg("");
+                    setSelectedId(g.id);
+                    scrollToEditor();
+                  }}
+                >
                   <td className="px-3 py-2 font-medium text-slate-900">{g.title}</td>
                   <td className="px-3 py-2 tabular-nums text-slate-700">{g.tileCount}</td>
                   <td className="px-3 py-2">
@@ -636,7 +659,7 @@ export default function AdminCentralGamePanel() {
                       <span className="text-xs text-slate-500">ไม่ได้ใช้</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                  <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       onClick={() => openEditGame(g.id)}
