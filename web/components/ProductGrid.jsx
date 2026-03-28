@@ -26,9 +26,9 @@ export default function ProductGrid() {
       {mockProducts.map((p) => (
         <li
           key={p.id}
-          className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          className="surface-game flex flex-col p-4"
         >
-          <div className="flex h-28 items-center justify-center rounded-xl bg-slate-100 text-5xl text-slate-500">
+          <div className="flex h-28 items-center justify-center rounded-xl bg-gradient-to-br from-white/90 to-rose-50/80 text-5xl text-slate-500 ring-1 ring-white/80">
             {p.emoji ?? "🛒"}
           </div>
           <h2 className="mt-3 text-sm font-semibold text-slate-900">
@@ -52,7 +52,7 @@ export default function ProductGrid() {
             <button
               type="button"
               onClick={() => putInCart(p)}
-              className="w-full rounded-xl bg-brand-800 py-2 text-sm font-medium text-white hover:bg-brand-900"
+              className="w-full rounded-xl bg-gradient-to-r from-rose-600 to-red-500 py-2 text-sm font-bold text-white shadow-[0_6px_18px_-6px_rgb(225_29_72/0.45)] hover:from-rose-700 hover:to-red-600"
             >
               ใส่ตะกร้า
             </button>

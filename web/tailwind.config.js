@@ -21,7 +21,11 @@ module.exports = {
         }
       },
       boxShadow: {
-        soft: "0 2px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.06)"
+        soft: "0 2px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.06)",
+        game:
+          "0 12px 40px -10px rgb(225 29 72 / 0.28), 0 4px 20px -6px rgb(251 113 133 / 0.35)",
+        "game-sm":
+          "0 8px 28px -8px rgb(225 29 72 / 0.22), 0 2px 10px -4px rgb(255 255 255 / 0.5)"
       }
     }
   },

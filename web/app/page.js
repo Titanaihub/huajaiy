@@ -10,62 +10,63 @@ const actions = [
     href: "/shop",
     title: "ร้านค้า",
     desc: "ดูสินค้าตัวอย่างและแต้มหัวใจ",
-    accent: "border-brand-200/90 bg-gradient-to-br from-brand-50/90 to-white"
+    accent:
+      "border-white/80 bg-gradient-to-br from-white/88 via-rose-50/75 to-pink-100/50 shadow-game-sm backdrop-blur-md"
   },
   {
     href: "/cart",
     title: "ตะกร้า",
     desc: "จัดการรายการและยืนยันออเดอร์สาธิต",
-    accent: "border-slate-200/90 bg-white"
+    accent: "border-white/75 bg-white/78 shadow-game-sm backdrop-blur-md"
   },
   {
     href: "/game",
     title: "เกมเปิดป้าย",
     desc: "ทดสอบกติกาสะสมครบก่อนชนะ",
-    accent: "border-slate-200/90 bg-white"
+    accent: "border-white/75 bg-white/78 shadow-game-sm backdrop-blur-md"
   },
   {
     href: "/contact",
     title: "ติดต่อ",
     desc: "ส่งข้อความถึงทีมงาน",
-    accent: "border-slate-200/90 bg-white"
+    accent: "border-white/75 bg-white/78 shadow-game-sm backdrop-blur-md"
   },
   {
     href: "/auth",
     title: "Facebook · LINE",
     desc: "เข้าด้วยบัญชีโซเชียล (NextAuth) — ยูส/รหัสผ่านที่ล็อกอิน/สมัคร",
-    accent: "border-slate-200/90 bg-white"
+    accent: "border-white/75 bg-white/78 shadow-game-sm backdrop-blur-md"
   }
 ];
 
 const btnPrimary =
-  "inline-flex items-center justify-center rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2";
+  "inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-rose-600 to-red-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_6px_20px_-4px_rgb(225_29_72/0.55)] transition hover:from-rose-700 hover:to-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white/90";
 
 const btnSecondary =
-  "inline-flex items-center justify-center rounded-xl border border-brand-300 bg-white px-5 py-2.5 text-sm font-semibold text-brand-900 shadow-sm transition hover:border-brand-400 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2";
+  "inline-flex items-center justify-center rounded-xl border border-white/80 bg-white/90 px-5 py-2.5 text-sm font-bold text-rose-800 shadow-game-sm backdrop-blur-sm transition hover:border-rose-200 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
 export default function HomePage() {
   return (
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
-        <section className="relative overflow-hidden rounded-3xl border border-brand-100/90 bg-white p-8 shadow-soft md:p-10 lg:p-12">
+        <section className="surface-game-hero relative overflow-hidden p-8 md:p-10 lg:p-12">
           <div
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-brand-200/50 via-brand-100/60 to-transparent blur-3xl"
+            className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-gradient-to-br from-pink-300/45 via-rose-200/35 to-transparent blur-3xl"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-brand-50/80 blur-2xl"
+            className="pointer-events-none absolute -bottom-12 -left-10 h-44 w-44 rounded-full bg-rose-400/25 blur-3xl"
             aria-hidden
           />
           <div className="relative max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-800">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-rose-700">
               ยินดีต้อนรับ
             </p>
-            <h1 className="mt-3 text-3xl font-bold leading-[1.15] tracking-tight text-slate-900 md:text-4xl">
+            <h1 className="mt-3 text-3xl font-extrabold leading-[1.12] tracking-tight text-slate-900 drop-shadow-sm md:text-4xl">
               แพลตฟอร์มเบา โหลดไว
             </h1>
-            <p className="mt-2 text-lg font-semibold text-slate-600 md:text-xl">
+            <p className="mt-2 text-lg font-bold text-slate-700 md:text-xl">
               อัปโหลดรูปได้ทันที ไม่ต้องล็อกอิน
             </p>
             <p className="mt-5 text-sm leading-relaxed text-slate-600 md:text-base">
@@ -96,7 +97,7 @@ export default function HomePage() {
               <li key={a.href}>
                 <Link
                   href={a.href}
-                  className={`group flex h-full min-h-[8.5rem] flex-col rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-brand-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${a.accent}`}
+                  className={`group flex h-full min-h-[8.5rem] flex-col rounded-2xl border p-5 transition duration-200 hover:-translate-y-1 hover:border-rose-200/90 hover:shadow-game focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${a.accent}`}
                 >
                   <span className="font-semibold text-slate-900 group-hover:text-brand-900">
                     {a.title}

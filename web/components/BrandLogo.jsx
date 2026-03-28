@@ -12,12 +12,12 @@ export default function BrandLogo({
     ? "text-base font-bold tracking-tight text-white transition group-hover:text-brand-300"
     : "text-lg font-bold tracking-tight text-slate-900 transition group-hover:text-brand-800 sm:text-xl";
   const subClass = compact
-    ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400"
+    ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-rose-200/85"
     : "hidden text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 sm:block";
 
   const pillClass = compact
-    ? "inline-flex shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 px-2 py-1.5 shadow-sm"
-    : "inline-flex shrink-0 items-center justify-center rounded-full border border-brand-200/90 bg-brand-50/95 px-2 py-1.5 shadow-sm sm:px-2.5 sm:py-2";
+    ? "inline-flex shrink-0 items-center justify-center rounded-full border border-white/35 bg-white/15 px-2 py-1.5 shadow-sm backdrop-blur-sm"
+    : "inline-flex shrink-0 items-center justify-center rounded-full border border-white/90 bg-white/55 px-2 py-1.5 shadow-game-sm backdrop-blur-md sm:px-2.5 sm:py-2";
   const heartClass = compact
     ? "h-6 w-6 text-rose-300"
     : "h-7 w-7 text-brand-700 sm:h-8 sm:w-8";

@@ -46,11 +46,19 @@ export default function RootLayout({ children }) {
   return (
     <html lang="th" className={sarabun.variable}>
       <body
-        className={`${sarabun.className} min-h-screen bg-brand-50 text-slate-900 antialiased`}
+        className={`${sarabun.className} relative min-h-screen antialiased`}
       >
-        <MemberAuthProvider>
-          <HeartsProvider>{children}</HeartsProvider>
-        </MemberAuthProvider>
+        <div className="game-app-backdrop" aria-hidden>
+          <div className="game-app-backdrop__mesh" />
+          <div className="game-app-backdrop__blob game-app-backdrop__blob--1" />
+          <div className="game-app-backdrop__blob game-app-backdrop__blob--2" />
+          <div className="game-app-backdrop__blob game-app-backdrop__blob--3" />
+        </div>
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <MemberAuthProvider>
+            <HeartsProvider>{children}</HeartsProvider>
+          </MemberAuthProvider>
+        </div>
       </body>
     </html>
   );
