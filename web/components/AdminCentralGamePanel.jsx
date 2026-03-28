@@ -90,7 +90,8 @@ export default function AdminCentralGamePanel() {
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
   const [newSets, setNewSets] = useState(5);
   const [newPerSet, setNewPerSet] = useState(4);
-  const [newHeart, setNewHeart] = useState(0);
+  const [newPinkHeart, setNewPinkHeart] = useState(0);
+  const [newRedHeart, setNewRedHeart] = useState(0);
 
   const tileCount = setCount * imagesPerSet;
   const expectedSlots = useMemo(() => setCount * imagesPerSet, [setCount, imagesPerSet]);
@@ -122,6 +123,10 @@ export default function AdminCentralGamePanel() {
     try {
       const data = await apiAdminCentralGameDetail(token, id);
       const g = data.game;
+      if (!g) {
+        setErr("ไม่ได้รับข้อมูลเกมจากเซิร์ฟเวอร์");
+        return;
+      }
       setTitle(g.title);
       setSetCount(g.setCount);
       setImagesPerSet(g.imagesPerSet);
