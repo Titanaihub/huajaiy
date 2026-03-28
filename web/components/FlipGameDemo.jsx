@@ -138,11 +138,16 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [centralTitle, setCentralTitle] = useState("");
   const [busy, setBusy] = useState(false);
   const [bootError, setBootError] = useState(null);
+  /** มีกระดานจากเกมส่วนกลางแต่ยังเริ่มรอบ/เปิดป้ายไม่ได้ (หัวใจไม่พอ) */
+  const [playLocked, setPlayLocked] = useState(false);
+  const [playLockReason, setPlayLockReason] = useState("");
 
   const applyLocalDeck = useCallback(() => {
     setMode("local");
     setApiGameMode(null);
     setSessionId(null);
+    setPlayLocked(false);
+    setPlayLockReason("");
     setPrizeList(PRIZES);
     setCards(buildDeck());
     setWinner(null);
@@ -155,8 +160,53 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     setBootError(null);
   }, []);
 
+  /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
+  const applyCentralPreviewFromMeta = useCallback((meta, reason) => {
+    setMode("api");
+    setApiGameMode("central");
+    setSessionId(null);
+    setPlayLocked(true);
+    setPlayLockReason(
+      reason ||
+        "หัวใจไม่พอต่อรอบนี้ — ดูกระดานและกติกาด้านล่างได้ แต่ยังเปิดป้ายไม่ได้จนกว่ายอดรวมชมพู+แดงในบัญชีจะพอ (หรือล็อกอิน)"
+    );
+    const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
+    const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
+    setPinkHeartCost(p);
+    setRedHeartCost(r);
+    setHeartCost(p + r);
+    if (Array.isArray(meta.prizes) && meta.prizes.length) {
+      setPrizeList(meta.prizes);
+    } else {
+      setPrizeList(PRIZES);
+    }
+    const n = meta.cardCount || 12;
+    setCards(
+      Array.from({ length: n }, (_, i) => ({
+        index: i,
+        revealed: false,
+        key: null,
+        imageUrl: null
+      }))
+    );
+    setWinner(null);
+    setFlips(0);
+    const sc = Number(meta.setCount) || 1;
+    const sic = Array.isArray(meta.setImageCounts) ? meta.setImageCounts : [];
+    setSetImageCounts(sic);
+    setImagesPerSet(
+      sic.length ? Math.max(...sic.map((x) => Number(x) || 0), 1) : Number(meta.imagesPerSet) || 4
+    );
+    setCentralTitle(String(meta.title || "เกมส่วนกลาง"));
+    setSetCounts(Array.from({ length: sc }, () => 0));
+    setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+    setBootError(null);
+  }, []);
+
   const applyApiSession = useCallback((data) => {
     setMode("api");
+    setPlayLocked(false);
+    setPlayLockReason("");
     setSessionId(data.sessionId);
     const isCentral = data.gameMode === "central";
     if (isCentral) {
@@ -209,9 +259,9 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
+    let meta = null;
     (async () => {
       try {
-        let meta = null;
         try {
           meta = await fetchGameMeta();
         } catch {
@@ -221,13 +271,15 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r)) {
-            setBootError(
+          const needPay = p > 0 || r > 0;
+          const canPay = canAffordCentralEntry(user, p, r);
+          if (needPay && !canPay) {
+            applyCentralPreviewFromMeta(
+              meta,
               user
-                ? "หัวใจในบัญชี (รวมชมพู+แดง) ไม่พอต่อรอบนี้ — ให้แอดมินปรับยอด หรือตั้งหักหัวใจเป็น 0 ในเกมส่วนกลางเพื่อทดสอบ"
-                : "หัวใจชมพูหรือแดงไม่พอสำหรับรอบนี้ — ไปร้านค้า (สาธิต) หรือล็อกอินเพื่อใช้ยอดบัญชี / เล่นโหมดออฟไลน์"
+                ? "หัวใจรวมในบัญชียังไม่พอต่อรอบนี้ — เห็นกระดานเกมจริงด้านล่าง แต่เปิดป้ายไม่ได้จนกว่าจะมียอดพอ"
+                : "หัวใจสาธิตในเครื่องไม่พอ — เห็นกระดานเกมจริง แต่เปิดป้ายไม่ได้ · ล็อกอินเพื่อใช้ยอดบัญชี หรือรับหัวใจจากร้านค้า"
             );
-            applyLocalDeck();
             return;
           }
         } else {
@@ -247,12 +299,15 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
           if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
             void fetchGameAbandon(data.sessionId);
-            setBootError(
-              user
-                ? "หัวใจในบัญชีไม่พอเริ่มรอบ — ปรับยอดหรือตั้งค่าหักหัวใจเป็น 0"
-                : "หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์"
-            );
-            applyLocalDeck();
+            if (meta?.gameMode === "central") {
+              applyCentralPreviewFromMeta(
+                meta,
+                "เริ่มรอบไม่สำเร็จ (หัวใจไม่พอ) — แสดงกระดานจากเกมที่เผยแพร่ เปิดป้ายไม่ได้"
+              );
+            } else {
+              setBootError("หัวใจไม่พอเริ่มรอบ");
+              applyLocalDeck();
+            }
             return;
           }
         } else {
@@ -267,15 +322,29 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         applyApiSession(data);
       } catch (e) {
         if (!cancelled) {
-          setBootError(e.message);
-          applyLocalDeck();
+          if (meta?.gameMode === "central") {
+            applyCentralPreviewFromMeta(
+              meta,
+              "เรียก API เริ่มรอบไม่สำเร็จ — แสดงกระดานจากข้อมูลเกม (เปิดป้ายไม่ได้จนกว่าระบบจะพร้อม)"
+            );
+            setBootError(String(e.message || e));
+          } else {
+            setBootError(e.message);
+            applyLocalDeck();
+          }
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [applyApiSession, applyLocalDeck, authLoading, user?.id]);
+  }, [
+    applyApiSession,
+    applyCentralPreviewFromMeta,
+    applyLocalDeck,
+    authLoading,
+    user?.id
+  ]);
 
   const localCounts = useMemo(() => {
     const c = { cash: 0, coffee: 0, discount: 0 };
@@ -302,7 +371,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   );
 
   async function revealApi(i) {
-    if (!sessionId || winner || busy) return;
+    if (playLocked || !sessionId || winner || busy) return;
     const card = cards[i];
     if (card.revealed) return;
     setBusy(true);
@@ -383,8 +452,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   async function reset() {
     if (mode === "api") {
       setBusy(true);
+      let meta = null;
       try {
-        let meta = null;
         try {
           meta = await fetchGameMeta();
         } catch {
@@ -393,13 +462,10 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r)) {
-            setBootError(
-              user
-                ? "หัวใจในบัญชีไม่พอ — ปรับยอดหรือตั้งหักหัวใจเป็น 0"
-                : "หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์"
-            );
-            applyLocalDeck();
+          const needPay = p > 0 || r > 0;
+          const canPay = canAffordCentralEntry(user, p, r);
+          if (needPay && !canPay) {
+            applyCentralPreviewFromMeta(meta);
             return;
           }
         } else {
@@ -416,8 +482,12 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
           if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
             void fetchGameAbandon(data.sessionId);
-            setBootError(user ? "หัวใจในบัญชีไม่พอ" : "หัวใจไม่พอ");
-            applyLocalDeck();
+            if (meta?.gameMode === "central") {
+              applyCentralPreviewFromMeta(meta);
+            } else {
+              setBootError("หัวใจไม่พอ");
+              applyLocalDeck();
+            }
             return;
           }
         } else {
@@ -431,8 +501,13 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         }
         applyApiSession(data);
       } catch (e) {
-        setBootError(e.message);
-        applyLocalDeck();
+        if (meta?.gameMode === "central") {
+          applyCentralPreviewFromMeta(meta);
+          setBootError(String(e.message || e));
+        } else {
+          setBootError(e.message);
+          applyLocalDeck();
+        }
       } finally {
         setBusy(false);
       }
@@ -465,6 +540,15 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           </p>
         </div>
       ) : null}
+      {playLocked && apiGameMode === "central" && playLockReason ? (
+        <div className="rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+          <p className="font-semibold">ดูเกมได้ — เล่นเปิดป้ายเมื่อมีหัวใจพอ</p>
+          <p className="mt-1 text-sky-900/95">{playLockReason}</p>
+          <p className="mt-2 text-xs text-sky-800/90">
+            กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะลองเริ่มรอบใหม่
+          </p>
+        </div>
+      ) : null}
       <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
         <p>
           <strong>
@@ -474,14 +558,18 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             :
           </strong>{" "}
           {mode === "api" && apiGameMode === "central"
-            ? `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
+            ? playLocked
+              ? `กระดานจริง ${cards.length} ป้าย — เปิดป้ายได้เมื่อมีหัวใจพอต่อรอบ`
+              : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
             : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
         </p>
         <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
           {mode === "api" ? (
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800">
               {apiGameMode === "central"
-                ? "เกมส่วนกลางจากแอดมิน — ค่าใต้ป้ายที่เซิร์ฟเวอร์"
+                ? playLocked
+                  ? "เกมส่วนกลาง (ดูอย่างเดียว — ยังไม่เริ่มรอบ)"
+                  : "เกมส่วนกลางจากแอดมิน — ค่าใต้ป้ายที่เซิร์ฟเวอร์"
                 : "เชื่อม API — กติกาเดิมในโค้ด"}
             </span>
           ) : (
@@ -544,11 +632,15 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
               key={card.index ?? i}
               type="button"
               onClick={() => reveal(i)}
-              disabled={busy || (winner !== null && !card.revealed)}
+              disabled={
+                playLocked || busy || (winner !== null && !card.revealed)
+              }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition ${
                 card.revealed
                   ? "border-slate-300 bg-slate-50"
-                  : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
+                  : playLocked
+                    ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
+                    : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
               } ${winner && !card.revealed ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
