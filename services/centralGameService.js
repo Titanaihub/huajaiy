@@ -166,6 +166,41 @@ async function getActiveGameSnapshot() {
   return getGameSnapshotById(g.rows[0].id);
 }
 
+/** แสดงในหน้าเกม: เผยแพร่แล้ว หรือเป็นเกมที่กำลังเปิดใช้ (รองรับข้อมูลเก่าก่อนมีคอลัมน์ is_published) */
+async function listPublishedGamesForPublic() {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT g.*, u.username AS creator_username
+     FROM central_games g
+     LEFT JOIN users u ON u.id = g.created_by
+     WHERE g.is_published = TRUE OR g.is_active = TRUE
+     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`
+  );
+  return r.rows.map((row) => {
+    const game = rowGame(row);
+    return {
+      id: game.id,
+      title: game.title,
+      description: game.description,
+      gameCoverUrl: game.gameCoverUrl,
+      creatorUsername: row.creator_username ? String(row.creator_username).trim() || null : null,
+      pinkHeartCost: game.pinkHeartCost,
+      redHeartCost: game.redHeartCost
+    };
+  });
+}
+
+/** snapshot สำหรับเล่นเมื่อเกมอยู่ในรายการสาธารณะ (เผยแพร่หรือกำลัง active) */
+async function getPublishedGameSnapshotById(gameId) {
+  const pool = requirePool();
+  const g = await pool.query(
+    `SELECT id FROM central_games WHERE id = $1 AND (is_published = TRUE OR is_active = TRUE)`,
+    [gameId]
+  );
+  if (g.rows.length === 0) return null;
+  return getGameSnapshotById(gameId);
+}
+
 async function listGamesForAdmin() {
   const pool = requirePool();
   const r = await pool.query(
