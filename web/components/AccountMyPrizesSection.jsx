@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiGetMyCentralPrizeAwards, getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -36,11 +36,129 @@ function formatWonAt(iso) {
   }
 }
 
+/** ดึงตัวเลขจำนวนเงินจากฟิลด์รางวัลเงินสด (เช่น "20" หรือ "1,000 บาท") */
+function parseCashBaht(a) {
+  if (a.prizeCategory !== "cash") return 0;
+  const raw = [a.prizeValueText, a.prizeUnit].filter(Boolean).join(" ");
+  const m = String(raw).replace(/,/g, "").match(/[\d]+(?:\.[\d]+)?/);
+  if (!m) return 0;
+  const n = parseFloat(m[0]);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatBahtTotal(n) {
+  if (!Number.isFinite(n) || n === 0) return "0";
+  if (Number.isInteger(n)) return n.toLocaleString("th-TH");
+  return n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
+}
+
+function groupAwardsByGame(list) {
+  const map = new Map();
+  for (const a of list) {
+    const id = a.gameId;
+    if (!map.has(id)) {
+      map.set(id, { gameId: id, gameTitle: a.gameTitle, items: [] });
+    }
+    map.get(id).items.push(a);
+  }
+  const groups = [...map.values()];
+  for (const g of groups) {
+    g.items.sort((x, y) => new Date(y.wonAt) - new Date(x.wonAt));
+  }
+  groups.sort((a, b) => {
+    const ta = a.items[0]?.wonAt ? new Date(a.items[0].wonAt).getTime() : 0;
+    const tb = b.items[0]?.wonAt ? new Date(b.items[0].wonAt).getTime() : 0;
+    return tb - ta;
+  });
+  return groups;
+}
+
+function GamePrizeCard({ group }) {
+  const { gameId, gameTitle, items } = group;
+  const cashItems = items.filter((a) => a.prizeCategory === "cash");
+  const nonCashItems = items.filter((a) => a.prizeCategory !== "cash");
+  const cashTotal = cashItems.reduce((s, a) => s + parseCashBaht(a), 0);
+  const [open, setOpen] = useState(false);
+
+  let nonCashSummary = null;
+  if (nonCashItems.length > 0) {
+    const byCat = nonCashItems.reduce((acc, a) => {
+      const k = a.prizeCategory || "other";
+      acc[k] = (acc[k] || 0) + 1;
+      return acc;
+    }, {});
+    nonCashSummary = Object.entries(byCat)
+      .map(([cat, n]) => `${CAT_LABEL[cat] || "รางวัล"} ${n} ครั้ง`)
+      .join(" · ");
+  }
+
+  return (
+    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="font-semibold text-slate-900">{gameTitle}</p>
+
+      {cashItems.length > 0 ? (
+        <p className="mt-2 text-sm text-slate-800">
+          เงินสดรวม{" "}
+          <span className="font-bold tabular-nums text-slate-900">
+            {formatBahtTotal(cashTotal)}
+          </span>{" "}
+          บาท
+          {cashItems.length > 1 ? (
+            <span className="font-normal text-slate-600">
+              {" "}
+              · ชนะ {cashItems.length} ครั้ง
+            </span>
+          ) : null}
+        </p>
+      ) : null}
+
+      {nonCashItems.length > 0 ? (
+        <p className="mt-1.5 text-sm text-slate-700">{nonCashSummary}</p>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+          aria-expanded={open}
+        >
+          {open ? "ซ่อนรายละเอียดแต่ละครั้ง" : "ดูรายละเอียดแต่ละครั้ง"}
+        </button>
+        <Link
+          href={`/game/${encodeURIComponent(gameId)}`}
+          className="text-xs font-semibold text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+        >
+          เปิดหน้าเกมนี้
+        </Link>
+      </div>
+
+      {open ? (
+        <ul className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
+          {items.map((a) => (
+            <li
+              key={a.id}
+              className="rounded-lg bg-slate-50/90 px-3 py-2.5 text-sm text-slate-800"
+            >
+              <p className="text-slate-900">{prizeLine(a)}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                ชุดที่ {a.setIndex + 1} · {formatWonAt(a.wonAt)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
 export default function AccountMyPrizesSection() {
   const { user, loading: authLoading } = useMemberAuth();
   const [awards, setAwards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+
+  const groups = useMemo(() => groupAwardsByGame(awards), [awards]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -97,7 +215,7 @@ export default function AccountMyPrizesSection() {
     <section>
       <h2 className="text-lg font-semibold text-slate-900">รางวัลของฉัน</h2>
       <p className="mt-1 text-sm text-slate-600">
-        รายการรางวัลจากเกมเปิดป้ายส่วนกลางที่ระบบบันทึกไว้กับบัญชีของคุณ (หลังชนะตามกติกาที่มีรางวัล)
+        สรุปตามเกม — เงินสดรวมยอดต่อเกม · กด「ดูรายละเอียดแต่ละครั้ง」เพื่อดูวันเวลาที่ได้รางวัล
       </p>
 
       {err ? (
@@ -123,23 +241,8 @@ export default function AccountMyPrizesSection() {
         </div>
       ) : (
         <ul className="mt-6 space-y-3">
-          {awards.map((a) => (
-            <li
-              key={a.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <p className="font-semibold text-slate-900">{a.gameTitle}</p>
-              <p className="mt-1 text-sm text-slate-700">{prizeLine(a)}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                ชุดที่ {a.setIndex + 1} · {formatWonAt(a.wonAt)}
-              </p>
-              <Link
-                href={`/game/${encodeURIComponent(a.gameId)}`}
-                className="mt-3 inline-block text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
-              >
-                เปิดหน้าเกมนี้
-              </Link>
-            </li>
+          {groups.map((g) => (
+            <GamePrizeCard key={g.gameId} group={g} />
           ))}
         </ul>
       )}
