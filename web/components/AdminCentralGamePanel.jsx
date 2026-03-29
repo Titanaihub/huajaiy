@@ -67,13 +67,15 @@ const emptyRule = () => ({
   prizeTitle: "",
   prizeValueText: "",
   prizeUnit: "บาท",
-  sortOrder: 0,
+  sortOrder: 1,
   description: "",
   prizeTotalQty: 1
 });
 
+/** ชุด s (0-based) → ลำดับตรวจเริ่มต้น = s+1 ให้ผู้สร้างสลับทีหลังได้ */
 function emptyRuleForSet(setIdx) {
-  return { ...emptyRule(), setIndex: setIdx };
+  const s = Math.max(0, Math.floor(Number(setIdx)) || 0);
+  return { ...emptyRule(), setIndex: s, sortOrder: s + 1 };
 }
 
 function resizeSetSizes(prev, n, fill) {
@@ -118,9 +120,11 @@ function RuleEditorRow({
         <label className="text-[10px] text-slate-500">ลำดับตรวจ</label>
         <input
           type="number"
+          min={0}
           value={r.sortOrder}
           onChange={(e) => updateRule(idx, "sortOrder", e.target.value)}
           className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          title="เลขน้อยตรวจก่อน — ค่าเริ่มต้นตามเลขชุด ปรับได้เมื่อต้องการสลับลำดับระหว่างชุด"
         />
       </div>
       <div className="sm:col-span-1">
@@ -250,7 +254,7 @@ export default function AdminCentralGamePanel() {
   const [redHeartCost, setRedHeartCost] = useState(0);
 
   const [imageMap, setImageMap] = useState({});
-  const [rules, setRules] = useState([emptyRule()]);
+  const [rules, setRules] = useState([]);
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
   const [newGameDescription, setNewGameDescription] = useState("");
@@ -307,6 +311,7 @@ export default function AdminCentralGamePanel() {
         return;
       }
       setTitle(g.title);
+      setGameDescription(typeof g.description === "string" ? g.description : "");
       setSetCount(g.setCount);
       const sc = Math.max(1, g.setCount || 1);
       const fromApi = Array.isArray(g.setImageCounts) ? g.setImageCounts : null;
@@ -338,21 +343,26 @@ export default function AdminCentralGamePanel() {
       });
       setRules(
         (data.rules || []).length
-          ? data.rules.map((r) => ({
-              setIndex: r.setIndex,
-              needCount: r.needCount,
-              prizeCategory: r.prizeCategory,
-              prizeTitle: r.prizeTitle || "",
-              prizeValueText: r.prizeValueText || "",
-              prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
-              sortOrder: r.sortOrder,
-              description: r.description || "",
-              prizeTotalQty:
-                r.prizeCategory === "none"
-                  ? null
-                  : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
-            }))
-          : [emptyRule()]
+          ? data.rules.map((r) => {
+              const si = Math.max(0, Math.floor(Number(r.setIndex)) || 0);
+              const so = Math.floor(Number(r.sortOrder));
+              const sortOrder = Number.isFinite(so) && so > 0 ? so : si + 1;
+              return {
+                setIndex: r.setIndex,
+                needCount: r.needCount,
+                prizeCategory: r.prizeCategory,
+                prizeTitle: r.prizeTitle || "",
+                prizeValueText: r.prizeValueText || "",
+                prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
+                sortOrder,
+                description: r.description || "",
+                prizeTotalQty:
+                  r.prizeCategory === "none"
+                    ? null
+                    : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
+              };
+            })
+          : Array.from({ length: sc }, (_, s) => emptyRuleForSet(s))
       );
     } catch (e) {
       setErr(e.message || String(e));
@@ -364,6 +374,24 @@ export default function AdminCentralGamePanel() {
   useEffect(() => {
     if (selectedId) loadDetail(selectedId);
   }, [selectedId, loadDetail]);
+
+  /** ให้ทุกชุดมีอย่างน้อยหนึ่งแถวกติกา (ไม่ใช้ปุ่มเพิ่มแถว) */
+  useEffect(() => {
+    if (!selectedId || loading) return;
+    setRules((prev) => {
+      const covered = new Set();
+      for (const row of prev) {
+        const si = Math.max(0, Math.floor(Number(row.setIndex)) || 0);
+        if (si >= 0 && si < setCount) covered.add(si);
+      }
+      const toAdd = [];
+      for (let s = 0; s < setCount; s += 1) {
+        if (!covered.has(s)) toAdd.push(emptyRuleForSet(s));
+      }
+      if (toAdd.length === 0) return prev;
+      return [...prev, ...toAdd];
+    });
+  }, [selectedId, loading, setCount]);
 
   async function createGame(e) {
     e.preventDefault();
@@ -974,17 +1002,6 @@ export default function AdminCentralGamePanel() {
                     (a, b) => (Number(a.r.sortOrder) || 0) - (Number(b.r.sortOrder) || 0)
                   );
 
-                function addRuleForThisSet() {
-                  const maxSo = ruleEntries.reduce(
-                    (m, x) => Math.max(m, Number(x.r.sortOrder) || 0),
-                    -1
-                  );
-                  setRules((prev) => [
-                    ...prev,
-                    { ...emptyRuleForSet(s), sortOrder: maxSo + 1 }
-                  ]);
-                }
-
                 return (
                   <div
                     key={s}
@@ -1040,23 +1057,14 @@ export default function AdminCentralGamePanel() {
                     </div>
 
                     <div className="min-w-0 flex-1 space-y-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="space-y-0.5">
                         <span className="text-xs font-semibold text-slate-800">
                           กติกาและรางวัล — ชุดที่ {s + 1}
                         </span>
-                        <button
-                          type="button"
-                          onClick={addRuleForThisSet}
-                          className="text-xs font-medium text-brand-800 underline hover:text-brand-950"
-                        >
-                          + เพิ่มแถวกติกา
-                        </button>
-                      </div>
-                      {ruleEntries.length === 0 ? (
-                        <p className="text-[11px] text-slate-500">
-                          ยังไม่มีแถว — กดเพิ่มถ้าต้องการเงื่อนไขในชุดนี้
+                        <p className="text-[10px] leading-snug text-slate-500">
+                          ลำดับตรวจเริ่มที่เลขชุด ({s + 1}) — ปรับได้ถ้าต้องการให้ชุดอื่นตรวจก่อน/หลัง
                         </p>
-                      ) : null}
+                      </div>
                       <div className="space-y-3 pb-1">
                         {ruleEntries.map(({ r, idx }) => (
                           <RuleEditorRow
