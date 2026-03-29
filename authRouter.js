@@ -9,6 +9,7 @@ const {
 const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
 const shopService = require("./services/shopService");
+const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const {
   validateProfilePatch,
   validateNameChangeRequest
@@ -287,6 +288,19 @@ router.get("/shops/mine", authMiddleware, async (req, res) => {
     const shops = await shopService.listByOwner(req.userId);
     return res.json({ ok: true, shops });
   } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** รางวัลจากเกมส่วนกลางที่บันทึกไว้กับบัญชีนี้ */
+router.get("/central-prize-awards/mine", authMiddleware, async (req, res) => {
+  try {
+    const awards = await centralPrizeAwardService.listAwardsForUser(req.userId);
+    return res.json({ ok: true, awards });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, awards: [], dbRequired: true });
+    }
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

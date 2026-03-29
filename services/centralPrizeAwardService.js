@@ -147,8 +147,48 @@ async function listPublicRecipientsForRule(gameId, ruleId) {
   };
 }
 
+/**
+ * รางวัลจากเกมส่วนกลางที่ผู้ใช้ได้รับ (ล็อกอิน)
+ * @returns {Promise<Array<{ id: string; wonAt: string; prizeCategory: string; gameId: string; gameTitle: string; setIndex: number; prizeTitle: string | null; prizeValueText: string | null; prizeUnit: string | null }>>}
+ */
+async function listAwardsForUser(userId) {
+  if (!userId) return [];
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT
+       a.id,
+       a.created_at AS "wonAt",
+       a.prize_category AS "prizeCategory",
+       g.id AS "gameId",
+       g.title AS "gameTitle",
+       r.set_index AS "setIndex",
+       r.prize_title AS "prizeTitle",
+       r.prize_value_text AS "prizeValueText",
+       r.prize_unit AS "prizeUnit"
+     FROM central_prize_awards a
+     JOIN central_games g ON g.id = a.game_id
+     JOIN central_game_rules r ON r.id = a.rule_id
+     WHERE a.winner_user_id = $1
+       AND a.prize_category IS DISTINCT FROM 'none'
+     ORDER BY a.created_at DESC`,
+    [userId]
+  );
+  return r.rows.map((row) => ({
+    id: String(row.id),
+    wonAt: row.wonAt,
+    prizeCategory: row.prizeCategory,
+    gameId: String(row.gameId),
+    gameTitle: String(row.gameTitle || "").trim() || "เกม",
+    setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
+    prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
+    prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
+    prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : ""
+  }));
+}
+
 module.exports = {
   countAwardsByRuleForGame,
   tryRecordWin,
-  listPublicRecipientsForRule
+  listPublicRecipientsForRule,
+  listAwardsForUser
 };

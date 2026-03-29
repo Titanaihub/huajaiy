@@ -49,6 +49,9 @@ export default function AccountBackOfficeShell({ children }) {
               <NavLink href="/account/orders">ออเดอร์ของฉัน</NavLink>
             </li>
             <li>
+              <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
+            </li>
+            <li>
               <NavLink href="/account/shops">ร้านของฉัน</NavLink>
             </li>
             <li>

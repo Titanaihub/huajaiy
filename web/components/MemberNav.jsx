@@ -28,6 +28,13 @@ export default function MemberNav() {
           หลังบ้าน
         </Link>
         <Link
+          href="/account/prizes"
+          className="font-medium text-brand-700 transition hover:text-brand-900"
+          title="รางวัลจากเกมส่วนกลาง"
+        >
+          รางวัลของฉัน
+        </Link>
+        <Link
           href="/account/shops"
           className="font-medium text-brand-700 transition hover:text-brand-900"
           title="ลงสินค้า จัดการร้าน"
