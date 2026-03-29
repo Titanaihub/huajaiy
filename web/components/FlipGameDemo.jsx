@@ -1315,27 +1315,27 @@ export default function FlipGameDemo({
                   key={p.key}
                   className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/90 p-3 transition hover:border-slate-200/80"
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/50 bg-transparent shadow-none ring-1 ring-slate-200/40">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/50 bg-slate-50/90">
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={thumb} alt="" className="h-full w-full object-contain" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-[10px] font-medium text-slate-400">
+                      <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400">
                         ช.{Number(p.setIndex) + 1}
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1 text-xs leading-relaxed text-slate-800 sm:text-sm">
+                  <div className="min-w-0 flex-1 text-sm leading-relaxed text-slate-800">
                     {p.prizeCategory === "none" ? (
                       <>
                         <p>{centralRuleNoneHeadLine(p, cap)}</p>
                         <p className="mt-1.5">
-                          <span className="text-[11px] font-medium text-slate-500">เปิดในชุดแล้ว </span>
-                          <span className="font-mono text-sm font-semibold tabular-nums text-slate-900">
+                          <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {opened}
                           </span>
-                          <span className="font-mono text-sm text-slate-400">/</span>
-                          <span className="font-mono text-sm font-semibold tabular-nums text-slate-900">
+                          <span className="font-mono text-slate-400">/</span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {cap}
                           </span>
                         </p>
@@ -1344,7 +1344,7 @@ export default function FlipGameDemo({
                       <>
                         <p>{centralRuleSetConditionLine(p, cap)}</p>
                         <p className="mt-1.5">{centralRulePrizeDescriptionLine(p)}</p>
-                        <p className="mt-1.5 text-[11px] leading-snug text-slate-600 sm:text-xs">
+                        <p className="mt-1.5 text-slate-700">
                           <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
                           <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {opened}/{cap}
@@ -1359,7 +1359,7 @@ export default function FlipGameDemo({
                             onClick={() => setRecipientsModalPrize(p)}
                             className="inline font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
                           >
-                            คลิกดูได้ว่ายูสเซอร์ไหนได้ไปบ้าง
+                            ดูรายละเอียด
                           </button>
                         </p>
                       </>
