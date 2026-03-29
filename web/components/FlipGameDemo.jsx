@@ -67,17 +67,44 @@ function buildDeck() {
   return list.map((key, index) => ({ key, index, revealed: false }));
 }
 
-/** คำอธิบายกติกาแบบกระชับ — คู่กับรูปตัวแทนชุด */
-function centralPrizeSideText(p, opened, cap) {
+/**
+ * บรรทัดที่ 1: ดึงจากการตั้งค่าเกม (need, cap, รางวัล)
+ * รูปแบบ: ชุดที่ n มี c ป้าย — เปิดครบ need ป้ายก่อน (need/c) รับรางวัล …
+ */
+function centralPrizeRuleLine1(p, cap) {
+  const setNo = Number(p.setIndex) + 1;
+  const c = Math.max(1, Math.floor(Number(cap) || 0));
+  const need = Math.max(1, Math.floor(Number(p.need) || 0));
   const isNone = p.prizeCategory === "none";
-  const prog = `${opened}/${cap}`;
+
+  const core = `ชุดที่ ${setNo} มี ${c} ป้าย — เปิดครบ ${need} ป้ายก่อน (${need}/${c})`;
+
   if (isNone) {
-    return `เปิดในชุด ${prog} — ครบ ${p.need} ป้าย = จบรอบ (ไม่มีรางวัล)`;
+    return `${core} = จบรอบ (ไม่มีรางวัล · หัวใจไม่คืน)`;
   }
-  const detail = [p.prizeTitle, p.prizeValueText, p.prizeUnit].filter(Boolean).join(" ").trim();
-  const cat = { cash: "เงินสด", item: "ของรางวัล", voucher: "บัตรกำนัล" }[p.prizeCategory];
-  const head = detail || cat || "รางวัล";
-  return `เปิดในชุด ${prog} — ครบ ${p.need} ป้าย = ${head}`;
+
+  const cat = { cash: "เงินสด", item: "สิ่งของ", voucher: "บัตรกำนัล" }[p.prizeCategory] || "รางวัล";
+  const val = [p.prizeValueText, p.prizeUnit].filter(Boolean).join(" ").trim();
+  const title = String(p.prizeTitle || "").trim();
+  let rewardBody;
+  if (title && val) {
+    rewardBody = `${title} ${val}`;
+  } else if (title) {
+    rewardBody = title;
+  } else if (val) {
+    rewardBody = `${cat} ${val}`;
+  } else {
+    rewardBody = cat;
+  }
+
+  const qtyRaw = p.totalPrizeQty;
+  const qty =
+    qtyRaw != null && p.prizeCategory !== "none"
+      ? Math.max(1, Math.floor(Number(qtyRaw) || 1))
+      : 1;
+  const qtyNote = qty > 1 ? ` · จัดรางวัลรวม ${qty} ที่` : "";
+
+  return `${core} รับรางวัล ${rewardBody}${qtyNote}`;
 }
 
 async function fetchGameStart(centralGameId) {
@@ -1335,9 +1362,18 @@ export default function FlipGameDemo({
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1 text-xs leading-snug sm:text-sm">
-                    <p className="font-semibold text-slate-800">ชุด {Number(p.setIndex) + 1}</p>
-                    <p className="mt-0.5 text-slate-600">{centralPrizeSideText(p, opened, cap)}</p>
+                  <div className="min-w-0 flex-1 text-xs leading-relaxed text-slate-800 sm:text-sm">
+                    <p>{centralPrizeRuleLine1(p, cap)}</p>
+                    <p className="mt-2 text-right">
+                      <span className="text-[11px] font-medium text-slate-500">เปิดในชุดแล้ว </span>
+                      <span className="font-mono text-base font-semibold tabular-nums tracking-tight text-slate-900">
+                        {opened}
+                      </span>
+                      <span className="font-mono text-base text-slate-400">/</span>
+                      <span className="font-mono text-base font-semibold tabular-nums tracking-tight text-slate-900">
+                        {cap}
+                      </span>
+                    </p>
                   </div>
                 </li>
               );

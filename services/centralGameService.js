@@ -667,6 +667,8 @@ function prizesForClient(rules, setImageCounts) {
       label: formatRuleLabel(r, catLabel, cap),
       prizeCategory: r.prizeCategory,
       prizeTitle: r.prizeTitle,
+      prizeValueText: r.prizeValueText || "",
+      prizeUnit: r.prizeUnit || "",
       totalPrizeQty:
         r.prizeCategory === "none" ? null : (r.prizeTotalQty ?? 1)
     };
