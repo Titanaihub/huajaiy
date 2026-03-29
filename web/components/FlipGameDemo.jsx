@@ -1601,22 +1601,14 @@ export default function FlipGameDemo({
             mode === "api" && apiGameMode === "legacy" && key
               ? prizeList.find((p) => p.key === key)
               : null;
+          /** กรอบแดงเฉพาะป้ายที่ยังไม่เปิด ก่อนกดเฉลย — หลังเฉลยไม่ใช้กรอบแดง/เขียวแยกผู้เล่นกับระบบ เพื่อให้มองชุดที่ได้รางวัลจากเน้นสีป้ายเดิมต่อเนื่อง */
           const showRedUnpicked =
             mode === "api" &&
             apiGameMode === "central" &&
             roundFinished &&
             !resultModalOpen &&
-            ((!card.revealed && !centralSolutionShown) ||
-              (card.revealed && card.openedByPlayer === false));
-          /** หลังกดเฉลย: ป้ายที่ผู้เล่นเปิดเอง — กรอบเขียว vs ป้ายที่ระบบเปิดให้ดู — กรอบแดง */
-          const showGreenPlayerPick =
-            mode === "api" &&
-            apiGameMode === "central" &&
-            roundFinished &&
-            !resultModalOpen &&
-            centralSolutionShown &&
-            card.revealed &&
-            card.openedByPlayer === true;
+            !centralSolutionShown &&
+            !card.revealed;
           const tileSetIdx = parseSetIndexFromTileKey(card.key);
           const emphasizeOutcomeSet =
             mode === "api" &&
@@ -1644,11 +1636,9 @@ export default function FlipGameDemo({
                 ((winner !== null || centralLoss !== null) && !card.revealed)
               }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${
-                showGreenPlayerPick
-                  ? "border-emerald-500 ring-2 ring-emerald-400/90"
-                  : showRedUnpicked
-                    ? "border-red-500 ring-2 ring-red-400/90"
-                    : isOutcomeSetTile
+                showRedUnpicked
+                  ? "border-red-500 ring-2 ring-red-400/90"
+                  : isOutcomeSetTile
                       ? "z-[2] border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg ring-[3px] ring-amber-400/95"
                       : isOtherSetRevealedTile
                         ? "border-slate-300/80 bg-slate-200/90"
