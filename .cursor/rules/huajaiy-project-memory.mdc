@@ -1,0 +1,31 @@
+---
+description: บริบทโปรเจกต์ HUAJAIY — deploy, DB, และงานล่าสุด (ความต่อเนื่อง)
+alwaysApply: true
+---
+
+# HUAJAIY — จดจำโปรเจกต์
+
+## โครงสร้างที่ใช้งานจริง (Production)
+
+- **GitHub:** `Titanaihub/huajaiy` สาขา `main` — deploy อัตโนมัติจาก push
+- **Render — Web:** service `huajaiy-web` (Node/Next) → โดเมน **`www.huajaiy.com`** (free tier อาจ sleep เมื่อไม่มี traffic)
+- **Render — API:** service `huajaiy-api` → **`https://huajaiy-api.onrender.com`**
+- **PostgreSQL:** บน **Render** — API ใช้ `DATABASE_URL` (Internal URL เมื่อ API อยู่ Render เดียวกัน)
+
+## ตัวแปรสภาพแวดล้อมที่เกี่ยวข้อง
+
+- ฝั่งเว็บ: `NEXT_PUBLIC_API_BASE_URL` ชี้ API จริง (ดู `web/.env.example`, `web/lib/config.js`)
+- ฝั่ง API: `DATABASE_URL` สำหรับ PostgreSQL บน Render
+
+## หลังแก้สคีมา (เช่น `db/init.js`)
+
+- ต้องให้ **PostgreSQL บน Render** มีคอลัมน์/ตารางตรงกับโค้ด (รันสคริปต์ init/migrate หรือรัน `ALTER` ที่เพิ่มในโปรเจกต์) มิฉะนั้น API จะ error ตอนอ่าน/เขียน
+
+## โดเมนของงานล่าสุด (เกมส่วนกลาง)
+
+- แอดมินตั้งเกมส่วนกลาง (`central_games`), รูปชุด, กติกา/รางวัล, หักหัวใจชมพู-แดงแยกสี, รายละเอียดเกม, **รูปหน้าปก** (`game_cover_url`), หน้าเล่น + overlay ชนะ/แพ้
+- ไฟล์สำคัญ: `services/centralGameService.js`, `centralGameSession.js`, `web/components/AdminCentralGamePanel.jsx`, `web/components/FlipGameDemo.jsx`, `server.js`
+
+## เอกสารเพิ่มเติมใน repo
+
+- อ่าน **`PROJECT_MEMORY.md`** ที่รากโปรเจกต์สำหรับสรุปภาษาไทยและอัปเดตมือเมื่อสถานะ production เปลี่ยน
