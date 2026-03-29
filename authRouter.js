@@ -10,6 +10,7 @@ const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
 const shopService = require("./services/shopService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
+const heartLedgerService = require("./services/heartLedgerService");
 const {
   validateProfilePatch,
   validateNameChangeRequest
@@ -288,6 +289,21 @@ router.get("/shops/mine", authMiddleware, async (req, res) => {
     const shops = await shopService.listByOwner(req.userId);
     return res.json({ ok: true, shops });
   } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ประวัติได้รับ/หักหัวใจชมพู–แดง (ฐานข้อมูล) */
+router.get("/heart-ledger/mine", authMiddleware, async (req, res) => {
+  try {
+    const limit = req.query.limit != null ? Number(req.query.limit) : 80;
+    const offset = req.query.offset != null ? Number(req.query.offset) : 0;
+    const entries = await heartLedgerService.listForUser(req.userId, { limit, offset });
+    return res.json({ ok: true, entries });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, entries: [], dbRequired: true });
+    }
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

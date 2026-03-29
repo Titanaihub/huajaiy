@@ -113,6 +113,14 @@ export default function AccountDashboardOverview() {
             >
               รีเฟรชยอด
             </button>
+            <p className="mt-2">
+              <Link
+                href="/account/heart-history"
+                className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+              >
+                ดูประวัติได้/หักหัวใจ
+              </Link>
+            </p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase text-slate-500">ทางลัด</p>

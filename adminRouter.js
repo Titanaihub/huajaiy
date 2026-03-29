@@ -156,7 +156,15 @@ router.post(
       if (!u) {
         return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
       }
-      const updated = await userService.adjustDualHearts(id, pinkDelta, redDelta);
+      const updated = await userService.adjustDualHearts(id, pinkDelta, redDelta, {
+        kind: "admin_adjust",
+        label: `แอดมิน @${req.username || "?"} ปรับยอดหัวใจ`,
+        meta: {
+          adminUsername: req.username || null,
+          pinkDelta,
+          redDelta
+        }
+      });
       return res.json({
         ok: true,
         user: userService.adminMemberDetail(updated)

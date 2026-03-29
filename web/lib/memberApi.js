@@ -151,3 +151,18 @@ export async function apiGetMyCentralPrizeAwards(token) {
   }
   return data;
 }
+
+export async function apiGetMyHeartLedger(token, { limit = 80, offset = 0 } = {}) {
+  const qs = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset)
+  });
+  const r = await fetch(`${apiRoot()}/api/auth/heart-ledger/mine?${qs}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติหัวใจไม่สำเร็จ");
+  }
+  return data;
+}

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
+const heartLedgerService = require("./heartLedgerService");
 const heartPackageService = require("./heartPackageService");
 
 function rowToPurchase(row) {
@@ -152,16 +153,41 @@ async function approve(purchaseId, adminUserId, note) {
     const buyerId = row.user_id;
     const pink = Math.max(0, Math.floor(Number(row.pink_qty) || 0));
     const red = Math.max(0, Math.floor(Number(row.red_qty) || 0));
-    await client.query(
+    const pkgR = await client.query(`SELECT title FROM heart_packages WHERE id = $1`, [
+      row.package_id
+    ]);
+    const pkgTitle =
+      pkgR.rows[0]?.title != null ? String(pkgR.rows[0].title).trim() : "แพ็กหัวใจ";
+    const balR = await client.query(
       `UPDATE users SET
         pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
         red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
         hearts_balance =
           GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
           GREATEST(0, COALESCE(red_hearts_balance, 0) + $3)
-      WHERE id = $1`,
+      WHERE id = $1
+      RETURNING pink_hearts_balance, red_hearts_balance`,
       [buyerId, pink, red]
     );
+    if (balR.rows.length > 0) {
+      await heartLedgerService.insertWithClient(client, {
+        userId: buyerId,
+        pinkDelta: pink,
+        redDelta: red,
+        pinkAfter: Math.max(0, Math.floor(Number(balR.rows[0].pink_hearts_balance) || 0)),
+        redAfter: Math.max(0, Math.floor(Number(balR.rows[0].red_hearts_balance) || 0)),
+        kind: "heart_purchase_approved",
+        label: `อนุมัติซื้อแพ็ก「${pkgTitle}」`,
+        meta: {
+          purchaseId,
+          packageId: row.package_id != null ? String(row.package_id) : null,
+          packageTitle: pkgTitle,
+          pinkGranted: pink,
+          redGranted: red,
+          resolvedByUserId: adminUserId != null ? String(adminUserId) : null
+        }
+      });
+    }
     const noteText =
       note != null ? String(note).trim().slice(0, 500) : null;
     await client.query(

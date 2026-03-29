@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
 const productService = require("./productService");
+const heartLedgerService = require("./heartLedgerService");
 
 async function createOrder(userId, { totalPrice, heartsGranted, items }) {
   const pool = getPool();
@@ -125,15 +126,41 @@ async function createMarketplaceOrder(userId, payload) {
     );
 
     if (heartsGranted > 0) {
-      await client.query(
+      const balR = await client.query(
         `UPDATE users SET
           pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
           hearts_balance =
-            GREATEST(0, COALESCE(pink_hearts_balance, 0)) +
+            GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
             GREATEST(0, COALESCE(red_hearts_balance, 0))
-        WHERE id = $1`,
+        WHERE id = $1
+        RETURNING pink_hearts_balance, red_hearts_balance`,
         [userId, heartsGranted]
       );
+      if (balR.rows.length > 0) {
+        const lineNames = items
+          .filter((it) => (Number(it.hearts) || 0) > 0)
+          .map((it) => it.name)
+          .slice(0, 5);
+        const shopNames = [...new Set(items.map((it) => it.shopName).filter(Boolean))].slice(0, 3);
+        await heartLedgerService.insertWithClient(client, {
+          userId,
+          pinkDelta: heartsGranted,
+          redDelta: 0,
+          pinkAfter: Math.max(0, Math.floor(Number(balR.rows[0].pink_hearts_balance) || 0)),
+          redAfter: Math.max(0, Math.floor(Number(balR.rows[0].red_hearts_balance) || 0)),
+          kind: "marketplace_order",
+          label:
+            shopNames.length > 0
+              ? `ได้รับหัวใจจากสั่งซื้อร้าน (${shopNames.join(", ")})`
+              : "ได้รับหัวใจจากสั่งซื้อสินค้า",
+          meta: {
+            orderId: id,
+            heartsGranted,
+            productTitles: lineNames,
+            shopNames
+          }
+        });
+      }
     }
 
     await client.query("COMMIT");

@@ -112,6 +112,24 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS heart_ledger (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        pink_delta INTEGER NOT NULL,
+        red_delta INTEGER NOT NULL,
+        pink_balance_after INTEGER NOT NULL,
+        red_balance_after INTEGER NOT NULL,
+        kind VARCHAR(48) NOT NULL,
+        label TEXT,
+        meta JSONB
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_heart_ledger_user_created ON heart_ledger(user_id, created_at DESC);`
+    );
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS name_change_requests (
         id UUID PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

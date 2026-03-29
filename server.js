@@ -138,7 +138,10 @@ async function centralMetaFromSnapWithCounts(snap) {
 }
 
 /** หักหัวใจตอนเริ่มรอบเมื่อมี Bearer (สมาชิก) — คืน user หลังหัก */
-async function deductHeartsForGameStart(userId, { pinkCost = 0, redCost = 0, legacyTotalCost } = {}) {
+async function deductHeartsForGameStart(
+  userId,
+  { pinkCost = 0, redCost = 0, legacyTotalCost, ledgerContext } = {}
+) {
   if (!userId) return null;
   const u = await userService.findById(userId);
   if (!u) {
@@ -154,7 +157,18 @@ async function deductHeartsForGameStart(userId, { pinkCost = 0, redCost = 0, leg
       e.code = "INSUFFICIENT_HEARTS";
       throw e;
     }
-    return userService.adjustDualHearts(userId, -pink, -red);
+    const title = ledgerContext?.gameTitle ? String(ledgerContext.gameTitle).trim() : "";
+    return userService.adjustDualHearts(userId, -pink, -red, {
+      kind: "game_start",
+      label: title ? `เริ่มเล่นเกม「${title}」` : "เริ่มเล่นเกมส่วนกลาง",
+      meta: {
+        gameMode: ledgerContext?.gameMode || "central",
+        gameId: ledgerContext?.gameId || null,
+        gameTitle: title || null,
+        pinkCharged: pink,
+        redCharged: red
+      }
+    });
   }
   if (legacyTotalCost != null) {
     const total = Math.max(0, Math.floor(Number(legacyTotalCost) || 0));
@@ -168,7 +182,16 @@ async function deductHeartsForGameStart(userId, { pinkCost = 0, redCost = 0, leg
       e.code = "INSUFFICIENT_HEARTS";
       throw e;
     }
-    return userService.adjustDualHearts(userId, -useP, -needR);
+    return userService.adjustDualHearts(userId, -useP, -needR, {
+      kind: "game_start",
+      label: "เริ่มเล่นเกม (โหมดคลาสสิก)",
+      meta: {
+        gameMode: "legacy",
+        totalCharged: total,
+        pinkCharged: useP,
+        redCharged: needR
+      }
+    });
   }
   return null;
 }
@@ -318,7 +341,15 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
       const red = snap.game.redHeartCost ?? 0;
       let afterUser = null;
       try {
-        afterUser = await deductHeartsForGameStart(req.userId, { pinkCost: pink, redCost: red });
+        afterUser = await deductHeartsForGameStart(req.userId, {
+          pinkCost: pink,
+          redCost: red,
+          ledgerContext: {
+            gameMode: "central",
+            gameId: snap.game.id,
+            gameTitle: snap.game.title
+          }
+        });
       } catch (err) {
         if (err.code === "INSUFFICIENT_HEARTS") {
           return res.status(400).json({
@@ -349,7 +380,8 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
       afterUser = await deductHeartsForGameStart(req.userId, {
         pinkCost: 0,
         redCost: 0,
-        legacyTotalCost: heartCost
+        legacyTotalCost: heartCost,
+        ledgerContext: { gameMode: "legacy" }
       });
     } catch (err) {
       if (err.code === "INSUFFICIENT_HEARTS") {
