@@ -64,7 +64,7 @@ export default async function GamePlayPage({ params }) {
                   <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-50 px-2 py-1 text-pink-900 ring-1 ring-pink-200/90">
                     <InlineHeart size="md" className="text-pink-500" />
                     <span className="text-sm font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
-                    <span className="text-[11px] font-semibold text-pink-800">ชมพู</span>
+                    <span className="text-[11px] font-semibold text-pink-800">หัวใจชมพู</span>
                   </span>
                 ) : null}
                 {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
@@ -76,7 +76,7 @@ export default async function GamePlayPage({ params }) {
                   <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80">
                     <InlineHeart size="md" className="text-red-600" />
                     <span className="text-sm font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                    <span className="text-[11px] font-semibold text-red-800">แดง</span>
+                    <span className="text-[11px] font-semibold text-red-800">หัวใจแดง</span>
                   </span>
                 ) : null}
               </div>
