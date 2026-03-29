@@ -1219,16 +1219,6 @@ export default function FlipGameDemo({
               ) : null}
             </p>
           ) : null}
-          {centralDescription.trim() ? (
-            <div className="mt-3 border-t border-slate-100 pt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                คำอธิบายเกม
-              </p>
-              <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                {centralDescription.trim()}
-              </p>
-            </div>
-          ) : null}
         </div>
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">

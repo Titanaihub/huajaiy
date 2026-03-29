@@ -63,6 +63,11 @@ export default async function GamePlayPage({ params }) {
             </p>
           </div>
         </div>
+        {centralMeta.description ? (
+          <p className="mt-4 max-w-prose text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
+            {centralMeta.description}
+          </p>
+        ) : null}
         <FlipGameDemo serverCentralPublished centralGameId={gameId} />
         <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200/80 pt-6 text-sm">
           <Link
