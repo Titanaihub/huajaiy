@@ -676,7 +676,7 @@ function prizesForClient(rules, setImageCounts, givenByRuleId = null) {
     return {
       key: r.id,
       ruleId: r.id,
-      setIndex: r.setIndex,
+      setIndex: Math.max(0, Math.floor(Number(r.setIndex)) || 0),
       need: r.needCount,
       imagesPerSet: cap,
       label: formatRuleLabel(r, catLabel, cap),

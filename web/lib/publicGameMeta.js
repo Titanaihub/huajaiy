@@ -7,9 +7,12 @@ import { getApiBase } from "./config";
 export async function fetchPublicCentralGameMeta() {
   const base = getApiBase().replace(/\/$/, "");
   try {
-    const r = await fetch(`${base}/api/game/meta`, {
+    const r = await fetch(`${base}/api/game/meta?_nc=${Date.now()}`, {
       cache: "no-store",
-      headers: { Accept: "application/json" }
+      headers: {
+        Accept: "application/json",
+        "Cache-Control": "no-cache"
+      }
     });
     if (!r.ok) return null;
     const data = await r.json();
@@ -34,9 +37,12 @@ export async function fetchPublicCentralGameMeta() {
 export async function fetchPublicGameList() {
   const base = getApiBase().replace(/\/$/, "");
   try {
-    const r = await fetch(`${base}/api/game/list`, {
+    const r = await fetch(`${base}/api/game/list?_nc=${Date.now()}`, {
       cache: "no-store",
-      headers: { Accept: "application/json" }
+      headers: {
+        Accept: "application/json",
+        "Cache-Control": "no-cache"
+      }
     });
     if (!r.ok) return [];
     const data = await r.json();
@@ -53,10 +59,16 @@ export async function fetchPublicCentralGameMetaById(gameId) {
   if (!id) return null;
   const base = getApiBase().replace(/\/$/, "");
   try {
-    const r = await fetch(`${base}/api/game/meta?gameId=${encodeURIComponent(id)}`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" }
-    });
+    const r = await fetch(
+      `${base}/api/game/meta?gameId=${encodeURIComponent(id)}&_nc=${Date.now()}`,
+      {
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "Cache-Control": "no-cache"
+        }
+      }
+    );
     if (!r.ok) return null;
     const data = await r.json();
     if (!data.ok || data.gameMode !== "central") return null;

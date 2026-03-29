@@ -34,6 +34,9 @@ function loadImage(fileBlob) {
   });
 }
 
+/** พื้นหลังก่อนวาด — ลดปัญหา PNG โปร่ง → JPEG กลายเป็นพื้นดำ */
+const JPEG_FLAT_BG = "#f8fafc";
+
 async function compressToJpeg(file) {
   const img = await loadImage(file);
   const maxSide = 1200;
@@ -43,7 +46,10 @@ async function compressToJpeg(file) {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
-  canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = JPEG_FLAT_BG;
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("บีบอัดไม่สำเร็จ"))),
@@ -53,11 +59,26 @@ async function compressToJpeg(file) {
   });
 }
 
+function isProbablyPng(file) {
+  return (
+    (file.type && String(file.type).toLowerCase() === "image/png") ||
+    /\.png$/i.test(file.name || "")
+  );
+}
+
 async function uploadImageFile(file) {
   const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
-  const blob = await compressToJpeg(file);
-  body.append("image", new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" }));
+  if (isProbablyPng(file)) {
+    body.append(
+      "image",
+      file,
+      file.name && /\.png$/i.test(file.name) ? file.name : `upload-${Date.now()}.png`
+    );
+  } else {
+    const blob = await compressToJpeg(file);
+    body.append("image", new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" }));
+  }
   const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
@@ -1095,7 +1116,12 @@ export default function AdminCentralGamePanel() {
                         <div className="aspect-square w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
                           {preview ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={preview} alt="" className="h-full w-full object-cover" />
+                            <img
+                              key={preview}
+                              src={preview}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <div className="flex h-full items-center justify-center p-1 text-center text-[10px] leading-tight text-slate-400">
                               เลือกรูป
@@ -1208,6 +1234,7 @@ export default function AdminCentralGamePanel() {
                     <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
+                        key={gameCoverUrl.trim() || "default-cover"}
                         src={gameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
                         alt=""
                         className="h-full w-full object-cover"
@@ -1250,6 +1277,7 @@ export default function AdminCentralGamePanel() {
                     <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
+                        key={tileBackCoverUrl.trim() || "default-tile"}
                         src={tileBackCoverUrl.trim() || DEFAULT_TILE_BACK_COVER_PATH}
                         alt=""
                         className="h-full w-full object-cover"

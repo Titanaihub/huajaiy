@@ -155,10 +155,17 @@ async function fetchGameFlip(sessionId, index) {
 
 async function fetchGameMeta(centralGameId) {
   const id = centralGameId && String(centralGameId).trim();
+  const bust = `_nc=${Date.now()}`;
   const url = id
-    ? `${gameApiUrl("meta")}?gameId=${encodeURIComponent(id)}`
-    : gameApiUrl("meta");
-  const r = await fetch(url, { cache: "no-store" });
+    ? `${gameApiUrl("meta")}?gameId=${encodeURIComponent(id)}&${bust}`
+    : `${gameApiUrl("meta")}?${bust}`;
+  const r = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      "Cache-Control": "no-cache"
+    }
+  });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
     throw new Error(data.error || "ไม่สามารถโหลดกติกาเกมได้");
@@ -578,6 +585,37 @@ export default function FlipGameDemo({
                   clearStoredSession();
                 } else {
                   applyRestoredCentralState(st);
+                  /* snapshot ตอนเริ่มรอบไม่อัปเดตรูป — ดึง meta ล่าสุดเพื่อรูปกติกา/ปกตรงกับที่เผยแพร่ */
+                  if (resolvedGameId) {
+                    try {
+                      const fresh = await fetchGameMeta(resolvedGameId);
+                      if (!cancelled && fresh?.gameMode === "central") {
+                        if (Array.isArray(fresh.setPreviewUrls)) {
+                          setSetPreviewUrls(fresh.setPreviewUrls);
+                        }
+                        setCentralGameCoverUrl(String(fresh.gameCoverUrl || "").trim());
+                        setCentralTileBackCoverUrl(String(fresh.tileBackCoverUrl || "").trim());
+                        if (Array.isArray(fresh.prizes) && fresh.prizes.length) {
+                          setPrizeList((prev) =>
+                            prev.map((p) => {
+                              const np = fresh.prizes.find(
+                                (x) => String(x.ruleId) === String(p.ruleId)
+                              );
+                              return np
+                                ? {
+                                    ...p,
+                                    prizesGivenSoFar:
+                                      np.prizesGivenSoFar ?? p.prizesGivenSoFar
+                                  }
+                                : p;
+                            })
+                          );
+                        }
+                      }
+                    } catch {
+                      /* ignore */
+                    }
+                  }
                   if (user) await refresh();
                   return;
                 }
@@ -1363,29 +1401,35 @@ export default function FlipGameDemo({
         {mode === "api" && apiGameMode === "central" ? (
           <ul className="mt-3 space-y-2.5 text-slate-700">
             {prizeList.map((p) => {
-              const opened = setCounts[p.setIndex] ?? 0;
+              const setIdx = Math.max(0, Math.floor(Number(p.setIndex)) || 0);
+              const opened = setCounts[setIdx] ?? setCounts[p.setIndex] ?? 0;
               const cap = p.imagesPerSet ?? imagesPerSet;
+              const rawThumb =
+                Array.isArray(setPreviewUrls) && setPreviewUrls[setIdx] != null
+                  ? setPreviewUrls[setIdx]
+                  : null;
               const thumb =
-                Array.isArray(setPreviewUrls) && setPreviewUrls[p.setIndex]
-                  ? String(setPreviewUrls[p.setIndex]).trim()
+                rawThumb != null && String(rawThumb).trim() !== ""
+                  ? String(rawThumb).trim()
                   : "";
               return (
                 <li
                   key={p.key}
-                  className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/90 p-3 transition hover:border-slate-200/80"
+                  className="flex gap-3 rounded-xl border border-slate-100 bg-white p-3 transition hover:border-slate-200/80"
                 >
-                  {/* รูปตัวอย่างบางไฟล์เป็นพิกเซลพื้นดำ — CSS พื้นกรอบอย่างเดียวเปลี่ยนไม่ได้ · ใช้ screen blend ให้ดำกลืนกับพื้นอ่อน */}
-                  <div className="isolate h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/50 bg-slate-50">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/70 bg-white">
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={thumb}
                         alt=""
-                        className="h-full w-full object-cover object-center mix-blend-screen"
+                        className="h-full w-full object-cover object-center"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400">
-                        ช.{Number(p.setIndex) + 1}
+                        ช.{setIdx + 1}
                       </div>
                     )}
                   </div>

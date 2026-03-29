@@ -249,6 +249,8 @@ app.get(
 
 app.get("/api/game/list", async (_req, res) => {
   try {
+    res.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    res.set("Pragma", "no-cache");
     const games = await centralGameService.listPublishedGamesForPublic();
     return res.json({ ok: true, games });
   } catch (e) {
@@ -261,6 +263,8 @@ app.get("/api/game/list", async (_req, res) => {
 
 app.get("/api/game/meta", async (req, res) => {
   try {
+    res.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    res.set("Pragma", "no-cache");
     const q = req.query?.gameId;
     if (q != null && String(q).trim()) {
       const gameId = String(q).trim();
