@@ -1172,6 +1172,50 @@ export default function FlipGameDemo({
     cards.length > 0;
   /** หน้า /game/[id] — ลดข้อความซ้ำกับหัวข้อหน้า */
   const compactPlayLayout = Boolean(resolvedGameId);
+  const showCompactCentralStatsBar =
+    compactPlayLayout && mode === "api" && apiGameMode === "central";
+  const compactCentralStatsBar = showCompactCentralStatsBar ? (
+    <div className="rounded-xl border border-slate-200/90 bg-white px-3 py-3 text-slate-700 shadow-sm sm:px-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs">
+        <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
+          <span className="shrink-0 font-medium text-slate-600">{cards.length} ป้าย</span>
+          {pinkHeartCost > 0 || redHeartCost > 0 ? (
+            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="text-slate-500">หักต่อรอบ</span>
+              {pinkHeartCost > 0 ? (
+                <span
+                  className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
+                  title="หัวใจชมพู"
+                >
+                  <InlineHeart size="xl" className="text-pink-500" />
+                  <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
+                  <span className="text-xs font-semibold text-pink-800">หัวใจชมพู</span>
+                </span>
+              ) : null}
+              {pinkHeartCost > 0 && redHeartCost > 0 ? (
+                <span className="text-slate-300" aria-hidden>
+                  ·
+                </span>
+              ) : null}
+              {redHeartCost > 0 ? (
+                <span
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
+                  title="หัวใจแดง"
+                >
+                  <InlineHeart size="xl" className="text-red-600" />
+                  <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
+                  <span className="text-xs font-semibold text-red-800">หัวใจแดง</span>
+                </span>
+              ) : null}
+            </span>
+          ) : (
+            <span className="text-slate-400">เริ่มรอบฟรี</span>
+          )}
+        </span>
+        <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
+      </div>
+    </div>
+  ) : null;
 
   if (mode === null && cards.length === 0) {
     return (
@@ -1249,48 +1293,10 @@ export default function FlipGameDemo({
           </div>
         )
       ) : null}
-      {compactPlayLayout && mode === "api" && apiGameMode === "central" ? (
-        <div className="rounded-xl border border-slate-200/90 bg-white px-3 py-3 text-slate-700 shadow-sm sm:px-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs">
-            <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
-              <span className="shrink-0 font-medium text-slate-600">{cards.length} ป้าย</span>
-              {pinkHeartCost > 0 || redHeartCost > 0 ? (
-                <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-slate-500">หักต่อรอบ</span>
-                  {pinkHeartCost > 0 ? (
-                    <span
-                      className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
-                      title="หัวใจชมพู"
-                    >
-                      <InlineHeart size="xl" className="text-pink-500" />
-                      <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
-                      <span className="text-xs font-semibold text-pink-800">หัวใจชมพู</span>
-                    </span>
-                  ) : null}
-                  {pinkHeartCost > 0 && redHeartCost > 0 ? (
-                    <span className="text-slate-300" aria-hidden>
-                      ·
-                    </span>
-                  ) : null}
-                  {redHeartCost > 0 ? (
-                    <span
-                      className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
-                      title="หัวใจแดง"
-                    >
-                      <InlineHeart size="xl" className="text-red-600" />
-                      <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                      <span className="text-xs font-semibold text-red-800">หัวใจแดง</span>
-                    </span>
-                  ) : null}
-                </span>
-              ) : (
-                <span className="text-slate-400">เริ่มรอบฟรี</span>
-              )}
-            </span>
-            <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
-          </div>
-        </div>
-      ) : (
+      {showCompactCentralStatsBar && !showCentralPlayActions
+        ? compactCentralStatsBar
+        : null}
+      {!showCompactCentralStatsBar ? (
         <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
           <div
             className={
@@ -1388,7 +1394,7 @@ export default function FlipGameDemo({
           </p>
           <p className="mt-1 text-xs">เปิดป้ายแล้ว: {flips} ครั้ง</p>
         </div>
-      )}
+      ) : null}
 
       {compactPlayLayout && bootError ? (
         <p className="text-xs text-amber-700">{bootError}</p>
@@ -1490,6 +1496,7 @@ export default function FlipGameDemo({
 
       {showCentralPlayActions ? (
         <div className="space-y-2">
+          {showCompactCentralStatsBar ? compactCentralStatsBar : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
             <button
               type="button"
@@ -1503,6 +1510,14 @@ export default function FlipGameDemo({
               className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               เริ่มเล่นเกม
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              disabled={busy}
+              className="shrink-0 rounded-xl border-2 border-slate-300 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 sm:px-5"
+            >
+              รีเซ็ตกระดาน
             </button>
             <button
               type="button"
@@ -1757,14 +1772,16 @@ export default function FlipGameDemo({
         </div>
       ) : null}
 
-      <button
-        type="button"
-        onClick={reset}
-        disabled={busy}
-        className="w-full rounded-xl border border-transparent py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
-      >
-        รีเซ็ตกระดาน
-      </button>
+      {!showCentralPlayActions ? (
+        <button
+          type="button"
+          onClick={reset}
+          disabled={busy}
+          className="w-full rounded-xl border border-transparent py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
+        >
+          รีเซ็ตกระดาน
+        </button>
+      ) : null}
     </div>
   );
 }

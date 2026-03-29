@@ -1316,21 +1316,21 @@ export default function AdminCentralGamePanel() {
               role="region"
               aria-label="บันทึกและเผยแพร่เกม"
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+                <button
+                  type="button"
+                  disabled={savingAll || loading || gameActionBusy || !selectedId}
+                  onClick={() => saveAllGameData()}
+                  className="shrink-0 self-start rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+                </button>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
                   <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
                     บันทึกข้อมูลไว้ก่อน ค่อยกดเผยแพร่ หรือ หลุดการเผยแพร่ชั่วคราว หรือลบเกม
                   </p>
                 </div>
-                <button
-                  type="button"
-                  disabled={savingAll || loading || gameActionBusy || !selectedId}
-                  onClick={() => saveAllGameData()}
-                  className="shrink-0 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
-                </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
                 <button

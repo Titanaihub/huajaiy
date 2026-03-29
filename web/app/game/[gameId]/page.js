@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import FlipGameDemo from "../../../components/FlipGameDemo";
+import InlineHeart from "../../../components/InlineHeart";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { fetchPublicCentralGameMetaById } from "../../../lib/publicGameMeta";
@@ -38,6 +39,9 @@ export default async function GamePlayPage({ params }) {
     notFound();
   }
 
+  const showHeartCosts =
+    centralMeta.pinkHeartCost > 0 || centralMeta.redHeartCost > 0;
+
   return (
     <>
       <SiteHeader />
@@ -53,7 +57,35 @@ export default async function GamePlayPage({ params }) {
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-semibold tracking-tight text-slate-900">{centralMeta.title}</h1>
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+            {showHeartCosts ? (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+                <span className="font-medium text-slate-500">หักต่อรอบ</span>
+                {centralMeta.pinkHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-50 px-2 py-1 text-pink-900 ring-1 ring-pink-200/90">
+                    <InlineHeart size="md" className="text-pink-500" />
+                    <span className="text-sm font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
+                    <span className="text-[11px] font-semibold text-pink-800">ชมพู</span>
+                  </span>
+                ) : null}
+                {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
+                  <span className="text-slate-300" aria-hidden>
+                    ·
+                  </span>
+                ) : null}
+                {centralMeta.redHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80">
+                    <InlineHeart size="md" className="text-red-600" />
+                    <span className="text-sm font-bold tabular-nums">{centralMeta.redHeartCost}</span>
+                    <span className="text-[11px] font-semibold text-red-800">แดง</span>
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            <p
+              className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 ${
+                showHeartCosts ? "mt-2" : "mt-1"
+              }`}
+            >
               {centralMeta.creatorUsername ? (
                 <Link
                   href={`/u/${centralMeta.creatorUsername}`}
