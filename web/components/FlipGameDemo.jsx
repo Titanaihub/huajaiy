@@ -136,9 +136,14 @@ async function fetchGameStart(centralGameId) {
 }
 
 async function fetchGameFlip(sessionId, index) {
+  const headers = { "Content-Type": "application/json" };
+  if (typeof window !== "undefined") {
+    const token = getMemberToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
   const r = await fetch(gameApiUrl("flip"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ sessionId, index })
   });
   const data = await r.json().catch(() => ({}));
@@ -284,12 +289,54 @@ export default function FlipGameDemo({
   const [resultOverlayEnter, setResultOverlayEnter] = useState(false);
   /** โมดัลผลลัพธ์ — ปิดได้เพื่อดูกระดาน */
   const [resultModalOpen, setResultModalOpen] = useState(false);
-  /** กติกา: คลิกดูผู้ได้รับรางวัล (รายชื่อจะเชื่อม API ภายหลัง) */
+  /** กติกา: ดูรายละเอียดผู้ได้รับรางวัล */
   const [recipientsModalPrize, setRecipientsModalPrize] = useState(null);
+  const [recipientsModalLoading, setRecipientsModalLoading] = useState(false);
+  const [recipientsModalData, setRecipientsModalData] = useState(null);
+  const [recipientsModalError, setRecipientsModalError] = useState("");
   /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
   /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
   const [setPreviewUrls, setSetPreviewUrls] = useState([]);
+
+  useEffect(() => {
+    if (!recipientsModalPrize) {
+      setRecipientsModalData(null);
+      setRecipientsModalError("");
+      setRecipientsModalLoading(false);
+      return undefined;
+    }
+    if (!resolvedGameId) {
+      setRecipientsModalError(
+        "เปิดจากหน้าเกมที่มีรหัส (ลิงก์ /game/...) เพื่อดูรายชื่อผู้ได้รับ"
+      );
+      setRecipientsModalLoading(false);
+      return undefined;
+    }
+    const rid = recipientsModalPrize.ruleId;
+    if (rid == null) return undefined;
+    let cancel = false;
+    setRecipientsModalLoading(true);
+    setRecipientsModalError("");
+    setRecipientsModalData(null);
+    const url = `/api/public/games/${encodeURIComponent(resolvedGameId)}/rules/${encodeURIComponent(String(rid))}/awards`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancel) return;
+        if (!data.ok) throw new Error(data.error || "โหลดไม่สำเร็จ");
+        setRecipientsModalData(data);
+      })
+      .catch((e) => {
+        if (!cancel) setRecipientsModalError(e.message);
+      })
+      .finally(() => {
+        if (!cancel) setRecipientsModalLoading(false);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [recipientsModalPrize, resolvedGameId]);
 
   const applyLocalDeck = useCallback(() => {
     clearStoredSession();
@@ -774,6 +821,18 @@ export default function FlipGameDemo({
           setCentralSolutionShown(false);
           setResultModalOpen(true);
           addHearts(1);
+        }
+        if (data.prizeTallyUpdate?.ruleId != null) {
+          setPrizeList((prev) =>
+            prev.map((p) =>
+              String(p.ruleId) === String(data.prizeTallyUpdate.ruleId)
+                ? {
+                    ...p,
+                    prizesGivenSoFar: data.prizeTallyUpdate.prizesGivenSoFar
+                  }
+                : p
+            )
+          );
         }
       } else {
         setApiCounts(data.counts || { cash: 0, coffee: 0, discount: 0 });
@@ -1509,7 +1568,7 @@ export default function FlipGameDemo({
             role="dialog"
             aria-modal="true"
             aria-labelledby="prize-recipients-title"
-            className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-game"
+            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-game"
             onClick={(e) => e.stopPropagation()}
           >
             <h2
@@ -1518,10 +1577,66 @@ export default function FlipGameDemo({
             >
               ผู้ได้รับรางวัล — ชุดที่ {Number(recipientsModalPrize.setIndex) + 1}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              ฟีเจอร์แสดงรายชื่อยูสเซอร์ที่ได้รับรางวัลจากชุดนี้กำลังเชื่อมกับระบบหลังบ้าน
-              — ตอนนี้ยังไม่มีรายการให้ดู จำนวน「รางวัลออกไปแล้ว」บนการ์ดกติกาจะอัปเดตเมื่อมีข้อมูลจริง
-            </p>
+            {recipientsModalLoading ? (
+              <p className="mt-4 text-sm text-slate-500">กำลังโหลด…</p>
+            ) : recipientsModalError ? (
+              <p className="mt-4 text-sm text-amber-800">{recipientsModalError}</p>
+            ) : recipientsModalData ? (
+              <div className="mt-4 space-y-3 text-sm text-slate-700">
+                <p className="text-slate-600">
+                  แจกไปแล้ว{" "}
+                  <span className="font-semibold tabular-nums text-slate-900">
+                    {recipientsModalData.givenCount}
+                  </span>
+                  {recipientsModalData.totalQty != null ? (
+                    <>
+                      {" "}
+                      / ทั้งหมด{" "}
+                      <span className="font-semibold tabular-nums">
+                        {recipientsModalData.totalQty}
+                      </span>{" "}
+                      รางวัล
+                    </>
+                  ) : null}
+                  {recipientsModalData.totalQty != null &&
+                  recipientsModalData.givenCount < recipientsModalData.totalQty ? (
+                    <span className="block pt-1 text-xs text-slate-500">
+                      เหลืออีก{" "}
+                      {recipientsModalData.totalQty - recipientsModalData.givenCount}{" "}
+                      รางวัล
+                    </span>
+                  ) : null}
+                </p>
+                {Array.isArray(recipientsModalData.recipients) &&
+                recipientsModalData.recipients.length > 0 ? (
+                  <ul className="divide-y divide-slate-100 rounded-lg border border-slate-100">
+                    {recipientsModalData.recipients.map((row, idx) => (
+                      <li
+                        key={`${row.username}-${idx}`}
+                        className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2"
+                      >
+                        <span className="font-medium text-brand-800">
+                          @{row.username}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {row.wonAt
+                            ? new Date(row.wonAt).toLocaleString("th-TH", {
+                                dateStyle: "short",
+                                timeStyle: "short"
+                              })
+                            : "—"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-slate-500">ยังไม่มีผู้ได้รับรางวัลจากชุดนี้</p>
+                )}
+                <p className="text-xs text-slate-500">
+                  สมาชิกที่ล็อกอินและชนะรางวัลจะถูกบันทึกในรายการนี้
+                </p>
+              </div>
+            ) : null}
             <button
               type="button"
               onClick={() => setRecipientsModalPrize(null)}

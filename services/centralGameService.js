@@ -659,15 +659,20 @@ async function deleteGame(gameId) {
   await pool.query(`DELETE FROM central_games WHERE id = $1`, [gameId]);
 }
 
-function prizesForClient(rules, setImageCounts) {
+function prizesForClient(rules, setImageCounts, givenByRuleId = null) {
   const catLabel = {
     cash: "เงินสด",
     item: "สิ่งของ",
     voucher: "บัตรกำนัล",
     none: "ไม่มีรางวัล"
   };
+  const map =
+    givenByRuleId && typeof givenByRuleId === "object" ? givenByRuleId : null;
   return rules.map((r) => {
     const cap = setImageCounts[r.setIndex] ?? setImageCounts[0] ?? 1;
+    const rid = String(r.id);
+    const given =
+      map && map[rid] != null ? Math.max(0, Math.floor(Number(map[rid]) || 0)) : 0;
     return {
       key: r.id,
       ruleId: r.id,
@@ -681,8 +686,7 @@ function prizesForClient(rules, setImageCounts) {
       prizeUnit: r.prizeUnit || "",
       totalPrizeQty:
         r.prizeCategory === "none" ? null : (r.prizeTotalQty ?? 1),
-      /** จำนวนรางวัลที่แจกไปแล้ว — ตอนนี้คงที่ 0 จนกว่าจะมีการนับจากฐานข้อมูล */
-      prizesGivenSoFar: 0
+      prizesGivenSoFar: map ? given : 0
     };
   });
 }

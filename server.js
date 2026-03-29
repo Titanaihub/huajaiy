@@ -23,6 +23,7 @@ const { initDb } = require("./db/init");
 const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
 const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
 const centralGameService = require("./services/centralGameService");
+const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralGameSession = require("./centralGameSession");
 const { validateUsername } = require("./authValidators");
 
@@ -97,7 +98,7 @@ async function getPublishedCentralSnapshot(gameId) {
   }
 }
 
-function centralMetaFromSnap(snap) {
+function centralMetaFromSnap(snap, givenByRuleId = null) {
   const pink = snap.game.pinkHeartCost ?? 0;
   const red = snap.game.redHeartCost ?? 0;
   return {
@@ -115,9 +116,25 @@ function centralMetaFromSnap(snap) {
     setCount: snap.game.setCount,
     imagesPerSet: snap.game.imagesPerSet,
     setImageCounts: snap.game.setImageCounts,
-    prizes: centralGameService.prizesForClient(snap.rules, snap.game.setImageCounts),
+    prizes: centralGameService.prizesForClient(
+      snap.rules,
+      snap.game.setImageCounts,
+      givenByRuleId
+    ),
     setPreviewUrls: centralGameService.setPreviewUrlsFromSnapshot(snap)
   };
+}
+
+async function centralMetaFromSnapWithCounts(snap) {
+  try {
+    const map = await centralPrizeAwardService.countAwardsByRuleForGame(snap.game.id);
+    return centralMetaFromSnap(snap, map);
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return centralMetaFromSnap(snap, null);
+    }
+    throw e;
+  }
 }
 
 /** หักหัวใจตอนเริ่มรอบเมื่อมี Bearer (สมาชิก) — คืน user หลังหัก */
@@ -191,6 +208,45 @@ app.get("/api/public/members/:username", async (req, res) => {
   }
 });
 
+/** รายชื่อผู้ได้รับรางวัลต่อกติกา (สาธารณะ) — ไม่มีข้อมูลบัญชี */
+app.get(
+  "/api/public/games/:gameId/rules/:ruleId/awards",
+  async (req, res) => {
+    try {
+      const gameId = String(req.params.gameId || "").trim();
+      const ruleId = String(req.params.ruleId || "").trim();
+      if (!isUuidParam(gameId) || !isUuidParam(ruleId)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบรหัสไม่ถูกต้อง" });
+      }
+      const data = await centralPrizeAwardService.listPublicRecipientsForRule(
+        gameId,
+        ruleId
+      );
+      if (!data) {
+        return res
+          .status(404)
+          .json({ ok: false, error: "ไม่พบเกมหรือกติกา" });
+      }
+      return res.json({
+        ok: true,
+        recipients: data.recipients,
+        givenCount: data.givenCount,
+        totalQty: data.totalQty
+      });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.json({
+          ok: true,
+          recipients: [],
+          givenCount: 0,
+          totalQty: null
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
 app.get("/api/game/list", async (_req, res) => {
   try {
     const games = await centralGameService.listPublishedGamesForPublic();
@@ -213,13 +269,15 @@ app.get("/api/game/meta", async (req, res) => {
       }
       const pub = await getPublishedCentralSnapshot(gameId);
       if (pub) {
-        return res.json({ ok: true, ...centralMetaFromSnap(pub) });
+        const meta = await centralMetaFromSnapWithCounts(pub);
+        return res.json({ ok: true, ...meta });
       }
       return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือยังไม่เปิดแสดงในรายการ" });
     }
     const snap = await getActiveCentralSnapshot();
     if (snap) {
-      return res.json({ ok: true, ...centralMetaFromSnap(snap) });
+      const meta = await centralMetaFromSnapWithCounts(snap);
+      return res.json({ ok: true, ...meta });
     }
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
     return res.json({
@@ -271,10 +329,11 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
         throw err;
       }
       const sessionId = centralGameSession.createSession(snap);
+      const meta = await centralMetaFromSnapWithCounts(snap);
       const body = {
         ok: true,
         sessionId,
-        ...centralMetaFromSnap(snap)
+        ...meta
       };
       const hb = heartBalancesPayload(afterUser);
       if (hb) body.heartBalances = hb;
@@ -325,9 +384,23 @@ app.post("/api/game/state", async (req, res) => {
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    const state = centralGameSession.getSessionStateForClient(sessionId);
+    let state = centralGameSession.getSessionStateForClient(sessionId);
     if (!state) {
       return res.status(404).json({ ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" });
+    }
+    if (state.gameMode === "central" && state.gameId) {
+      try {
+        const map = await centralPrizeAwardService.countAwardsByRuleForGame(state.gameId);
+        state = {
+          ...state,
+          prizes: state.prizes.map((p) => ({
+            ...p,
+            prizesGivenSoFar: map[String(p.ruleId)] ?? 0
+          }))
+        };
+      } catch (e) {
+        if (e.code !== "DB_REQUIRED") throw e;
+      }
     }
     return res.json(state);
   } catch (e) {
@@ -353,7 +426,7 @@ app.post("/api/game/reveal-remaining", async (req, res) => {
 });
 
 /** เปิดป้าย — ลอง session เกมส่วนกลางก่อน (รองรับหลายเกมโดยไม่พึ่งเกม active) */
-app.post("/api/game/flip", async (req, res) => {
+app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
   try {
     const { sessionId, index } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
@@ -361,7 +434,38 @@ app.post("/api/game/flip", async (req, res) => {
     }
     const idx = Number(index);
     const r = centralGameSession.flip(sessionId, idx);
-    if (r.ok) return res.json(r);
+    if (r.ok) {
+      let prizeTallyUpdate = null;
+      if (
+        r.gameMode === "central" &&
+        r.winner &&
+        r.gameId &&
+        req.userId
+      ) {
+        try {
+          const rec = await centralPrizeAwardService.tryRecordWin({
+            userId: req.userId,
+            gameId: r.gameId,
+            ruleId: r.winner.ruleId,
+            playSessionId: sessionId
+          });
+          if (rec.inserted) {
+            const map = await centralPrizeAwardService.countAwardsByRuleForGame(
+              r.gameId
+            );
+            prizeTallyUpdate = {
+              ruleId: r.winner.ruleId,
+              prizesGivenSoFar: map[String(r.winner.ruleId)] ?? 0
+            };
+          }
+        } catch (err) {
+          console.error("[central_prize_awards]", err.message);
+        }
+      }
+      return res.json(
+        prizeTallyUpdate ? { ...r, prizeTallyUpdate } : r
+      );
+    }
     if (r.error !== "ไม่พบรอบเกม หรือหมดอายุ") {
       return res.status(400).json(r);
     }

@@ -340,6 +340,30 @@ async function initDb() {
       WHERE prize_category = 'none';
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS central_prize_awards (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        game_id UUID NOT NULL REFERENCES central_games(id) ON DELETE CASCADE,
+        rule_id UUID NOT NULL REFERENCES central_game_rules(id) ON DELETE CASCADE,
+        winner_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        play_session_id VARCHAR(64) NOT NULL,
+        prize_category VARCHAR(16) NOT NULL,
+        status VARCHAR(32) NOT NULL DEFAULT 'recorded',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT central_prize_awards_play_session_unique UNIQUE (play_session_id)
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_prize_awards_game ON central_prize_awards(game_id);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_prize_awards_rule ON central_prize_awards(rule_id);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_prize_awards_winner ON central_prize_awards(winner_user_id);`
+    );
+
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"
     );

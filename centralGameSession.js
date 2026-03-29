@@ -126,6 +126,7 @@ function flip(sessionId, index) {
   return {
     ok: true,
     gameMode: "central",
+    gameId: session.gameId,
     setIndex,
     imageIndex,
     imageUrl: url,
