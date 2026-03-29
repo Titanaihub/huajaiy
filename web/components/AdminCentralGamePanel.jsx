@@ -243,6 +243,7 @@ export default function AdminCentralGamePanel() {
   const [msg, setMsg] = useState("");
 
   const [title, setTitle] = useState("");
+  const [gameDescription, setGameDescription] = useState("");
   const [setCount, setSetCount] = useState(5);
   const [setSizes, setSetSizes] = useState([4, 4, 4, 4, 4]);
   const [pinkHeartCost, setPinkHeartCost] = useState(0);
@@ -252,6 +253,7 @@ export default function AdminCentralGamePanel() {
   const [rules, setRules] = useState([emptyRule()]);
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
+  const [newGameDescription, setNewGameDescription] = useState("");
   const [newSets, setNewSets] = useState(5);
   const [newSetSizes, setNewSetSizes] = useState([4, 4, 4, 4, 4]);
   const [newPinkHeart, setNewPinkHeart] = useState(0);
@@ -374,6 +376,7 @@ export default function AdminCentralGamePanel() {
         .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
       const data = await apiAdminCentralGameCreate(token, {
         title: newTitle,
+        description: newGameDescription,
         setCount: newSets,
         setImageCounts: counts,
         tileCount: counts.reduce((a, b) => a + b, 0),
@@ -422,6 +425,7 @@ export default function AdminCentralGamePanel() {
       .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
     await apiAdminCentralGamePatch(token, selectedId, {
       title: t,
+      description: gameDescription,
       setCount,
       setImageCounts: counts,
       tileCount: counts.reduce((a, b) => a + b, 0),
@@ -687,6 +691,16 @@ export default function AdminCentralGamePanel() {
               />
             </div>
             <div className="sm:col-span-2">
+              <label className="text-xs text-slate-600">รายละเอียด</label>
+              <textarea
+                value={newGameDescription}
+                onChange={(e) => setNewGameDescription(e.target.value)}
+                rows={4}
+                className="mt-1 w-full resize-y rounded-lg border border-slate-300 px-3 py-2"
+                placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
+              />
+            </div>
+            <div className="sm:col-span-2">
               <label className="text-xs text-slate-600">จำนวนชุดภาพ</label>
               <input
                 type="number"
@@ -874,6 +888,16 @@ export default function AdminCentralGamePanel() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1 w-full rounded-lg border px-3 py-2"
                   placeholder="ชื่อเกม"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-slate-600">รายละเอียด</label>
+                <textarea
+                  value={gameDescription}
+                  onChange={(e) => setGameDescription(e.target.value)}
+                  rows={4}
+                  className="mt-1 w-full resize-y rounded-lg border border-slate-300 px-3 py-2"
+                  placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
                 />
               </div>
               <div>

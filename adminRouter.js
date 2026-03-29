@@ -476,6 +476,7 @@ router.post(
     try {
       const snap = await centralGameService.createGame({
         title: req.body?.title,
+        description: req.body?.description,
         tileCount: req.body?.tileCount,
         setCount: req.body?.setCount,
         imagesPerSet: req.body?.imagesPerSet,

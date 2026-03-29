@@ -57,6 +57,12 @@ function sumSizes(sizes) {
   return sizes.reduce((a, b) => a + b, 0);
 }
 
+/** รายละเอียดเกม (ข้อความยาว) — ว่างได้ */
+function normalizeGameDescription(raw) {
+  if (raw == null) return "";
+  return String(raw).trim().slice(0, 8000);
+}
+
 function rowGame(row) {
   const legacyHeart = Math.max(0, Math.floor(Number(row.heart_cost) || 0));
   let pinkHeartCost = Math.max(0, Math.floor(Number(row.pink_heart_cost) || 0));
@@ -76,6 +82,7 @@ function rowGame(row) {
   return {
     id: row.id,
     title: row.title,
+    description: normalizeGameDescription(row.description),
     tileCount,
     setCount,
     setImageCounts,
@@ -175,6 +182,7 @@ function normalizePinkRedCosts(body, fallbackPink = 0, fallbackRed = 0) {
 
 async function createGame({
   title,
+  description: descriptionBody,
   tileCount,
   setCount,
   imagesPerSet,
@@ -219,10 +227,11 @@ async function createGame({
     0
   );
   const heartSum = pink + red;
+  const gameDesc = normalizeGameDescription(descriptionBody);
   await pool.query(
-    `INSERT INTO central_games (id, title, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, is_active, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, FALSE, $10)`,
-    [id, t, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, createdBy]
+    `INSERT INTO central_games (id, title, description, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, is_active, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, FALSE, $11)`,
+    [id, t, gameDesc, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, createdBy]
   );
   return getGameSnapshotById(id);
 }
@@ -275,8 +284,23 @@ async function updateGameMeta(gameId, patch) {
     e.code = "VALIDATION";
     throw e;
   }
+  const description =
+    patch.description !== undefined
+      ? normalizeGameDescription(patch.description)
+      : normalizeGameDescription(cur.rows[0].description);
   let coverSql = "";
-  const params = [gameId, title, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red];
+  const params = [
+    gameId,
+    title,
+    tc,
+    sc,
+    maxPer,
+    JSON.stringify(sizes),
+    heartSum,
+    pink,
+    red,
+    description
+  ];
   if (patch.tileBackCoverUrl !== undefined) {
     const v =
       patch.tileBackCoverUrl === null || patch.tileBackCoverUrl === ""
@@ -286,7 +310,7 @@ async function updateGameMeta(gameId, patch) {
     coverSql = `, tile_back_cover_url = $${params.length}`;
   }
   await pool.query(
-    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, updated_at = NOW()${coverSql} WHERE id = $1`,
+    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, updated_at = NOW()${coverSql} WHERE id = $1`,
     params
   );
   return getGameSnapshotById(gameId);

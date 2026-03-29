@@ -136,6 +136,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [imagesPerSet, setImagesPerSet] = useState(4);
   const [setImageCounts, setSetImageCounts] = useState([]);
   const [centralTitle, setCentralTitle] = useState("");
+  const [centralDescription, setCentralDescription] = useState("");
   const [busy, setBusy] = useState(false);
   const [bootError, setBootError] = useState(null);
   /** มีกระดานจากเกมส่วนกลางแต่ยังเริ่มรอบ/เปิดป้ายไม่ได้ (หัวใจไม่พอ) */
@@ -160,6 +161,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     setSetCounts([]);
     setCentralTitle("");
+    setCentralDescription("");
     setPinkHeartCost(0);
     setRedHeartCost(0);
     setBootError(null);
@@ -204,6 +206,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       sic.length ? Math.max(...sic.map((x) => Number(x) || 0), 1) : Number(meta.imagesPerSet) || 4
     );
     setCentralTitle(String(meta.title || "เกมส่วนกลาง"));
+    setCentralDescription(String(meta.description || "").trim());
     setSetCounts(Array.from({ length: sc }, () => 0));
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     setBootError(null);
@@ -251,12 +254,14 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         sic.length ? Math.max(...sic.map((x) => Number(x) || 0), 1) : Number(data.imagesPerSet) || 4
       );
       setCentralTitle(String(data.title || "เกมส่วนกลาง"));
+      setCentralDescription(String(data.description || "").trim());
       setSetCounts(Array.from({ length: sc }, () => 0));
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     } else {
       setSetCounts([]);
       setSetImageCounts([]);
       setCentralTitle("");
+      setCentralDescription("");
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     }
     setBootError(null);
@@ -602,6 +607,11 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
               : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
             : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
         </p>
+        {mode === "api" && apiGameMode === "central" && centralDescription ? (
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+            {centralDescription}
+          </p>
+        ) : null}
         <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
           {mode === "api" ? (
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800">

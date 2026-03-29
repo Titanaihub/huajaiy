@@ -111,6 +111,11 @@ export default async function HomePage() {
                 {centralMeta.cardCount} ป้าย
               </span>
             </div>
+            {centralMeta.description ? (
+              <p className="mt-4 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                {centralMeta.description}
+              </p>
+            ) : null}
           </section>
         ) : null}
 
