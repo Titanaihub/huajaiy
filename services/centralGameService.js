@@ -11,17 +11,25 @@ function requirePool() {
   return pool;
 }
 
-/** URL ภาพหน้าป้าย (ว่าง = ไม่ตั้ง) — ต้อง http(s) */
-function normalizeTileBackCoverUrl(raw) {
+/** URL รูปภาพ (ว่าง = ไม่ตั้ง) — ต้อง http(s) */
+function normalizeHttpImageUrl(raw, label) {
   if (raw == null) return null;
   const s = String(raw).trim().slice(0, 2000);
   if (!s) return null;
   if (!s.startsWith("http://") && !s.startsWith("https://")) {
-    const e = new Error("ภาพหน้าป้ายต้องเป็น URL (http/https)");
+    const e = new Error(`${label}ต้องเป็น URL (http/https)`);
     e.code = "VALIDATION";
     throw e;
   }
   return s;
+}
+
+function normalizeTileBackCoverUrl(raw) {
+  return normalizeHttpImageUrl(raw, "ภาพหน้าป้าย");
+}
+
+function normalizeGameCoverUrl(raw) {
+  return normalizeHttpImageUrl(raw, "รูปหน้าปกเกม");
 }
 
 /** @returns {number[]} ความยาว = setCount แต่ละชุดมีกี่ภาพ */
@@ -97,6 +105,10 @@ function rowGame(row) {
     tileBackCoverUrl:
       row.tile_back_cover_url != null && String(row.tile_back_cover_url).trim()
         ? String(row.tile_back_cover_url).trim()
+        : null,
+    gameCoverUrl:
+      row.game_cover_url != null && String(row.game_cover_url).trim()
+        ? String(row.game_cover_url).trim()
         : null
   };
 }
@@ -191,6 +203,7 @@ async function createGame({
   pinkHeartCost,
   redHeartCost,
   tileBackCoverUrl,
+  gameCoverUrl: gameCoverUrlBody,
   createdBy = null
 }) {
   const pool = requirePool();
@@ -228,10 +241,14 @@ async function createGame({
   );
   const heartSum = pink + red;
   const gameDesc = normalizeGameDescription(descriptionBody);
+  let gcv = null;
+  if (gameCoverUrlBody !== undefined && gameCoverUrlBody !== null && String(gameCoverUrlBody).trim()) {
+    gcv = normalizeGameCoverUrl(gameCoverUrlBody);
+  }
   await pool.query(
-    `INSERT INTO central_games (id, title, description, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, is_active, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, FALSE, $11)`,
-    [id, t, gameDesc, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, createdBy]
+    `INSERT INTO central_games (id, title, description, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, game_cover_url, is_active, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, FALSE, $12)`,
+    [id, t, gameDesc, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, gcv, createdBy]
   );
   return getGameSnapshotById(id);
 }
@@ -288,7 +305,7 @@ async function updateGameMeta(gameId, patch) {
     patch.description !== undefined
       ? normalizeGameDescription(patch.description)
       : normalizeGameDescription(cur.rows[0].description);
-  let coverSql = "";
+  const extraFragments = [];
   const params = [
     gameId,
     title,
@@ -307,10 +324,19 @@ async function updateGameMeta(gameId, patch) {
         ? null
         : normalizeTileBackCoverUrl(patch.tileBackCoverUrl);
     params.push(v);
-    coverSql = `, tile_back_cover_url = $${params.length}`;
+    extraFragments.push(`tile_back_cover_url = $${params.length}`);
   }
+  if (patch.gameCoverUrl !== undefined) {
+    const v =
+      patch.gameCoverUrl === null || patch.gameCoverUrl === ""
+        ? null
+        : normalizeGameCoverUrl(patch.gameCoverUrl);
+    params.push(v);
+    extraFragments.push(`game_cover_url = $${params.length}`);
+  }
+  const extraSql = extraFragments.length ? `, ${extraFragments.join(", ")}` : "";
   await pool.query(
-    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, updated_at = NOW()${coverSql} WHERE id = $1`,
+    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, updated_at = NOW()${extraSql} WHERE id = $1`,
     params
   );
   return getGameSnapshotById(gameId);

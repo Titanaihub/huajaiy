@@ -1,3 +1,4 @@
+import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "./centralGameDefaults";
 import { getApiBase } from "./config";
 
 /**
@@ -15,11 +16,14 @@ export async function fetchPublicCentralGameMeta() {
     if (!data.ok || data.gameMode !== "central") return null;
     const title = String(data.title || "").trim();
     const description = String(data.description || "").trim();
+    const customCover = String(data.gameCoverUrl || "").trim();
     return {
       title: title || "เกมส่วนกลาง",
       description,
       cardCount: Number(data.cardCount) || 0,
-      setCount: Number(data.setCount) || 0
+      setCount: Number(data.setCount) || 0,
+      gameCoverUrl: customCover || null,
+      coverImageUrl: customCover || DEFAULT_CENTRAL_GAME_COVER_PATH
     };
   } catch {
     return null;

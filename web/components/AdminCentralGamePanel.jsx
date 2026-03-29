@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import {
@@ -254,6 +255,8 @@ export default function AdminCentralGamePanel() {
   const [redHeartCost, setRedHeartCost] = useState(0);
 
   const [imageMap, setImageMap] = useState({});
+  /** URL รูปหน้าปก — ว่าง = ใช้รูปหัวใจชมพูเริ่มต้นบนเว็บ */
+  const [gameCoverUrl, setGameCoverUrl] = useState("");
   const [rules, setRules] = useState([]);
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
@@ -312,6 +315,7 @@ export default function AdminCentralGamePanel() {
       }
       setTitle(g.title);
       setGameDescription(typeof g.description === "string" ? g.description : "");
+      setGameCoverUrl(g.gameCoverUrl && String(g.gameCoverUrl).trim() ? String(g.gameCoverUrl).trim() : "");
       setSetCount(g.setCount);
       const sc = Math.max(1, g.setCount || 1);
       const fromApi = Array.isArray(g.setImageCounts) ? g.setImageCounts : null;
@@ -454,6 +458,7 @@ export default function AdminCentralGamePanel() {
     await apiAdminCentralGamePatch(token, selectedId, {
       title: t,
       description: gameDescription,
+      gameCoverUrl: gameCoverUrl.trim() ? gameCoverUrl.trim() : null,
       setCount,
       setImageCounts: counts,
       tileCount: counts.reduce((a, b) => a + b, 0),
@@ -643,6 +648,18 @@ export default function AdminCentralGamePanel() {
       if (selectedId === id) setSelectedId("");
       setMsg("ลบแล้ว");
       await loadList();
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
+  async function onPickCoverFile(file) {
+    if (!file) return;
+    setMsg("กำลังอัปโหลดรูปหน้าปก…");
+    try {
+      const url = await uploadImageFile(file);
+      setGameCoverUrl(url);
+      setMsg("อัปโหลดรูปหน้าปกแล้ว — กดบันทึกข้อมูลเพื่อบันทึกลงเซิร์ฟเวอร์");
     } catch (e) {
       setMsg(e.message || String(e));
     }
@@ -1132,6 +1149,48 @@ export default function AdminCentralGamePanel() {
               })()}
             </div>
 
+            <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-slate-900">รูปหน้าปกเกม</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
+              </p>
+              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                <div className="w-28 shrink-0 sm:w-32">
+                  <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
+                  <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={gameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <label className="text-[10px] font-medium text-slate-600">
+                    อัปโหลดรูปหน้าปก (1 ไฟล์)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      void onPickCoverFile(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setGameCoverUrl("")}
+                    className="text-xs text-slate-600 underline hover:text-slate-900"
+                  >
+                    ใช้รูปหัวใจชมพูเริ่มต้น
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <p className="text-[10px] text-amber-800">
               ลดจำนวนชุดแล้วมีกล่องสีเหลือง — แก้ให้หมดแล้วกดบันทึกข้อมูลด้านล่าง
             </p>
@@ -1146,7 +1205,7 @@ export default function AdminCentralGamePanel() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
                 <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-                  บันทึกโครง + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปด้วย (ไม่ครบจะข้ามรูป) · กดเผยแพร่หลังเลือกเกมในตาราง
+                  บันทึกโครง + รูปหน้าปก + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปชุดด้วย (ไม่ครบจะข้าม) · กดเผยแพร่หลังเลือกเกมในตาราง
                 </p>
               </div>
               <button

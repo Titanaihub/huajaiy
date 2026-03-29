@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { gameApiUrl } from "../lib/config";
 import {
   addHearts,
@@ -134,6 +135,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [setImageCounts, setSetImageCounts] = useState([]);
   const [centralTitle, setCentralTitle] = useState("");
   const [centralDescription, setCentralDescription] = useState("");
+  const [centralGameCoverUrl, setCentralGameCoverUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [bootError, setBootError] = useState(null);
   /** มีกระดานจากเกมส่วนกลางแต่ยังเริ่มรอบ/เปิดป้ายไม่ได้ (หัวใจไม่พอ) */
@@ -204,6 +206,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     );
     setCentralTitle(String(meta.title || "เกมส่วนกลาง"));
     setCentralDescription(String(meta.description || "").trim());
+    setCentralGameCoverUrl(String(meta.gameCoverUrl || "").trim());
     setSetCounts(Array.from({ length: sc }, () => 0));
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     setBootError(null);
@@ -252,6 +255,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       );
       setCentralTitle(String(data.title || "เกมส่วนกลาง"));
       setCentralDescription(String(data.description || "").trim());
+      setCentralGameCoverUrl(String(data.gameCoverUrl || "").trim());
       setSetCounts(Array.from({ length: sc }, () => 0));
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     } else {
@@ -259,6 +263,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       setSetImageCounts([]);
       setCentralTitle("");
       setCentralDescription("");
+      setCentralGameCoverUrl("");
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     }
     setBootError(null);
@@ -591,19 +596,37 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         </div>
       ) : null}
       <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-        <p>
-          <strong>
-            {mode === "api" && apiGameMode === "central"
-              ? centralTitle || "เกมส่วนกลาง"
-              : "โหมดสาธิต"}
-            :
-          </strong>{" "}
-          {mode === "api" && apiGameMode === "central"
-            ? playLocked
-              ? `กระดานจริง ${cards.length} ป้าย — เปิดป้ายได้เมื่อมีหัวใจพอต่อรอบ`
-              : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
-            : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
-        </p>
+        <div
+          className={
+            mode === "api" && apiGameMode === "central" ? "flex gap-3" : ""
+          }
+        >
+          {mode === "api" && apiGameMode === "central" ? (
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={centralGameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <p>
+              <strong>
+                {mode === "api" && apiGameMode === "central"
+                  ? centralTitle || "เกมส่วนกลาง"
+                  : "โหมดสาธิต"}
+                :
+              </strong>{" "}
+              {mode === "api" && apiGameMode === "central"
+                ? playLocked
+                  ? `กระดานจริง ${cards.length} ป้าย — เปิดป้ายได้เมื่อมีหัวใจพอต่อรอบ`
+                  : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
+                : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
+            </p>
+          </div>
+        </div>
         {mode === "api" && apiGameMode === "central" && centralDescription ? (
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
             {centralDescription}

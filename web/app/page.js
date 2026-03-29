@@ -103,13 +103,23 @@ export default async function HomePage() {
               title={centralMeta.title}
               subtitle="เผยแพร่แล้วบนเว็บ — เล่นได้จากปุ่มด้านล่างหรือเมนู「เกม」"
             />
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/game" className={btnPrimary}>
-                เข้าเล่น「{centralMeta.title}」
-              </Link>
-              <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-900">
-                {centralMeta.cardCount} ป้าย
-              </span>
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-brand-200/80 bg-white shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={centralMeta.coverImageUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+                <Link href="/game" className={btnPrimary}>
+                  เข้าเล่น「{centralMeta.title}」
+                </Link>
+                <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-900">
+                  {centralMeta.cardCount} ป้าย
+                </span>
+              </div>
             </div>
             {centralMeta.description ? (
               <p className="mt-4 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">

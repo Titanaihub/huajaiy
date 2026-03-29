@@ -87,6 +87,7 @@ function centralMetaFromSnap(snap) {
     gameId: snap.game.id,
     title: snap.game.title,
     description: snap.game.description || "",
+    gameCoverUrl: snap.game.gameCoverUrl || null,
     pinkHeartCost: pink,
     redHeartCost: red,
     heartCost: pink + red,

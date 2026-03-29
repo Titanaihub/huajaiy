@@ -30,14 +30,28 @@ export default async function GamePage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-xl font-semibold text-slate-900">
-          {centralMeta ? centralMeta.title : "เกมเปิดป้าย (สาธิต)"}
-        </h1>
-        <p className="mt-2 text-sm text-slate-600">
-          {centralMeta
-            ? "เกมส่วนกลางที่เผยแพร่แล้ว — เปิดป้ายตามกติกา ลุ้นรางวัล"
-            : "โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง"}
-        </p>
+        <div className={centralMeta ? "flex gap-4" : ""}>
+          {centralMeta ? (
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={centralMeta.coverImageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-semibold text-slate-900">
+              {centralMeta ? centralMeta.title : "เกมเปิดป้าย (สาธิต)"}
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              {centralMeta
+                ? "เกมส่วนกลางที่เผยแพร่แล้ว — เปิดป้ายตามกติกา ลุ้นรางวัล"
+                : "โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง"}
+            </p>
+          </div>
+        </div>
         <GameApiLiveStatus />
         <FlipGameDemo serverCentralPublished={Boolean(centralMeta)} />
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
