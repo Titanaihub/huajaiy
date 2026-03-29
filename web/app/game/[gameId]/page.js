@@ -41,9 +41,9 @@ export default async function GamePlayPage({ params }) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        <div className="flex gap-4">
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+      <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50 shadow-sm ring-1 ring-slate-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={centralMeta.coverImageUrl}
@@ -52,20 +52,34 @@ export default async function GamePlayPage({ params }) {
             />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold text-slate-900">{centralMeta.title}</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-slate-900">{centralMeta.title}</h1>
             <p className="mt-1 text-sm text-slate-500">
-              <Link href="/game" className="text-brand-800 underline hover:text-brand-950">
+              <Link
+                href="/game"
+                className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+              >
                 ← รายการเกม
               </Link>
             </p>
+            {centralMeta.description ? (
+              <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600">
+                {centralMeta.description}
+              </p>
+            ) : null}
           </div>
         </div>
         <FlipGameDemo serverCentralPublished centralGameId={gameId} />
-        <div className="mt-8 flex flex-wrap gap-4 text-sm">
-          <Link href="/game" className="text-blue-600 underline hover:text-blue-800">
+        <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200/80 pt-6 text-sm">
+          <Link
+            href="/game"
+            className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+          >
             ← รายการเกม
           </Link>
-          <Link href="/" className="text-blue-600 underline hover:text-blue-800">
+          <Link
+            href="/"
+            className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+          >
             หน้าแรก
           </Link>
         </div>
