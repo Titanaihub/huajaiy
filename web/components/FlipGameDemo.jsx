@@ -1136,31 +1136,72 @@ export default function FlipGameDemo({
         )
       ) : null}
       {compactPlayLayout && mode === "api" && apiGameMode === "central" ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-xs text-slate-700 shadow-sm">
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <span className="text-slate-500">{cards.length} ป้าย</span>
-            {pinkHeartCost > 0 || redHeartCost > 0 ? (
-              <span className="inline-flex items-center gap-2 text-[11px]">
-                <span className="text-slate-400">หักต่อรอบ:</span>
-                {pinkHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 text-rose-600">
-                    <InlineHeart size="sm" className="text-rose-400" />
-                    {pinkHeartCost}
-                  </span>
-                ) : null}
-                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-300">|</span> : null}
-                {redHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 text-red-700">
-                    <InlineHeart size="sm" className="text-red-600" />
-                    {redHeartCost}
-                  </span>
-                ) : null}
-              </span>
-            ) : (
-              <span className="text-slate-400">เริ่มรอบฟรี</span>
-            )}
-          </span>
-          <span className="text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
+        <div className="rounded-xl border border-slate-200/90 bg-white px-3 py-3 text-slate-700 shadow-sm sm:px-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-xs">
+            <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
+              <span className="shrink-0 font-medium text-slate-600">{cards.length} ป้าย</span>
+              {pinkHeartCost > 0 || redHeartCost > 0 ? (
+                <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-slate-500">หักต่อรอบ</span>
+                  {pinkHeartCost > 0 ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-rose-50 px-2 py-1 text-rose-800 ring-1 ring-rose-200/80"
+                      title="หัวใจชมพู (โทนสีชมพูอมแดง — rose)"
+                    >
+                      <InlineHeart size="lg" className="text-rose-500" />
+                      <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
+                      <span className="text-[11px] font-semibold text-rose-700">ชมพู</span>
+                    </span>
+                  ) : null}
+                  {pinkHeartCost > 0 && redHeartCost > 0 ? (
+                    <span className="text-slate-300" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  {redHeartCost > 0 ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80"
+                      title="หัวใจแดง (สีแดงเข้ม)"
+                    >
+                      <InlineHeart size="lg" className="text-red-600" />
+                      <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
+                      <span className="text-[11px] font-semibold text-red-800">แดง</span>
+                    </span>
+                  ) : null}
+                </span>
+              ) : (
+                <span className="text-slate-400">เริ่มรอบฟรี</span>
+              )}
+            </span>
+            <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
+          </div>
+          {pinkHeartCost > 0 || redHeartCost > 0 ? (
+            <p className="mt-2 text-[10px] leading-snug text-slate-500">
+              {pinkHeartCost > 0 ? (
+                <span>
+                  ไอคอนชมพู = หักหัวใจ<strong className="font-semibold text-rose-700"> ชมพู </strong>
+                  (โทน rose / ชมพูอมแดง)
+                </span>
+              ) : null}
+              {pinkHeartCost > 0 && redHeartCost > 0 ? <span> · </span> : null}
+              {redHeartCost > 0 ? (
+                <span>
+                  ไอคอนแดง = หักหัวใจ<strong className="font-semibold text-red-800"> แดง </strong>
+                  (สีแดงเข้ม)
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+          {centralDescription.trim() ? (
+            <div className="mt-3 border-t border-slate-100 pt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                คำอธิบายเกม
+              </p>
+              <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                {centralDescription.trim()}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">

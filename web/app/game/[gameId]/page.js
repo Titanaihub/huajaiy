@@ -61,11 +61,6 @@ export default async function GamePlayPage({ params }) {
                 ← รายการเกม
               </Link>
             </p>
-            {centralMeta.description ? (
-              <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600">
-                {centralMeta.description}
-              </p>
-            ) : null}
           </div>
         </div>
         <FlipGameDemo serverCentralPublished centralGameId={gameId} />
