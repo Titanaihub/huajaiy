@@ -488,6 +488,7 @@ export default function AdminCentralGamePanel() {
       title: t,
       description: gameDescription,
       gameCoverUrl: gameCoverUrl.trim() ? gameCoverUrl.trim() : null,
+      tileBackCoverUrl: tileBackCoverUrl.trim() ? tileBackCoverUrl.trim() : null,
       setCount,
       setImageCounts: counts,
       tileCount: counts.reduce((a, b) => a + b, 0),
