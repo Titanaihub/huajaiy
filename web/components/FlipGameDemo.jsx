@@ -110,15 +110,6 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
-/** คีย์ป้ายเกมส่วนกลาง: "setIndex-imageIndex" */
-function parseSetIndexFromTileKey(key) {
-  if (key == null || key === "") return null;
-  const m = String(key).match(/^(\d+)-/);
-  if (!m) return null;
-  const n = Number(m[1]);
-  return Number.isFinite(n) ? n : null;
-}
-
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -780,36 +771,6 @@ export default function FlipGameDemo({
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
-
-  /**
-   * ชุดที่ทำให้จบรอบ (ชนะรางวัลหรือเข้าเงื่อนไขไม่มีรางวัล) — จากเซิร์ฟเวอร์ก่อน แล้วค่อยไล่จากกติกา
-   */
-  const outcomeCentralSetIndex = useMemo(() => {
-    if (mode !== "api" || apiGameMode !== "central") return null;
-    if (!winner && !centralLoss) return null;
-    if (winner?.outcomeSetIndex != null && Number.isFinite(Number(winner.outcomeSetIndex))) {
-      return Math.max(0, Math.floor(Number(winner.outcomeSetIndex)));
-    }
-    if (centralLoss?.setIndex != null && Number.isFinite(Number(centralLoss.setIndex))) {
-      return Math.max(0, Math.floor(Number(centralLoss.setIndex)));
-    }
-    if (winner) {
-      const rid = winner.key;
-      if (rid != null && String(rid) !== "win") {
-        const p = prizeList.find(
-          (x) => x.ruleId != null && String(x.ruleId) === String(rid)
-        );
-        if (p) return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
-      }
-    }
-    if (centralLoss?.ruleId != null) {
-      const p = prizeList.find(
-        (x) => x.ruleId != null && String(x.ruleId) === String(centralLoss.ruleId)
-      );
-      if (p) return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
-    }
-    return null;
-  }, [winner, centralLoss, mode, apiGameMode, prizeList]);
 
   useEffect(() => {
     if (!resultOverlayVisible) {
@@ -1609,22 +1570,20 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             !centralSolutionShown &&
             !card.revealed;
-          const tileSetIdx = parseSetIndexFromTileKey(card.key);
-          const emphasizeOutcomeSet =
+          /** หลังจบรอบ: เน้นกรอบเฉพาะป้ายที่ผู้เล่นเปิดเอง (ไม่รวมป้ายที่ระบบเฉลยให้) */
+          const isPlayerOpenedPick =
             mode === "api" &&
             apiGameMode === "central" &&
             roundFinished &&
-            outcomeCentralSetIndex !== null;
-          const isOutcomeSetTile =
-            emphasizeOutcomeSet &&
             card.revealed &&
-            tileSetIdx !== null &&
-            tileSetIdx === outcomeCentralSetIndex;
-          const isOtherSetRevealedTile =
-            emphasizeOutcomeSet &&
+            card.openedByPlayer === true;
+          /** ป้ายที่โผล่จากเฉลยหรือสถานะอื่นที่ไม่ใช่การคลิกของผู้เล่น — แค่ลดความเด่นเล็กน้อย */
+          const isNonPlayerRevealed =
+            mode === "api" &&
+            apiGameMode === "central" &&
+            roundFinished &&
             card.revealed &&
-            tileSetIdx !== null &&
-            tileSetIdx !== outcomeCentralSetIndex;
+            card.openedByPlayer === false;
           return (
             <button
               key={card.index ?? i}
@@ -1638,36 +1597,30 @@ export default function FlipGameDemo({
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${
                 showRedUnpicked
                   ? "border-red-500 ring-2 ring-red-400/90"
-                  : isOutcomeSetTile
-                      ? "z-[2] border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg ring-[3px] ring-amber-400/95"
-                      : isOtherSetRevealedTile
-                        ? "border-slate-300/80 bg-slate-200/90"
-                        : card.revealed
-                          ? "border-slate-300 bg-slate-50"
-                          : playLocked
-                            ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
-                            : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-[0.97]"
+                  : isPlayerOpenedPick
+                    ? "z-[1] border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-md ring-2 ring-amber-400/85"
+                    : isNonPlayerRevealed
+                      ? "border-slate-200/90 bg-slate-100/70"
+                      : card.revealed
+                        ? "border-slate-300 bg-slate-50"
+                        : playLocked
+                          ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
+                          : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-[0.97]"
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
-                <span
-                  className={`relative block h-full w-full overflow-hidden ${
-                    isOtherSetRevealedTile
-                      ? "after:pointer-events-none after:absolute after:inset-0 after:bg-slate-900/45"
-                      : ""
-                  }`}
-                >
+                <span className="relative block h-full w-full overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={card.imageUrl}
                     alt=""
                     className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-300 ${
-                      isOtherSetRevealedTile
-                        ? "scale-[0.96] opacity-[0.42] grayscale contrast-[0.88] brightness-[0.72]"
+                      isNonPlayerRevealed
+                        ? "opacity-[0.9] saturate-[0.88] brightness-[0.94]"
                         : ""
                     } ${
-                      isOutcomeSetTile
-                        ? "relative z-[1] scale-[1.04] brightness-[1.12] contrast-[1.08] saturate-[1.25] drop-shadow-md"
+                      isPlayerOpenedPick
+                        ? "relative z-[1] brightness-[1.05] contrast-[1.04] saturate-[1.12]"
                         : ""
                     }`}
                   />
