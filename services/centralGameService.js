@@ -74,7 +74,23 @@ function normalizeGameDescription(raw) {
 /** ค.ศ. วันนี้ในเขต Asia/Bangkok → YYYYMMDD (สำหรับรหัสเกม) */
 function bangkokDatePrefix() {
   const s = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
-  return s.replace(/-/g, "");
+  const compact = String(s).replace(/-/g, "");
+  if (/^\d{8}$/.test(compact)) return compact;
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date());
+    const y = parts.find((p) => p.type === "year")?.value;
+    const m = parts.find((p) => p.type === "month")?.value;
+    const d = parts.find((p) => p.type === "day")?.value;
+    if (y && m && d) return `${y}${m.padStart(2, "0")}${d.padStart(2, "0")}`;
+  } catch {
+    /* fall through */
+  }
+  return compact;
 }
 
 /**
@@ -516,7 +532,8 @@ async function updateGameMeta(gameId, patch) {
     params
   );
   const publishedAfter =
-    patch.isPublished !== undefined ? Boolean(patch.isPublished) : Boolean(c.isPublished);
+    (patch.isPublished !== undefined ? Boolean(patch.isPublished) : Boolean(c.isPublished)) ||
+    Boolean(c.isActive);
   if (publishedAfter) {
     await ensurePublishedGameCode(gameId);
   }
@@ -1021,5 +1038,6 @@ module.exports = {
   formatRuleLabel,
   formatWinnerDisplay,
   formatLossRuleDisplay,
-  setPreviewUrlsFromSnapshot
+  setPreviewUrlsFromSnapshot,
+  ensurePublishedGameCode
 };

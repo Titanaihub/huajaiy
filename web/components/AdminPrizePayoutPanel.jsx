@@ -47,6 +47,176 @@ function statusThai(status) {
   return { text: status || "—", cls: "bg-slate-100 text-slate-800" };
 }
 
+/** ดึงตัวเลขจำนวนเงินจากฟิลด์รางวัลเงินสด */
+function parseCashBaht(a) {
+  if (a.prizeCategory !== "cash") return 0;
+  const raw = [a.prizeValueText, a.prizeUnit].filter(Boolean).join(" ");
+  const m = String(raw).replace(/,/g, "").match(/[\d]+(?:\.[\d]+)?/);
+  if (!m) return 0;
+  const n = parseFloat(m[0]);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatBahtTotal(n) {
+  if (!Number.isFinite(n) || n === 0) return "0";
+  if (Number.isInteger(n)) return n.toLocaleString("th-TH");
+  return n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
+}
+
+/** จัดกลุ่มตามผู้ได้รับ + เกม — สรุปยอดเหมือน「รางวัลของฉัน」แต่แยกรายคน */
+function groupAwardsByRecipientAndGame(list) {
+  const map = new Map();
+  for (const a of list) {
+    const uid = a.winnerUserId || "";
+    const gid = a.gameId || "";
+    const key = `${uid}::${gid}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        winnerUserId: uid,
+        gameId: gid,
+        gameTitle: a.gameTitle,
+        gameCode: a.gameCode || null,
+        winnerUsername: a.winnerUsername,
+        winnerFirstName: a.winnerFirstName,
+        winnerLastName: a.winnerLastName,
+        items: []
+      });
+    }
+    const g = map.get(key);
+    g.items.push(a);
+  }
+  for (const g of map.values()) {
+    g.items.sort((x, y) => new Date(y.wonAt) - new Date(x.wonAt));
+    const withCode = g.items.find((x) => x.gameCode);
+    if (withCode?.gameCode) g.gameCode = withCode.gameCode;
+  }
+  const groups = [...map.values()];
+  groups.sort((a, b) => {
+    const ta = a.items[0]?.wonAt ? new Date(a.items[0].wonAt).getTime() : 0;
+    const tb = b.items[0]?.wonAt ? new Date(b.items[0].wonAt).getTime() : 0;
+    return tb - ta;
+  });
+  return groups;
+}
+
+function groupStatusBadge(items) {
+  const statuses = [...new Set(items.map((x) => String(x.status || "recorded").toLowerCase()))];
+  if (statuses.length === 1) return statusThai(statuses[0]);
+  return { text: "หลายสถานะ", cls: "bg-slate-200 text-slate-800" };
+}
+
+function AdminPayoutGroupCard({ group }) {
+  const {
+    gameId,
+    gameTitle,
+    gameCode,
+    winnerUsername,
+    winnerFirstName,
+    winnerLastName,
+    items
+  } = group;
+  const w = winnerLabel({
+    winnerUsername,
+    winnerFirstName,
+    winnerLastName
+  });
+  const cashItems = items.filter((a) => a.prizeCategory === "cash");
+  const nonCashItems = items.filter((a) => a.prizeCategory !== "cash");
+  const cashTotal = cashItems.reduce((s, a) => s + parseCashBaht(a), 0);
+  const st = groupStatusBadge(items);
+  const [open, setOpen] = useState(false);
+
+  let nonCashSummary = null;
+  if (nonCashItems.length > 0) {
+    const byCat = nonCashItems.reduce((acc, a) => {
+      const k = a.prizeCategory || "other";
+      acc[k] = (acc[k] || 0) + 1;
+      return acc;
+    }, {});
+    nonCashSummary = Object.entries(byCat)
+      .map(([cat, n]) => `${CAT_LABEL[cat] || "รางวัล"} ${n} ครั้ง`)
+      .join(" · ");
+  }
+
+  return (
+    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-slate-900">{w.primary}</p>
+          {w.secondary ? <p className="mt-0.5 text-sm text-slate-600">{w.secondary}</p> : null}
+          <p className="mt-2 font-medium text-slate-900">{gameTitle}</p>
+          <p className="mt-0.5 font-mono text-xs text-slate-600">
+            รหัสเกม {gameCode && String(gameCode).trim() ? gameCode : "—"}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${st.cls}`}
+        >
+          {st.text}
+        </span>
+      </div>
+
+      {cashItems.length > 0 ? (
+        <p className="mt-3 text-sm text-slate-800">
+          เงินสดรวม{" "}
+          <span className="font-bold tabular-nums text-slate-900">{formatBahtTotal(cashTotal)}</span>{" "}
+          บาท
+          {cashItems.length > 1 ? (
+            <span className="font-normal text-slate-600"> · ชนะ {cashItems.length} ครั้ง</span>
+          ) : null}
+        </p>
+      ) : null}
+
+      {nonCashItems.length > 0 ? (
+        <p className="mt-1.5 text-sm text-slate-700">{nonCashSummary}</p>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+          aria-expanded={open}
+        >
+          {open ? "ซ่อนรายละเอียดแต่ละครั้ง" : "ดูรายละเอียดแต่ละครั้ง"}
+        </button>
+        <Link
+          href={`/game/${encodeURIComponent(gameId)}`}
+          className="text-xs font-semibold text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+        >
+          เปิดหน้าเกมนี้
+        </Link>
+      </div>
+
+      {open ? (
+        <ul className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
+          {items.map((a) => {
+            const rowSt = statusThai(a.status);
+            return (
+              <li
+                key={a.id}
+                className="rounded-lg bg-slate-50/90 px-3 py-2.5 text-sm text-slate-800"
+              >
+                <p className="text-slate-900">{prizeLine(a)}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  ชุดที่ {a.setIndex + 1} · {formatWonAt(a.wonAt)}
+                </p>
+                <p className="mt-1.5">
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${rowSt.cls}`}
+                  >
+                    {rowSt.text}
+                  </span>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </li>
+  );
+}
+
 export default function AdminPrizePayoutPanel() {
   const [awards, setAwards] = useState([]);
   const [games, setGames] = useState([]);
@@ -107,6 +277,11 @@ export default function AdminPrizePayoutPanel() {
     });
   }, [awards, q, gameFilter]);
 
+  const groups = useMemo(
+    () => groupAwardsByRecipientAndGame(filtered),
+    [filtered]
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
@@ -149,8 +324,16 @@ export default function AdminPrizePayoutPanel() {
 
       {!loading && !err ? (
         <p className="text-xs text-slate-600">
-          แสดง <strong>{filtered.length}</strong> รายการ
-          {gameFilter || q.trim() ? ` (จากทั้งหมด ${awards.length})` : null}
+          แสดง <strong>{groups.length}</strong> กลุ่ม
+          {filtered.length !== groups.length ? (
+            <>
+              {" "}
+              (<strong>{filtered.length}</strong> ครั้งที่ชนะ)
+            </>
+          ) : null}
+          {gameFilter || q.trim() ? ` · จากทั้งหมด ${awards.length} ครั้งที่ชนะในระบบ` : null}
+          {" · "}
+          สรุปตาม<strong>ผู้ได้รับ + เกม</strong> — กด「ดูรายละเอียดแต่ละครั้ง」เพื่อดูวันเวลาที่ชนะ
           {" · "}
           สถานะ「รอจ่าย」หมายถึงระบบบันทึกการชนะแล้ว — ใช้รายการนี้ติดตามการโอน/ส่งมอบจริง
         </p>
@@ -162,62 +345,15 @@ export default function AdminPrizePayoutPanel() {
         </p>
       ) : null}
 
-      {filtered.length > 0 ? (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
-              <tr>
-                <th className="px-3 py-2 whitespace-nowrap">วันที่ชนะ</th>
-                <th className="px-3 py-2">เกม</th>
-                <th className="px-3 py-2 whitespace-nowrap">รหัสเกม</th>
-                <th className="px-3 py-2">ผู้ได้รับ</th>
-                <th className="px-3 py-2">รางวัล</th>
-                <th className="px-3 py-2 whitespace-nowrap">สถานะ</th>
-                <th className="px-3 py-2 text-right whitespace-nowrap">ลิงก์</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((a) => {
-                const w = winnerLabel(a);
-                const st = statusThai(a.status);
-                return (
-                  <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50/80">
-                    <td className="px-3 py-2 align-top text-xs text-slate-700 whitespace-nowrap">
-                      {formatWonAt(a.wonAt)}
-                    </td>
-                    <td className="px-3 py-2 align-top">
-                      <span className="font-medium text-slate-900">{a.gameTitle}</span>
-                      <p className="mt-0.5 text-[10px] text-slate-500">ชุด {a.setIndex + 1}</p>
-                    </td>
-                    <td className="px-3 py-2 align-top font-mono text-xs text-slate-700 whitespace-nowrap">
-                      {a.gameCode || "—"}
-                    </td>
-                    <td className="px-3 py-2 align-top">
-                      <span className="font-medium text-slate-900">{w.primary}</span>
-                      {w.secondary ? (
-                        <p className="mt-0.5 text-xs text-slate-600">{w.secondary}</p>
-                      ) : null}
-                    </td>
-                    <td className="px-3 py-2 align-top text-slate-800">{prizeLine(a)}</td>
-                    <td className="px-3 py-2 align-top whitespace-nowrap">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${st.cls}`}>
-                        {st.text}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 align-top text-right whitespace-nowrap">
-                      <Link
-                        href={`/game/${encodeURIComponent(a.gameId)}`}
-                        className="text-xs font-semibold text-brand-800 hover:underline"
-                      >
-                        เปิดเกม
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      {groups.length > 0 ? (
+        <ul className="space-y-3">
+          {groups.map((g) => (
+            <AdminPayoutGroupCard
+              key={`${g.winnerUserId}::${g.gameId}`}
+              group={g}
+            />
+          ))}
+        </ul>
       ) : null}
     </div>
   );

@@ -110,6 +110,15 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
+/** คีย์ป้ายเกมส่วนกลาง: "setIndex-imageIndex" */
+function parseSetIndexFromTileKey(key) {
+  if (key == null || key === "") return null;
+  const m = String(key).match(/^(\d+)-/);
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -767,6 +776,18 @@ export default function FlipGameDemo({
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
+
+  /** ชุดที่ชนะรางวัล — ใช้เน้นภาพใต้ป้ายชุดนี้ หลังรู้ผลชนะ */
+  const winningCentralSetIndex = useMemo(() => {
+    if (!winner || mode !== "api" || apiGameMode !== "central") return null;
+    const rid = winner.key;
+    if (rid == null || String(rid) === "win") return null;
+    const p = prizeList.find(
+      (x) => x.ruleId != null && String(x.ruleId) === String(rid)
+    );
+    if (!p) return null;
+    return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
+  }, [winner, mode, apiGameMode, prizeList]);
 
   useEffect(() => {
     if (!resultOverlayVisible) {
@@ -1566,6 +1587,22 @@ export default function FlipGameDemo({
             centralSolutionShown &&
             card.revealed &&
             card.openedByPlayer === true;
+          const tileSetIdx = parseSetIndexFromTileKey(card.key);
+          const emphasizePrizeTiles =
+            mode === "api" &&
+            apiGameMode === "central" &&
+            winner &&
+            winningCentralSetIndex !== null;
+          const isPrizeSetTile =
+            emphasizePrizeTiles &&
+            card.revealed &&
+            tileSetIdx !== null &&
+            tileSetIdx === winningCentralSetIndex;
+          const isNonPrizeRevealedTile =
+            emphasizePrizeTiles &&
+            card.revealed &&
+            tileSetIdx !== null &&
+            tileSetIdx !== winningCentralSetIndex;
           return (
             <button
               key={card.index ?? i}
@@ -1581,11 +1618,15 @@ export default function FlipGameDemo({
                   ? "border-emerald-500 ring-2 ring-emerald-400/90"
                   : showRedUnpicked
                     ? "border-red-500 ring-2 ring-red-400/90"
-                    : card.revealed
-                      ? "border-slate-300 bg-slate-50"
-                      : playLocked
-                        ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
-                        : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-[0.97]"
+                    : isPrizeSetTile
+                      ? "z-[1] border-amber-500 bg-gradient-to-br from-amber-50/90 to-white shadow-md ring-2 ring-amber-400/75"
+                      : isNonPrizeRevealedTile
+                        ? "border-slate-200/90 bg-slate-100/70"
+                        : card.revealed
+                          ? "border-slate-300 bg-slate-50"
+                          : playLocked
+                            ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
+                            : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-[0.97]"
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
@@ -1593,7 +1634,11 @@ export default function FlipGameDemo({
                 <img
                   src={card.imageUrl}
                   alt=""
-                  className="h-full w-full object-cover"
+                  className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-200 ${
+                    isNonPrizeRevealedTile
+                      ? "scale-[0.97] opacity-[0.52] grayscale contrast-90"
+                      : ""
+                  } ${isPrizeSetTile ? "scale-[1.02] brightness-[1.06] contrast-[1.06] saturate-[1.15]" : ""}`}
                 />
               ) : card.revealed ? (
                 <span>{meta?.emoji ?? "✓"}</span>

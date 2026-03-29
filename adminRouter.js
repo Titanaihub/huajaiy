@@ -540,9 +540,22 @@ router.get(
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
       }
-      const snap = await centralGameService.getGameSnapshotById(id);
+      let snap = await centralGameService.getGameSnapshotById(id);
       if (!snap) {
         return res.status(404).json({ ok: false, error: "ไม่พบเกม" });
+      }
+      if (
+        snap.game &&
+        (snap.game.isPublished || snap.game.isActive) &&
+        (!snap.game.gameCode || !String(snap.game.gameCode).trim())
+      ) {
+        try {
+          await centralGameService.ensurePublishedGameCode(id);
+          const again = await centralGameService.getGameSnapshotById(id);
+          if (again) snap = again;
+        } catch (err) {
+          console.error("[admin] ensurePublishedGameCode on GET central-games/:id", id, err.message);
+        }
       }
       const images = [];
       for (const [k, url] of snap.imageUrl.entries()) {
