@@ -34,6 +34,15 @@ export default function MemberNav() {
         >
           รางวัลของฉัน
         </Link>
+        {user.role === "admin" ? (
+          <Link
+            href="/account/prize-payouts"
+            className="font-medium text-brand-700 transition hover:text-brand-900"
+            title="รายการผู้ได้รางวัล — ติดตามการจ่าย"
+          >
+            จ่ายรางวัล
+          </Link>
+        ) : null}
         <Link
           href="/account/shops"
           className="font-medium text-brand-700 transition hover:text-brand-900"

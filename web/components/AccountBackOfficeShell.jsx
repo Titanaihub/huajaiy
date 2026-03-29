@@ -51,6 +51,11 @@ export default function AccountBackOfficeShell({ children }) {
             <li>
               <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
             </li>
+            {user?.role === "admin" ? (
+              <li>
+                <NavLink href="/account/prize-payouts">จ่ายรางวัล</NavLink>
+              </li>
+            ) : null}
             <li>
               <NavLink href="/account/shops">ร้านของฉัน</NavLink>
             </li>

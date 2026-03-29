@@ -202,9 +202,72 @@ async function listAwardsForUser(userId) {
   }));
 }
 
+/**
+ * รายการรางวัลทั้งหมดสำหรับแอดมิน/ผู้ดูแลเกม — ใช้ติดตามว่าต้องจ่ายให้ใคร
+ * @param {{ gameId?: string | null, limit?: number }} opts
+ */
+async function listAllAwardsForAdmin(opts = {}) {
+  const pool = requirePool();
+  const lim = Math.min(2000, Math.max(1, Math.floor(Number(opts.limit) || 500)));
+  const gameId = opts.gameId != null ? String(opts.gameId).trim() : "";
+  const params = [];
+  let where = `a.prize_category IS DISTINCT FROM 'none'`;
+  if (gameId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gameId)) {
+    params.push(gameId);
+    where += ` AND a.game_id = $${params.length}`;
+  }
+  params.push(lim);
+  const r = await pool.query(
+    `SELECT
+       a.id,
+       a.created_at AS "wonAt",
+       a.prize_category AS "prizeCategory",
+       a.status,
+       a.game_id AS "gameId",
+       COALESCE(NULLIF(trim(a.game_title_at_win), ''), NULLIF(trim(g.title), ''), 'เกม') AS "gameTitle",
+       NULLIF(BTRIM(COALESCE(g.game_code::text, '')), '') AS "gameCode",
+       a.rule_id AS "ruleId",
+       COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
+       COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
+       COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
+       COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
+       u.id AS "winnerUserId",
+       u.username AS "winnerUsername",
+       u.first_name AS "winnerFirstName",
+       u.last_name AS "winnerLastName"
+     FROM central_prize_awards a
+     JOIN users u ON u.id = a.winner_user_id
+     LEFT JOIN central_games g ON g.id = a.game_id
+     LEFT JOIN central_game_rules r ON r.id = a.rule_id
+     WHERE ${where}
+     ORDER BY a.created_at DESC
+     LIMIT $${params.length}`,
+    params
+  );
+  return r.rows.map((row) => ({
+    id: String(row.id),
+    wonAt: row.wonAt,
+    prizeCategory: row.prizeCategory,
+    status: row.status != null ? String(row.status) : "recorded",
+    gameId: String(row.gameId),
+    gameTitle: String(row.gameTitle || "").trim() || "เกม",
+    gameCode: row.gameCode != null ? String(row.gameCode).trim() : null,
+    ruleId: row.ruleId != null ? String(row.ruleId) : null,
+    setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
+    prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
+    prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
+    prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
+    winnerUserId: String(row.winnerUserId),
+    winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
+    winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
+    winnerLastName: row.winnerLastName != null ? String(row.winnerLastName).trim() : ""
+  }));
+}
+
 module.exports = {
   countAwardsByRuleForGame,
   tryRecordWin,
   listPublicRecipientsForRule,
-  listAwardsForUser
+  listAwardsForUser,
+  listAllAwardsForAdmin
 };

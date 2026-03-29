@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
+import AdminPrizePayoutPanel from "./AdminPrizePayoutPanel";
 import { getMemberToken } from "../lib/memberApi";
 import { formatHeartCostSummary } from "../lib/formatHeartCostLabel";
 import {
@@ -338,6 +339,17 @@ export default function AdminDashboard() {
           }`}
         >
           เกมส่วนกลาง
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("prizePayouts")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "prizePayouts"
+              ? "bg-brand-800 text-white"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+          }`}
+        >
+          จ่ายรางวัล
         </button>
         <button
           type="button"
@@ -1003,6 +1015,14 @@ export default function AdminDashboard() {
             สร้างเกม อัปโหลดภาพแต่ละชุด กำหนดเงื่อนไขรางวัล แล้วเปิดใช้งาน — ผู้เล่นที่หน้า /game จะได้เกมนี้ทันที
           </p>
           <AdminCentralGamePanel />
+        </section>
+      ) : tab === "prizePayouts" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900">จ่ายรางวัล</h2>
+          <p className="text-sm text-slate-600">
+            รายการผู้เล่นที่ชนะรางวัลจากเกมส่วนกลาง — ใช้ตรวจสอบว่าต้องโอน/ส่งมอบรางวัลให้ใคร (ข้อมูลจากระบบบันทึกการชนะ)
+          </p>
+          <AdminPrizePayoutPanel />
         </section>
       ) : tab === "heartPackages" ? (
         <section className="space-y-4">

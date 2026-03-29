@@ -11,6 +11,7 @@ const { getAdminSnapshotCentral } = require("./centralGameSession");
 const centralGameService = require("./services/centralGameService");
 const heartPackageService = require("./services/heartPackageService");
 const heartPurchaseService = require("./services/heartPurchaseService");
+const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 
 const router = express.Router();
 
@@ -456,6 +457,32 @@ router.get(
     try {
       const games = await centralGameService.listGamesForAdmin();
       return res.json({ ok: true, games });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/** รายการผู้ได้รับรางวัลจากเกมส่วนกลาง — ใช้ติดตามการจ่ายรางวัล */
+router.get(
+  "/central-prize-awards",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const gameId = req.query.gameId != null ? String(req.query.gameId).trim() : "";
+      const limitRaw = req.query.limit != null ? Math.floor(Number(req.query.limit)) : 500;
+      const awards = await centralPrizeAwardService.listAllAwardsForAdmin({
+        gameId: gameId || null,
+        limit: limitRaw
+      });
+      return res.json({ ok: true, awards });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({

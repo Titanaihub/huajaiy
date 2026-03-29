@@ -142,6 +142,19 @@ export async function apiAdminCentralGamesList(token) {
   return data;
 }
 
+/** รายการผู้ได้รางวัลจากเกมส่วนกลาง (แอดมิน — ติดตามการจ่าย) */
+export async function apiAdminCentralPrizeAwards(token, { gameId, limit } = {}) {
+  const params = new URLSearchParams();
+  if (gameId) params.set("gameId", String(gameId));
+  if (limit != null) params.set("limit", String(limit));
+  const qs = params.toString();
+  const url = `${apiRoot()}/api/admin/central-prize-awards${qs ? `?${qs}` : ""}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดรายการรางวัลไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminCentralGameDetail(token, id) {
   const r = await fetch(`${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}`, {
     headers: { Authorization: `Bearer ${token}` }

@@ -126,7 +126,8 @@ function RuleEditorRow({
   setSizes,
   updateRule,
   setRules,
-  gamePrizeQtyLocked
+  gamePrizeQtyLocked,
+  structureLocked
 }) {
   const si = Math.min(
     setCount - 1,
@@ -149,7 +150,8 @@ function RuleEditorRow({
             max={Math.max(0, setCount - 1)}
             value={r.setIndex}
             onChange={(e) => updateRule(idx, "setIndex", e.target.value)}
-            className="mt-1 w-full rounded border px-1 py-1 text-xs"
+            disabled={structureLocked}
+            className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </div>
       ) : null}
@@ -160,7 +162,8 @@ function RuleEditorRow({
           min={0}
           value={r.sortOrder}
           onChange={(e) => updateRule(idx, "sortOrder", e.target.value)}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={structureLocked}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100"
           title="เลขน้อยตรวจก่อน — ค่าเริ่มต้นตามเลขชุด ปรับได้เมื่อต้องการสลับลำดับระหว่างชุด"
         />
       </div>
@@ -172,7 +175,8 @@ function RuleEditorRow({
           max={cap}
           value={r.needCount}
           onChange={(e) => updateRule(idx, "needCount", e.target.value)}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={structureLocked}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100"
         />
       </div>
       <div className="sm:col-span-1">
@@ -237,7 +241,8 @@ function RuleEditorRow({
               )
             );
           }}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={structureLocked}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100"
         >
           <option value="cash">เงินสด</option>
           <option value="item">สิ่งของ</option>
@@ -250,7 +255,7 @@ function RuleEditorRow({
         <input
           value={r.prizeTitle}
           onChange={(e) => updateRule(idx, "prizeTitle", e.target.value)}
-          disabled={isNone}
+          disabled={isNone || structureLocked}
           className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           placeholder="เช่น รางวัลที่ 1"
         />
@@ -260,7 +265,7 @@ function RuleEditorRow({
         <input
           value={r.prizeValueText}
           onChange={(e) => updateRule(idx, "prizeValueText", e.target.value)}
-          disabled={isNone}
+          disabled={isNone || structureLocked}
           className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           placeholder="เช่น 1000"
         />
@@ -270,7 +275,7 @@ function RuleEditorRow({
         <select
           value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
           onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
-          disabled={isNone}
+          disabled={isNone || structureLocked}
           className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
         >
           {UNITS.map((u) => (
@@ -285,7 +290,8 @@ function RuleEditorRow({
         <input
           value={r.description}
           onChange={(e) => updateRule(idx, "description", e.target.value)}
-          className="mt-1 w-full rounded border px-2 py-1 text-xs"
+          disabled={structureLocked}
+          className="mt-1 w-full rounded border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100"
         />
       </div>
     </div>
@@ -332,6 +338,8 @@ export default function AdminCentralGamePanel() {
   const [prizeAwardCount, setPrizeAwardCount] = useState(0);
   /** หลังเผยแพร่/เปิดใช้ — จำนวนรางวัลต่อกติกาเพิ่มได้อย่างเดียว */
   const [gamePrizeQtyLocked, setGamePrizeQtyLocked] = useState(false);
+  /** รหัสเกม (ออกเมื่อเผยแพร่แล้ว — อ่านอย่างเดียว) */
+  const [gameCode, setGameCode] = useState("");
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -366,8 +374,10 @@ export default function AdminCentralGamePanel() {
     setLoading(true);
     setErr("");
     setMsg("");
+    setPrizeAwardCount(0);
     try {
       const data = await apiAdminCentralGameDetail(token, id);
+      setPrizeAwardCount(Math.max(0, Math.floor(Number(data.prizeAwardCount)) || 0));
       const g = data.game;
       if (!g) {
         setErr("ไม่ได้รับข้อมูลเกมจากเซิร์ฟเวอร์");
@@ -438,6 +448,7 @@ export default function AdminCentralGamePanel() {
           : Array.from({ length: sc }, (_, s) => emptyRuleForSet(s))
       );
     } catch (e) {
+      setPrizeAwardCount(0);
       setErr(e.message || String(e));
     } finally {
       setLoading(false);
@@ -837,13 +848,22 @@ export default function AdminCentralGamePanel() {
         </button>
         {createExpanded ? (
           <form onSubmit={createGame} className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+            <div>
               <label className="text-xs text-slate-600">ชื่อเกม</label>
               <input
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-slate-600">รหัสเกม</label>
+              <input
+                readOnly
+                value=""
+                placeholder="หลังเผยแพร่"
+                className="mt-1 w-full rounded-lg border border-dashed border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-500"
               />
             </div>
             <div className="sm:col-span-2">
@@ -971,6 +991,7 @@ export default function AdminCentralGamePanel() {
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
               <tr>
                 <th className="px-3 py-2">เกม</th>
+                <th className="px-3 py-2">รหัส</th>
                 <th className="px-3 py-2">ป้าย</th>
                 <th className="px-3 py-2">สถานะ</th>
                 <th className="px-3 py-2 text-right">การทำงาน</th>
@@ -991,24 +1012,27 @@ export default function AdminCentralGamePanel() {
                   }}
                 >
                   <td className="px-3 py-2 font-medium text-slate-900">{g.title}</td>
+                  <td className="px-3 py-2 font-mono text-xs text-slate-700">
+                    {g.gameCode && String(g.gameCode).trim() ? String(g.gameCode).trim() : "—"}
+                  </td>
                   <td className="px-3 py-2 tabular-nums text-slate-700">{g.tileCount}</td>
                   <td className="px-3 py-2">
-                    {g.isPublished ? (
-                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">
-                        แสดงใน /game
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">ซ่อน</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    {g.isActive ? (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
-                        กำลังใช้
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-500">ไม่ได้ใช้</span>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {g.isPublished ? (
+                        <span className="w-fit rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">
+                          แสดงใน /game
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">ซ่อน</span>
+                      )}
+                      {g.isActive ? (
+                        <span className="w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                          กำลังใช้
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-500">ไม่ได้ใช้</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -1045,6 +1069,14 @@ export default function AdminCentralGamePanel() {
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
+          {prizeAwardCount > 0 ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
+              <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะชื่อเกม
+              คำอธิบาย รูปหน้าปก/หลังป้าย การแสดงในล็อบบี้ และ<strong>เพิ่มจำนวนรางวัล</strong>ในแถวเดิมเท่านั้น ·
+              โครงจำนวนชุด/ป้าย รูปป้าย การหักหัวใจ และเงื่อนไขกติกาอื่นถูกล็อกเพื่อความเป็นธรรมกับผู้เล่น
+            </div>
+          ) : null}
+
           <p className="text-xs text-slate-600">
             แต่ละชุด = <strong>จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
             <strong>บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
@@ -1063,13 +1095,23 @@ export default function AdminCentralGamePanel() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2">
+              <div>
                 <label className="text-xs text-slate-600">ชื่อเกม</label>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1 w-full rounded-lg border px-3 py-2"
                   placeholder="ชื่อเกม"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-600">รหัสเกม</label>
+                <input
+                  readOnly
+                  value={gameCode}
+                  placeholder="จะปรากฏหลังเผยแพร่ (บันทึกหรือกดเผยแพร่บนเว็บ)"
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800"
+                  title="รหัสอ้างอิงเกม — สร้างอัตโนมัติ ไม่ต้องกรอก"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -1107,7 +1149,8 @@ export default function AdminCentralGamePanel() {
                     setSetCount(n);
                     setSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
                   }}
-                  className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2"
+                  disabled={prizeAwardCount > 0}
+                  className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
               <div>
@@ -1128,7 +1171,8 @@ export default function AdminCentralGamePanel() {
                       min={0}
                       value={pinkHeartCost}
                       onChange={(e) => setPinkHeartCost(parseInt(e.target.value, 10) || 0)}
-                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                      disabled={prizeAwardCount > 0}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                     />
                   </div>
                   <div>
@@ -1138,7 +1182,8 @@ export default function AdminCentralGamePanel() {
                       min={0}
                       value={redHeartCost}
                       onChange={(e) => setRedHeartCost(parseInt(e.target.value, 10) || 0)}
-                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                      disabled={prizeAwardCount > 0}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                     />
                   </div>
                 </div>
@@ -1182,7 +1227,8 @@ export default function AdminCentralGamePanel() {
                               return next;
                             });
                           }}
-                          className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                          disabled={prizeAwardCount > 0}
+                          className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-slate-100"
                         />
                       </div>
                       <div className="w-28 shrink-0 sm:w-32">
@@ -1210,7 +1256,8 @@ export default function AdminCentralGamePanel() {
                         <input
                           type="file"
                           accept="image/*"
-                          className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                          disabled={prizeAwardCount > 0}
+                          className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900 disabled:cursor-not-allowed disabled:opacity-50"
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
                             void onPickImage(s, 0, f);
@@ -1241,7 +1288,8 @@ export default function AdminCentralGamePanel() {
                             setSizes={setSizes}
                             updateRule={updateRule}
                             setRules={setRules}
-                            gamePrizeQtyLocked={gamePrizeQtyLocked}
+                            gamePrizeQtyLocked={gamePrizeQtyLocked || prizeAwardCount > 0}
+                            structureLocked={prizeAwardCount > 0}
                           />
                         ))}
                       </div>
@@ -1279,7 +1327,7 @@ export default function AdminCentralGamePanel() {
                         );
                         return (
                           <RuleEditorRow
-                            key={idx}
+                            key={r.id || `orphan-${idx}`}
                             r={r}
                             idx={idx}
                             needCap={capOr}
@@ -1288,6 +1336,8 @@ export default function AdminCentralGamePanel() {
                             setSizes={setSizes}
                             updateRule={updateRule}
                             setRules={setRules}
+                            gamePrizeQtyLocked={gamePrizeQtyLocked || prizeAwardCount > 0}
+                            structureLocked={prizeAwardCount > 0}
                           />
                         );
                       })}

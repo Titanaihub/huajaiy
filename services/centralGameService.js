@@ -411,6 +411,7 @@ async function updateGameMeta(gameId, patch) {
   const cur = await pool.query(`SELECT * FROM central_games WHERE id = $1`, [gameId]);
   if (cur.rows.length === 0) return null;
   const c = rowGame(cur.rows[0]);
+  const awardCountEarly = await getPrizeAwardCountForGame(gameId);
   const title = patch.title != null ? String(patch.title).trim().slice(0, 200) : c.title;
   const sc = patch.setCount != null ? Math.max(1, Math.floor(Number(patch.setCount) || 0)) : c.setCount;
   let sizes;
@@ -458,6 +459,19 @@ async function updateGameMeta(gameId, patch) {
     patch.description !== undefined
       ? normalizeGameDescription(patch.description)
       : normalizeGameDescription(cur.rows[0].description);
+  if (awardCountEarly > 0) {
+    const sameLayout =
+      sc === c.setCount &&
+      tc === c.tileCount &&
+      JSON.stringify(sizes) === JSON.stringify(c.setImageCounts) &&
+      pink === c.pinkHeartCost &&
+      red === c.redHeartCost;
+    if (!sameLayout) {
+      const e = new Error(MSG_AWARDS_LOCK);
+      e.code = "VALIDATION";
+      throw e;
+    }
+  }
   const extraFragments = [];
   const params = [
     gameId,
@@ -501,6 +515,11 @@ async function updateGameMeta(gameId, patch) {
     `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, updated_at = NOW()${extraSql} WHERE id = $1`,
     params
   );
+  const publishedAfter =
+    patch.isPublished !== undefined ? Boolean(patch.isPublished) : Boolean(c.isPublished);
+  if (publishedAfter) {
+    await ensurePublishedGameCode(gameId);
+  }
   return getGameSnapshotById(gameId);
 }
 
@@ -510,6 +529,14 @@ async function replaceImages(gameId, images, options = {}) {
   if (!snap) {
     const e = new Error("ไม่พบเกม");
     e.code = "NOT_FOUND";
+    throw e;
+  }
+  const imgAwardCount = await getPrizeAwardCountForGame(gameId);
+  if (imgAwardCount > 0) {
+    const e = new Error(
+      "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ไม่สามารถเปลี่ยนชุดรูปป้ายได้"
+    );
+    e.code = "VALIDATION";
     throw e;
   }
   const { setCount, setImageCounts } = snap.game;
@@ -615,8 +642,24 @@ const UUID_LOOSE_RE =
 
 function normalizeOptionalRuleId(raw, oldById) {
   const s = raw != null ? String(raw).trim().toLowerCase() : "";
-  if (!s || !UUID_V4_RE.test(s) || !oldById.has(s)) return null;
+  if (!s || !UUID_LOOSE_RE.test(s) || !oldById.has(s)) return null;
   return s;
+}
+
+const MSG_AWARDS_LOCK =
+  "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — แก้ได้เฉพาะชื่อเกม คำอธิบาย รูปปก / หลังป้าย และการแสดงในล็อบบี้ ไม่สามารถเปลี่ยนโครงป้าย รูป กติกา (ยกเว้นเพิ่มจำนวนรางวัล) หรือการหักหัวใจ";
+
+function centralRuleStructureUnchanged(old, f) {
+  return (
+    old.setIndex === f.setIndex &&
+    old.needCount === f.needCount &&
+    String(old.prizeCategory || "").toLowerCase() === f.cat &&
+    Math.floor(Number(old.sortOrder) || 0) === f.sortOrder &&
+    String(old.prizeTitle || "") === f.prizeTitle &&
+    String(old.prizeValueText || "") === f.prizeValueText &&
+    String(old.prizeUnit || "") === f.prizeUnit &&
+    String(old.description || "") === f.description
+  );
 }
 
 async function replaceRules(gameId, rules) {
@@ -634,11 +677,20 @@ async function replaceRules(gameId, rules) {
     throw e;
   }
 
+  const awardCount = await getPrizeAwardCountForGame(gameId);
+  if (awardCount > 0 && rules.length !== snap.rules.length) {
+    const e = new Error(
+      "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ห้ามเพิ่มหรือลบแถวกติกา (เพิ่มจำนวนรางวัลในแถวเดิมได้เท่านั้น)"
+    );
+    e.code = "VALIDATION";
+    throw e;
+  }
+
   const publishedLocked = Boolean(snap.game.isPublished || snap.game.isActive);
   const oldById = new Map(snap.rules.map((x) => [String(x.id).toLowerCase(), x]));
 
   let awardByRule = new Map();
-  if (publishedLocked && oldById.size > 0) {
+  if ((publishedLocked || awardCount > 0) && oldById.size > 0) {
     const acRes = await pool.query(
       `SELECT rule_id::text AS rid, COUNT(*)::int AS c
        FROM central_prize_awards
@@ -681,7 +733,42 @@ async function replaceRules(gameId, rules) {
         : Math.max(1, Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1));
 
     const priorId = normalizeOptionalRuleId(r.id, oldById);
-    if (publishedLocked && cat !== "none" && priorId) {
+    const sortOrder = r.sortOrder != null ? Math.floor(Number(r.sortOrder)) : order;
+    const prizeTitle = String(r.prizeTitle || "").slice(0, 200);
+    const prizeValueText = String(r.prizeValueText || "").slice(0, 200);
+    const prizeUnit = String(r.prizeUnit || "").slice(0, 32);
+    const description = String(r.description || "").slice(0, 2000);
+
+    if (awardCount > 0) {
+      if (!priorId) {
+        const e = new Error(
+          "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ต้องส่ง id กติกาเดิมทุกแถว (โหลดหน้าแก้ไขใหม่แล้วลองอีกครั้ง)"
+        );
+        e.code = "VALIDATION";
+        throw e;
+      }
+      const oldR = oldById.get(priorId);
+      if (
+        !centralRuleStructureUnchanged(oldR, {
+          setIndex,
+          needCount,
+          cat,
+          sortOrder,
+          prizeTitle,
+          prizeValueText,
+          prizeUnit,
+          description
+        })
+      ) {
+        const e = new Error(
+          "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — แก้ได้เฉพาะจำนวนรางวัล (เพิ่มได้เท่านั้น) ไม่สามารถเปลี่ยนเงื่อนไขอื่นของกติกา"
+        );
+        e.code = "VALIDATION";
+        throw e;
+      }
+    }
+
+    if ((publishedLocked || awardCount > 0) && cat !== "none" && priorId) {
       const old = oldById.get(priorId);
       const oldQty =
         old.prizeCategory === "none"
@@ -691,7 +778,7 @@ async function replaceRules(gameId, rules) {
       const floor = Math.max(oldQty, given);
       if (prizeTotalQty < floor) {
         const e = new Error(
-          `จำนวนรางวัล (ชุด ${setIndex + 1}) ต้องไม่น้อยกว่า ${floor} — หลังเผยแพร่แล้วเพิ่มจำนวนได้อย่างเดียว (รวมจำนวนที่ออกรางวัลไปแล้ว)`
+          `จำนวนรางวัล (ชุด ${setIndex + 1}) ต้องไม่น้อยกว่า ${floor} — หลังเผยแพร่หรือมีผู้รับรางวัลแล้ว เพิ่มจำนวนได้อย่างเดียว (รวมจำนวนที่ออกรางวัลไปแล้ว)`
         );
         e.code = "VALIDATION";
         throw e;
@@ -699,17 +786,16 @@ async function replaceRules(gameId, rules) {
     }
 
     const rowId = priorId || crypto.randomUUID();
-    const sortOrder = r.sortOrder != null ? Math.floor(Number(r.sortOrder)) : order;
     prepared.push({
       id: rowId,
       sortOrder,
       setIndex,
       needCount,
       cat,
-      prizeTitle: String(r.prizeTitle || "").slice(0, 200),
-      prizeValueText: String(r.prizeValueText || "").slice(0, 200),
-      prizeUnit: String(r.prizeUnit || "").slice(0, 32),
-      description: String(r.description || "").slice(0, 2000),
+      prizeTitle,
+      prizeValueText,
+      prizeUnit,
+      description,
       prizeTotalQty
     });
   }
