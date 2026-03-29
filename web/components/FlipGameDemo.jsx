@@ -194,10 +194,17 @@ async function fetchRevealRemaining(sessionId) {
 }
 
 /**
- * @param {{ serverCentralPublished?: boolean }} props
+ * @param {{ serverCentralPublished?: boolean; centralGameId?: string | null }} props
  * เซิร์ฟเวอร์หน้าเกมรู้แล้วว่ามีเกมเผยแพร่ — ใช้เตือนเมื่อฝั่งเบราว์เซอร์ตกไปโหมดสาธิต (หัวใจไม่พอ / API ล้ม)
  */
-export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
+export default function FlipGameDemo({
+  serverCentralPublished = false,
+  centralGameId = null
+} = {}) {
+  const resolvedGameId =
+    centralGameId != null && String(centralGameId).trim()
+      ? String(centralGameId).trim()
+      : null;
   const { user, loading: authLoading, refresh } = useMemberAuth();
   const [mode, setMode] = useState(null);
   /** @type {'central' | 'legacy' | null} */
