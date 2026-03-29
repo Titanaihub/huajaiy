@@ -721,25 +721,34 @@ export default function AdminCentralGamePanel() {
               <label className="text-xs text-slate-600">ป้ายรวม</label>
               <p className="mt-2 font-mono text-slate-800">{newTileCount}</p>
             </div>
-            <div>
-              <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
-              <input
-                type="number"
-                min={0}
-                value={newPinkHeart}
-                onChange={(e) => setNewPinkHeart(parseInt(e.target.value, 10) || 0)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
-              <input
-                type="number"
-                min={0}
-                value={newRedHeart}
-                onChange={(e) => setNewRedHeart(parseInt(e.target.value, 10) || 0)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
-              />
+            <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
+              <p className="text-xs font-semibold text-slate-800">การหักหัวใจต่อรอบ</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                กำหนดได้ว่าจะหักสีไหน: <strong>เฉพาะชมพู</strong> (ใส่แดง 0) · <strong>เฉพาะแดง</strong> (ใส่ชมพู 0) ·
+                หรือ<strong>ทั้งสองสี</strong> — ผู้เล่นต้องมียอดครบทุกสีที่ตั้งไว้ (ไม่สลับสีแทนกัน)
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newPinkHeart}
+                    onChange={(e) => setNewPinkHeart(parseInt(e.target.value, 10) || 0)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newRedHeart}
+                    onChange={(e) => setNewRedHeart(parseInt(e.target.value, 10) || 0)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                  />
+                </div>
+              </div>
             </div>
             <div className="sm:col-span-2 flex flex-wrap gap-2">
               <button
@@ -918,25 +927,34 @@ export default function AdminCentralGamePanel() {
                 <label className="text-xs text-slate-600">ป้ายรวม (คำนวณอัตโนมัติ)</label>
                 <p className="mt-2 font-mono text-sm text-slate-800">{tileCount}</p>
               </div>
-              <div>
-                <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={pinkHeartCost}
-                  onChange={(e) => setPinkHeartCost(parseInt(e.target.value, 10) || 0)}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={redHeartCost}
-                  onChange={(e) => setRedHeartCost(parseInt(e.target.value, 10) || 0)}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                />
+              <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
+                <p className="text-xs font-semibold text-slate-800">การหักหัวใจต่อรอบ</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  กำหนดได้ว่าจะหักสีไหน: <strong>เฉพาะชมพู</strong> (แดง = 0) · <strong>เฉพาะแดง</strong> (ชมพู = 0) ·
+                  หรือ<strong>ทั้งสองสี</strong> — ผู้เล่นต้องมียอดครบทุกสีที่ตั้งไว้
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={pinkHeartCost}
+                      onChange={(e) => setPinkHeartCost(parseInt(e.target.value, 10) || 0)}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-600">หักหัวใจแดงต่อรอบ</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={redHeartCost}
+                      onChange={(e) => setRedHeartCost(parseInt(e.target.value, 10) || 0)}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
