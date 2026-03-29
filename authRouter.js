@@ -74,6 +74,35 @@ function requireRole(...allowed) {
   };
 }
 
+/** มี Bearer ที่ถูกต้อง → ตั้ง req.userId · ไม่มีหัวหรือไม่ส่ง → ผู้เล่นทั่วไป (ไม่บังคับล็อกอิน) */
+async function optionalAuthMiddleware(req, res, next) {
+  req.userId = null;
+  const h = req.headers.authorization;
+  if (!h || !h.startsWith("Bearer ")) return next();
+  const token = h.slice("Bearer ".length).trim();
+  if (!token) return next();
+  let payload;
+  try {
+    payload = jwt.verify(token, getJwtSecret());
+  } catch {
+    return res
+      .status(401)
+      .json({ ok: false, error: "โทเค็นไม่ถูกต้องหรือหมดอายุ" });
+  }
+  try {
+    const user = await userService.findById(payload.sub);
+    if (!user) {
+      return res.status(401).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    req.userId = user.id;
+    req.username = user.username;
+    req.userRole = user.role || MEMBER;
+    next();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+}
+
 const router = express.Router();
 
 function clientIp(req) {
@@ -262,4 +291,4 @@ router.get("/shops/mine", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = { router, authMiddleware, requireRole };
+module.exports = { router, authMiddleware, requireRole, optionalAuthMiddleware };

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { gameApiUrl } from "../lib/config";
+import { getMemberToken } from "../lib/memberApi";
 import {
   addHearts,
   canAffordPinkRed,
@@ -30,7 +31,7 @@ function canAffordCentralEntry(user, pinkCost, redCost) {
 }
 
 /**
- * อนุญาตเริ่มรอบเมื่อผ่าน canAfford — ไม่ล็อกอินหักจาก localStorage · ล็อกอินยังไม่มี API หัก DB
+ * ผู้เล่นทั่วไป: หักจาก localStorage · สมาชิก: เซิร์ฟเวอร์หักตอน POST /start แล้ว — ใช้ฟังก์ชันนี้แค่เช็กก่อนเรียก API
  */
 function spendCentralEntryOrFail(user, pinkCost, redCost) {
   const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
@@ -63,13 +64,22 @@ function buildDeck() {
 }
 
 async function fetchGameStart() {
+  const headers = { "Content-Type": "application/json" };
+  if (typeof window !== "undefined") {
+    const token = getMemberToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
   const r = await fetch(gameApiUrl("start"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" }
+    headers,
+    body: JSON.stringify({})
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
-    throw new Error(data.error || "ไม่สามารถเริ่มเกมจากเซิร์ฟเวอร์ได้");
+    const err = new Error(data.error || "ไม่สามารถเริ่มเกมจากเซิร์ฟเวอร์ได้");
+    err.code = data.code;
+    err.status = r.status;
+    throw err;
   }
   return data;
 }
@@ -113,7 +123,7 @@ async function fetchGameAbandon(sessionId) {
  * เซิร์ฟเวอร์หน้าเกมรู้แล้วว่ามีเกมเผยแพร่ — ใช้เตือนเมื่อฝั่งเบราว์เซอร์ตกไปโหมดสาธิต (หัวใจไม่พอ / API ล้ม)
  */
 export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
-  const { user, loading: authLoading } = useMemberAuth();
+  const { user, loading: authLoading, refresh } = useMemberAuth();
   const [mode, setMode] = useState(null);
   /** @type {'central' | 'legacy' | null} */
   const [apiGameMode, setApiGameMode] = useState(null);
@@ -310,7 +320,12 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
+          const chargedOnServer = Boolean(data.heartBalances);
+          if (
+            (p > 0 || r > 0) &&
+            !chargedOnServer &&
+            !spendCentralEntryOrFail(user, p, r)
+          ) {
             void fetchGameAbandon(data.sessionId);
             if (meta?.gameMode === "central") {
               applyCentralPreviewFromMeta(
@@ -325,7 +340,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           }
         } else {
           const paid = Number(data.heartCost) || 0;
-          if (paid > 0 && !trySpend(paid)) {
+          const chargedOnServer = Boolean(data.heartBalances);
+          if (paid > 0 && !chargedOnServer && !trySpend(paid)) {
             void fetchGameAbandon(data.sessionId);
             setBootError("หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์");
             applyLocalDeck();
@@ -333,12 +349,15 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           }
         }
         applyApiSession(data);
+        if (data.heartBalances) await refresh();
       } catch (e) {
         if (!cancelled) {
           if (meta?.gameMode === "central") {
             applyCentralPreviewFromMeta(
               meta,
-              "เรียก API เริ่มรอบไม่สำเร็จ — แสดงกระดานจากข้อมูลเกม (เปิดป้ายไม่ได้จนกว่าระบบจะพร้อม)"
+              e?.code === "INSUFFICIENT_HEARTS"
+                ? "หัวใจในบัญชียังไม่พอเริ่มรอบนี้ — เติมหัวใจหรือรอแอดมินอนุมัติ แล้วกดรีเซ็ตกระดาน"
+                : "เรียก API เริ่มรอบไม่สำเร็จ — แสดงกระดานจากข้อมูลเกม (เปิดป้ายไม่ได้จนกว่าระบบจะพร้อม)"
             );
             setBootError(String(e.message || e));
           } else {
@@ -356,6 +375,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     applyCentralPreviewFromMeta,
     applyLocalDeck,
     authLoading,
+    refresh,
     user?.id
   ]);
 
@@ -526,7 +546,12 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
-          if ((p > 0 || r > 0) && !spendCentralEntryOrFail(user, p, r)) {
+          const chargedOnServer = Boolean(data.heartBalances);
+          if (
+            (p > 0 || r > 0) &&
+            !chargedOnServer &&
+            !spendCentralEntryOrFail(user, p, r)
+          ) {
             void fetchGameAbandon(data.sessionId);
             if (meta?.gameMode === "central") {
               applyCentralPreviewFromMeta(meta);
@@ -538,7 +563,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           }
         } else {
           const paid = Number(data.heartCost) || 0;
-          if (paid > 0 && !trySpend(paid)) {
+          const chargedOnServer = Boolean(data.heartBalances);
+          if (paid > 0 && !chargedOnServer && !trySpend(paid)) {
             void fetchGameAbandon(data.sessionId);
             setBootError("หัวใจไม่พอ");
             applyLocalDeck();
@@ -546,6 +572,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           }
         }
         applyApiSession(data);
+        if (data.heartBalances) await refresh();
       } catch (e) {
         if (meta?.gameMode === "central") {
           applyCentralPreviewFromMeta(meta);
@@ -650,7 +677,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
               <span>
                 {user
-                  ? "หักต่อรอบ (เช็กชมพู/แดงแยกกันตามช่องด้านล่าง — ยังไม่หัก DB อัตโนมัติ):"
+                  ? "หักต่อรอบจากบัญชีเมื่อเริ่มรอบ (ชมพู/แดงแยกตามที่เกมกำหนด):"
                   : "หักต่อรอบ (สาธิตในเครื่อง — หักแยกสีตามที่ตั้ง):"}
               </span>
               {pinkHeartCost > 0 ? (

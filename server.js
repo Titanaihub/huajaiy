@@ -11,7 +11,8 @@ const {
   flip: flipGame,
   abandonSession
 } = require("./gameSession");
-const { router: authRouter } = require("./authRouter");
+const { router: authRouter, optionalAuthMiddleware } = require("./authRouter");
+const userService = require("./services/userService");
 const { router: ordersRouter } = require("./ordersRouter");
 const { router: adminRouter } = require("./adminRouter");
 const { router: ownerRouter } = require("./ownerRouter");
@@ -99,6 +100,51 @@ function centralMetaFromSnap(snap) {
   };
 }
 
+/** หักหัวใจตอนเริ่มรอบเมื่อมี Bearer (สมาชิก) — คืน user หลังหัก */
+async function deductHeartsForGameStart(userId, { pinkCost = 0, redCost = 0, legacyTotalCost } = {}) {
+  if (!userId) return null;
+  const u = await userService.findById(userId);
+  if (!u) {
+    const e = new Error("ไม่พบบัญชี");
+    e.code = "AUTH";
+    throw e;
+  }
+  const pink = Math.max(0, Math.floor(Number(pinkCost) || 0));
+  const red = Math.max(0, Math.floor(Number(redCost) || 0));
+  if (pink > 0 || red > 0) {
+    if (u.pinkHeartsBalance < pink || u.redHeartsBalance < red) {
+      const e = new Error("หัวใจไม่พอเริ่มรอบ");
+      e.code = "INSUFFICIENT_HEARTS";
+      throw e;
+    }
+    return userService.adjustDualHearts(userId, -pink, -red);
+  }
+  if (legacyTotalCost != null) {
+    const total = Math.max(0, Math.floor(Number(legacyTotalCost) || 0));
+    if (total <= 0) return null;
+    const pHave = u.pinkHeartsBalance;
+    const rHave = u.redHeartsBalance;
+    const useP = Math.min(pHave, total);
+    const needR = total - useP;
+    if (rHave < needR) {
+      const e = new Error("หัวใจไม่พอเริ่มรอบ");
+      e.code = "INSUFFICIENT_HEARTS";
+      throw e;
+    }
+    return userService.adjustDualHearts(userId, -useP, -needR);
+  }
+  return null;
+}
+
+function heartBalancesPayload(u) {
+  if (!u) return null;
+  return {
+    pinkHeartsBalance: u.pinkHeartsBalance,
+    redHeartsBalance: u.redHeartsBalance,
+    heartsBalance: u.heartsBalance
+  };
+}
+
 app.get("/api/game/meta", async (_req, res) => {
   try {
     const snap = await getActiveCentralSnapshot();
@@ -118,28 +164,72 @@ app.get("/api/game/meta", async (_req, res) => {
   }
 });
 
-/** เริ่มรอบเกม — ถ้ามีเกมส่วนกลาง active ใช้ central ไม่งั้น legacy */
-app.post("/api/game/start", async (_req, res) => {
+/** เริ่มรอบเกม — ถ้ามีเกมส่วนกลาง active ใช้ central ไม่งั้น legacy · สมาชิก (Bearer) หักหัวใจที่นี่ */
+app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
   try {
     const snap = await getActiveCentralSnapshot();
     if (snap) {
+      const pink = snap.game.pinkHeartCost ?? 0;
+      const red = snap.game.redHeartCost ?? 0;
+      let afterUser = null;
+      try {
+        afterUser = await deductHeartsForGameStart(req.userId, { pinkCost: pink, redCost: red });
+      } catch (err) {
+        if (err.code === "INSUFFICIENT_HEARTS") {
+          return res.status(400).json({
+            ok: false,
+            error: err.message,
+            code: "INSUFFICIENT_HEARTS"
+          });
+        }
+        if (err.code === "AUTH") {
+          return res.status(401).json({ ok: false, error: err.message });
+        }
+        throw err;
+      }
       const sessionId = centralGameSession.createSession(snap);
-      return res.json({
+      const body = {
         ok: true,
         sessionId,
         ...centralMetaFromSnap(snap)
-      });
+      };
+      const hb = heartBalancesPayload(afterUser);
+      if (hb) body.heartBalances = hb;
+      return res.json(body);
     }
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
+    let afterUser = null;
+    try {
+      afterUser = await deductHeartsForGameStart(req.userId, {
+        pinkCost: 0,
+        redCost: 0,
+        legacyTotalCost: heartCost
+      });
+    } catch (err) {
+      if (err.code === "INSUFFICIENT_HEARTS") {
+        return res.status(400).json({
+          ok: false,
+          error: err.message,
+          code: "INSUFFICIENT_HEARTS"
+        });
+      }
+      if (err.code === "AUTH") {
+        return res.status(401).json({ ok: false, error: err.message });
+      }
+      throw err;
+    }
     const sessionId = createSession();
-    return res.json({
+    const body = {
       ok: true,
       gameMode: "legacy",
       sessionId,
       cardCount: CARD_COUNT,
       prizes: PRIZES,
       heartCost
-    });
+    };
+    const hb = heartBalancesPayload(afterUser);
+    if (hb) body.heartBalances = hb;
+    return res.json(body);
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

@@ -27,6 +27,11 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 - **เว็บ:** `NEXT_PUBLIC_API_BASE_URL` = URL ของ API (ดู `web/.env.example`)
 - **API:** `DATABASE_URL`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `JWT_SECRET` (รายละเอียดเพิ่มใน `README.md`)
 
+## เกม — หัวใจ
+
+- สมาชิกล็อกอิน: `POST /api/game/start` ส่ง `Authorization: Bearer …` — เซิร์ฟเวอร์หักหัวใจชมพู/แดงใน DB ตามค่าเกม (เกมส่วนกลางหรือ legacy `GAME_HEART_COST`) ก่อนสร้าง session
+- ผู้เล่นทั่วไป: ยังหักจาก localStorage ฝั่งเบราว์เซอร์ตามเดิม
+
 ## หลังเพิ่มคอลัมน์/ตารางใน `db/init.js`
 
 - รัน migration / init กับ **PostgreSQL บน Render** ให้ตรงกับโค้ดก่อนใช้ฟีเจอร์ใหม่
