@@ -553,14 +553,18 @@ export default function FlipGameDemo({
       setWinner({
         key: st.winner.ruleId || "win",
         label: st.winner.label || "ได้รับรางวัล",
-        emoji: "🎁"
+        emoji: "🎁",
+        outcomeSetIndex:
+          st.winner.setIndex != null ? Math.max(0, Math.floor(Number(st.winner.setIndex)) || 0) : undefined
       });
       setCentralSolutionShown(false);
       setResultModalOpen(true);
     } else if (st.finished && st.loss) {
       setCentralLoss({
         ruleId: st.loss.ruleId,
-        label: st.loss.label || "จบรอบ — ไม่มีรางวัล"
+        label: st.loss.label || "จบรอบ — ไม่มีรางวัล",
+        setIndex:
+          st.loss.setIndex != null ? Math.max(0, Math.floor(Number(st.loss.setIndex)) || 0) : null
       });
       setCentralSolutionShown(false);
       setResultModalOpen(true);
@@ -777,17 +781,35 @@ export default function FlipGameDemo({
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
 
-  /** ชุดที่ชนะรางวัล — ใช้เน้นภาพใต้ป้ายชุดนี้ หลังรู้ผลชนะ */
-  const winningCentralSetIndex = useMemo(() => {
-    if (!winner || mode !== "api" || apiGameMode !== "central") return null;
-    const rid = winner.key;
-    if (rid == null || String(rid) === "win") return null;
-    const p = prizeList.find(
-      (x) => x.ruleId != null && String(x.ruleId) === String(rid)
-    );
-    if (!p) return null;
-    return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
-  }, [winner, mode, apiGameMode, prizeList]);
+  /**
+   * ชุดที่ทำให้จบรอบ (ชนะรางวัลหรือเข้าเงื่อนไขไม่มีรางวัล) — จากเซิร์ฟเวอร์ก่อน แล้วค่อยไล่จากกติกา
+   */
+  const outcomeCentralSetIndex = useMemo(() => {
+    if (mode !== "api" || apiGameMode !== "central") return null;
+    if (!winner && !centralLoss) return null;
+    if (winner?.outcomeSetIndex != null && Number.isFinite(Number(winner.outcomeSetIndex))) {
+      return Math.max(0, Math.floor(Number(winner.outcomeSetIndex)));
+    }
+    if (centralLoss?.setIndex != null && Number.isFinite(Number(centralLoss.setIndex))) {
+      return Math.max(0, Math.floor(Number(centralLoss.setIndex)));
+    }
+    if (winner) {
+      const rid = winner.key;
+      if (rid != null && String(rid) !== "win") {
+        const p = prizeList.find(
+          (x) => x.ruleId != null && String(x.ruleId) === String(rid)
+        );
+        if (p) return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
+      }
+    }
+    if (centralLoss?.ruleId != null) {
+      const p = prizeList.find(
+        (x) => x.ruleId != null && String(x.ruleId) === String(centralLoss.ruleId)
+      );
+      if (p) return Math.max(0, Math.floor(Number(p.setIndex)) || 0);
+    }
+    return null;
+  }, [winner, centralLoss, mode, apiGameMode, prizeList]);
 
   useEffect(() => {
     if (!resultOverlayVisible) {
@@ -867,7 +889,11 @@ export default function FlipGameDemo({
         if (data.loss) {
           setCentralLoss({
             ruleId: data.loss.ruleId,
-            label: data.loss.label || "จบรอบ — ไม่มีรางวัล"
+            label: data.loss.label || "จบรอบ — ไม่มีรางวัล",
+            setIndex:
+              data.loss.setIndex != null
+                ? Math.max(0, Math.floor(Number(data.loss.setIndex)) || 0)
+                : null
           });
           setCentralSolutionShown(false);
           setResultModalOpen(true);
@@ -875,7 +901,11 @@ export default function FlipGameDemo({
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
-            emoji: "🎁"
+            emoji: "🎁",
+            outcomeSetIndex:
+              data.winner.setIndex != null
+                ? Math.max(0, Math.floor(Number(data.winner.setIndex)) || 0)
+                : undefined
           });
           setCentralSolutionShown(false);
           setResultModalOpen(true);
@@ -1588,21 +1618,21 @@ export default function FlipGameDemo({
             card.revealed &&
             card.openedByPlayer === true;
           const tileSetIdx = parseSetIndexFromTileKey(card.key);
-          const emphasizePrizeTiles =
+          const emphasizeOutcomeSet =
             mode === "api" &&
             apiGameMode === "central" &&
-            winner &&
-            winningCentralSetIndex !== null;
-          const isPrizeSetTile =
-            emphasizePrizeTiles &&
+            roundFinished &&
+            outcomeCentralSetIndex !== null;
+          const isOutcomeSetTile =
+            emphasizeOutcomeSet &&
             card.revealed &&
             tileSetIdx !== null &&
-            tileSetIdx === winningCentralSetIndex;
-          const isNonPrizeRevealedTile =
-            emphasizePrizeTiles &&
+            tileSetIdx === outcomeCentralSetIndex;
+          const isOtherSetRevealedTile =
+            emphasizeOutcomeSet &&
             card.revealed &&
             tileSetIdx !== null &&
-            tileSetIdx !== winningCentralSetIndex;
+            tileSetIdx !== outcomeCentralSetIndex;
           return (
             <button
               key={card.index ?? i}
@@ -1618,10 +1648,10 @@ export default function FlipGameDemo({
                   ? "border-emerald-500 ring-2 ring-emerald-400/90"
                   : showRedUnpicked
                     ? "border-red-500 ring-2 ring-red-400/90"
-                    : isPrizeSetTile
-                      ? "z-[1] border-amber-500 bg-gradient-to-br from-amber-50/90 to-white shadow-md ring-2 ring-amber-400/75"
-                      : isNonPrizeRevealedTile
-                        ? "border-slate-200/90 bg-slate-100/70"
+                    : isOutcomeSetTile
+                      ? "z-[2] border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-lg ring-[3px] ring-amber-400/95"
+                      : isOtherSetRevealedTile
+                        ? "border-slate-300/80 bg-slate-200/90"
                         : card.revealed
                           ? "border-slate-300 bg-slate-50"
                           : playLocked
@@ -1630,16 +1660,28 @@ export default function FlipGameDemo({
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={card.imageUrl}
-                  alt=""
-                  className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-200 ${
-                    isNonPrizeRevealedTile
-                      ? "scale-[0.97] opacity-[0.52] grayscale contrast-90"
+                <span
+                  className={`relative block h-full w-full overflow-hidden ${
+                    isOtherSetRevealedTile
+                      ? "after:pointer-events-none after:absolute after:inset-0 after:bg-slate-900/45"
                       : ""
-                  } ${isPrizeSetTile ? "scale-[1.02] brightness-[1.06] contrast-[1.06] saturate-[1.15]" : ""}`}
-                />
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={card.imageUrl}
+                    alt=""
+                    className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-300 ${
+                      isOtherSetRevealedTile
+                        ? "scale-[0.96] opacity-[0.42] grayscale contrast-[0.88] brightness-[0.72]"
+                        : ""
+                    } ${
+                      isOutcomeSetTile
+                        ? "relative z-[1] scale-[1.04] brightness-[1.12] contrast-[1.08] saturate-[1.25] drop-shadow-md"
+                        : ""
+                    }`}
+                  />
+                </span>
               ) : card.revealed ? (
                 <span>{meta?.emoji ?? "✓"}</span>
               ) : mode === "api" && apiGameMode === "central" ? (

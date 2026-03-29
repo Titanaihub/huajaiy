@@ -135,6 +135,7 @@ function flip(sessionId, index) {
     winner: winRule
       ? {
           ruleId: winRule.id,
+          setIndex: Math.max(0, Math.floor(Number(winRule.setIndex)) || 0),
           label: formatWinnerDisplay(winRule),
           prizeCategory: winRule.prizeCategory,
           prizeTitle: winRule.prizeTitle,
@@ -145,6 +146,7 @@ function flip(sessionId, index) {
     loss: lossRule
       ? {
           ruleId: lossRule.id,
+          setIndex: Math.max(0, Math.floor(Number(lossRule.setIndex)) || 0),
           label: formatLossRuleDisplay(lossRule, outcome.imagesInSet),
           prizeCategory: "none"
         }
@@ -178,6 +180,7 @@ function buildWinnerLossPayload(session) {
     if (winRule) {
       winner = {
         ruleId: winRule.id,
+        setIndex: Math.max(0, Math.floor(Number(winRule.setIndex)) || 0),
         label: formatWinnerDisplay(winRule),
         prizeCategory: winRule.prizeCategory,
         prizeTitle: winRule.prizeTitle,
@@ -192,6 +195,7 @@ function buildWinnerLossPayload(session) {
       const cap = setImageCounts[lossRule.setIndex] ?? setImageCounts[0] ?? 1;
       loss = {
         ruleId: lossRule.id,
+        setIndex: Math.max(0, Math.floor(Number(lossRule.setIndex)) || 0),
         label: formatLossRuleDisplay(lossRule, cap),
         prizeCategory: "none"
       };
