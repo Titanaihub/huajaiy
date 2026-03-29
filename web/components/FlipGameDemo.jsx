@@ -1315,10 +1315,15 @@ export default function FlipGameDemo({
                   key={p.key}
                   className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50/90 p-3 transition hover:border-slate-200/80"
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/50 bg-slate-50/90">
+                  {/* รูปตัวอย่างบางไฟล์เป็นพิกเซลพื้นดำ — CSS พื้นกรอบอย่างเดียวเปลี่ยนไม่ได้ · ใช้ screen blend ให้ดำกลืนกับพื้นอ่อน */}
+                  <div className="isolate h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200/50 bg-slate-50">
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={thumb} alt="" className="h-full w-full object-contain" />
+                      <img
+                        src={thumb}
+                        alt=""
+                        className="h-full w-full object-cover object-center mix-blend-screen"
+                      />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400">
                         ช.{Number(p.setIndex) + 1}
