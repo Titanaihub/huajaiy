@@ -6,18 +6,26 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 
 ---
 
-## Production (Render)
+## บริการที่ใช้งานจริง
+
+| บริการ | ลิงก์ / รายละเอียด |
+|--------|---------------------|
+| **โค้ด** | [github.com/Titanaihub/huajaiy](https://github.com/Titanaihub/huajaiy) สาขา `main` |
+| **โฮสต์ + DB** | [render.com](https://render.com) — Blueprint จาก `render.yaml` |
+| **รูปภาพ** | [cloudinary.com](https://cloudinary.com) — ผูกกับ API (`huajaiy-api`) |
+
+## Production บน Render
 
 | ส่วน | รายละเอียด |
 |------|------------|
 | เว็บ | Service `huajaiy-web` → **www.huajaiy.com** |
 | API | Service `huajaiy-api` → **https://huajaiy-api.onrender.com** |
-| Database | **PostgreSQL บน Render** — เชื่อมผ่าน `DATABASE_URL` ที่ API |
-| โค้ด | GitHub **Titanaihub/huajaiy** สาขา **main** (push แล้ว deploy) |
+| Database | **PostgreSQL บน Render** — `DATABASE_URL` ที่ API |
 
-## หมายเหตุฝั่งเว็บ
+## Environment สำคัญ
 
-- ตั้ง `NEXT_PUBLIC_API_BASE_URL` บน Render ให้ชี้ API จริง (ดู `web/.env.example`)
+- **เว็บ:** `NEXT_PUBLIC_API_BASE_URL` = URL ของ API (ดู `web/.env.example`)
+- **API:** `DATABASE_URL`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `JWT_SECRET` (รายละเอียดเพิ่มใน `README.md`)
 
 ## หลังเพิ่มคอลัมน์/ตารางใน `db/init.js`
 
@@ -29,4 +37,4 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 
 ---
 
-*อัปเดตล่าสุด: มีนาคม 2026*
+*อัปเดตล่าสุด: มีนาคม 2026 — ระบุ GitHub + Render + Cloudinary เป็นชุดใช้งานจริง*

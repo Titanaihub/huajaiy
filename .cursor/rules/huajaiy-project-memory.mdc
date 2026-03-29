@@ -7,15 +7,19 @@ alwaysApply: true
 
 ## โครงสร้างที่ใช้งานจริง (Production)
 
-- **GitHub:** `Titanaihub/huajaiy` สาขา `main` — deploy อัตโนมัติจาก push
-- **Render — Web:** service `huajaiy-web` (Node/Next) → โดเมน **`www.huajaiy.com`** (free tier อาจ sleep เมื่อไม่มี traffic)
-- **Render — API:** service `huajaiy-api` → **`https://huajaiy-api.onrender.com`**
-- **PostgreSQL:** บน **Render** — API ใช้ `DATABASE_URL` (Internal URL เมื่อ API อยู่ Render เดียวกัน)
+ชุดบริการหลัก: **GitHub → Render → PostgreSQL (Render) + Cloudinary (รูป)**
+
+- **GitHub (โค้ด):** [https://github.com/Titanaihub/huajaiy](https://github.com/Titanaihub/huajaiy) สาขา `main` — push แล้ว Render ดึง deploy
+- **Render ([render.com](https://render.com)):** โฮสต์เว็บ + API + เชื่อม Postgres — โปรเจกต์มี `render.yaml` (Blueprint)
+  - **Web:** service `huajaiy-web` (Next.js โฟลเดอร์ `web/`) → **`www.huajaiy.com`** (free tier อาจ sleep)
+  - **API:** service `huajaiy-api` → **`https://huajaiy-api.onrender.com`**
+- **PostgreSQL:** instance บน **Render** — API ใช้ `DATABASE_URL`
+- **Cloudinary ([cloudinary.com](https://cloudinary.com)):** อัปโหลดรูป (`POST /upload`) — ตั้งบน **`huajaiy-api`**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 
 ## ตัวแปรสภาพแวดล้อมที่เกี่ยวข้อง
 
-- ฝั่งเว็บ: `NEXT_PUBLIC_API_BASE_URL` ชี้ API จริง (ดู `web/.env.example`, `web/lib/config.js`)
-- ฝั่ง API: `DATABASE_URL` สำหรับ PostgreSQL บน Render
+- **เว็บ (Render `huajaiy-web`):** `NEXT_PUBLIC_API_BASE_URL` ชี้ URL จริงของ API (ดู `web/.env.example`, `web/lib/config.js`)
+- **API (Render `huajaiy-api`):** `DATABASE_URL`, Cloudinary สามค่าข้างต้น, `JWT_SECRET` (และค่าอื่นตาม `README` / `.env.example`)
 
 ## หลังแก้สคีมา (เช่น `db/init.js`)
 
