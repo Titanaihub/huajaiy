@@ -1271,6 +1271,15 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             ((!card.revealed && !centralSolutionShown) ||
               (card.revealed && card.openedByPlayer === false));
+          /** หลังกดเฉลย: ป้ายที่ผู้เล่นเปิดเอง — กรอบเขียว vs ป้ายที่ระบบเปิดให้ดู — กรอบแดง */
+          const showGreenPlayerPick =
+            mode === "api" &&
+            apiGameMode === "central" &&
+            roundFinished &&
+            !resultModalOpen &&
+            centralSolutionShown &&
+            card.revealed &&
+            card.openedByPlayer === true;
           return (
             <button
               key={card.index ?? i}
@@ -1282,13 +1291,15 @@ export default function FlipGameDemo({
                 ((winner !== null || centralLoss !== null) && !card.revealed)
               }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition ${
-                showRedUnpicked
-                  ? "border-red-500 ring-2 ring-red-400/90"
-                  : card.revealed
-                    ? "border-slate-300 bg-slate-50"
-                    : playLocked
-                      ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
-                      : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
+                showGreenPlayerPick
+                  ? "border-emerald-500 ring-2 ring-emerald-400/90"
+                  : showRedUnpicked
+                    ? "border-red-500 ring-2 ring-red-400/90"
+                    : card.revealed
+                      ? "border-slate-300 bg-slate-50"
+                      : playLocked
+                        ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
+                        : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
