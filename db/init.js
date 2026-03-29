@@ -364,6 +364,51 @@ async function initDb() {
       `CREATE INDEX IF NOT EXISTS idx_central_prize_awards_winner ON central_prize_awards(winner_user_id);`
     );
 
+    /** สำเนาข้อมูลกติกา/ชื่อเกมตอนชนะ — กันลบประวัติเมื่อแอดมินแทนที่กติกา (เดิม CASCADE จาก rule_id) */
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS rule_set_index INTEGER;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS rule_prize_title VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS rule_prize_value_text VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS rule_prize_unit VARCHAR(32);
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS game_title_at_win TEXT;
+    `);
+    await client.query(`
+      UPDATE central_prize_awards a
+      SET
+        rule_set_index = r.set_index,
+        rule_prize_title = r.prize_title,
+        rule_prize_value_text = r.prize_value_text,
+        rule_prize_unit = r.prize_unit,
+        game_title_at_win = g.title
+      FROM central_game_rules r, central_games g
+      WHERE a.rule_id = r.id AND a.game_id = g.id
+        AND a.rule_set_index IS NULL;
+    `);
+    await client.query(
+      `ALTER TABLE central_prize_awards DROP CONSTRAINT IF EXISTS central_prize_awards_rule_id_fkey;`
+    );
+    await client.query(
+      `ALTER TABLE central_prize_awards ALTER COLUMN rule_id DROP NOT NULL;`
+    );
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD CONSTRAINT central_prize_awards_rule_id_fkey
+      FOREIGN KEY (rule_id) REFERENCES central_game_rules(id) ON DELETE SET NULL;
+    `);
+
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"
     );

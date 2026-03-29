@@ -232,6 +232,10 @@ export default function AccountMyPrizesSection() {
           <p className="mt-2 text-xs text-slate-500">
             เล่นเกมจากเมนู「เกม」แล้วชนะตามกติกา — ต้องล็อกอินขณะเล่น
           </p>
+          <p className="mt-3 text-xs text-slate-400">
+            หมายเหตุ: ถ้าเคยมีรางวัลแล้วหายไปหลังแก้/บันทึกกติกาเกมในแอดมิน
+            ระบบเดิมอาจล้างประวัติที่ผูกกับกติกาเก่า — เวอร์ชันเซิร์ฟเวอร์ล่าสุดเก็บสำเนาไว้แล้วเพื่อกันเหตุการณ์นี้ในอนาคต
+          </p>
           <Link
             href="/game"
             className="mt-4 inline-block font-semibold text-brand-800 underline hover:text-brand-950"

@@ -18,12 +18,13 @@ async function countAwardsByRuleForGame(gameId) {
   const r = await pool.query(
     `SELECT rule_id::text AS rid, COUNT(*)::int AS c
      FROM central_prize_awards
-     WHERE game_id = $1
+     WHERE game_id = $1 AND rule_id IS NOT NULL
      GROUP BY rule_id`,
     [gameId]
   );
   const out = {};
   for (const row of r.rows) {
+    if (row.rid == null) continue;
     out[String(row.rid)] = row.c;
   }
   return out;
@@ -43,7 +44,7 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
   try {
     await client.query("BEGIN");
     const ruleR = await client.query(
-      `SELECT id, prize_category, prize_total_qty
+      `SELECT id, prize_category, prize_total_qty, set_index, prize_title, prize_value_text, prize_unit
        FROM central_game_rules
        WHERE id = $1 AND game_id = $2
        FOR UPDATE`,
@@ -71,13 +72,28 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
       await client.query("ROLLBACK");
       return { inserted: false, reason: "PRIZE_POOL_EXHAUSTED" };
     }
+    const gameR = await client.query(`SELECT title FROM central_games WHERE id = $1`, [gameId]);
+    const gameTitleAtWin =
+      gameR.rows[0]?.title != null ? String(gameR.rows[0].title).trim() : "";
     const ins = await client.query(
       `INSERT INTO central_prize_awards (
-        game_id, rule_id, winner_user_id, play_session_id, prize_category, status
-      ) VALUES ($1, $2, $3, $4, $5, 'recorded')
+        game_id, rule_id, winner_user_id, play_session_id, prize_category, status,
+        rule_set_index, rule_prize_title, rule_prize_value_text, rule_prize_unit, game_title_at_win
+      ) VALUES ($1, $2, $3, $4, $5, 'recorded', $6, $7, $8, $9, $10)
       ON CONFLICT (play_session_id) DO NOTHING
       RETURNING id`,
-      [gameId, ruleId, userId, String(playSessionId).slice(0, 64), rule.prize_category]
+      [
+        gameId,
+        ruleId,
+        userId,
+        String(playSessionId).slice(0, 64),
+        rule.prize_category,
+        Math.max(0, Math.floor(Number(rule.set_index)) || 0),
+        rule.prize_title != null ? String(rule.prize_title) : null,
+        rule.prize_value_text != null ? String(rule.prize_value_text) : null,
+        rule.prize_unit != null ? String(rule.prize_unit) : null,
+        gameTitleAtWin || null
+      ]
     );
     await client.query("COMMIT");
     if (ins.rows.length === 0) {
@@ -159,15 +175,15 @@ async function listAwardsForUser(userId) {
        a.id,
        a.created_at AS "wonAt",
        a.prize_category AS "prizeCategory",
-       g.id AS "gameId",
-       g.title AS "gameTitle",
-       r.set_index AS "setIndex",
-       r.prize_title AS "prizeTitle",
-       r.prize_value_text AS "prizeValueText",
-       r.prize_unit AS "prizeUnit"
+       a.game_id AS "gameId",
+       COALESCE(NULLIF(trim(COALESCE(a.game_title_at_win, g.title)), ''), 'เกม') AS "gameTitle",
+       COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
+       COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
+       COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
+       COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit"
      FROM central_prize_awards a
-     JOIN central_games g ON g.id = a.game_id
-     JOIN central_game_rules r ON r.id = a.rule_id
+     LEFT JOIN central_games g ON g.id = a.game_id
+     LEFT JOIN central_game_rules r ON r.id = a.rule_id
      WHERE a.winner_user_id = $1
        AND a.prize_category IS DISTINCT FROM 'none'
      ORDER BY a.created_at DESC`,
