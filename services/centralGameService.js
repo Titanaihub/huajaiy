@@ -110,7 +110,11 @@ function rowGame(row) {
       row.game_cover_url != null && String(row.game_cover_url).trim()
         ? String(row.game_cover_url).trim()
         : null,
-    isPublished: Boolean(row.is_published)
+    isPublished: Boolean(row.is_published),
+    creatorUsername:
+      row.creator_username != null && String(row.creator_username).trim()
+        ? String(row.creator_username).trim().toLowerCase()
+        : null
   };
 }
 
@@ -138,7 +142,13 @@ function rowRule(row) {
 /** snapshot สำหรับสร้าง session — รวม lookup รูป */
 async function getGameSnapshotById(gameId) {
   const pool = requirePool();
-  const g = await pool.query(`SELECT * FROM central_games WHERE id = $1`, [gameId]);
+  const g = await pool.query(
+    `SELECT g.*, u.username AS creator_username
+     FROM central_games g
+     LEFT JOIN users u ON u.id = g.created_by
+     WHERE g.id = $1`,
+    [gameId]
+  );
   if (g.rows.length === 0) return null;
   const game = rowGame(g.rows[0]);
   const img = await pool.query(
@@ -183,7 +193,7 @@ async function listPublishedGamesForPublic() {
       title: game.title,
       description: game.description,
       gameCoverUrl: game.gameCoverUrl,
-      creatorUsername: row.creator_username ? String(row.creator_username).trim() || null : null,
+      creatorUsername: game.creatorUsername,
       pinkHeartCost: game.pinkHeartCost,
       redHeartCost: game.redHeartCost
     };
@@ -670,7 +680,9 @@ function prizesForClient(rules, setImageCounts) {
       prizeValueText: r.prizeValueText || "",
       prizeUnit: r.prizeUnit || "",
       totalPrizeQty:
-        r.prizeCategory === "none" ? null : (r.prizeTotalQty ?? 1)
+        r.prizeCategory === "none" ? null : (r.prizeTotalQty ?? 1),
+      /** จำนวนรางวัลที่แจกไปแล้ว — ตอนนี้คงที่ 0 จนกว่าจะมีการนับจากฐานข้อมูล */
+      prizesGivenSoFar: 0
     };
   });
 }

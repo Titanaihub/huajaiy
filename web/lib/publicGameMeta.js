@@ -63,6 +63,7 @@ export async function fetchPublicCentralGameMetaById(gameId) {
     const title = String(data.title || "").trim();
     const description = String(data.description || "").trim();
     const customCover = String(data.gameCoverUrl || "").trim();
+    const cu = String(data.creatorUsername || "").trim().toLowerCase();
     return {
       gameId: data.gameId || id,
       title: title || "เกม",
@@ -70,7 +71,8 @@ export async function fetchPublicCentralGameMetaById(gameId) {
       cardCount: Number(data.cardCount) || 0,
       setCount: Number(data.setCount) || 0,
       gameCoverUrl: customCover || null,
-      coverImageUrl: customCover || DEFAULT_CENTRAL_GAME_COVER_PATH
+      coverImageUrl: customCover || DEFAULT_CENTRAL_GAME_COVER_PATH,
+      creatorUsername: cu || null
     };
   } catch {
     return null;

@@ -24,6 +24,7 @@ const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
 const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
 const centralGameService = require("./services/centralGameService");
 const centralGameSession = require("./centralGameSession");
+const { validateUsername } = require("./authValidators");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -106,6 +107,7 @@ function centralMetaFromSnap(snap) {
     description: snap.game.description || "",
     gameCoverUrl: snap.game.gameCoverUrl || null,
     tileBackCoverUrl: snap.game.tileBackCoverUrl || null,
+    creatorUsername: snap.game.creatorUsername || null,
     pinkHeartCost: pink,
     redHeartCost: red,
     heartCost: pink + red,
@@ -162,6 +164,32 @@ function heartBalancesPayload(u) {
     heartsBalance: u.heartsBalance
   };
 }
+
+/** โปรไฟล์สาธารณะตาม username — ไม่ส่งเบอร์/ที่อยู่/ยอดหัวใจ */
+app.get("/api/public/members/:username", async (req, res) => {
+  try {
+    const v = validateUsername(req.params.username);
+    if (!v.ok) {
+      return res.status(400).json({ ok: false, error: v.error });
+    }
+    const u = await userService.findByUsername(v.value);
+    if (!u) {
+      return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+    }
+    const fn = String(u.firstName || "").trim();
+    const ln = String(u.lastName || "").trim();
+    const displayName = [fn, ln].filter(Boolean).join(" ").trim() || u.username;
+    return res.json({
+      ok: true,
+      username: u.username,
+      displayName,
+      firstName: fn,
+      lastName: ln
+    });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 app.get("/api/game/list", async (_req, res) => {
   try {

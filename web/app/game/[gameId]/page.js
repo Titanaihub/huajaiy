@@ -53,7 +53,20 @@ export default async function GamePlayPage({ params }) {
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-semibold tracking-tight text-slate-900">{centralMeta.title}</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+              {centralMeta.creatorUsername ? (
+                <Link
+                  href={`/u/${centralMeta.creatorUsername}`}
+                  className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                >
+                  @{centralMeta.creatorUsername}
+                </Link>
+              ) : null}
+              {centralMeta.creatorUsername ? (
+                <span className="text-slate-300" aria-hidden>
+                  ·
+                </span>
+              ) : null}
               <Link
                 href="/game"
                 className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
