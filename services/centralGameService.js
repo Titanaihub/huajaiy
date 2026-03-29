@@ -580,7 +580,7 @@ function prizesForClient(rules, setImageCounts) {
 function formatRuleLabel(r, catLabel, imagesInThisSet) {
   const cat = catLabel[r.prizeCategory] || r.prizeCategory;
   if (r.prizeCategory === "none") {
-    return `ชุด ${r.setIndex + 1}: ไม่แจกรางวัล (เงื่อนไข ${r.needCount}/${imagesInThisSet} ป้ายในชุด — ไม่จบเกม)`;
+    return `ชุด ${r.setIndex + 1}: เปิดครบ ${r.needCount}/${imagesInThisSet} ป้ายในชุด = จบรอบ (ไม่มีรางวัล · หัวใจไม่คืน)`;
   }
   const val = [r.prizeValueText, r.prizeUnit].filter(Boolean).join(" ");
   const head = r.prizeTitle || cat;
@@ -595,6 +595,15 @@ function formatWinnerDisplay(r) {
   const head = r.prizeTitle || cat || "รางวัล";
   const tail = [r.prizeValueText, r.prizeUnit].filter(Boolean).join(" ");
   return tail ? `${head}: ${tail}` : head;
+}
+
+/** ข้อความเมื่อครบกติกา none — จบรอบแพ้ */
+function formatLossRuleDisplay(r, imagesInThisSet) {
+  if (!r || r.prizeCategory !== "none") return "จบรอบ — ไม่มีรางวัล";
+  const cap = imagesInThisSet ?? 1;
+  const extra = String(r.description || "").trim();
+  const base = `ชุด ${r.setIndex + 1}: ครบเงื่อนไข ${r.needCount}/${cap} ป้าย — รอบจบ (ไม่มีรางวัล · หัวใจไม่คืน)`;
+  return extra ? `${base} — ${extra}` : base;
 }
 
 module.exports = {
@@ -612,5 +621,6 @@ module.exports = {
   assertGamePlayable,
   prizesForClient,
   formatRuleLabel,
-  formatWinnerDisplay
+  formatWinnerDisplay,
+  formatLossRuleDisplay
 };

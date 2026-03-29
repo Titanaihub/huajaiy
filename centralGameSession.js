@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const {
-  formatWinnerDisplay
+  formatWinnerDisplay,
+  formatLossRuleDisplay
 } = require("./services/centralGameService");
 
 const sessions = new Map();
@@ -35,14 +36,24 @@ function getSetCounts(session) {
   return counts;
 }
 
-function checkWin(session) {
+/**
+ * เรียงตามลำดับตรวจ — กติกาแรกที่ครบเงื่อนไขชนะ
+ * - none = จบรอบแพ้ (ไม่มีรางวัล)
+ * - อื่น = ชนะรางวัล
+ */
+function checkRuleOutcome(session) {
   const counts = getSetCounts(session);
+  const { setImageCounts } = session.gameSnapshot.game;
   const rules = [...session.gameSnapshot.rules].sort(
     (a, b) => a.sortOrder - b.sortOrder || String(a.id).localeCompare(String(b.id))
   );
   for (const r of rules) {
-    if (r.prizeCategory === "none") continue;
-    if (counts[r.setIndex] >= r.needCount) return r;
+    if (counts[r.setIndex] < r.needCount) continue;
+    const cap = setImageCounts[r.setIndex] ?? setImageCounts[0] ?? 1;
+    if (r.prizeCategory === "none") {
+      return { kind: "loss", rule: r, imagesInSet: cap };
+    }
+    return { kind: "win", rule: r, imagesInSet: cap };
   }
   return null;
 }
@@ -82,7 +93,7 @@ function flip(sessionId, index) {
   if (!session) {
     return { ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" };
   }
-  if (session.winnerRuleId) {
+  if (session.winnerRuleId || session.lossRuleId) {
     return { ok: false, error: "จบรอบแล้ว กรุณาเริ่มรอบใหม่" };
   }
   const n = session.deck.length;
@@ -99,10 +110,17 @@ function flip(sessionId, index) {
   const { setIndex, imageIndex } = cell;
   const url = imageUrlForCell(session.gameSnapshot, setIndex, imageIndex);
   const setCounts = getSetCounts(session);
-  const win = checkWin(session);
-  if (win) {
-    session.winnerRuleId = win.id;
+  const outcome = checkRuleOutcome(session);
+  if (outcome) {
+    if (outcome.kind === "win") {
+      session.winnerRuleId = outcome.rule.id;
+    } else {
+      session.lossRuleId = outcome.rule.id;
+    }
   }
+
+  const winRule = outcome?.kind === "win" ? outcome.rule : null;
+  const lossRule = outcome?.kind === "loss" ? outcome.rule : null;
 
   return {
     ok: true,
@@ -112,17 +130,24 @@ function flip(sessionId, index) {
     imageUrl: url,
     flips: session.flips,
     setCounts,
-    winner: win
+    winner: winRule
       ? {
-          ruleId: win.id,
-          label: formatWinnerDisplay(win),
-          prizeCategory: win.prizeCategory,
-          prizeTitle: win.prizeTitle,
-          prizeValueText: win.prizeValueText,
-          prizeUnit: win.prizeUnit
+          ruleId: winRule.id,
+          label: formatWinnerDisplay(winRule),
+          prizeCategory: winRule.prizeCategory,
+          prizeTitle: winRule.prizeTitle,
+          prizeValueText: winRule.prizeValueText,
+          prizeUnit: winRule.prizeUnit
         }
       : null,
-    finished: !!win
+    loss: lossRule
+      ? {
+          ruleId: lossRule.id,
+          label: formatLossRuleDisplay(lossRule, outcome.imagesInSet),
+          prizeCategory: "none"
+        }
+      : null,
+    finished: !!outcome
   };
 }
 
@@ -143,7 +168,7 @@ setInterval(() => pruneSessions(), 10 * 60 * 1000).unref();
 function getAdminSnapshotCentral(tileCount, setCount, imagesPerSet, rulesCount) {
   let playing = 0;
   for (const s of sessions.values()) {
-    if (!s.winnerRuleId) playing += 1;
+    if (!s.winnerRuleId && !s.lossRuleId) playing += 1;
   }
   return {
     activeSessions: sessions.size,

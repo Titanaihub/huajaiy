@@ -141,6 +141,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   /** มีกระดานจากเกมส่วนกลางแต่ยังเริ่มรอบ/เปิดป้ายไม่ได้ (หัวใจไม่พอ) */
   const [playLocked, setPlayLocked] = useState(false);
   const [playLockReason, setPlayLockReason] = useState("");
+  /** เกมส่วนกลางจบแบบกติกา none — ไม่มีรางวัล */
+  const [centralLoss, setCentralLoss] = useState(null);
 
   const applyLocalDeck = useCallback(() => {
     setMode("local");
@@ -148,6 +150,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     setSessionId(null);
     setPlayLocked(false);
     setPlayLockReason("");
+    setCentralLoss(null);
     setPrizeList(PRIZES);
     setCards(buildDeck());
     setWinner(null);
@@ -190,6 +193,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       }))
     );
     setWinner(null);
+    setCentralLoss(null);
     setFlips(0);
     const sc = Number(meta.setCount) || 1;
     const sic = Array.isArray(meta.setImageCounts) ? meta.setImageCounts : [];
@@ -371,7 +375,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   );
 
   async function revealApi(i) {
-    if (playLocked || !sessionId || winner || busy) return;
+    if (playLocked || !sessionId || winner || centralLoss || busy) return;
     const card = cards[i];
     if (card.revealed) return;
     setBusy(true);
@@ -394,7 +398,12 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
               : x
           )
         );
-        if (data.winner) {
+        if (data.loss) {
+          setCentralLoss({
+            ruleId: data.loss.ruleId,
+            label: data.loss.label || "จบรอบ — ไม่มีรางวัล"
+          });
+        } else if (data.winner) {
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
@@ -633,7 +642,9 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
               type="button"
               onClick={() => reveal(i)}
               disabled={
-                playLocked || busy || (winner !== null && !card.revealed)
+                playLocked ||
+                busy ||
+                ((winner !== null || centralLoss !== null) && !card.revealed)
               }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition ${
                 card.revealed
@@ -641,7 +652,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                   : playLocked
                     ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
                     : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
-              } ${winner && !card.revealed ? "opacity-50" : ""}`}
+              } ${(winner || centralLoss) && !card.revealed ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -666,13 +677,16 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           <ul className="mt-2 space-y-2 text-slate-700">
             {prizeList.map((p) => {
               const opened = setCounts[p.setIndex] ?? 0;
+              const cap = p.imagesPerSet ?? imagesPerSet;
+              const isNone = p.prizeCategory === "none";
               return (
                 <li key={p.key} className="text-xs sm:text-sm">
                   <span className="font-medium text-slate-800">{p.label}</span>
                   <br />
                   <span className="text-slate-600">
-                    ในชุดนี้เปิดแล้ว {opened}/{p.imagesPerSet ?? imagesPerSet} ป้าย — รางวัลเมื่อเปิดครบ{" "}
-                    {p.need} ป้ายในชุด
+                    {isNone
+                      ? `ในชุดนี้เปิดแล้ว ${opened}/${cap} ป้าย — ครบ ${p.need} ป้าย = จบรอบ (ไม่มีรางวัล · หัวใจไม่คืน)`
+                      : `ในชุดนี้เปิดแล้ว ${opened}/${cap} ป้าย — รางวัลเมื่อเปิดครบ ${p.need} ป้ายในชุด`}
                   </span>
                 </li>
               );
@@ -702,6 +716,22 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             className="mt-3 rounded-xl bg-brand-800 px-4 py-2 text-sm font-medium text-white hover:bg-brand-900 disabled:opacity-50"
           >
             เล่นรอบใหม่ (สุ่มกระดานใหม่)
+          </button>
+        </div>
+      ) : centralLoss ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
+          <p className="font-semibold text-amber-950">จบรอบ — ไม่ได้รับรางวัล</p>
+          <p className="mt-2 text-sm text-amber-900">{centralLoss.label}</p>
+          <p className="mt-2 text-xs text-amber-800/95">
+            หัวใจที่ใช้เริ่มรอบนี้ไม่คืน — กดรีเซ็ตเพื่อเริ่มรอบใหม่
+          </p>
+          <button
+            type="button"
+            onClick={reset}
+            disabled={busy}
+            className="mt-3 rounded-xl bg-amber-800 px-4 py-2 text-sm font-medium text-white hover:bg-amber-900 disabled:opacity-50"
+          >
+            เริ่มรอบใหม่
           </button>
         </div>
       ) : null}
