@@ -702,6 +702,31 @@ function formatLossRuleDisplay(r, imagesInThisSet) {
   return extra ? `${base} — ${extra}` : base;
 }
 
+/** URL รูปตัวแทนแต่ละชุด (ภาพแรกในชุด) — ใช้แสดงกติกาแบบไอคอน */
+function setPreviewUrlsFromSnapshot(snap) {
+  if (!snap || !snap.game) return [];
+  const { game, imageUrl } = snap;
+  const sc = Math.max(0, Math.floor(Number(game.setCount) || 0));
+  if (!sc) return [];
+  if (!imageUrl || typeof imageUrl.get !== "function") {
+    return Array.from({ length: sc }, () => null);
+  }
+  const out = [];
+  for (let s = 0; s < sc; s += 1) {
+    const cap = Math.max(1, Math.floor(Number(game.setImageCounts[s]) || 0));
+    let found = null;
+    for (let i = 0; i < cap; i += 1) {
+      const raw = imageUrl.get(`${s}-${i}`);
+      if (raw != null && String(raw).trim()) {
+        found = String(raw).trim();
+        break;
+      }
+    }
+    out.push(found);
+  }
+  return out;
+}
+
 module.exports = {
   getActiveGameSnapshot,
   getGameSnapshotById,
@@ -720,5 +745,6 @@ module.exports = {
   prizesForClient,
   formatRuleLabel,
   formatWinnerDisplay,
-  formatLossRuleDisplay
+  formatLossRuleDisplay,
+  setPreviewUrlsFromSnapshot
 };

@@ -67,6 +67,19 @@ function buildDeck() {
   return list.map((key, index) => ({ key, index, revealed: false }));
 }
 
+/** คำอธิบายกติกาแบบกระชับ — คู่กับรูปตัวแทนชุด */
+function centralPrizeSideText(p, opened, cap) {
+  const isNone = p.prizeCategory === "none";
+  const prog = `${opened}/${cap}`;
+  if (isNone) {
+    return `เปิดในชุด ${prog} — ครบ ${p.need} ป้าย = จบรอบ (ไม่มีรางวัล)`;
+  }
+  const detail = [p.prizeTitle, p.prizeValueText, p.prizeUnit].filter(Boolean).join(" ").trim();
+  const cat = { cash: "เงินสด", item: "ของรางวัล", voucher: "บัตรกำนัล" }[p.prizeCategory];
+  const head = detail || cat || "รางวัล";
+  return `เปิดในชุด ${prog} — ครบ ${p.need} ป้าย = ${head}`;
+}
+
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -243,6 +256,8 @@ export default function FlipGameDemo({
   const [resultModalOpen, setResultModalOpen] = useState(false);
   /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
+  /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
+  const [setPreviewUrls, setSetPreviewUrls] = useState([]);
 
   const applyLocalDeck = useCallback(() => {
     clearStoredSession();
@@ -263,6 +278,7 @@ export default function FlipGameDemo({
     setPinkHeartCost(0);
     setRedHeartCost(0);
     setBootError(null);
+    setSetPreviewUrls([]);
   }, []);
 
   /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
@@ -313,6 +329,7 @@ export default function FlipGameDemo({
     setCentralTileBackCoverUrl(String(meta.tileBackCoverUrl || "").trim());
     setSetCounts(Array.from({ length: sc }, () => 0));
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+    setSetPreviewUrls(Array.isArray(meta.setPreviewUrls) ? meta.setPreviewUrls : []);
     setBootError(null);
   }, []);
 
@@ -364,6 +381,7 @@ export default function FlipGameDemo({
       setCentralTileBackCoverUrl(String(data.tileBackCoverUrl || "").trim());
       setSetCounts(Array.from({ length: sc }, () => 0));
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+      setSetPreviewUrls(Array.isArray(data.setPreviewUrls) ? data.setPreviewUrls : []);
     } else {
       setSetCounts([]);
       setSetImageCounts([]);
@@ -372,6 +390,7 @@ export default function FlipGameDemo({
       setCentralGameCoverUrl("");
       setCentralTileBackCoverUrl("");
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+      setSetPreviewUrls([]);
     }
     setBootError(null);
   }, []);
@@ -430,6 +449,7 @@ export default function FlipGameDemo({
     }
     setSetCounts(setCountsUse);
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+    setSetPreviewUrls(Array.isArray(st.setPreviewUrls) ? st.setPreviewUrls : []);
     setBootError(null);
     setCentralSolutionShown(false);
     setWinner(null);
@@ -1021,6 +1041,8 @@ export default function FlipGameDemo({
     mode === "api" &&
     apiGameMode === "central" &&
     cards.length > 0;
+  /** หน้า /game/[id] — ลดข้อความซ้ำกับหัวข้อหน้า */
+  const compactPlayLayout = Boolean(resolvedGameId);
 
   if (mode === null && cards.length === 0) {
     return (
@@ -1058,153 +1080,213 @@ export default function FlipGameDemo({
         </div>
       ) : null}
       {playLocked && apiGameMode === "central" && playLockReason ? (
-        <div
-          className={
-            resolvedGameId && centralCanAffordStart
-              ? "rounded-xl border-2 border-emerald-400 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
-              : "rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-950"
-          }
-        >
-          <p className="font-semibold">
-            {resolvedGameId && centralCanAffordStart
-              ? "พร้อมเริ่มรอบ"
-              : "ดูเกมได้ — เล่นเปิดป้ายเมื่อมีหัวใจพอ"}
-          </p>
-          <p
+        compactPlayLayout ? (
+          <div
             className={
               resolvedGameId && centralCanAffordStart
-                ? "mt-1 text-emerald-900/95"
-                : "mt-1 text-sky-900/95"
+                ? "rounded-lg border border-emerald-300 bg-emerald-50/90 px-3 py-2 text-xs text-emerald-950"
+                : "rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950"
             }
           >
-            {playLockReason}
-          </p>
-          {!resolvedGameId || !centralCanAffordStart ? (
-            <p className="mt-2 text-xs text-sky-800/90">
-              กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะกลับมาหน้าจอเริ่มรอบ
-            </p>
-          ) : (
-            <p className="mt-2 text-xs text-emerald-800/90">
-              กดปุ่ม「เริ่มเล่นเกม」ด้านล่างเพื่อหักหัวใจ (ถ้ามี) แล้วเปิดป้ายได้
-            </p>
-          )}
-        </div>
-      ) : null}
-      <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-        <div
-          className={
-            mode === "api" && apiGameMode === "central" ? "flex gap-3" : ""
-          }
-        >
-          {mode === "api" && apiGameMode === "central" ? (
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={centralGameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ) : null}
-          <div className="min-w-0 flex-1">
             <p>
-              <strong>
-                {mode === "api" && apiGameMode === "central"
-                  ? centralTitle || "เกมส่วนกลาง"
-                  : "โหมดสาธิต"}
-                :
-              </strong>{" "}
-              {mode === "api" && apiGameMode === "central"
-                ? playLocked
-                  ? resolvedGameId
-                    ? `กระดาน ${cards.length} ป้าย — กด「เริ่มเล่นเกม」เพื่อหักหัวใจแล้วเปิดป้าย`
-                    : `กระดานจริง ${cards.length} ป้าย — เปิดป้ายได้เมื่อมีหัวใจพอต่อรอบ`
-                  : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
-                : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
+              <span className="font-semibold">
+                {resolvedGameId && centralCanAffordStart ? "พร้อมเริ่ม · " : "ยังเล่นไม่ได้ · "}
+              </span>
+              {playLockReason}
             </p>
           </div>
-        </div>
-        {mode === "api" && apiGameMode === "central" && centralDescription ? (
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-            {centralDescription}
-          </p>
-        ) : null}
-        <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          {mode === "api" ? (
-            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800">
-              {apiGameMode === "central"
-                ? playLocked
-                  ? resolvedGameId
-                    ? "เกมส่วนกลาง — รอกดเริ่มเล่นเกม"
-                    : "เกมส่วนกลาง (ดูอย่างเดียว — ยังไม่เริ่มรอบ)"
-                  : "เกมส่วนกลางจากแอดมิน — ค่าใต้ป้ายที่เซิร์ฟเวอร์"
-                : "เชื่อม API — กติกาเดิมในโค้ด"}
-            </span>
-          ) : (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-900">
-              โหมดออฟไลน์ — สุ่มในเบราว์เซอร์
-            </span>
-          )}
-          {mode === "api" && apiGameMode === "central" && (pinkHeartCost > 0 || redHeartCost > 0) ? (
-            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
-              <span>
-                {user
-                  ? "หักต่อรอบจากบัญชีเมื่อเริ่มรอบ (ชมพู/แดงแยกตามที่เกมกำหนด):"
-                  : "หักต่อรอบ (สาธิตในเครื่อง — หักแยกสีตามที่ตั้ง):"}
+        ) : (
+          <div
+            className={
+              resolvedGameId && centralCanAffordStart
+                ? "rounded-xl border-2 border-emerald-400 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
+                : "rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-950"
+            }
+          >
+            <p className="font-semibold">
+              {resolvedGameId && centralCanAffordStart
+                ? "พร้อมเริ่มรอบ"
+                : "ดูเกมได้ — เล่นเปิดป้ายเมื่อมีหัวใจพอ"}
+            </p>
+            <p
+              className={
+                resolvedGameId && centralCanAffordStart
+                  ? "mt-1 text-emerald-900/95"
+                  : "mt-1 text-sky-900/95"
+              }
+            >
+              {playLockReason}
+            </p>
+            {!resolvedGameId || !centralCanAffordStart ? (
+              <p className="mt-2 text-xs text-sky-800/90">
+                กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะกลับมาหน้าจอเริ่มรอบ
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-emerald-800/90">
+                กดปุ่ม「เริ่มเล่นเกม」ด้านล่างเพื่อหักหัวใจ (ถ้ามี) แล้วเปิดป้ายได้
+              </p>
+            )}
+          </div>
+        )
+      ) : null}
+      {compactPlayLayout && mode === "api" && apiGameMode === "central" ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+          <span className="inline-flex flex-wrap items-center gap-2">
+            <span className="text-slate-500">{cards.length} ป้าย</span>
+            {pinkHeartCost > 0 || redHeartCost > 0 ? (
+              <span className="inline-flex items-center gap-2 text-[11px]">
+                <span className="text-slate-400">หักต่อรอบ:</span>
+                {pinkHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-0.5 text-rose-600">
+                    <InlineHeart size="sm" className="text-rose-400" />
+                    {pinkHeartCost}
+                  </span>
+                ) : null}
+                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-300">|</span> : null}
+                {redHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-0.5 text-red-700">
+                    <InlineHeart size="sm" className="text-red-600" />
+                    {redHeartCost}
+                  </span>
+                ) : null}
               </span>
-              {pinkHeartCost > 0 ? (
-                <span className="inline-flex items-center gap-0.5 text-rose-600">
-                  <InlineHeart size="sm" className="text-rose-400" />
-                  ชมพู {pinkHeartCost}
-                </span>
-              ) : null}
-              {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-400">·</span> : null}
-              {redHeartCost > 0 ? (
-                <span className="inline-flex items-center gap-0.5 text-red-700">
-                  <InlineHeart size="sm" className="text-red-600" />
-                  แดง {redHeartCost}
-                </span>
-              ) : null}
-            </span>
+            ) : (
+              <span className="text-slate-400">เริ่มรอบฟรี</span>
+            )}
+          </span>
+          <span className="text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+          <div
+            className={
+              mode === "api" && apiGameMode === "central" ? "flex gap-3" : ""
+            }
+          >
+            {mode === "api" && apiGameMode === "central" ? (
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={centralGameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <p>
+                <strong>
+                  {mode === "api" && apiGameMode === "central"
+                    ? centralTitle || "เกมส่วนกลาง"
+                    : "โหมดสาธิต"}
+                  :
+                </strong>{" "}
+                {mode === "api" && apiGameMode === "central"
+                  ? playLocked
+                    ? resolvedGameId
+                      ? `กระดาน ${cards.length} ป้าย — กด「เริ่มเล่นเกม」เพื่อหักหัวใจแล้วเปิดป้าย`
+                      : `กระดานจริง ${cards.length} ป้าย — เปิดป้ายได้เมื่อมีหัวใจพอต่อรอบ`
+                    : `เปิดป้ายในชุดเดียวกันครบตามกติกา = ชนะ · ${cards.length} ป้าย`
+                  : "สะสมภาพครบตามเงื่อนไขก่อน = ชนะ"}
+              </p>
+            </div>
+          </div>
+          {mode === "api" && apiGameMode === "central" && centralDescription ? (
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+              {centralDescription}
+            </p>
           ) : null}
-          {mode === "api" && apiGameMode !== "central" && heartCost > 0 ? (
-            <span className="inline-flex items-center gap-1">
-              <span>หักรวม</span>
-              <InlineHeart size="sm" className="text-brand-700" />
-              <span>{heartCost} ต่อรอบ (ชมพูก่อน แล้วแดง — สาธิต)</span>
-            </span>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            {mode === "api" ? (
+              <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800">
+                {apiGameMode === "central"
+                  ? playLocked
+                    ? resolvedGameId
+                      ? "เกมส่วนกลาง — รอกดเริ่มเล่นเกม"
+                      : "เกมส่วนกลาง (ดูอย่างเดียว — ยังไม่เริ่มรอบ)"
+                    : "เกมส่วนกลางจากแอดมิน — ค่าใต้ป้ายที่เซิร์ฟเวอร์"
+                  : "เชื่อม API — กติกาเดิมในโค้ด"}
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-900">
+                โหมดออฟไลน์ — สุ่มในเบราว์เซอร์
+              </span>
+            )}
+            {mode === "api" && apiGameMode === "central" && (pinkHeartCost > 0 || redHeartCost > 0) ? (
+              <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                <span>
+                  {user
+                    ? "หักต่อรอบจากบัญชีเมื่อเริ่มรอบ (ชมพู/แดงแยกตามที่เกมกำหนด):"
+                    : "หักต่อรอบ (สาธิตในเครื่อง — หักแยกสีตามที่ตั้ง):"}
+                </span>
+                {pinkHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-0.5 text-rose-600">
+                    <InlineHeart size="sm" className="text-rose-400" />
+                    ชมพู {pinkHeartCost}
+                  </span>
+                ) : null}
+                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-400">·</span> : null}
+                {redHeartCost > 0 ? (
+                  <span className="inline-flex items-center gap-0.5 text-red-700">
+                    <InlineHeart size="sm" className="text-red-600" />
+                    แดง {redHeartCost}
+                  </span>
+                ) : null}
+              </span>
+            ) : null}
+            {mode === "api" && apiGameMode !== "central" && heartCost > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <span>หักรวม</span>
+                <InlineHeart size="sm" className="text-brand-700" />
+                <span>{heartCost} ต่อรอบ (ชมพูก่อน แล้วแดง — สาธิต)</span>
+              </span>
+            ) : null}
+          </p>
+          {bootError ? (
+            <p className="mt-1 text-xs text-amber-700">{bootError}</p>
           ) : null}
-        </p>
-        {bootError ? (
-          <p className="mt-1 text-xs text-amber-700">{bootError}</p>
-        ) : null}
-        <p className="mt-1 text-xs text-slate-500">
-          {mode === "api" && apiGameMode === "central"
-            ? setImageCounts.length > 0
-              ? `ป้ายในชุดไม่เท่ากัน: ${setImageCounts.map((x, i) => `ช.${i + 1}=${x}`).join(" · ")} — สุ่มตำแหน่งใหม่ทุกรอบ`
-              : `แต่ละชุดมีสูงสุด ${imagesPerSet} แบบภาพ — สุ่มตำแหน่งใหม่ทุกรอบ`
-            : "กระดาน 12 ป้าย = 💵×5 + ☕×4 + 🎫×3 — สุ่มตำแหน่งใหม่ทุกรอบ"}
-        </p>
-        <p className="mt-1 text-xs">เปิดป้ายแล้ว: {flips} ครั้ง</p>
-      </div>
+          <p className="mt-1 text-xs text-slate-500">
+            {mode === "api" && apiGameMode === "central"
+              ? setImageCounts.length > 0
+                ? `ป้ายในชุดไม่เท่ากัน: ${setImageCounts.map((x, i) => `ช.${i + 1}=${x}`).join(" · ")} — สุ่มตำแหน่งใหม่ทุกรอบ`
+                : `แต่ละชุดมีสูงสุด ${imagesPerSet} แบบภาพ — สุ่มตำแหน่งใหม่ทุกรอบ`
+              : "กระดาน 12 ป้าย = 💵×5 + ☕×4 + 🎫×3 — สุ่มตำแหน่งใหม่ทุกรอบ"}
+          </p>
+          <p className="mt-1 text-xs">เปิดป้ายแล้ว: {flips} ครั้ง</p>
+        </div>
+      )}
+
+      {compactPlayLayout && bootError ? (
+        <p className="text-xs text-amber-700">{bootError}</p>
+      ) : null}
 
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm">
-        <p className="font-medium text-slate-800">กติกา / ความคืบหน้า</p>
+        <p className="font-medium text-slate-800">{compactPlayLayout ? "กติกา" : "กติกา / ความคืบหน้า"}</p>
         {mode === "api" && apiGameMode === "central" ? (
-          <ul className="mt-2 space-y-2 text-slate-700">
+          <ul className="mt-2 space-y-3 text-slate-700">
             {prizeList.map((p) => {
               const opened = setCounts[p.setIndex] ?? 0;
               const cap = p.imagesPerSet ?? imagesPerSet;
-              const isNone = p.prizeCategory === "none";
+              const thumb =
+                Array.isArray(setPreviewUrls) && setPreviewUrls[p.setIndex]
+                  ? String(setPreviewUrls[p.setIndex]).trim()
+                  : "";
               return (
-                <li key={p.key} className="text-xs sm:text-sm">
-                  <span className="font-medium text-slate-800">{p.label}</span>
-                  <br />
-                  <span className="text-slate-600">
-                    {isNone
-                      ? `ในชุดนี้เปิดแล้ว ${opened}/${cap} ป้าย — ครบ ${p.need} ป้าย = จบรอบ (ไม่มีรางวัล · หัวใจไม่คืน)`
-                      : `ในชุดนี้เปิดแล้ว ${opened}/${cap} ป้าย — รางวัลเมื่อเปิดครบ ${p.need} ป้ายในชุด`}
-                  </span>
+                <li key={p.key} className="flex gap-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+                    {thumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={thumb} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-[10px] font-medium text-slate-400">
+                        ช.{Number(p.setIndex) + 1}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 text-xs leading-snug sm:text-sm">
+                    <p className="font-semibold text-slate-800">ชุด {Number(p.setIndex) + 1}</p>
+                    <p className="mt-0.5 text-slate-600">{centralPrizeSideText(p, opened, cap)}</p>
+                  </div>
                 </li>
               );
             })}
@@ -1250,10 +1332,12 @@ export default function FlipGameDemo({
               เฉลยเกม
             </button>
           </div>
-          <p className="text-center text-[11px] leading-relaxed text-slate-500 sm:text-left">
-            「เริ่มเล่นเกม」หักหัวใจตามที่เกมกำหนด แล้วเริ่มเปิดป้าย · 「เฉลยเกม」หลังจบรอบ
-            แสดงภาพใต้ป้ายที่ยังไม่ได้เปิด
-          </p>
+          {!compactPlayLayout ? (
+            <p className="text-center text-[11px] leading-relaxed text-slate-500 sm:text-left">
+              「เริ่มเล่นเกม」หักหัวใจตามที่เกมกำหนด แล้วเริ่มเปิดป้าย · 「เฉลยเกม」หลังจบรอบ
+              แสดงภาพใต้ป้ายที่ยังไม่ได้เปิด
+            </p>
+          ) : null}
         </div>
       ) : null}
 

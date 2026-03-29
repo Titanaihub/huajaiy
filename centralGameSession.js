@@ -226,6 +226,7 @@ function getSessionStateForClient(sessionId) {
   const finished = Boolean(session.winnerRuleId || session.lossRuleId);
   const { winner, loss } = buildWinnerLossPayload(session);
   const prizes = centralGameService.prizesForClient(rules, game.setImageCounts);
+  const setPreviewUrls = centralGameService.setPreviewUrlsFromSnapshot(gameSnapshot);
   return {
     ok: true,
     gameMode: "central",
@@ -243,6 +244,7 @@ function getSessionStateForClient(sessionId) {
     imagesPerSet: game.imagesPerSet,
     setImageCounts: game.setImageCounts,
     prizes,
+    setPreviewUrls,
     cells,
     flips,
     setCounts,

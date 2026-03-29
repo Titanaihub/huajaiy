@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import FlipGameDemo from "../../../components/FlipGameDemo";
-import GameApiLiveStatus from "../../../components/GameApiLiveStatus";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { fetchPublicCentralGameMetaById } from "../../../lib/publicGameMeta";
@@ -54,15 +53,13 @@ export default async function GamePlayPage({ params }) {
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-semibold text-slate-900">{centralMeta.title}</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              เกมส่วนกลาง — เปิดป้ายตามกติกา ·{" "}
+            <p className="mt-1 text-sm text-slate-500">
               <Link href="/game" className="text-brand-800 underline hover:text-brand-950">
-                กลับไปรายการเกมทั้งหมด
+                ← รายการเกม
               </Link>
             </p>
           </div>
         </div>
-        <GameApiLiveStatus gameId={gameId} />
         <FlipGameDemo serverCentralPublished centralGameId={gameId} />
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
           <Link href="/game" className="text-blue-600 underline hover:text-blue-800">

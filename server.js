@@ -113,7 +113,8 @@ function centralMetaFromSnap(snap) {
     setCount: snap.game.setCount,
     imagesPerSet: snap.game.imagesPerSet,
     setImageCounts: snap.game.setImageCounts,
-    prizes: centralGameService.prizesForClient(snap.rules, snap.game.setImageCounts)
+    prizes: centralGameService.prizesForClient(snap.rules, snap.game.setImageCounts),
+    setPreviewUrls: centralGameService.setPreviewUrlsFromSnapshot(snap)
   };
 }
 
