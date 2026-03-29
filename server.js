@@ -80,6 +80,22 @@ async function getActiveCentralSnapshot() {
   }
 }
 
+function isUuidParam(id) {
+  return (
+    typeof id === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id.trim())
+  );
+}
+
+async function getPublishedCentralSnapshot(gameId) {
+  try {
+    return await centralGameService.getPublishedGameSnapshotById(gameId);
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") return null;
+    throw e;
+  }
+}
+
 function centralMetaFromSnap(snap) {
   const pink = snap.game.pinkHeartCost ?? 0;
   const red = snap.game.redHeartCost ?? 0;
@@ -89,6 +105,7 @@ function centralMetaFromSnap(snap) {
     title: snap.game.title,
     description: snap.game.description || "",
     gameCoverUrl: snap.game.gameCoverUrl || null,
+    tileBackCoverUrl: snap.game.tileBackCoverUrl || null,
     pinkHeartCost: pink,
     redHeartCost: red,
     heartCost: pink + red,
@@ -145,8 +162,32 @@ function heartBalancesPayload(u) {
   };
 }
 
-app.get("/api/game/meta", async (_req, res) => {
+app.get("/api/game/list", async (_req, res) => {
   try {
+    const games = await centralGameService.listPublishedGamesForPublic();
+    return res.json({ ok: true, games });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, games: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get("/api/game/meta", async (req, res) => {
+  try {
+    const q = req.query?.gameId;
+    if (q != null && String(q).trim()) {
+      const gameId = String(q).trim();
+      if (!isUuidParam(gameId)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบรหัสเกมไม่ถูกต้อง" });
+      }
+      const pub = await getPublishedCentralSnapshot(gameId);
+      if (pub) {
+        return res.json({ ok: true, ...centralMetaFromSnap(pub) });
+      }
+      return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือยังไม่เปิดแสดงในรายการ" });
+    }
     const snap = await getActiveCentralSnapshot();
     if (snap) {
       return res.json({ ok: true, ...centralMetaFromSnap(snap) });
@@ -164,10 +205,23 @@ app.get("/api/game/meta", async (_req, res) => {
   }
 });
 
-/** เริ่มรอบเกม — ถ้ามีเกมส่วนกลาง active ใช้ central ไม่งั้น legacy · สมาชิก (Bearer) หักหัวใจที่นี่ */
+/** เริ่มรอบเกม — ถ้ามี gameId ใช้เกมที่เผยแพร่นั้น · ไม่งั้นเกม active · ไม่งั้น legacy · Bearer หักหัวใจที่นี่ */
 app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
   try {
-    const snap = await getActiveCentralSnapshot();
+    const bodyGameId = req.body?.gameId;
+    let snap = null;
+    if (bodyGameId != null && String(bodyGameId).trim()) {
+      const gid = String(bodyGameId).trim();
+      if (!isUuidParam(gid)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบรหัสเกมไม่ถูกต้อง" });
+      }
+      snap = await getPublishedCentralSnapshot(gid);
+      if (!snap) {
+        return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือยังไม่เปิดแสดงในรายการ" });
+      }
+    } else {
+      snap = await getActiveCentralSnapshot();
+    }
     if (snap) {
       const pink = snap.game.pinkHeartCost ?? 0;
       const red = snap.game.redHeartCost ?? 0;
@@ -235,7 +289,41 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-/** เปิดป้าย — ลอง central ก่อนเมื่อมีเกมส่วนกลาง active */
+/** คืนสถานะรอบเกมส่วนกลาง (รีเฟรชหน้า — ไม่หักหัวใจซ้ำ) */
+app.post("/api/game/state", async (req, res) => {
+  try {
+    const { sessionId } = req.body || {};
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
+    }
+    const state = centralGameSession.getSessionStateForClient(sessionId);
+    if (!state) {
+      return res.status(404).json({ ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" });
+    }
+    return res.json(state);
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** หลังจบรอบ — เฉลยภาพใต้ป้ายที่ยังไม่เปิด */
+app.post("/api/game/reveal-remaining", async (req, res) => {
+  try {
+    const { sessionId } = req.body || {};
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
+    }
+    const r = centralGameSession.revealRemainingForClient(sessionId);
+    if (!r.ok) {
+      return res.status(400).json(r);
+    }
+    return res.json(r);
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เปิดป้าย — ลอง session เกมส่วนกลางก่อน (รองรับหลายเกมโดยไม่พึ่งเกม active) */
 app.post("/api/game/flip", async (req, res) => {
   try {
     const { sessionId, index } = req.body || {};
@@ -243,13 +331,10 @@ app.post("/api/game/flip", async (req, res) => {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
     const idx = Number(index);
-    const snap = await getActiveCentralSnapshot();
-    if (snap) {
-      const r = centralGameSession.flip(sessionId, idx);
-      if (r.ok) return res.json(r);
-      if (r.error !== "ไม่พบรอบเกม หรือหมดอายุ") {
-        return res.status(400).json(r);
-      }
+    const r = centralGameSession.flip(sessionId, idx);
+    if (r.ok) return res.json(r);
+    if (r.error !== "ไม่พบรอบเกม หรือหมดอายุ") {
+      return res.status(400).json(r);
     }
     const result = flipGame(sessionId, idx);
     if (!result.ok) {
@@ -267,8 +352,7 @@ app.post("/api/game/abandon", async (req, res) => {
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    const snap = await getActiveCentralSnapshot();
-    if (snap && centralGameSession.abandonSession(sessionId)) {
+    if (centralGameSession.abandonSession(sessionId)) {
       return res.json({ ok: true, removed: true });
     }
     const removed = abandonSession(sessionId);

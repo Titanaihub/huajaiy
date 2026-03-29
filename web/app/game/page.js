@@ -1,60 +1,36 @@
 import Link from "next/link";
-import FlipGameDemo from "../../components/FlipGameDemo";
-import GameApiLiveStatus from "../../components/GameApiLiveStatus";
+import GameLobby from "../../components/GameLobby";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
-import { fetchPublicCentralGameMeta } from "../../lib/publicGameMeta";
+import { fetchPublicGameList } from "../../lib/publicGameMeta";
 
-/** หลีกเลี่ยง HTML ค้างจากตอน build — ดึงสถานะเกมเผยแพร่ใหม่ทุกครั้งที่เปิดหน้า */
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateMetadata() {
-  const m = await fetchPublicCentralGameMeta();
-  if (m) {
-    return {
-      title: `${m.title} | HUAJAIY`,
-      description: `เล่น ${m.title} — เกมเปิดป้ายบนเว็บ`
-    };
-  }
   return {
-    title: "เกมเปิดป้าย | HUAJAIY",
-    description: "เกมสะสมภาพ — ตัวอย่างฝั่งเบราว์เซอร์"
+    title: "เกม | HUAJAIY",
+    description: "เลือกเกมจากรายการ — ค้นหาชื่อเกมหรือผู้สร้าง แล้วเข้าเล่นได้ทันที"
   };
 }
 
 export default async function GamePage() {
-  const centralMeta = await fetchPublicCentralGameMeta();
+  const games = await fetchPublicGameList();
 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8">
-        <div className={centralMeta ? "flex gap-4" : ""}>
-          {centralMeta ? (
-            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={centralMeta.coverImageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold text-slate-900">
-              {centralMeta ? centralMeta.title : "เกมเปิดป้าย (สาธิต)"}
-            </h1>
-            <p className="mt-2 text-sm text-slate-600">
-              {centralMeta
-                ? "เกมส่วนกลางที่เผยแพร่แล้ว — เปิดป้ายตามกติกา ลุ้นรางวัล"
-                : "โหมดสะสมครบก่อนชนะ — ต่อด้วยหักหัวใจต่อรอบ + API แบบสุ่มฝั่งเซิร์ฟเวอร์ภายหลัง"}
-            </p>
-          </div>
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-slate-900">เกม</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+            เลือกเกมจากรายการด้านล่าง แต่ละการ์ดแสดงชื่อเกม ผู้สร้าง และคำอธิบายย่อ · คลิกเพื่อเข้าเล่นเกมนั้น
+          </p>
         </div>
-        <GameApiLiveStatus />
-        <FlipGameDemo serverCentralPublished={Boolean(centralMeta)} />
-        <div className="mt-8 flex flex-wrap gap-4 text-sm">
+
+        <GameLobby initialGames={games} />
+
+        <div className="mt-10 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
           <Link href="/" className="text-blue-600 underline hover:text-blue-800">
             ← หน้าแรก
           </Link>

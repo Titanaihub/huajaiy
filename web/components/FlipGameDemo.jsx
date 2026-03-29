@@ -1,7 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import {
+  DEFAULT_CENTRAL_GAME_COVER_PATH,
+  DEFAULT_TILE_BACK_COVER_PATH
+} from "../lib/centralGameDefaults";
 import { gameApiUrl } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import {
@@ -63,16 +67,20 @@ function buildDeck() {
   return list.map((key, index) => ({ key, index, revealed: false }));
 }
 
-async function fetchGameStart() {
+async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
     const token = getMemberToken();
     if (token) headers.Authorization = `Bearer ${token}`;
   }
+  const body =
+    centralGameId && String(centralGameId).trim()
+      ? { gameId: String(centralGameId).trim() }
+      : {};
   const r = await fetch(gameApiUrl("start"), {
     method: "POST",
     headers,
-    body: JSON.stringify({})
+    body: JSON.stringify(body)
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
@@ -97,8 +105,12 @@ async function fetchGameFlip(sessionId, index) {
   return data;
 }
 
-async function fetchGameMeta() {
-  const r = await fetch(gameApiUrl("meta"), { cache: "no-store" });
+async function fetchGameMeta(centralGameId) {
+  const id = centralGameId && String(centralGameId).trim();
+  const url = id
+    ? `${gameApiUrl("meta")}?gameId=${encodeURIComponent(id)}`
+    : gameApiUrl("meta");
+  const r = await fetch(url, { cache: "no-store" });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
     throw new Error(data.error || "ไม่สามารถโหลดกติกาเกมได้");
@@ -116,6 +128,69 @@ async function fetchGameAbandon(sessionId) {
   } catch {
     /* ignore */
   }
+}
+
+const SESSION_STORE_KEY = "huajaiy_central_flip_v1";
+
+function readStoredSession() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_STORE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredSession(sessionId, centralGameId) {
+  if (typeof window === "undefined" || !sessionId) return;
+  try {
+    sessionStorage.setItem(
+      SESSION_STORE_KEY,
+      JSON.stringify({
+        sessionId,
+        centralGameId: centralGameId || null
+      })
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearStoredSession() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(SESSION_STORE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchGameState(sessionId) {
+  const r = await fetch(gameApiUrl("state"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ไม่พบรอบเกม");
+  }
+  return data;
+}
+
+async function fetchRevealRemaining(sessionId) {
+  const r = await fetch(gameApiUrl("reveal-remaining"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "เฉลยไม่สำเร็จ");
+  }
+  return data;
 }
 
 /**
@@ -146,6 +221,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [centralTitle, setCentralTitle] = useState("");
   const [centralDescription, setCentralDescription] = useState("");
   const [centralGameCoverUrl, setCentralGameCoverUrl] = useState("");
+  /** รูปหน้าปิดป้าย (ก่อนเปิด) — จาก API หรือค่าเริ่มต้นในเว็บ */
+  const [centralTileBackCoverUrl, setCentralTileBackCoverUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [bootError, setBootError] = useState(null);
   /** มีกระดานจากเกมส่วนกลางแต่ยังเริ่มรอบ/เปิดป้ายไม่ได้ (หัวใจไม่พอ) */
@@ -155,8 +232,13 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [centralLoss, setCentralLoss] = useState(null);
   /** แอนิเมชันโผล่ของกล่องผลลัพธ์ */
   const [resultOverlayEnter, setResultOverlayEnter] = useState(false);
+  /** โมดัลผลลัพธ์ — ปิดได้เพื่อดูกระดาน */
+  const [resultModalOpen, setResultModalOpen] = useState(false);
+  /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
+  const [centralSolutionShown, setCentralSolutionShown] = useState(false);
 
   const applyLocalDeck = useCallback(() => {
+    clearStoredSession();
     setMode("local");
     setApiGameMode(null);
     setSessionId(null);
@@ -178,6 +260,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
 
   /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
   const applyCentralPreviewFromMeta = useCallback((meta, reason) => {
+    clearStoredSession();
     setMode("api");
     setApiGameMode("central");
     setSessionId(null);
@@ -202,7 +285,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         index: i,
         revealed: false,
         key: null,
-        imageUrl: null
+        imageUrl: null,
+        openedByPlayer: false
       }))
     );
     setWinner(null);
@@ -217,6 +301,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     setCentralTitle(String(meta.title || "เกมส่วนกลาง"));
     setCentralDescription(String(meta.description || "").trim());
     setCentralGameCoverUrl(String(meta.gameCoverUrl || "").trim());
+    setCentralTileBackCoverUrl(String(meta.tileBackCoverUrl || "").trim());
     setSetCounts(Array.from({ length: sc }, () => 0));
     setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     setBootError(null);
@@ -251,7 +336,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         index: i,
         revealed: false,
         key: null,
-        imageUrl: null
+        imageUrl: null,
+        openedByPlayer: false
       }))
     );
     setWinner(null);
@@ -266,6 +352,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       setCentralTitle(String(data.title || "เกมส่วนกลาง"));
       setCentralDescription(String(data.description || "").trim());
       setCentralGameCoverUrl(String(data.gameCoverUrl || "").trim());
+      setCentralTileBackCoverUrl(String(data.tileBackCoverUrl || "").trim());
       setSetCounts(Array.from({ length: sc }, () => 0));
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     } else {
@@ -274,9 +361,88 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       setCentralTitle("");
       setCentralDescription("");
       setCentralGameCoverUrl("");
+      setCentralTileBackCoverUrl("");
       setApiCounts({ cash: 0, coffee: 0, discount: 0 });
     }
     setBootError(null);
+  }, []);
+
+  const applyRestoredCentralState = useCallback((st) => {
+    setMode("api");
+    setApiGameMode("central");
+    setPlayLocked(false);
+    setPlayLockReason("");
+    setSessionId(st.sessionId);
+    setPinkHeartCost(Math.max(0, Number(st.pinkHeartCost) || 0));
+    setRedHeartCost(Math.max(0, Number(st.redHeartCost) || 0));
+    setHeartCost(
+      Math.max(0, Number(st.pinkHeartCost) || 0) + Math.max(0, Number(st.redHeartCost) || 0)
+    );
+    setPrizeList(Array.isArray(st.prizes) && st.prizes.length ? st.prizes : PRIZES);
+    const rowCells = Array.isArray(st.cells) ? st.cells : [];
+    const n =
+      rowCells.length > 0 ? rowCells.length : Math.max(1, Number(st.cardCount) || 12);
+    setCards(
+      Array.from({ length: n }, (_, i) => {
+        const c = rowCells[i];
+        if (!c || !c.revealed) {
+          return { index: i, revealed: false, key: null, imageUrl: null, openedByPlayer: false };
+        }
+        return {
+          index: i,
+          revealed: true,
+          key: c.key ?? `${c.setIndex}-${c.imageIndex}`,
+          imageUrl: c.imageUrl ?? null,
+          openedByPlayer: true
+        };
+      })
+    );
+    setFlips(Number(st.flips) || 0);
+    const sc = Math.max(1, Number(st.setCount) || 1);
+    const sic = Array.isArray(st.setImageCounts) ? st.setImageCounts : [];
+    setSetImageCounts(sic);
+    setImagesPerSet(
+      sic.length ? Math.max(...sic.map((x) => Number(x) || 0), 1) : Number(st.imagesPerSet) || 4
+    );
+    setCentralTitle(String(st.title || "เกมส่วนกลาง"));
+    setCentralDescription(String(st.description || "").trim());
+    setCentralGameCoverUrl(String(st.gameCoverUrl || "").trim());
+    setCentralTileBackCoverUrl(String(st.tileBackCoverUrl || "").trim());
+    const setCountsUse = Array.from({ length: sc }, () => 0);
+    if (Array.isArray(st.setCounts) && st.setCounts.length >= sc) {
+      for (let j = 0; j < sc; j++) setCountsUse[j] = Math.max(0, Number(st.setCounts[j]) || 0);
+    } else {
+      for (const c of rowCells) {
+        if (c.revealed && c.setIndex != null) {
+          const si = Math.floor(Number(c.setIndex));
+          if (si >= 0 && si < sc) setCountsUse[si] += 1;
+        }
+      }
+    }
+    setSetCounts(setCountsUse);
+    setApiCounts({ cash: 0, coffee: 0, discount: 0 });
+    setBootError(null);
+    setCentralSolutionShown(false);
+    setWinner(null);
+    setCentralLoss(null);
+    if (st.finished && st.winner) {
+      setWinner({
+        key: st.winner.ruleId || "win",
+        label: st.winner.label || "ได้รับรางวัล",
+        emoji: "🎁"
+      });
+      setCentralSolutionShown(false);
+      setResultModalOpen(true);
+    } else if (st.finished && st.loss) {
+      setCentralLoss({
+        ruleId: st.loss.ruleId,
+        label: st.loss.label || "จบรอบ — ไม่มีรางวัล"
+      });
+      setCentralSolutionShown(false);
+      setResultModalOpen(true);
+    } else {
+      setResultModalOpen(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -285,12 +451,61 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     let meta = null;
     (async () => {
       try {
+        if (user) await refresh();
+
+        const stored = readStoredSession();
+        if (stored?.sessionId) {
+          const wrongGame =
+            resolvedGameId &&
+            stored.centralGameId &&
+            stored.centralGameId !== resolvedGameId;
+          if (wrongGame) {
+            clearStoredSession();
+          } else {
+            try {
+              const st = await fetchGameState(stored.sessionId);
+              if (cancelled) return;
+              if (st.gameMode === "central") {
+                if (resolvedGameId && st.gameId && st.gameId !== resolvedGameId) {
+                  clearStoredSession();
+                } else {
+                  applyRestoredCentralState(st);
+                  if (user) await refresh();
+                  return;
+                }
+              }
+            } catch {
+              clearStoredSession();
+            }
+          }
+        }
+
+        if (cancelled) return;
         try {
-          meta = await fetchGameMeta();
+          meta = await fetchGameMeta(resolvedGameId);
         } catch {
           meta = null;
         }
         if (cancelled) return;
+        if (resolvedGameId && !meta) {
+          setBootError("ไม่พบเกมนี้หรือยังไม่เปิดแสดงในรายการ");
+          setMode("local");
+          setApiGameMode(null);
+          setSessionId(null);
+          setPlayLocked(false);
+          setPlayLockReason("");
+          setCentralLoss(null);
+          setWinner(null);
+          setFlips(0);
+          setPrizeList(PRIZES);
+          setCards([]);
+          setSetCounts([]);
+          setCentralTitle("");
+          setCentralDescription("");
+          setCentralGameCoverUrl("");
+          setCentralTileBackCoverUrl("");
+          return;
+        }
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
@@ -315,7 +530,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             return;
           }
         }
-        const data = await fetchGameStart();
+        const data = await fetchGameStart(resolvedGameId);
         if (cancelled) return;
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
@@ -362,7 +577,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             setBootError(String(e.message || e));
           } else {
             setBootError(e.message);
-            applyLocalDeck();
+            if (!resolvedGameId) applyLocalDeck();
           }
         }
       }
@@ -374,15 +589,25 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     applyApiSession,
     applyCentralPreviewFromMeta,
     applyLocalDeck,
+    applyRestoredCentralState,
     authLoading,
     refresh,
-    user?.id
+    user?.id,
+    resolvedGameId
   ]);
 
-  const gameFinished = Boolean(winner || centralLoss);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (mode === "api" && apiGameMode === "central" && sessionId) {
+      writeStoredSession(sessionId, resolvedGameId);
+    }
+  }, [mode, apiGameMode, sessionId, resolvedGameId]);
+
+  const roundFinished = Boolean(winner || centralLoss);
+  const resultOverlayVisible = roundFinished && resultModalOpen;
 
   useEffect(() => {
-    if (!gameFinished) {
+    if (!resultOverlayVisible) {
       setResultOverlayEnter(false);
       return undefined;
     }
@@ -396,16 +621,16 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
     };
-  }, [gameFinished, winner, centralLoss]);
+  }, [resultOverlayVisible]);
 
   useEffect(() => {
-    if (!gameFinished) return undefined;
+    if (!resultOverlayVisible) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [gameFinished]);
+  }, [resultOverlayVisible]);
 
   const localCounts = useMemo(() => {
     const c = { cash: 0, coffee: 0, discount: 0 };
@@ -450,7 +675,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                   ...x,
                   revealed: true,
                   key: `${data.setIndex}-${data.imageIndex}`,
-                  imageUrl: data.imageUrl || null
+                  imageUrl: data.imageUrl || null,
+                  openedByPlayer: true
                 }
               : x
           )
@@ -460,12 +686,16 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             ruleId: data.loss.ruleId,
             label: data.loss.label || "จบรอบ — ไม่มีรางวัล"
           });
+          setCentralSolutionShown(false);
+          setResultModalOpen(true);
         } else if (data.winner) {
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
             emoji: "🎁"
           });
+          setCentralSolutionShown(false);
+          setResultModalOpen(true);
           addHearts(1);
         }
       } else {
@@ -515,15 +745,68 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     else revealLocal(i);
   }
 
+  async function resetAfterResult() {
+    setResultModalOpen(false);
+    setCentralSolutionShown(false);
+    await reset();
+  }
+
+  async function revealCentralSolution() {
+    if (!sessionId || busy || !roundFinished || centralSolutionShown) return;
+    setBusy(true);
+    try {
+      const data = await fetchRevealRemaining(sessionId);
+      setCards((prev) =>
+        prev.map((c, idx) => {
+          const hit = data.cells.find((x) => x.index === idx);
+          if (!hit) return c;
+          return {
+            ...c,
+            revealed: true,
+            imageUrl: hit.imageUrl,
+            key: hit.key,
+            openedByPlayer: false
+          };
+        })
+      );
+      setCentralSolutionShown(true);
+    } catch (e) {
+      setBootError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function reset() {
     if (mode === "api") {
       setBusy(true);
+      if (sessionId) void fetchGameAbandon(sessionId);
+      if (apiGameMode === "central") clearStoredSession();
       let meta = null;
       try {
         try {
-          meta = await fetchGameMeta();
+          meta = await fetchGameMeta(resolvedGameId);
         } catch {
           meta = null;
+        }
+        if (resolvedGameId && !meta) {
+          setBootError("ไม่พบเกมนี้หรือยังไม่เปิดแสดงในรายการ");
+          setMode("local");
+          setApiGameMode(null);
+          setSessionId(null);
+          setPlayLocked(false);
+          setPlayLockReason("");
+          setCentralLoss(null);
+          setWinner(null);
+          setFlips(0);
+          setPrizeList(PRIZES);
+          setCards([]);
+          setSetCounts([]);
+          setCentralTitle("");
+          setCentralDescription("");
+          setCentralGameCoverUrl("");
+          setCentralTileBackCoverUrl("");
+          return;
         }
         if (meta?.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
@@ -542,7 +825,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             return;
           }
         }
-        const data = await fetchGameStart();
+        const data = await fetchGameStart(resolvedGameId);
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
@@ -579,7 +862,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
           setBootError(String(e.message || e));
         } else {
           setBootError(e.message);
-          applyLocalDeck();
+          if (!resolvedGameId) applyLocalDeck();
         }
       } finally {
         setBusy(false);
@@ -602,9 +885,25 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     );
   }
 
+  if (resolvedGameId && mode === "local" && cards.length === 0) {
+    return (
+      <div className="mt-6 space-y-4">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+          <p className="font-medium">{bootError || "ไม่สามารถโหลดเกมได้"}</p>
+          <Link
+            href="/game"
+            className="mt-3 inline-block text-sm font-semibold text-brand-800 underline hover:text-brand-950"
+          >
+            ← กลับไปหน้ารายการเกม
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 space-y-4">
-      {serverCentralPublished && mode === "local" ? (
+      {serverCentralPublished && mode === "local" && !resolvedGameId ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-semibold">มีเกมส่วนกลางเผยแพร่แล้ว แต่ตอนนี้แสดงโหมดสาธิตในเครื่อง</p>
           <p className="mt-1 text-amber-900/95">
@@ -723,6 +1022,13 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
             mode === "api" && apiGameMode === "legacy" && key
               ? prizeList.find((p) => p.key === key)
               : null;
+          const showRedUnpicked =
+            mode === "api" &&
+            apiGameMode === "central" &&
+            roundFinished &&
+            !resultModalOpen &&
+            ((!card.revealed && !centralSolutionShown) ||
+              (card.revealed && card.openedByPlayer === false));
           return (
             <button
               key={card.index ?? i}
@@ -734,12 +1040,14 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                 ((winner !== null || centralLoss !== null) && !card.revealed)
               }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition ${
-                card.revealed
-                  ? "border-slate-300 bg-slate-50"
-                  : playLocked
-                    ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
-                    : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
-              } ${(winner || centralLoss) && !card.revealed ? "opacity-50" : ""}`}
+                showRedUnpicked
+                  ? "border-red-500 ring-2 ring-red-400/90"
+                  : card.revealed
+                    ? "border-slate-300 bg-slate-50"
+                    : playLocked
+                      ? "cursor-not-allowed border-slate-300 bg-slate-200/80 opacity-80"
+                      : "border-slate-400 bg-slate-200 hover:bg-slate-300 active:scale-95"
+              } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -750,6 +1058,17 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                 />
               ) : card.revealed ? (
                 <span>{meta?.emoji ?? "✓"}</span>
+              ) : mode === "api" && apiGameMode === "central" ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={
+                    centralTileBackCoverUrl.trim()
+                      ? centralTileBackCoverUrl.trim()
+                      : DEFAULT_TILE_BACK_COVER_PATH
+                  }
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 "?"
               )}
@@ -790,10 +1109,11 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         )}
       </div>
 
-      {gameFinished ? (
+      {resultOverlayVisible ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-[2px]"
           role="presentation"
+          onClick={() => setResultModalOpen(false)}
         >
           <div
             role="dialog"
@@ -804,6 +1124,7 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                 ? "translate-y-0 scale-100 opacity-100"
                 : "translate-y-2 scale-[0.96] opacity-0"
             }`}
+            onClick={(e) => e.stopPropagation()}
           >
             {winner ? (
               <>
@@ -818,16 +1139,20 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                   {winner.emoji ? ` ${winner.emoji}` : ""}
                   {winner.label ? ` ${winner.label}` : ""}
                 </p>
-                <p className="mt-5 text-center text-base font-medium text-slate-700">
-                  กลับไปเล่นเกมส์
-                </p>
                 <button
                   type="button"
-                  onClick={reset}
+                  onClick={() => setResultModalOpen(false)}
+                  className="mt-5 w-full rounded-xl border-2 border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  กลับไปดูป้ายที่เลือก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void resetAfterResult()}
                   disabled={busy}
                   className="mt-3 w-full rounded-xl bg-brand-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-brand-900 disabled:opacity-50"
                 >
-                  กลับไปเล่นเกมส์
+                  กลับไปเล่นเกม
                 </button>
               </>
             ) : (
@@ -844,16 +1169,20 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
                 <p className="mt-2 text-xs text-slate-500">
                   หัวใจที่ใช้เริ่มรอบนี้ไม่คืน
                 </p>
-                <p className="mt-5 text-center text-base font-medium text-slate-700">
-                  กลับไปเล่นเกมส์
-                </p>
                 <button
                   type="button"
-                  onClick={reset}
+                  onClick={() => setResultModalOpen(false)}
+                  className="mt-5 w-full rounded-xl border-2 border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  กลับไปดูป้ายที่เลือก
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void resetAfterResult()}
                   disabled={busy}
                   className="mt-3 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-slate-900 disabled:opacity-50"
                 >
-                  กลับไปเล่นเกมส์
+                  กลับไปเล่นเกม
                 </button>
               </>
             )}

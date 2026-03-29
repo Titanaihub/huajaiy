@@ -1,8 +1,9 @@
 const crypto = require("crypto");
+const centralGameService = require("./services/centralGameService");
 const {
   formatWinnerDisplay,
   formatLossRuleDisplay
-} = require("./services/centralGameService");
+} = centralGameService;
 
 const sessions = new Map();
 const PRUNE_MS = 60 * 60 * 1000;
@@ -165,6 +166,119 @@ function pruneSessions(maxAgeMs = PRUNE_MS) {
 
 setInterval(() => pruneSessions(), 10 * 60 * 1000).unref();
 
+function buildWinnerLossPayload(session) {
+  const { gameSnapshot, winnerRuleId, lossRuleId } = session;
+  const { rules, game } = gameSnapshot;
+  const { setImageCounts } = game;
+  let winner = null;
+  let loss = null;
+  if (winnerRuleId) {
+    const winRule = rules.find((r) => r.id === winnerRuleId);
+    if (winRule) {
+      winner = {
+        ruleId: winRule.id,
+        label: formatWinnerDisplay(winRule),
+        prizeCategory: winRule.prizeCategory,
+        prizeTitle: winRule.prizeTitle,
+        prizeValueText: winRule.prizeValueText,
+        prizeUnit: winRule.prizeUnit
+      };
+    }
+  }
+  if (lossRuleId) {
+    const lossRule = rules.find((r) => r.id === lossRuleId);
+    if (lossRule) {
+      const cap = setImageCounts[lossRule.setIndex] ?? setImageCounts[0] ?? 1;
+      loss = {
+        ruleId: lossRule.id,
+        label: formatLossRuleDisplay(lossRule, cap),
+        prizeCategory: "none"
+      };
+    }
+  }
+  return { winner, loss };
+}
+
+/**
+ * คืนสถานะรอบเกมให้ฝั่งเว็บหลังรีเฟรช — ไม่หักหัวใจซ้ำ
+ */
+function getSessionStateForClient(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+  const { deck, revealed, flips, gameSnapshot } = session;
+  const { game, rules } = gameSnapshot;
+  const cells = deck.map((cell, idx) => {
+    if (!revealed[idx]) {
+      return { index: idx, revealed: false };
+    }
+    const { setIndex, imageIndex } = cell;
+    const imageUrl = imageUrlForCell(gameSnapshot, setIndex, imageIndex);
+    return {
+      index: idx,
+      revealed: true,
+      setIndex,
+      imageIndex,
+      imageUrl,
+      key: `${setIndex}-${imageIndex}`
+    };
+  });
+  const setCounts = getSetCounts(session);
+  const finished = Boolean(session.winnerRuleId || session.lossRuleId);
+  const { winner, loss } = buildWinnerLossPayload(session);
+  const prizes = centralGameService.prizesForClient(rules, game.setImageCounts);
+  return {
+    ok: true,
+    gameMode: "central",
+    sessionId,
+    gameId: game.id,
+    title: game.title,
+    description: game.description || "",
+    gameCoverUrl: game.gameCoverUrl || null,
+    tileBackCoverUrl: game.tileBackCoverUrl || null,
+    pinkHeartCost: game.pinkHeartCost ?? 0,
+    redHeartCost: game.redHeartCost ?? 0,
+    heartCost: (game.pinkHeartCost ?? 0) + (game.redHeartCost ?? 0),
+    cardCount: game.tileCount,
+    setCount: game.setCount,
+    imagesPerSet: game.imagesPerSet,
+    setImageCounts: game.setImageCounts,
+    prizes,
+    cells,
+    flips,
+    setCounts,
+    finished,
+    winner,
+    loss
+  };
+}
+
+/** หลังจบรอบแล้ว — ส่ง URL ภาพใต้ป้ายที่ยังไม่เปิด (ให้ปุ่มเฉลย) */
+function revealRemainingForClient(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) {
+    return { ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" };
+  }
+  if (!session.winnerRuleId && !session.lossRuleId) {
+    return { ok: false, error: "ยังไม่จบรอบ — ใช้ได้หลังจบรอบเท่านั้น" };
+  }
+  const { deck, revealed, gameSnapshot } = session;
+  const cells = [];
+  for (let idx = 0; idx < deck.length; idx += 1) {
+    if (revealed[idx]) continue;
+    const cell = deck[idx];
+    const { setIndex, imageIndex } = cell;
+    const imageUrl = imageUrlForCell(gameSnapshot, setIndex, imageIndex);
+    cells.push({
+      index: idx,
+      imageUrl,
+      setIndex,
+      imageIndex,
+      key: `${setIndex}-${imageIndex}`
+    });
+  }
+  return { ok: true, gameMode: "central", cells };
+}
+
 function getAdminSnapshotCentral(tileCount, setCount, imagesPerSet, rulesCount) {
   let playing = 0;
   for (const s of sessions.values()) {
@@ -186,5 +300,7 @@ module.exports = {
   createSession,
   flip,
   abandonSession,
+  getSessionStateForClient,
+  revealRemainingForClient,
   getAdminSnapshotCentral
 };

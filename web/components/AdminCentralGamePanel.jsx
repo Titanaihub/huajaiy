@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import {
+  DEFAULT_CENTRAL_GAME_COVER_PATH,
+  DEFAULT_TILE_BACK_COVER_PATH
+} from "../lib/centralGameDefaults";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import {
@@ -102,6 +105,7 @@ function RuleEditorRow({
     Math.max(0, Math.floor(Number(r.setIndex)) || 0)
   );
   const cap = needCap ?? Math.max(1, parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1);
+  const isNone = r.prizeCategory === "none";
   return (
     <div className="grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
       {showSetPicker ? (
@@ -192,7 +196,8 @@ function RuleEditorRow({
         <input
           value={r.prizeTitle}
           onChange={(e) => updateRule(idx, "prizeTitle", e.target.value)}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={isNone}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           placeholder="เช่น รางวัลที่ 1"
         />
       </div>
@@ -201,7 +206,8 @@ function RuleEditorRow({
         <input
           value={r.prizeValueText}
           onChange={(e) => updateRule(idx, "prizeValueText", e.target.value)}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={isNone}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
           placeholder="เช่น 1000"
         />
       </div>
@@ -210,7 +216,8 @@ function RuleEditorRow({
         <select
           value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
           onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs"
+          disabled={isNone}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
@@ -226,15 +233,6 @@ function RuleEditorRow({
           onChange={(e) => updateRule(idx, "description", e.target.value)}
           className="mt-1 w-full rounded border px-2 py-1 text-xs"
         />
-      </div>
-      <div className="sm:col-span-12">
-        <button
-          type="button"
-          onClick={() => setRules((prev) => prev.filter((_, j) => j !== idx))}
-          className="text-xs text-red-700 underline"
-        >
-          ลบแถว
-        </button>
       </div>
     </div>
   );
@@ -257,6 +255,10 @@ export default function AdminCentralGamePanel() {
   const [imageMap, setImageMap] = useState({});
   /** URL รูปหน้าปก — ว่าง = ใช้รูปหัวใจชมพูเริ่มต้นบนเว็บ */
   const [gameCoverUrl, setGameCoverUrl] = useState("");
+  /** รูปหน้าปิดป้าย (ก่อนเปิด) — ว่าง = ใช้ค่าเริ่มต้นบนเว็บ */
+  const [tileBackCoverUrl, setTileBackCoverUrl] = useState("");
+  /** แสดงในรายการหน้า /game (ล็อบบี้) */
+  const [lobbyVisible, setLobbyVisible] = useState(false);
   const [rules, setRules] = useState([]);
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
@@ -316,6 +318,11 @@ export default function AdminCentralGamePanel() {
       setTitle(g.title);
       setGameDescription(typeof g.description === "string" ? g.description : "");
       setGameCoverUrl(g.gameCoverUrl && String(g.gameCoverUrl).trim() ? String(g.gameCoverUrl).trim() : "");
+      setTileBackCoverUrl(
+        g.tileBackCoverUrl && String(g.tileBackCoverUrl).trim()
+          ? String(g.tileBackCoverUrl).trim()
+          : ""
+      );
       setSetCount(g.setCount);
       const sc = Math.max(1, g.setCount || 1);
       const fromApi = Array.isArray(g.setImageCounts) ? g.setImageCounts : null;
@@ -334,6 +341,7 @@ export default function AdminCentralGamePanel() {
         typeof g.pinkHeartCost === "number" ? g.pinkHeartCost : g.heartCost ?? 0
       );
       setRedHeartCost(typeof g.redHeartCost === "number" ? g.redHeartCost : 0);
+      setLobbyVisible(Boolean(g.isPublished));
       const map = {};
       for (const im of data.images || []) {
         const k0 = `${im.setIndex}-0`;
@@ -463,7 +471,8 @@ export default function AdminCentralGamePanel() {
       setImageCounts: counts,
       tileCount: counts.reduce((a, b) => a + b, 0),
       pinkHeartCost,
-      redHeartCost
+      redHeartCost,
+      isPublished: lobbyVisible
     });
   }
 
@@ -542,8 +551,9 @@ export default function AdminCentralGamePanel() {
     try {
       await apiAdminCentralGameActivate(token, id);
       setSelectedId(id);
+      setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === id ? null : p));
-      setMsg("เผยแพร่แล้ว — เกมนี้แสดงที่หน้าแรก (ทางลัด) และหน้าเกม");
+      setMsg("เผยแพร่แล้ว — เกมนี้เป็นเกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
@@ -566,8 +576,9 @@ export default function AdminCentralGamePanel() {
     setMsg("");
     try {
       await apiAdminCentralGameActivate(token, selectedId);
+      setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
-      setMsg("เผยแพร่แล้ว — เกมนี้แสดงที่หน้าแรกและหน้าเกม");
+      setMsg("เผยแพร่แล้ว — เกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
@@ -590,7 +601,8 @@ export default function AdminCentralGamePanel() {
     setMsg("");
     try {
       await apiAdminCentralGameDeactivate(token, selectedId);
-      setMsg("ปิดใช้เกมนี้แล้ว");
+      setLobbyVisible(false);
+      setMsg("ปิดใช้เกมนี้แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
@@ -660,6 +672,18 @@ export default function AdminCentralGamePanel() {
       const url = await uploadImageFile(file);
       setGameCoverUrl(url);
       setMsg("อัปโหลดรูปหน้าปกแล้ว — กดบันทึกข้อมูลเพื่อบันทึกลงเซิร์ฟเวอร์");
+    } catch (e) {
+      setMsg(e.message || String(e));
+    }
+  }
+
+  async function onPickTileBackFile(file) {
+    if (!file) return;
+    setMsg("กำลังอัปโหลดรูปหน้าปิดป้าย…");
+    try {
+      const url = await uploadImageFile(file);
+      setTileBackCoverUrl(url);
+      setMsg("อัปโหลดรูปหน้าปิดป้ายแล้ว — กดบันทึกข้อมูลเพื่อบันทึกลงเซิร์ฟเวอร์");
     } catch (e) {
       setMsg(e.message || String(e));
     }
@@ -882,6 +906,15 @@ export default function AdminCentralGamePanel() {
                   <td className="px-3 py-2 font-medium text-slate-900">{g.title}</td>
                   <td className="px-3 py-2 tabular-nums text-slate-700">{g.tileCount}</td>
                   <td className="px-3 py-2">
+                    {g.isPublished ? (
+                      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">
+                        แสดงใน /game
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">ซ่อน</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
                     {g.isActive ? (
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
                         กำลังใช้
@@ -953,6 +986,20 @@ export default function AdminCentralGamePanel() {
                   className="mt-1 w-full resize-y rounded-lg border border-slate-300 px-3 py-2"
                   placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
                 />
+              </div>
+              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                <input
+                  id="central-game-lobby-visible"
+                  type="checkbox"
+                  checked={lobbyVisible}
+                  onChange={(e) => setLobbyVisible(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300"
+                />
+                <label htmlFor="central-game-lobby-visible" className="text-xs leading-relaxed text-slate-700">
+                  <span className="font-semibold text-slate-900">แสดงในหน้าเกม (รายการ)</span>
+                  — เกมจะอยู่ในล็อบบี้ <span className="font-mono text-[11px]">/game</span> ให้ผู้เล่นค้นหาและคลิกเข้าเล่น ·
+                  กด「บันทึกข้อมูล」เพื่อยืนยัน · การเปิด「เผยแพร่บนเว็บ」จะเปิดตัวเลือกนี้ให้อัตโนมัติ · ต้องอัปโหลดรูปครบและมีกติกาที่เล่นได้ก่อนจึงจะติ๊กได้สำเร็จ
+                </label>
               </div>
               <div>
                 <label className="text-xs text-slate-600">จำนวนชุด</label>
@@ -1149,44 +1196,88 @@ export default function AdminCentralGamePanel() {
               })()}
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-slate-900">รูปหน้าปกเกม</h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
-              </p>
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
-                <div className="w-28 shrink-0 sm:w-32">
-                  <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
-                  <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={gameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                      alt=""
-                      className="h-full w-full object-cover"
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h3 className="text-sm font-semibold text-slate-900">รูปหน้าปกเกม</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
+                </p>
+                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                  <div className="w-28 shrink-0 sm:w-32">
+                    <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
+                    <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={gameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label className="text-[10px] font-medium text-slate-600">
+                      อัปโหลดรูปหน้าปก (1 ไฟล์)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        void onPickCoverFile(f);
+                        e.target.value = "";
+                      }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setGameCoverUrl("")}
+                      className="text-xs text-slate-600 underline hover:text-slate-900"
+                    >
+                      ใช้รูปหัวใจชมพูเริ่มต้น
+                    </button>
                   </div>
                 </div>
-                <div className="min-w-0 flex-1 space-y-2">
-                  <label className="text-[10px] font-medium text-slate-600">
-                    อัปโหลดรูปหน้าปก (1 ไฟล์)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0] || null;
-                      void onPickCoverFile(f);
-                      e.target.value = "";
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setGameCoverUrl("")}
-                    className="text-xs text-slate-600 underline hover:text-slate-900"
-                  >
-                    ใช้รูปหัวใจชมพูเริ่มต้น
-                  </button>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h3 className="text-sm font-semibold text-slate-900">รูปหน้าปิดป้าย</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                  แสดงบนกระดานก่อนผู้เล่นเปิดป้าย — ถ้าไม่อัปโหลดหรือกดคืนค่า ระบบใช้รูปเริ่มต้นของเว็บ
+                </p>
+                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                  <div className="w-28 shrink-0 sm:w-32">
+                    <p className="mb-1 text-[10px] text-slate-500">ตัวอย่าง</p>
+                    <div className="aspect-square w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={tileBackCoverUrl.trim() || DEFAULT_TILE_BACK_COVER_PATH}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label className="text-[10px] font-medium text-slate-600">
+                      อัปโหลดรูปหน้าปิดป้าย (1 ไฟล์)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        void onPickTileBackFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTileBackCoverUrl("")}
+                      className="text-xs text-slate-600 underline hover:text-slate-900"
+                    >
+                      ใช้รูปเริ่มต้นของเว็บ
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1205,7 +1296,7 @@ export default function AdminCentralGamePanel() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
                 <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-                  บันทึกโครง + รูปหน้าปก + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปชุดด้วย (ไม่ครบจะข้าม) · กดเผยแพร่หลังเลือกเกมในตาราง
+                  บันทึกโครง + รูปหน้าปก + รูปหน้าปิดป้าย + กติกาเสมอ · รูปทุกชุดครบแล้วจึงบันทึกรูปชุดด้วย (ไม่ครบจะข้าม) · กดเผยแพร่หลังเลือกเกมในตาราง
                 </p>
               </div>
               <button

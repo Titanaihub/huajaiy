@@ -109,7 +109,8 @@ function rowGame(row) {
     gameCoverUrl:
       row.game_cover_url != null && String(row.game_cover_url).trim()
         ? String(row.game_cover_url).trim()
-        : null
+        : null,
+    isPublished: Boolean(row.is_published)
   };
 }
 
@@ -333,6 +334,15 @@ async function updateGameMeta(gameId, patch) {
         : normalizeGameCoverUrl(patch.gameCoverUrl);
     params.push(v);
     extraFragments.push(`game_cover_url = $${params.length}`);
+  }
+  if (patch.isPublished !== undefined) {
+    const want = Boolean(patch.isPublished);
+    if (want) {
+      const snap = await getGameSnapshotById(gameId);
+      await assertGamePlayable(snap);
+    }
+    params.push(want);
+    extraFragments.push(`is_published = $${params.length}`);
   }
   const extraSql = extraFragments.length ? `, ${extraFragments.join(", ")}` : "";
   await pool.query(
@@ -572,9 +582,10 @@ async function setActiveGame(gameId) {
   try {
     await client.query("BEGIN");
     await client.query(`UPDATE central_games SET is_active = FALSE`);
-    await client.query(`UPDATE central_games SET is_active = TRUE, updated_at = NOW() WHERE id = $1`, [
-      gameId
-    ]);
+    await client.query(
+      `UPDATE central_games SET is_active = TRUE, is_published = TRUE, updated_at = NOW() WHERE id = $1`,
+      [gameId]
+    );
     await client.query("COMMIT");
   } catch (e) {
     await client.query("ROLLBACK");
@@ -659,6 +670,8 @@ function formatLossRuleDisplay(r, imagesInThisSet) {
 module.exports = {
   getActiveGameSnapshot,
   getGameSnapshotById,
+  getPublishedGameSnapshotById,
+  listPublishedGamesForPublic,
   listGamesForAdmin,
   createGame,
   updateGameMeta,

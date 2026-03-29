@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { gameApiUrl } from "../lib/config";
 
 /**
- * แสดงสถานะจริงจาก /api/game/meta (ผ่าน rewrite ของ Next) — ช่วยแยกว่า
- * "เผยแพร่แล้วแต่หน้าเกมไม่ขึ้น" เกิดจาก API ไม่มีเกม active, หัวใจ, หรือ URL API ผิด
+ * @param {{ gameId?: string | null }} props — ถ้ามี จะเช็ก meta ของเกมรายตัว (หน้า /game/[id])
+ * แสดงสถานะจริงจาก /api/game/meta (ผ่าน rewrite ของ Next)
  */
-export default function GameApiLiveStatus() {
+export default function GameApiLiveStatus({ gameId = null } = {}) {
   const [text, setText] = useState("กำลังตรวจสอบ API เกม…");
   const [tone, setTone] = useState("slate");
 
@@ -15,7 +15,11 @@ export default function GameApiLiveStatus() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(gameApiUrl("meta"), { cache: "no-store" });
+        const id = gameId && String(gameId).trim();
+        const url = id
+          ? `${gameApiUrl("meta")}?gameId=${encodeURIComponent(id)}`
+          : gameApiUrl("meta");
+        const r = await fetch(url, { cache: "no-store" });
         const d = await r.json().catch(() => ({}));
         if (cancelled) return;
         if (!r.ok || !d.ok) {
@@ -50,7 +54,7 @@ export default function GameApiLiveStatus() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [gameId]);
 
   const border =
     tone === "emerald"

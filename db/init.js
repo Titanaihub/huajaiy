@@ -319,6 +319,14 @@ async function initDb() {
     `);
 
     await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT FALSE;
+    `);
+    await client.query(`
+      UPDATE central_games SET is_published = TRUE WHERE is_active = TRUE AND is_published = FALSE;
+    `);
+
+    await client.query(`
       ALTER TABLE central_game_rules
       ADD COLUMN IF NOT EXISTS prize_total_qty INTEGER NOT NULL DEFAULT 1;
     `);
