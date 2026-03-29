@@ -110,6 +110,39 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
+/** แยก setIndex / imageIndex จากคีย์ป้าย เช่น "0-3" */
+function parseCentralTileIndices(key) {
+  if (key == null || key === "") return null;
+  const s = String(key);
+  const i = s.indexOf("-");
+  if (i <= 0) return null;
+  const setIndex = Number(s.slice(0, i));
+  const imageIndex = Number(s.slice(i + 1));
+  if (!Number.isFinite(setIndex) || !Number.isFinite(imageIndex)) return null;
+  return { setIndex, imageIndex };
+}
+
+/**
+ * กรอบเขียวเฉพาะ "หน้ารางวัล": ชุดที่มีกติการางวัล (ไม่ใช่ none) — นับทุกภาพในชุดยกเว้นใบสุดท้าย
+ * (ข้อตกลงทั่วไป: ใบสุดท้ายมักเป็นหน้าไม่ชนะ / หน้าเศร้า)
+ */
+function isCentralRewardFaceTile(key, prizeList, setImageCounts) {
+  const parsed = parseCentralTileIndices(key);
+  if (!parsed) return false;
+  const { setIndex, imageIndex } = parsed;
+  const si = Math.max(0, Math.floor(setIndex));
+  const hasPrizeRule = (prizeList || []).some(
+    (p) =>
+      Math.max(0, Math.floor(Number(p.setIndex)) || 0) === si &&
+      p.prizeCategory &&
+      String(p.prizeCategory) !== "none"
+  );
+  if (!hasPrizeRule) return false;
+  const cap = Math.max(1, Math.floor(Number(setImageCounts[si])) || 1);
+  if (cap <= 1) return true;
+  return imageIndex < cap - 1;
+}
+
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -1562,7 +1595,7 @@ export default function FlipGameDemo({
             mode === "api" && apiGameMode === "legacy" && key
               ? prizeList.find((p) => p.key === key)
               : null;
-          /** กรอบแดงเฉพาะป้ายที่ยังไม่เปิด ก่อนกดเฉลย — หลังเฉลยไม่ใช้กรอบแดง/เขียวแยกผู้เล่นกับระบบ เพื่อให้มองชุดที่ได้รางวัลจากเน้นสีป้ายเดิมต่อเนื่อง */
+          /** กรอบแดง: ป้ายที่ยังไม่เปิด ก่อนกดเฉลย */
           const showRedUnpicked =
             mode === "api" &&
             apiGameMode === "central" &&
@@ -1570,20 +1603,18 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             !centralSolutionShown &&
             !card.revealed;
-          /** หลังจบรอบ: เน้นกรอบเฉพาะป้ายที่ผู้เล่นเปิดเอง (ไม่รวมป้ายที่ระบบเฉลยให้) */
-          const isPlayerOpenedPick =
+          /** กรอบเขียว: เฉพาะหน้ารางวัล (ตามกติกาชุด + ลำดับภาพในชุด) */
+          const isGreenRewardTile =
             mode === "api" &&
             apiGameMode === "central" &&
-            roundFinished &&
             card.revealed &&
-            card.openedByPlayer === true;
-          /** ป้ายที่โผล่จากเฉลยหรือสถานะอื่นที่ไม่ใช่การคลิกของผู้เล่น — แค่ลดความเด่นเล็กน้อย */
-          const isNonPlayerRevealed =
+            isCentralRewardFaceTile(key, prizeList, setImageCounts);
+          /** เปิดแล้วแต่ไม่ใช่หน้ารางวัล — ลดความเด่นเล็กน้อย */
+          const isMutedNonRewardCentral =
             mode === "api" &&
             apiGameMode === "central" &&
-            roundFinished &&
             card.revealed &&
-            card.openedByPlayer === false;
+            !isGreenRewardTile;
           return (
             <button
               key={card.index ?? i}
@@ -1597,10 +1628,10 @@ export default function FlipGameDemo({
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${
                 showRedUnpicked
                   ? "border-red-500 ring-2 ring-red-400/90"
-                  : isPlayerOpenedPick
-                    ? "z-[1] border-amber-500 bg-gradient-to-br from-amber-50 to-white shadow-md ring-2 ring-amber-400/85"
-                    : isNonPlayerRevealed
-                      ? "border-slate-200/90 bg-slate-100/70"
+                  : isGreenRewardTile
+                    ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80"
+                    : isMutedNonRewardCentral
+                      ? "border-slate-200 bg-slate-100/80"
                       : card.revealed
                         ? "border-slate-300 bg-slate-50"
                         : playLocked
@@ -1615,12 +1646,12 @@ export default function FlipGameDemo({
                     src={card.imageUrl}
                     alt=""
                     className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-300 ${
-                      isNonPlayerRevealed
-                        ? "opacity-[0.9] saturate-[0.88] brightness-[0.94]"
+                      isMutedNonRewardCentral
+                        ? "opacity-[0.92] saturate-[0.92] brightness-[0.96]"
                         : ""
                     } ${
-                      isPlayerOpenedPick
-                        ? "relative z-[1] brightness-[1.05] contrast-[1.04] saturate-[1.12]"
+                      isGreenRewardTile
+                        ? "brightness-[1.04] contrast-[1.03] saturate-[1.08]"
                         : ""
                     }`}
                   />
