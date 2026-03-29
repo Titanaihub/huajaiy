@@ -770,12 +770,6 @@ export default function FlipGameDemo({
     else revealLocal(i);
   }
 
-  async function resetAfterResult() {
-    setResultModalOpen(false);
-    setCentralSolutionShown(false);
-    await reset();
-  }
-
   async function revealCentralSolution() {
     if (!sessionId || busy || !roundFinished || centralSolutionShown) return;
     setBusy(true);
@@ -1358,17 +1352,9 @@ export default function FlipGameDemo({
                 <button
                   type="button"
                   onClick={() => setResultModalOpen(false)}
-                  className="mt-5 w-full rounded-xl border-2 border-slate-300 bg-white py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                  className="mt-6 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-slate-900"
                 >
-                  กลับไปดูป้ายที่เลือก
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void resetAfterResult()}
-                  disabled={busy}
-                  className="mt-3 w-full rounded-xl bg-brand-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-brand-900 disabled:opacity-50"
-                >
-                  กลับไปเล่นเกม
+                  ปิด
                 </button>
               </>
             ) : (
@@ -1390,7 +1376,7 @@ export default function FlipGameDemo({
                   onClick={() => setResultModalOpen(false)}
                   className="mt-6 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-slate-900"
                 >
-                  ปิดออก
+                  ปิด
                 </button>
               </>
             )}
