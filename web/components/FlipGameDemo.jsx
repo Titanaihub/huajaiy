@@ -143,6 +143,8 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
   const [playLockReason, setPlayLockReason] = useState("");
   /** เกมส่วนกลางจบแบบกติกา none — ไม่มีรางวัล */
   const [centralLoss, setCentralLoss] = useState(null);
+  /** แอนิเมชันโผล่ของกล่องผลลัพธ์ */
+  const [resultOverlayEnter, setResultOverlayEnter] = useState(false);
 
   const applyLocalDeck = useCallback(() => {
     setMode("local");
@@ -349,6 +351,34 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
     authLoading,
     user?.id
   ]);
+
+  const gameFinished = Boolean(winner || centralLoss);
+
+  useEffect(() => {
+    if (!gameFinished) {
+      setResultOverlayEnter(false);
+      return undefined;
+    }
+    setResultOverlayEnter(false);
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setResultOverlayEnter(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [gameFinished, winner, centralLoss]);
+
+  useEffect(() => {
+    if (!gameFinished) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [gameFinished]);
 
   const localCounts = useMemo(() => {
     const c = { cash: 0, coffee: 0, discount: 0 };
@@ -703,36 +733,74 @@ export default function FlipGameDemo({ serverCentralPublished = false } = {}) {
         )}
       </div>
 
-      {winner ? (
-        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-center">
-          <p className="font-semibold text-brand-900">
-            รางวัล: {winner.emoji ? `${winner.emoji} ` : ""}
-            {winner.label}
-          </p>
-          <button
-            type="button"
-            onClick={reset}
-            disabled={busy}
-            className="mt-3 rounded-xl bg-brand-800 px-4 py-2 text-sm font-medium text-white hover:bg-brand-900 disabled:opacity-50"
+      {gameFinished ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-[2px]"
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="game-result-title"
+            className={`w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-game transition-all duration-300 ease-out ${
+              resultOverlayEnter
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-2 scale-[0.96] opacity-0"
+            }`}
           >
-            เล่นรอบใหม่ (สุ่มกระดานใหม่)
-          </button>
-        </div>
-      ) : centralLoss ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center">
-          <p className="font-semibold text-amber-950">จบรอบ — ไม่ได้รับรางวัล</p>
-          <p className="mt-2 text-sm text-amber-900">{centralLoss.label}</p>
-          <p className="mt-2 text-xs text-amber-800/95">
-            หัวใจที่ใช้เริ่มรอบนี้ไม่คืน — กดรีเซ็ตเพื่อเริ่มรอบใหม่
-          </p>
-          <button
-            type="button"
-            onClick={reset}
-            disabled={busy}
-            className="mt-3 rounded-xl bg-amber-800 px-4 py-2 text-sm font-medium text-white hover:bg-amber-900 disabled:opacity-50"
-          >
-            เริ่มรอบใหม่
-          </button>
+            {winner ? (
+              <>
+                <h2
+                  id="game-result-title"
+                  className="text-2xl font-bold leading-snug text-red-600 sm:text-3xl"
+                >
+                  ยินดีด้วยคุณได้รับรางวัล
+                </h2>
+                <p className="mt-4 text-base text-slate-800 sm:text-lg">
+                  ได้รับรางวัล
+                  {winner.emoji ? ` ${winner.emoji}` : ""}
+                  {winner.label ? ` ${winner.label}` : ""}
+                </p>
+                <p className="mt-5 text-center text-base font-medium text-slate-700">
+                  กลับไปเล่นเกมส์
+                </p>
+                <button
+                  type="button"
+                  onClick={reset}
+                  disabled={busy}
+                  className="mt-3 w-full rounded-xl bg-brand-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-brand-900 disabled:opacity-50"
+                >
+                  กลับไปเล่นเกมส์
+                </button>
+              </>
+            ) : (
+              <>
+                <h2
+                  id="game-result-title"
+                  className="text-2xl font-bold leading-snug text-slate-800 sm:text-3xl"
+                >
+                  เสียใจด้วยคุณไม่ได้รับรางวัล
+                </h2>
+                {centralLoss?.label ? (
+                  <p className="mt-3 text-sm text-slate-600">{centralLoss.label}</p>
+                ) : null}
+                <p className="mt-2 text-xs text-slate-500">
+                  หัวใจที่ใช้เริ่มรอบนี้ไม่คืน
+                </p>
+                <p className="mt-5 text-center text-base font-medium text-slate-700">
+                  กลับไปเล่นเกมส์
+                </p>
+                <button
+                  type="button"
+                  onClick={reset}
+                  disabled={busy}
+                  className="mt-3 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft hover:bg-slate-900 disabled:opacity-50"
+                >
+                  กลับไปเล่นเกมส์
+                </button>
+              </>
+            )}
+          </div>
         </div>
       ) : null}
 
