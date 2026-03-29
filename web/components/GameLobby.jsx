@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { formatHeartCostPerRoundLine } from "../lib/formatHeartCostLabel";
 
 const DESC_LEN = 180;
 
@@ -60,6 +61,7 @@ export default function GameLobby({ initialGames = [] }) {
           {filtered.map((g) => {
             const cover = String(g.gameCoverUrl || "").trim();
             const href = `/game/${encodeURIComponent(g.id)}`;
+            const heartLine = formatHeartCostPerRoundLine(g.pinkHeartCost, g.redHeartCost);
             return (
               <li key={g.id}>
                 <Link
@@ -85,12 +87,9 @@ export default function GameLobby({ initialGames = [] }) {
                           {g.creatorUsername ? `@${g.creatorUsername}` : "—"}
                         </span>
                       </p>
-                      {(Number(g.pinkHeartCost) > 0 || Number(g.redHeartCost) > 0) && (
-                        <p className="mt-0.5 text-[10px] text-rose-600/90">
-                          หักหัวใจต่อรอบ: ชมพู {Number(g.pinkHeartCost) || 0} · แดง{" "}
-                          {Number(g.redHeartCost) || 0}
-                        </p>
-                      )}
+                      {heartLine ? (
+                        <p className="mt-0.5 text-[10px] text-rose-600/90">{heartLine}</p>
+                      ) : null}
                     </div>
                   </div>
                   {g.description ? (

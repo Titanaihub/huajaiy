@@ -125,7 +125,8 @@ function RuleEditorRow({
   setCount,
   setSizes,
   updateRule,
-  setRules
+  setRules,
+  gamePrizeQtyLocked
 }) {
   const si = Math.min(
     setCount - 1,
@@ -133,6 +134,10 @@ function RuleEditorRow({
   );
   const cap = needCap ?? Math.max(1, parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1);
   const isNone = r.prizeCategory === "none";
+  const prizeQtyMin =
+    gamePrizeQtyLocked && !isNone && r.minPrizeTotalQty != null
+      ? r.minPrizeTotalQty
+      : 1;
   return (
     <div className="grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
       {showSetPicker ? (
@@ -180,16 +185,34 @@ function RuleEditorRow({
             ไม่จำกัด
           </div>
         ) : (
-          <input
-            type="number"
-            min={1}
-            max={999999}
-            value={r.prizeTotalQty ?? 1}
-            onChange={(e) =>
-              updateRule(idx, "prizeTotalQty", Math.max(1, parseInt(e.target.value, 10) || 1))
-            }
-            className="mt-1 w-full rounded border px-1 py-1 text-xs"
-          />
+          <>
+            <input
+              type="number"
+              min={prizeQtyMin}
+              max={999999}
+              value={r.prizeTotalQty ?? 1}
+              onChange={(e) =>
+                updateRule(
+                  idx,
+                  "prizeTotalQty",
+                  Math.max(prizeQtyMin, parseInt(e.target.value, 10) || prizeQtyMin)
+                )
+              }
+              className="mt-1 w-full rounded border px-1 py-1 text-xs"
+              title={
+                gamePrizeQtyLocked && prizeQtyMin > 1
+                  ? `หลังเผยแพร่แล้วตั้งขั้นต่ำ ${prizeQtyMin} — เพิ่มได้อย่างเดียว`
+                  : gamePrizeQtyLocked
+                    ? "หลังเผยแพร่แล้วเพิ่มจำนวนได้อย่างเดียว ลดไม่ได้"
+                    : undefined
+              }
+            />
+            {gamePrizeQtyLocked ? (
+              <p className="mt-0.5 text-[9px] leading-tight text-slate-500">
+                หลังเผยแพร่: เพิ่มได้เท่านั้น (ขั้นต่ำ {prizeQtyMin})
+              </p>
+            ) : null}
+          </>
         )}
       </div>
       <div className="sm:col-span-2">
@@ -204,7 +227,11 @@ function RuleEditorRow({
                   ? {
                       ...row,
                       prizeCategory: v,
-                      prizeTotalQty: v === "none" ? null : (row.prizeTotalQty ?? 1)
+                      prizeTotalQty: v === "none" ? null : (row.prizeTotalQty ?? 1),
+                      minPrizeTotalQty:
+                        v === "none"
+                          ? null
+                          : (row.minPrizeTotalQty ?? row.prizeTotalQty ?? 1)
                     }
                   : row
               )
@@ -303,6 +330,8 @@ export default function AdminCentralGamePanel() {
   const [createExpanded, setCreateExpanded] = useState(false);
   /** จำนวนรางวัลที่บันทึกในระบบสำหรับเกมที่เลือก — ใช้บล็อกปุ่มลบ */
   const [prizeAwardCount, setPrizeAwardCount] = useState(0);
+  /** หลังเผยแพร่/เปิดใช้ — จำนวนรางวัลต่อกติกาเพิ่มได้อย่างเดียว */
+  const [gamePrizeQtyLocked, setGamePrizeQtyLocked] = useState(false);
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -388,7 +417,12 @@ export default function AdminCentralGamePanel() {
               const si = Math.max(0, Math.floor(Number(r.setIndex)) || 0);
               const so = Math.floor(Number(r.sortOrder));
               const sortOrder = Number.isFinite(so) && so > 0 ? so : si + 1;
+              const q =
+                r.prizeCategory === "none"
+                  ? null
+                  : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1));
               return {
+                id: r.id,
                 setIndex: r.setIndex,
                 needCount: r.needCount,
                 prizeCategory: r.prizeCategory,
@@ -397,10 +431,8 @@ export default function AdminCentralGamePanel() {
                 prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
                 sortOrder,
                 description: r.description || "",
-                prizeTotalQty:
-                  r.prizeCategory === "none"
-                    ? null
-                    : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
+                prizeTotalQty: q,
+                minPrizeTotalQty: r.prizeCategory === "none" ? null : q
               };
             })
           : Array.from({ length: sc }, (_, s) => emptyRuleForSet(s))
@@ -467,20 +499,31 @@ export default function AdminCentralGamePanel() {
   }
 
   function rulesPayload() {
-    return rules.map((r, idx) => ({
-      setIndex: Math.floor(Number(r.setIndex)),
-      needCount: Math.floor(Number(r.needCount)),
-      prizeCategory: r.prizeCategory,
-      prizeTitle: r.prizeTitle,
-      prizeValueText: r.prizeValueText,
-      prizeUnit: r.prizeUnit,
-      sortOrder: r.sortOrder != null ? Number(r.sortOrder) : idx,
-      description: r.description,
-      prizeTotalQty:
+    return rules.map((r, idx) => {
+      const rawQty =
         r.prizeCategory === "none"
           ? null
-          : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1))
-    }));
+          : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1));
+      const prizeTotalQty =
+        r.prizeCategory === "none"
+          ? null
+          : gamePrizeQtyLocked && r.minPrizeTotalQty != null
+            ? Math.max(r.minPrizeTotalQty, rawQty)
+            : rawQty;
+      const row = {
+        setIndex: Math.floor(Number(r.setIndex)),
+        needCount: Math.floor(Number(r.needCount)),
+        prizeCategory: r.prizeCategory,
+        prizeTitle: r.prizeTitle,
+        prizeValueText: r.prizeValueText,
+        prizeUnit: r.prizeUnit,
+        sortOrder: r.sortOrder != null ? Number(r.sortOrder) : idx,
+        description: r.description,
+        prizeTotalQty
+      };
+      if (r.id) row.id = r.id;
+      return row;
+    });
   }
 
   async function persistMeta() {
@@ -586,6 +629,7 @@ export default function AdminCentralGamePanel() {
       setPublishPrompt((p) => (p?.id === id ? null : p));
       setMsg("เผยแพร่แล้ว — เกมนี้เป็นเกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
+      await loadDetail(id);
     } catch (e) {
       setMsg(e.message || String(e));
     } finally {
@@ -612,6 +656,7 @@ export default function AdminCentralGamePanel() {
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
       setMsg("เผยแพร่แล้ว — เกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
+      await loadDetail(selectedId);
     } catch (e) {
       setMsg(e.message || String(e));
     } finally {
@@ -1187,7 +1232,7 @@ export default function AdminCentralGamePanel() {
                       <div className="space-y-3 pb-1">
                         {ruleEntries.map(({ r, idx }) => (
                           <RuleEditorRow
-                            key={idx}
+                            key={r.id || `rule-${idx}`}
                             r={r}
                             idx={idx}
                             needCap={cap}
@@ -1196,6 +1241,7 @@ export default function AdminCentralGamePanel() {
                             setSizes={setSizes}
                             updateRule={updateRule}
                             setRules={setRules}
+                            gamePrizeQtyLocked={gamePrizeQtyLocked}
                           />
                         ))}
                       </div>

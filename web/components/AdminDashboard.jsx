@@ -6,6 +6,7 @@ import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { getMemberToken } from "../lib/memberApi";
+import { formatHeartCostSummary } from "../lib/formatHeartCostLabel";
 import {
   apiAdminAdjustMemberHearts,
   apiAdminApproveNameChange,
@@ -920,8 +921,10 @@ export default function AdminDashboard() {
                       <div className="sm:col-span-2">
                         <dt className="text-xs text-slate-600">หักหัวใจต่อรอบ (ชมพู / แดง)</dt>
                         <dd className="font-semibold text-slate-900">
-                          ชมพู {gameInfo.central.game?.pinkHeartCost ?? 0} · แดง{" "}
-                          {gameInfo.central.game?.redHeartCost ?? 0}
+                          {formatHeartCostSummary(
+                            gameInfo.central.game?.pinkHeartCost,
+                            gameInfo.central.game?.redHeartCost
+                          )}
                         </dd>
                       </div>
                     </dl>

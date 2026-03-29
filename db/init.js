@@ -327,6 +327,14 @@ async function initDb() {
     `);
 
     await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS game_code VARCHAR(32);
+    `);
+    await client.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_central_games_game_code_unique ON central_games (game_code);`
+    );
+
+    await client.query(`
       ALTER TABLE central_game_rules
       ADD COLUMN IF NOT EXISTS prize_total_qty INTEGER NOT NULL DEFAULT 1;
     `);

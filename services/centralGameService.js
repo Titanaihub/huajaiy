@@ -71,6 +71,88 @@ function normalizeGameDescription(raw) {
   return String(raw).trim().slice(0, 8000);
 }
 
+/** ค.ศ. วันนี้ในเขต Asia/Bangkok → YYYYMMDD (สำหรับรหัสเกม) */
+function bangkokDatePrefix() {
+  const s = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  return s.replace(/-/g, "");
+}
+
+/**
+ * กำหนด game_code ครั้งแรกเมื่อเผยแพร่ — รูปแบบ YYYYMMDD + ลำดับในวันนั้น (01, 02, …)
+ * ต้องอยู่ใน transaction แล้วส่ง client เดียวกัน
+ */
+async function assignGameCodeIfMissingTx(client, gameId) {
+  const row = await client.query(
+    `SELECT game_code FROM central_games WHERE id = $1 FOR UPDATE`,
+    [gameId]
+  );
+  const existing = row.rows[0]?.game_code;
+  if (existing != null && String(existing).trim() !== "") return;
+
+  const prefix = bangkokDatePrefix();
+  if (prefix.length !== 8 || !/^\d{8}$/.test(prefix)) {
+    const e = new Error("ไม่สามารถสร้างรหัสเกมได้ (รูปแบบวันที่)");
+    e.code = "VALIDATION";
+    throw e;
+  }
+
+  await client.query(`SELECT pg_advisory_xact_lock($1::bigint)`, [
+    parseInt(prefix, 10) % 2147483647 || 1
+  ]);
+
+  const maxR = await client.query(
+    `SELECT COALESCE(MAX(
+       CAST(SUBSTRING(game_code FROM 9) AS INTEGER)
+     ), 0) AS m
+     FROM central_games
+     WHERE game_code IS NOT NULL
+       AND LENGTH(game_code) > 8
+       AND LEFT(game_code, 8) = $1
+       AND SUBSTRING(game_code FROM 9) ~ '^[0-9]+$'`,
+    [prefix]
+  );
+  const next = Math.max(0, parseInt(maxR.rows[0]?.m, 10) || 0) + 1;
+  if (next > 999999) {
+    const e = new Error("เกินจำนวนรหัสเกมที่ออกได้ในวันนี้");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const suffix = next < 100 ? String(next).padStart(2, "0") : String(next);
+  const candidate = `${prefix}${suffix}`;
+
+  const up = await client.query(
+    `UPDATE central_games SET game_code = $2 WHERE id = $1 AND (game_code IS NULL OR TRIM(game_code) = '')`,
+    [gameId, candidate]
+  );
+  if (up.rowCount === 0) {
+    const chk = await client.query(`SELECT game_code FROM central_games WHERE id = $1`, [gameId]);
+    if (!chk.rows[0]?.game_code || !String(chk.rows[0].game_code).trim()) {
+      const e = new Error("ไม่สามารถกำหนดรหัสเกมได้");
+      e.code = "VALIDATION";
+      throw e;
+    }
+  }
+}
+
+async function ensurePublishedGameCode(gameId) {
+  const pool = requirePool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await assignGameCodeIfMissingTx(client, gameId);
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 function rowGame(row) {
   const legacyHeart = Math.max(0, Math.floor(Number(row.heart_cost) || 0));
   let pinkHeartCost = Math.max(0, Math.floor(Number(row.pink_heart_cost) || 0));
@@ -111,6 +193,10 @@ function rowGame(row) {
         ? String(row.game_cover_url).trim()
         : null,
     isPublished: Boolean(row.is_published),
+    gameCode:
+      row.game_code != null && String(row.game_code).trim()
+        ? String(row.game_code).trim()
+        : null,
     creatorUsername:
       row.creator_username != null && String(row.creator_username).trim()
         ? String(row.creator_username).trim().toLowerCase()
@@ -524,6 +610,15 @@ async function replaceImages(gameId, images, options = {}) {
   return getGameSnapshotById(gameId);
 }
 
+const UUID_LOOSE_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeOptionalRuleId(raw, oldById) {
+  const s = raw != null ? String(raw).trim().toLowerCase() : "";
+  if (!s || !UUID_V4_RE.test(s) || !oldById.has(s)) return null;
+  return s;
+}
+
 async function replaceRules(gameId, rules) {
   const pool = requirePool();
   const snap = await getGameSnapshotById(gameId);
@@ -538,58 +633,111 @@ async function replaceRules(gameId, rules) {
     e.code = "VALIDATION";
     throw e;
   }
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-    await client.query(`DELETE FROM central_game_rules WHERE game_id = $1`, [gameId]);
-    let order = 0;
-    for (const r of rules) {
-      const setIndex = Math.floor(Number(r.setIndex));
-      const needCount = Math.floor(Number(r.needCount));
-      const cat = String(r.prizeCategory || "none").toLowerCase();
-      if (!["cash", "item", "voucher", "none"].includes(cat)) {
-        const e = new Error("ประเภทรางวัลไม่ถูกต้อง");
-        e.code = "VALIDATION";
-        throw e;
-      }
-      if (setIndex < 0 || setIndex >= setCount) {
-        const e = new Error(`setIndex ${setIndex} อยู่นอกช่วง`);
-        e.code = "VALIDATION";
-        throw e;
-      }
-      const cap = setImageCounts[setIndex] ?? 0;
-      if (needCount < 1 || needCount > cap) {
+
+  const publishedLocked = Boolean(snap.game.isPublished || snap.game.isActive);
+  const oldById = new Map(snap.rules.map((x) => [String(x.id).toLowerCase(), x]));
+
+  let awardByRule = new Map();
+  if (publishedLocked && oldById.size > 0) {
+    const acRes = await pool.query(
+      `SELECT rule_id::text AS rid, COUNT(*)::int AS c
+       FROM central_prize_awards
+       WHERE game_id = $1::uuid AND rule_id IS NOT NULL
+       GROUP BY rule_id`,
+      [gameId]
+    );
+    awardByRule = new Map(
+      acRes.rows.map((row) => [String(row.rid).toLowerCase(), row.c])
+    );
+  }
+
+  const prepared = [];
+  for (let order = 0; order < rules.length; order += 1) {
+    const r = rules[order];
+    const setIndex = Math.floor(Number(r.setIndex));
+    const needCount = Math.floor(Number(r.needCount));
+    const cat = String(r.prizeCategory || "none").toLowerCase();
+    if (!["cash", "item", "voucher", "none"].includes(cat)) {
+      const e = new Error("ประเภทรางวัลไม่ถูกต้อง");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    if (setIndex < 0 || setIndex >= setCount) {
+      const e = new Error(`setIndex ${setIndex} อยู่นอกช่วง`);
+      e.code = "VALIDATION";
+      throw e;
+    }
+    const cap = setImageCounts[setIndex] ?? 0;
+    if (needCount < 1 || needCount > cap) {
+      const e = new Error(
+        `ในชุด ${setIndex + 1} มี ${cap} ป้าย — ค่า "ต้องเปิดครบ" ต้องอยู่ระหว่าง 1 ถึง ${cap}`
+      );
+      e.code = "VALIDATION";
+      throw e;
+    }
+    const prizeTotalQty =
+      cat === "none"
+        ? null
+        : Math.max(1, Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1));
+
+    const priorId = normalizeOptionalRuleId(r.id, oldById);
+    if (publishedLocked && cat !== "none" && priorId) {
+      const old = oldById.get(priorId);
+      const oldQty =
+        old.prizeCategory === "none"
+          ? 0
+          : Math.max(1, Math.floor(Number(old.prizeTotalQty) || 1));
+      const given = awardByRule.get(priorId) || 0;
+      const floor = Math.max(oldQty, given);
+      if (prizeTotalQty < floor) {
         const e = new Error(
-          `ในชุด ${setIndex + 1} มี ${cap} ป้าย — ค่า "ต้องเปิดครบ" ต้องอยู่ระหว่าง 1 ถึง ${cap}`
+          `จำนวนรางวัล (ชุด ${setIndex + 1}) ต้องไม่น้อยกว่า ${floor} — หลังเผยแพร่แล้วเพิ่มจำนวนได้อย่างเดียว (รวมจำนวนที่ออกรางวัลไปแล้ว)`
         );
         e.code = "VALIDATION";
         throw e;
       }
-      const id = crypto.randomUUID();
-      const prizeTotalQty =
-        cat === "none"
-          ? null
-          : Math.max(1, Math.floor(Number(r.prizeTotalQty ?? r.prize_total_qty) || 1));
+    }
+
+    const rowId = priorId || crypto.randomUUID();
+    const sortOrder = r.sortOrder != null ? Math.floor(Number(r.sortOrder)) : order;
+    prepared.push({
+      id: rowId,
+      sortOrder,
+      setIndex,
+      needCount,
+      cat,
+      prizeTitle: String(r.prizeTitle || "").slice(0, 200),
+      prizeValueText: String(r.prizeValueText || "").slice(0, 200),
+      prizeUnit: String(r.prizeUnit || "").slice(0, 32),
+      description: String(r.description || "").slice(0, 2000),
+      prizeTotalQty
+    });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(`DELETE FROM central_game_rules WHERE game_id = $1`, [gameId]);
+    for (const p of prepared) {
       await client.query(
         `INSERT INTO central_game_rules (
           id, game_id, sort_order, set_index, need_count, prize_category,
           prize_title, prize_value_text, prize_unit, description, prize_total_qty
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
-          id,
+          p.id,
           gameId,
-          r.sortOrder != null ? Math.floor(Number(r.sortOrder)) : order,
-          setIndex,
-          needCount,
-          cat,
-          String(r.prizeTitle || "").slice(0, 200),
-          String(r.prizeValueText || "").slice(0, 200),
-          String(r.prizeUnit || "").slice(0, 32),
-          String(r.description || "").slice(0, 2000),
-          prizeTotalQty
+          p.sortOrder,
+          p.setIndex,
+          p.needCount,
+          p.cat,
+          p.prizeTitle,
+          p.prizeValueText,
+          p.prizeUnit,
+          p.description,
+          p.prizeTotalQty
         ]
       );
-      order += 1;
     }
     await client.query("COMMIT");
   } catch (e) {
@@ -648,6 +796,7 @@ async function setActiveGame(gameId) {
   try {
     await client.query("BEGIN");
     await client.query(`UPDATE central_games SET is_active = FALSE`);
+    await assignGameCodeIfMissingTx(client, gameId);
     await client.query(
       `UPDATE central_games SET is_active = TRUE, is_published = TRUE, updated_at = NOW() WHERE id = $1`,
       [gameId]
