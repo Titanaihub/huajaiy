@@ -21,6 +21,12 @@ import {
 
 const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง"];
 
+const PUBLISH_CONFIRM_MESSAGE =
+  "โปรดตรวจสอบรูปแบบเกมและรางวัลให้ถูกต้องตรงตามความต้องการ\n\nหากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้\n\nยืนยันเผยแพร่หรือไม่?";
+
+const DELETE_BLOCKED_HINT =
+  "เกมนี้มีประวัติการเล่นหรือรับรางวัลแล้ว — ไม่สามารถลบจากที่นี่ได้ กรุณาติดต่อผู้ดูแลระบบให้ลบแทน";
+
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -295,6 +301,8 @@ export default function AdminCentralGamePanel() {
   const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
   const [createExpanded, setCreateExpanded] = useState(false);
+  /** จำนวนรางวัลที่บันทึกในระบบสำหรับเกมที่เลือก — ใช้บล็อกปุ่มลบ */
+  const [prizeAwardCount, setPrizeAwardCount] = useState(0);
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -563,6 +571,7 @@ export default function AdminCentralGamePanel() {
       setMsg("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
       return;
     }
+    if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
     const token = getMemberToken();
     if (!token) {
       setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองกดเผยแพร่อีกครั้ง");
@@ -589,6 +598,7 @@ export default function AdminCentralGamePanel() {
       setMsg("ยังไม่ได้เลือกเกม — คลิกแถวในตาราง「รายการเกม」ก่อน แล้วค่อยกดเผยแพร่");
       return;
     }
+    if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
     const token = getMemberToken();
     if (!token) {
       setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
@@ -624,7 +634,7 @@ export default function AdminCentralGamePanel() {
     try {
       await apiAdminCentralGameDeactivate(token, selectedId);
       setLobbyVisible(false);
-      setMsg("หลุดการเผยแพร่ชั่วคราวแล้ว — ซ่อนจากรายการหน้า /game ด้วย");
+      setMsg("หยุดการเผยแพร่แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
       await loadList();
     } catch (e) {
       setMsg(e.message || String(e));
@@ -634,7 +644,12 @@ export default function AdminCentralGamePanel() {
   }
 
   async function removeGame() {
-    if (!selectedId || !window.confirm("ลบเกมนี้ถาวร?")) return;
+    if (!selectedId) return;
+    if (prizeAwardCount > 0) {
+      setMsg(DELETE_BLOCKED_HINT);
+      return;
+    }
+    if (!window.confirm("ลบเกมนี้ถาวร?")) return;
     const token = getMemberToken();
     if (!token) {
       setMsg("หมดเซสชัน — ล็อกอินใหม่");
@@ -671,8 +686,13 @@ export default function AdminCentralGamePanel() {
     scrollToEditor();
   }
 
-  async function deleteGameById(id, title) {
-    if (!id || !window.confirm(`ลบเกม「${title}」ถาวร?`)) return;
+  async function deleteGameById(id, title, awardCount = 0) {
+    if (!id) return;
+    if (awardCount > 0) {
+      setMsg(DELETE_BLOCKED_HINT);
+      return;
+    }
+    if (!window.confirm(`ลบเกม「${title}」ถาวร?`)) return;
     const token = getMemberToken();
     if (!token) return;
     setMsg("");
@@ -955,8 +975,16 @@ export default function AdminCentralGamePanel() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => deleteGameById(g.id, g.title)}
-                      className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-800 hover:bg-red-100"
+                      disabled={Number(g.prizeAwardCount) > 0}
+                      title={
+                        Number(g.prizeAwardCount) > 0
+                          ? "มีประวัติรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
+                          : undefined
+                      }
+                      onClick={() =>
+                        deleteGameById(g.id, g.title, Number(g.prizeAwardCount) || 0)
+                      }
+                      className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                     >
                       ลบ
                     </button>
@@ -1328,7 +1356,7 @@ export default function AdminCentralGamePanel() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
                   <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
-                    บันทึกข้อมูลไว้ก่อน ค่อยกดเผยแพร่ หรือ หลุดการเผยแพร่ชั่วคราว หรือลบเกม
+                    โปรดตรวจสอบรูปแบบเกม รางวัล ให้ถูกต้องตรงตามความต้องการ · หากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้
                   </p>
                 </div>
               </div>
@@ -1348,11 +1376,18 @@ export default function AdminCentralGamePanel() {
                   onClick={() => deactivate()}
                   className="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  หลุดการเผยแพร่ชั่วคราว
+                  หยุดการเผยแพร่
                 </button>
                 <button
                   type="button"
-                  disabled={gameActionBusy || savingAll || !selectedId}
+                  disabled={
+                    gameActionBusy || savingAll || !selectedId || prizeAwardCount > 0
+                  }
+                  title={
+                    prizeAwardCount > 0
+                      ? "มีประวัติรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
+                      : undefined
+                  }
                   onClick={() => removeGame()}
                   className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >

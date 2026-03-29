@@ -214,9 +214,30 @@ async function getPublishedGameSnapshotById(gameId) {
 async function listGamesForAdmin() {
   const pool = requirePool();
   const r = await pool.query(
-    `SELECT * FROM central_games ORDER BY updated_at DESC NULLS LAST, created_at DESC`
+    `SELECT g.*,
+      COALESCE(pa.c, 0)::int AS prize_award_count
+     FROM central_games g
+     LEFT JOIN (
+       SELECT game_id, COUNT(*)::int AS c
+       FROM central_prize_awards
+       GROUP BY game_id
+     ) pa ON pa.game_id = g.id
+     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`
   );
-  return r.rows.map(rowGame);
+  return r.rows.map((row) => ({
+    ...rowGame(row),
+    prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0)
+  }));
+}
+
+/** จำนวนแถวรางวัลที่บันทึกแล้ว — ใช้บล็อกลบเกม */
+async function getPrizeAwardCountForGame(gameId) {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT COUNT(*)::int AS n FROM central_prize_awards WHERE game_id = $1`,
+    [gameId]
+  );
+  return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
 }
 
 function normalizePinkRedCosts(body, fallbackPink = 0, fallbackRed = 0) {
@@ -751,6 +772,7 @@ module.exports = {
   getPublishedGameSnapshotById,
   listPublishedGamesForPublic,
   listGamesForAdmin,
+  getPrizeAwardCountForGame,
   createGame,
   updateGameMeta,
   replaceImages,

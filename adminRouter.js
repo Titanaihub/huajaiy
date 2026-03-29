@@ -523,9 +523,11 @@ router.get(
         images.push({ setIndex: si, imageIndex: ii, imageUrl: url });
       }
       images.sort((a, b) => a.setIndex - b.setIndex || a.imageIndex - b.imageIndex);
+      const prizeAwardCount = await centralGameService.getPrizeAwardCountForGame(id);
       return res.json({
         ok: true,
         game: snap.game,
+        prizeAwardCount,
         images,
         rules: snap.rules
       });
@@ -691,6 +693,9 @@ router.delete(
       await centralGameService.deleteGame(id);
       return res.json({ ok: true });
     } catch (e) {
+      if (e.code === "GAME_HAS_PLAY_HISTORY") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
       if (e.code === "DB_REQUIRED") {
         return res.status(503).json({
           ok: false,
