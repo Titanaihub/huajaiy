@@ -1,0 +1,337 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { getMemberToken } from "../lib/memberApi";
+import { apiAdminCentralGameCreate } from "../lib/rolesApi";
+import { useMemberAuth } from "./MemberAuthProvider";
+
+const PURPOSES = [
+  {
+    id: "shop_sales",
+    label: "ร้านค้า — ส่งเสริมการขาย"
+  },
+  {
+    id: "product_promo",
+    label: "โปรโมทสินค้า"
+  },
+  {
+    id: "giveaway",
+    label: "ใจป๋า — อยากแจกรางวัล"
+  },
+  {
+    id: "other",
+    label: "อื่นๆ (ต้องระบุเหตุผล)"
+  }
+];
+
+function purposeLabel(id) {
+  return PURPOSES.find((p) => p.id === id)?.label || id;
+}
+
+function buildDescription({ purpose, otherReason, prizeConditions }) {
+  const lines = [
+    `วัตถุประสงค์เปิดห้องเกม: ${purposeLabel(purpose)}`,
+    purpose === "other" && otherReason.trim()
+      ? `เหตุผล (อื่นๆ): ${otherReason.trim()}`
+      : null,
+    "",
+    "เงื่อนไขรางวัล / ข้อความถึงผู้เล่น:",
+    prizeConditions.trim(),
+    "",
+    "ผู้สร้างยืนยันรับทราบกฎระเบียบบนแพลตฟอร์ม (ห้ามเชื่อมโยงการพนัน และห้ามสื่อลามก) และรับผิดชอบจ่ายรางวัลตามที่ประกาศไว้"
+  ];
+  return lines.filter((x) => x != null).join("\n");
+}
+
+export default function CreateGameRoomForm() {
+  const router = useRouter();
+  const { user, loading } = useMemberAuth();
+  const [purpose, setPurpose] = useState("shop_sales");
+  const [otherReason, setOtherReason] = useState("");
+  const [prizeConditions, setPrizeConditions] = useState("");
+  const [roomTitle, setRoomTitle] = useState("");
+  const [agreeRules, setAgreeRules] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [info, setInfo] = useState("");
+
+  const isAdmin = user?.role === "admin";
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setErr("");
+    setInfo("");
+
+    if (!agreeRules) {
+      setErr("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
+      return;
+    }
+    if (purpose === "other" && otherReason.trim().length < 8) {
+      setErr("กรุณาระบุเหตุผล (อื่นๆ) อย่างน้อย 8 ตัวอักษร");
+      return;
+    }
+    if (prizeConditions.trim().length < 15) {
+      setErr("กรุณาอธิบายเงื่อนไขรางวัลให้ชัดเจน (อย่างน้อย 15 ตัวอักษร)");
+      return;
+    }
+
+    if (!isAdmin) {
+      setInfo(
+        "บัญชีของคุณยังไม่มีสิทธิ์สร้างห้องเกมบนระบบ — การสร้างเกมส่วนกลางใช้ได้เฉพาะผู้ดูแลระบบ (admin) เท่านั้น โปรดติดต่อทีมงานหรือดูวิธีขอสิทธิ์ที่หน้าแอดมิน"
+      );
+      return;
+    }
+
+    const token = getMemberToken();
+    if (!token) {
+      setErr("ไม่ได้เข้าสู่ระบบ — กรุณาล็อกอินใหม่");
+      return;
+    }
+
+    const titleBase =
+      roomTitle.trim() ||
+      `ห้องเกม — ${new Date().toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })}`;
+    const title = titleBase.slice(0, 200);
+    const description = buildDescription({ purpose, otherReason, prizeConditions });
+
+    setBusy(true);
+    try {
+      await apiAdminCentralGameCreate(token, {
+        title,
+        description,
+        setCount: 1,
+        imagesPerSet: 4,
+        pinkHeartCost: 0,
+        redHeartCost: 0
+      });
+      router.push("/admin?tab=centralGame");
+    } catch (ex) {
+      setErr(ex?.message || "เปิดห้องเกมไม่สำเร็จ");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-sm text-slate-600" aria-live="polite">
+        กำลังโหลด…
+      </p>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
+        <p className="font-medium text-slate-900">ต้องเข้าสู่ระบบก่อน</p>
+        <p className="mt-2">
+          <Link href="/login?next=/account/create-game" className="font-semibold text-brand-800 underline">
+            เข้าสู่ระบบ
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">เปิดห้องเกม</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน
+        </p>
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-6">
+        <fieldset className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <legend className="px-1 text-sm font-semibold text-slate-800">
+            วัตถุประสงค์ในการเปิดห้องเกม
+          </legend>
+          <p className="mt-2 text-xs text-slate-500">
+            เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
+          </p>
+          <ul className="mt-4 space-y-3">
+            {PURPOSES.map((p) => (
+              <li key={p.id}>
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-800">
+                  <input
+                    type="radio"
+                    name="purpose"
+                    value={p.id}
+                    checked={purpose === p.id}
+                    onChange={() => setPurpose(p.id)}
+                    className="mt-1"
+                  />
+                  <span>{p.label}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          {purpose === "other" ? (
+            <div className="mt-4">
+              <label
+                htmlFor="otherReason"
+                className="block text-xs font-medium text-slate-600"
+              >
+                เหตุผล (อื่นๆ) <span className="text-red-600">*</span>
+              </label>
+              <textarea
+                id="otherReason"
+                value={otherReason}
+                onChange={(e) => setOtherReason(e.target.value)}
+                rows={3}
+                placeholder="อธิบายวัตถุประสงค์ให้ชัดเจน"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+          ) : null}
+        </fieldset>
+
+        <div
+          className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
+          role="note"
+        >
+          <p className="font-semibold text-rose-900">ข้อห้ามใช้งาน</p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-rose-900/95">
+            <li>
+              <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>
+              หรือชักจูงให้เล่นพนัน
+            </li>
+            <li>
+              <strong>ห้าม</strong>ใช้เนื้อหา<strong>สื่อลามก</strong> หรือเนื้อหาที่ผิดกฎหมายและศีลธรรมอันดี
+            </li>
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
+          <p className="font-semibold text-amber-900">กฎระเบียบสำหรับผู้สร้างเกม</p>
+          <ul className="mt-2 list-inside list-disc space-y-1">
+            <li>
+              ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
+            </li>
+            <li>
+              ต้อง<strong>แจ้งเงื่อนไข</strong>การได้รับรางวัล วิธีรับ และระยะเวลาให้<strong>ชัดเจน</strong>{" "}
+              เพื่อลดความขัดแย้ง
+            </li>
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <label
+            htmlFor="roomTitle"
+            className="block text-sm font-medium text-slate-700"
+          >
+            ชื่อห้อง / ชื่อเกม (ไม่บังคับ)
+          </label>
+          <input
+            id="roomTitle"
+            value={roomTitle}
+            onChange={(e) => setRoomTitle(e.target.value)}
+            maxLength={200}
+            placeholder="เช่น ลดราคาเดือนมีนา — เกมพลิกการ์ด"
+            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <label
+            htmlFor="prizeConditions"
+            className="block text-sm font-medium text-slate-700"
+          >
+            เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
+          </label>
+          <p className="mt-1 text-xs text-slate-500">
+            ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
+          </p>
+          <textarea
+            id="prizeConditions"
+            value={prizeConditions}
+            onChange={(e) => setPrizeConditions(e.target.value)}
+            rows={6}
+            required
+            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
+          />
+        </div>
+
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-800">
+          <input
+            type="checkbox"
+            checked={agreeRules}
+            onChange={(e) => setAgreeRules(e.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            ข้าพเจ้า<strong>รับทราบและยินยอม</strong>ตามกฎระเบียบข้างต้น รวมถึงข้อห้ามเรื่องการพนันและสื่อลามก
+            และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
+          </span>
+        </label>
+
+        {err ? (
+          <p className="text-sm text-red-600" role="alert">
+            {err}
+          </p>
+        ) : null}
+        {info ? (
+          <div
+            className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+            role="status"
+          >
+            <p>{info}</p>
+            <p className="mt-3">
+              <Link href="/admin" className="font-semibold text-brand-900 underline">
+                ไปหน้าแอดมิน (คำแนะนำขอสิทธิ์)
+              </Link>
+            </p>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={busy}
+            className="rounded-xl bg-brand-800 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {busy
+              ? "กำลังเปิดห้อง…"
+              : isAdmin
+                ? "เปิดห้องเกม"
+                : "ยืนยันความตั้งใจ (ต้องเป็นผู้ดูแลระบบเพื่อสร้างจริง)"}
+          </button>
+          <Link
+            href="/account"
+            className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+          >
+            ← กลับหลังบ้าน
+          </Link>
+          {isAdmin ? (
+            <Link
+              href="/admin?tab=centralGame"
+              className="text-sm font-medium text-brand-700 underline hover:text-brand-900"
+            >
+              ไปแท็บเกมส่วนกลาง
+            </Link>
+          ) : null}
+        </div>
+
+        {!isAdmin ? (
+          <p className="text-xs text-slate-500">
+            ปุ่มด้านบนจะบันทึกความตั้งใจและเงื่อนไขในแบบฟอร์มเท่านั้น — การสร้างห้องเกมจริงบนเซิร์ฟเวอร์ต้องใช้บัญชี
+            admin หลังจากได้รับสิทธิ์แล้ว คุณสามารถกลับมาที่หน้านี้เพื่อกดเปิดห้องได้ทันที
+          </p>
+        ) : (
+          <p className="text-xs text-slate-500">
+            หลังเปิดห้อง ระบบจะสร้างเกมส่วนกลางแบบร่าง (ชุดละ 4 ป้าย) แล้วพาไปแท็บตั้งค่าเกม — คุณสามารถอัปโหลดรูป
+            กำหนดกติกา และเผยแพร่ได้จากนั้น
+          </p>
+        )}
+      </form>
+    </div>
+  );
+}

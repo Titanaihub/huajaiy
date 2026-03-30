@@ -7,6 +7,7 @@ const {
   validateRegisterNames
 } = require("./authValidators");
 const userService = require("./services/userService");
+const phoneHistoryService = require("./services/phoneHistoryService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
 const shopService = require("./services/shopService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
@@ -236,11 +237,28 @@ router.patch("/profile", authMiddleware, async (req, res) => {
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
     }
-    const user = await userService.updateProfile(req.userId, parsed.data);
+    const user = await userService.updateProfile(req.userId, parsed.data, {
+      clientIp: clientIp(req)
+    });
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
     return res.json({ ok: true, user: userService.publicUser(user) });
+  } catch (e) {
+    if (e.code === "PHONE_TAKEN") {
+      return res.status(400).json({
+        ok: false,
+        error: "เบอร์โทรนี้เคยใช้สมัครสมาชิกแล้ว"
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get("/phone-history/mine", authMiddleware, async (req, res) => {
+  try {
+    const history = await phoneHistoryService.listForUser(req.userId);
+    return res.json({ ok: true, history });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

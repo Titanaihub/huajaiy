@@ -3,6 +3,16 @@ const { getPool } = require("../db/pool");
 const userStore = require("../userStore");
 const { MEMBER, ADMIN } = require("../constants/roles");
 const heartLedgerService = require("./heartLedgerService");
+const phoneHistoryService = require("./phoneHistoryService");
+const {
+  emptyParts,
+  formatShippingLines,
+  partsFromRow,
+  dbValuesFromParts,
+  KEYS,
+  MAX_FIELD,
+  MAX_POSTAL
+} = require("../shippingAddress");
 
 function normalizeBirthDate(v) {
   if (v == null) return null;
@@ -21,6 +31,11 @@ function rowToUser(row) {
       ? 0
       : Math.max(0, Math.floor(Number(row.red_hearts_balance) || 0));
   const sum = pink + red;
+  const parts = partsFromRow(row);
+  const line =
+    (row.shipping_address && String(row.shipping_address).trim()) ||
+    formatShippingLines(parts) ||
+    null;
   return {
     id: row.id,
     username: row.username,
@@ -32,7 +47,8 @@ function rowToUser(row) {
     registrationIp: row.registration_ip || null,
     gender: row.gender || null,
     birthDate: normalizeBirthDate(row.birth_date),
-    shippingAddress: row.shipping_address || null,
+    shippingAddress: line,
+    shippingAddressParts: parts,
     role: row.role || MEMBER,
     pinkHeartsBalance: pink,
     redHeartsBalance: red,
@@ -45,17 +61,41 @@ async function findByUsername(username) {
   const pool = getPool();
   const un = String(username || "").toLowerCase();
   if (!pool) {
-    return userStore.findByUsername(un);
+    return enrichFileUserShipping(userStore.findByUsername(un));
   }
   const r = await pool.query("SELECT * FROM users WHERE username = $1", [un]);
   if (r.rows.length === 0) return null;
   return rowToUser(r.rows[0]);
 }
 
+function enrichFileUserShipping(u) {
+  if (!u) return null;
+  let parts = emptyParts();
+  if (u.shippingAddressParts && typeof u.shippingAddressParts === "object") {
+    for (const k of KEYS) {
+      const max = k === "postalCode" ? MAX_POSTAL : MAX_FIELD;
+      parts[k] = String(u.shippingAddressParts[k] || "")
+        .trim()
+        .slice(0, max);
+    }
+    const anyStructured = KEYS.some((key) => parts[key].length > 0);
+    if (!anyStructured && u.shippingAddress) {
+      parts = { ...emptyParts(), houseNo: String(u.shippingAddress).trim() };
+    }
+  } else if (u.shippingAddress) {
+    parts = { ...emptyParts(), houseNo: String(u.shippingAddress).trim() };
+  }
+  const line =
+    (u.shippingAddress && String(u.shippingAddress).trim()) ||
+    formatShippingLines(parts) ||
+    null;
+  return { ...u, shippingAddress: line, shippingAddressParts: parts };
+}
+
 async function findById(id) {
   const pool = getPool();
   if (!pool) {
-    return userStore.findById(id);
+    return enrichFileUserShipping(userStore.findById(id));
   }
   const r = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
   if (r.rows.length === 0) return null;
@@ -67,7 +107,7 @@ async function findByPhone(phone) {
   if (!p) return null;
   const pool = getPool();
   if (!pool) {
-    return userStore.findByPhone(p);
+    return enrichFileUserShipping(userStore.findByPhone(p));
   }
   const r = await pool.query("SELECT * FROM users WHERE phone = $1 LIMIT 1", [
     p
@@ -83,7 +123,7 @@ async function findByThaiFullName(firstName, lastName) {
   if (!fn || !ln) return null;
   const pool = getPool();
   if (!pool) {
-    return userStore.findByThaiFullName(fn, ln);
+    return enrichFileUserShipping(userStore.findByThaiFullName(fn, ln));
   }
   const r = await pool.query(
     "SELECT * FROM users WHERE first_name = $1 AND last_name = $2 LIMIT 1",
@@ -181,6 +221,10 @@ function publicUser(u) {
     gender: u.gender ?? null,
     birthDate: u.birthDate ?? null,
     shippingAddress: u.shippingAddress ?? null,
+    shippingAddressParts:
+      u.shippingAddressParts && typeof u.shippingAddressParts === "object"
+        ? { ...emptyParts(), ...u.shippingAddressParts }
+        : emptyParts(),
     role: u.role || MEMBER,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
@@ -189,15 +233,153 @@ function publicUser(u) {
   };
 }
 
-async function updateProfile(userId, { gender, birthDate, shippingAddress }) {
+async function updateProfile(
+  userId,
+  { gender, birthDate, shippingParts, updateShipping, phone, updatePhone },
+  opts = {}
+) {
+  const clientIp = opts.clientIp ?? null;
+  const current = await findById(userId);
+  if (!current) return null;
+
   const pool = getPool();
+  const oldPhone = String(current.phone || "").trim();
+  const newPhone = updatePhone ? String(phone || "").trim() : oldPhone;
+  const phoneChanged = Boolean(updatePhone) && newPhone !== oldPhone;
+  const shipDb =
+    updateShipping && shippingParts ? dbValuesFromParts(shippingParts) : null;
+
+  if (phoneChanged) {
+    const taken = await findByPhone(newPhone);
+    if (taken && taken.id !== userId) {
+      const err = new Error("PHONE_TAKEN");
+      err.code = "PHONE_TAKEN";
+      throw err;
+    }
+  }
+
   if (!pool) {
-    userStore.updateUser(userId, { gender, birthDate, shippingAddress });
+    const patch = { gender, birthDate };
+    if (updateShipping && shipDb) {
+      patch.shippingAddress = shipDb.shipping_address;
+      patch.shippingAddressParts = { ...emptyParts(), ...shippingParts };
+    }
+    if (phoneChanged) {
+      const phoneHistory = Array.isArray(current.phoneHistory)
+        ? [...current.phoneHistory]
+        : [];
+      phoneHistory.push({
+        oldPhone,
+        newPhone,
+        changedAt: new Date().toISOString(),
+        clientIp:
+          clientIp == null ? null : String(clientIp).slice(0, 64)
+      });
+      patch.phone = newPhone;
+      patch.phoneHistory = phoneHistory;
+    }
+    userStore.updateUser(userId, patch);
     return findById(userId);
   }
+
+  if (phoneChanged) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await phoneHistoryService.insertWithClient(client, {
+        userId,
+        oldPhone,
+        newPhone,
+        clientIp
+      });
+      if (updateShipping && shipDb) {
+        await client.query(
+          `UPDATE users SET
+            gender = $2,
+            birth_date = $3,
+            shipping_address = $4,
+            shipping_house_no = $5,
+            shipping_moo = $6,
+            shipping_road = $7,
+            shipping_subdistrict = $8,
+            shipping_district = $9,
+            shipping_province = $10,
+            shipping_postal_code = $11,
+            phone = $12
+          WHERE id = $1`,
+          [
+            userId,
+            gender,
+            birthDate || null,
+            shipDb.shipping_address,
+            shipDb.shipping_house_no,
+            shipDb.shipping_moo,
+            shipDb.shipping_road,
+            shipDb.shipping_subdistrict,
+            shipDb.shipping_district,
+            shipDb.shipping_province,
+            shipDb.shipping_postal_code,
+            newPhone
+          ]
+        );
+      } else {
+        await client.query(
+          `UPDATE users SET gender = $2, birth_date = $3, phone = $4 WHERE id = $1`,
+          [userId, gender, birthDate || null, newPhone]
+        );
+      }
+      await client.query("COMMIT");
+    } catch (e) {
+      await client.query("ROLLBACK");
+      if (e.code === "23505") {
+        const d = String(e.detail || "").toLowerCase();
+        if (d.includes("(phone)")) {
+          const pe = new Error("PHONE_TAKEN");
+          pe.code = "PHONE_TAKEN";
+          throw pe;
+        }
+      }
+      throw e;
+    } finally {
+      client.release();
+    }
+    return findById(userId);
+  }
+
+  if (updateShipping && shipDb) {
+    await pool.query(
+      `UPDATE users SET
+        gender = $2,
+        birth_date = $3,
+        shipping_address = $4,
+        shipping_house_no = $5,
+        shipping_moo = $6,
+        shipping_road = $7,
+        shipping_subdistrict = $8,
+        shipping_district = $9,
+        shipping_province = $10,
+        shipping_postal_code = $11
+      WHERE id = $1`,
+      [
+        userId,
+        gender,
+        birthDate || null,
+        shipDb.shipping_address,
+        shipDb.shipping_house_no,
+        shipDb.shipping_moo,
+        shipDb.shipping_road,
+        shipDb.shipping_subdistrict,
+        shipDb.shipping_district,
+        shipDb.shipping_province,
+        shipDb.shipping_postal_code
+      ]
+    );
+    return findById(userId);
+  }
+
   await pool.query(
-    `UPDATE users SET gender = $2, birth_date = $3, shipping_address = $4 WHERE id = $1`,
-    [userId, gender, birthDate || null, shippingAddress]
+    `UPDATE users SET gender = $2, birth_date = $3 WHERE id = $1`,
+    [userId, gender, birthDate || null]
   );
   return findById(userId);
 }

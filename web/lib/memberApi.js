@@ -119,6 +119,17 @@ export async function apiPostNameChangeRequest(token, body) {
   return data;
 }
 
+export async function apiGetMyPhoneHistory(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/phone-history/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติเบอร์โทรไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiGetMyNameChangeRequests(token) {
   const r = await fetch(`${apiRoot()}/api/auth/name-change-requests/mine`, {
     headers: { Authorization: `Bearer ${token}` }

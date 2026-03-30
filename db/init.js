@@ -49,6 +49,34 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_house_no VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_moo VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_road VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_subdistrict VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_district VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_province VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS shipping_postal_code VARCHAR(20);
+    `);
+    await client.query(`
+      ALTER TABLE users
       ADD COLUMN IF NOT EXISTS hearts_balance INTEGER NOT NULL DEFAULT 0;
     `);
     await client.query(`
@@ -161,6 +189,20 @@ async function initDb() {
         e.message
       );
     }
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_phone_history (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        old_phone VARCHAR(16) NOT NULL,
+        new_phone VARCHAR(16) NOT NULL,
+        changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        client_ip VARCHAR(64)
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_user_phone_history_user ON user_phone_history(user_id, changed_at DESC);`
+    );
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS orders (

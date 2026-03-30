@@ -1,4 +1,5 @@
-const { validateRegisterNames } = require("./authValidators");
+const { validateRegisterNames, validatePhone } = require("./authValidators");
+const { KEYS, MAX_FIELD, MAX_POSTAL, emptyParts } = require("./shippingAddress");
 
 const ALLOWED_GENDER = new Set(["male", "female", "other"]);
 
@@ -41,20 +42,53 @@ function validateProfilePatch(body) {
   }
   const birth = validateBirthDate(body?.birthDate);
   if (!birth.ok) return birth;
-  const addr = body?.shippingAddress;
-  if (addr != null && String(addr).length > 2000) {
-    return { ok: false, error: "ที่อยู่จัดส่งยาวเกิน 2,000 ตัวอักษร" };
+
+  let shippingParts = null;
+  let updateShipping = false;
+  if (Object.prototype.hasOwnProperty.call(body, "shippingAddressParts")) {
+    updateShipping = true;
+    const raw = body.shippingAddressParts;
+    if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+      return { ok: false, error: "รูปแบบที่อยู่จัดส่งไม่ถูกต้อง" };
+    }
+    const out = emptyParts();
+    for (const k of KEYS) {
+      const v = raw[k];
+      const s = v == null ? "" : String(v).trim();
+      const max = k === "postalCode" ? MAX_POSTAL : MAX_FIELD;
+      if (s.length > max) {
+        return {
+          ok: false,
+          error:
+            k === "postalCode"
+              ? "รหัสไปรษณีย์ยาวเกินกำหนด"
+              : "ช่องที่อยู่แต่ละช่องยาวเกิน 200 ตัวอักษร"
+        };
+      }
+      out[k] = s;
+    }
+    shippingParts = out;
   }
-  const shippingAddress =
-    addr == null || String(addr).trim() === "" ? null : String(addr).trim();
+
   const g =
     gender === null || gender === "" ? null : gender;
+  let phone;
+  let updatePhone = false;
+  if (Object.prototype.hasOwnProperty.call(body, "phone")) {
+    updatePhone = true;
+    const pv = validatePhone(body.phone);
+    if (!pv.ok) return pv;
+    phone = pv.value;
+  }
   return {
     ok: true,
     data: {
       gender: g,
       birthDate: birth.value,
-      shippingAddress
+      shippingParts,
+      updateShipping,
+      phone,
+      updatePhone
     }
   };
 }

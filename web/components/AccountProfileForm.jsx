@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   apiGetMyNameChangeRequests,
+  apiGetMyPhoneHistory,
   apiPostNameChangeRequest,
   getMemberToken
 } from "../lib/memberApi";
@@ -22,7 +23,16 @@ export default function AccountProfileForm() {
   const { user, loading, patchProfile } = useMemberAuth();
   const [gender, setGender] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingParts, setShippingParts] = useState({
+    houseNo: "",
+    moo: "",
+    road: "",
+    subdistrict: "",
+    district: "",
+    province: "",
+    postalCode: ""
+  });
+  const [phone, setPhone] = useState("");
   const [profileMsg, setProfileMsg] = useState("");
   const [profileErr, setProfileErr] = useState("");
   const [reqFirst, setReqFirst] = useState("");
@@ -31,6 +41,7 @@ export default function AccountProfileForm() {
   const [reqMsg, setReqMsg] = useState("");
   const [reqErr, setReqErr] = useState("");
   const [requests, setRequests] = useState([]);
+  const [phoneHistory, setPhoneHistory] = useState([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -42,7 +53,16 @@ export default function AccountProfileForm() {
     if (!user) return;
     setGender(user.gender || "");
     setBirthDate(user.birthDate || "");
-    setShippingAddress(user.shippingAddress || "");
+    const p = user.shippingAddressParts || {};
+    setShippingParts({
+      houseNo: p.houseNo || "",
+      moo: p.moo || "",
+      road: p.road || "",
+      subdistrict: p.subdistrict || "",
+      district: p.district || "",
+      province: p.province || "",
+      postalCode: p.postalCode || ""
+    });
   }, [user]);
 
   useEffect(() => {
@@ -68,12 +88,25 @@ export default function AccountProfileForm() {
     setProfileErr("");
     setProfileMsg("");
     try {
-      await patchProfile({
+      const payload = {
         gender: gender === "" ? null : gender,
         birthDate: birthDate === "" ? null : birthDate,
-        shippingAddress:
-          shippingAddress.trim() === "" ? null : shippingAddress.trim()
-      });
+        shippingAddressParts: {
+          houseNo: shippingParts.houseNo,
+          moo: shippingParts.moo,
+          road: shippingParts.road,
+          subdistrict: shippingParts.subdistrict,
+          district: shippingParts.district,
+          province: shippingParts.province,
+          postalCode: shippingParts.postalCode
+        }
+      };
+      const nextPhone = String(phone || "").replace(/\s+/g, "").trim();
+      const currentPhone = String(user.phone || "").replace(/\s+/g, "").trim();
+      if (nextPhone !== currentPhone) {
+        payload.phone = nextPhone;
+      }
+      await patchProfile(payload);
       setProfileMsg("บันทึกข้อมูลแล้ว");
     } catch (err) {
       setProfileErr(err.message || "บันทึกไม่สำเร็จ");
@@ -127,7 +160,7 @@ export default function AccountProfileForm() {
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">เบอร์โทร</dt>
+                <dt className="text-slate-500">เบอร์โทร (ปัจจุบัน)</dt>
                 <dd className="font-medium text-slate-900">{user.phone}</dd>
               </div>
               <div>
@@ -157,6 +190,29 @@ export default function AccountProfileForm() {
               </select>
             </div>
             <div>
+              <label
+                htmlFor="profilePhone"
+                className="block text-sm font-medium text-slate-700"
+              >
+                เบอร์โทร
+              </label>
+              <input
+                id="profilePhone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) =>
+                  setPhone(String(e.target.value).replace(/\s+/g, ""))
+                }
+                placeholder="0812345678"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                เปลี่ยนเบอร์ได้ที่นี่ — ระบบจะเก็บประวัติเบอร์เก่าไว้ด้านล่าง
+              </p>
+            </div>
+            <div>
               <label htmlFor="birthDate" className="block text-sm font-medium text-slate-700">
                 วันเดือนปีเกิด
               </label>
@@ -168,22 +224,147 @@ export default function AccountProfileForm() {
                 className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label
-                htmlFor="shippingAddress"
-                className="block text-sm font-medium text-slate-700"
-              >
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-medium text-slate-700">
                 ที่อยู่จัดส่งสินค้า
-              </label>
-              <textarea
-                id="shippingAddress"
-                value={shippingAddress}
-                onChange={(e) => setShippingAddress(e.target.value)}
-                rows={4}
-                placeholder="กรอกภายหลังได้ — บรรทัดเต็มที่อยู่จัดส่ง"
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-            </div>
+              </legend>
+              <p className="text-xs text-slate-500">
+                กรอกภายหลังได้ — แยกช่องตามที่อยู่จริงเพื่อจัดส่งถูกต้อง
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-1">
+                  <label
+                    htmlFor="shipHouseNo"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    บ้านเลขที่
+                  </label>
+                  <input
+                    id="shipHouseNo"
+                    value={shippingParts.houseNo}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({
+                        ...s,
+                        houseNo: e.target.value
+                      }))
+                    }
+                    autoComplete="street-address"
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shipMoo"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    หมู่
+                  </label>
+                  <input
+                    id="shipMoo"
+                    value={shippingParts.moo}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({ ...s, moo: e.target.value }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="shipRoad"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    ถนน
+                  </label>
+                  <input
+                    id="shipRoad"
+                    value={shippingParts.road}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({ ...s, road: e.target.value }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shipSubdistrict"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    ตำบล / แขวง
+                  </label>
+                  <input
+                    id="shipSubdistrict"
+                    value={shippingParts.subdistrict}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({
+                        ...s,
+                        subdistrict: e.target.value
+                      }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shipDistrict"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    อำเภอ / เขต
+                  </label>
+                  <input
+                    id="shipDistrict"
+                    value={shippingParts.district}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({
+                        ...s,
+                        district: e.target.value
+                      }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shipProvince"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    จังหวัด
+                  </label>
+                  <input
+                    id="shipProvince"
+                    value={shippingParts.province}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({
+                        ...s,
+                        province: e.target.value
+                      }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="shipPostal"
+                    className="block text-xs font-medium text-slate-600"
+                  >
+                    รหัสไปรษณีย์
+                  </label>
+                  <input
+                    id="shipPostal"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={shippingParts.postalCode}
+                    onChange={(e) =>
+                      setShippingParts((s) => ({
+                        ...s,
+                        postalCode: e.target.value.replace(/\D/g, "").slice(0, 10)
+                      }))
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            </fieldset>
             {profileErr ? (
               <p className="text-sm text-red-600">{profileErr}</p>
             ) : null}
@@ -197,6 +378,29 @@ export default function AccountProfileForm() {
               บันทึกข้อมูลส่วนตัว
             </button>
           </form>
+
+          {phoneHistory.length > 0 ? (
+            <div className="mt-8">
+              <h4 className="text-sm font-semibold text-slate-800">
+                ประวัติการเปลี่ยนเบอร์โทร
+              </h4>
+              <ul className="mt-3 space-y-3 text-sm">
+                {phoneHistory.map((h) => (
+                  <li
+                    key={h.id}
+                    className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2"
+                  >
+                    <p className="font-medium text-slate-800">
+                      {h.oldPhone} → {h.newPhone}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {new Date(h.changedAt).toLocaleString("th-TH")}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
         <section>

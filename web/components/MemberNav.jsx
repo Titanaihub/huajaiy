@@ -35,9 +35,9 @@ export default function MemberNav() {
           รางวัลของฉัน
         </Link>
         <Link
-          href="/admin"
+          href="/account/create-game"
           className="font-medium text-brand-700 transition hover:text-brand-900"
-          title="เกมส่วนกลาง — แก้ไขได้เมื่อเป็นแอดมิน"
+          title="เปิดห้องเกม — วัตถุประสงค์และกฎระเบียบ"
         >
           สร้างเกม
         </Link>

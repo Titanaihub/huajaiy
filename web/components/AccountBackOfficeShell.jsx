@@ -68,9 +68,7 @@ export default function AccountBackOfficeShell({ children }) {
               <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
             </li>
             <li>
-              <Link href="/admin" className={`${linkBase} ${linkIdle}`}>
-                สร้างเกม
-              </Link>
+              <NavLink href="/account/create-game">สร้างเกม</NavLink>
             </li>
             <li>
               <NavLink href="/account/prize-payouts">จ่ายรางวัล</NavLink>
