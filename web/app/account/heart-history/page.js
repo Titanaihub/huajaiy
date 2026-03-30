@@ -1,4 +1,3 @@
-import AccountBackOfficeShell from "../../../components/AccountBackOfficeShell";
 import AccountHeartHistorySection from "../../../components/AccountHeartHistorySection";
 
 export const metadata = {
@@ -6,9 +5,5 @@ export const metadata = {
 };
 
 export default function AccountHeartHistoryPage() {
-  return (
-    <AccountBackOfficeShell>
-      <AccountHeartHistorySection />
-    </AccountBackOfficeShell>
-  );
+  return <AccountHeartHistorySection />;
 }

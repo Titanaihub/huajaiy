@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import AccountBackOfficeShell from "../../../components/AccountBackOfficeShell";
 import PrizeWithdrawForm from "../../../components/PrizeWithdrawForm";
 
 export const metadata = {
@@ -9,10 +8,8 @@ export const metadata = {
 
 export default function PrizeWithdrawPage() {
   return (
-    <AccountBackOfficeShell>
-      <Suspense fallback={<p className="text-sm text-slate-500">กำลังโหลด…</p>}>
-        <PrizeWithdrawForm />
-      </Suspense>
-    </AccountBackOfficeShell>
+    <Suspense fallback={<p className="text-sm text-slate-500">กำลังโหลด…</p>}>
+      <PrizeWithdrawForm />
+    </Suspense>
   );
 }

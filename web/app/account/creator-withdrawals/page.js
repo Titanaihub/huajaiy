@@ -1,4 +1,3 @@
-import AccountBackOfficeShell from "../../../components/AccountBackOfficeShell";
 import CreatorWithdrawalsSection from "../../../components/CreatorWithdrawalsSection";
 
 export const metadata = {
@@ -7,9 +6,5 @@ export const metadata = {
 };
 
 export default function CreatorWithdrawalsPage() {
-  return (
-    <AccountBackOfficeShell>
-      <CreatorWithdrawalsSection />
-    </AccountBackOfficeShell>
-  );
+  return <CreatorWithdrawalsSection />;
 }
