@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetCreatorWithdrawalStatus, getMemberToken } from "../lib/memberApi";
-import { showMemberShopNav } from "../lib/memberUi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const linkBase =
@@ -52,9 +51,6 @@ export default function AccountBackOfficeShell({ children }) {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-xl font-semibold text-slate-900">หลังบ้านสมาชิก</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        จัดการบัญชี ออเดอร์ และข้อมูลที่เกี่ยวกับคุณ
-      </p>
 
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <nav
@@ -82,17 +78,9 @@ export default function AccountBackOfficeShell({ children }) {
             <li>
               <NavLink href="/account/profile">ข้อมูลส่วนตัว</NavLink>
             </li>
-            <li>
-              <NavLink href="/account/orders">ออเดอร์ของฉัน</NavLink>
-            </li>
             {isGameCreator ? (
               <li>
                 <NavLink href="/account/creator-withdrawals">คำขอถอนรางวัลถึงฉัน</NavLink>
-              </li>
-            ) : null}
-            {showMemberShopNav(user) ? (
-              <li>
-                <NavLink href="/account/shops">ร้านของฉัน</NavLink>
               </li>
             ) : null}
             <li>
@@ -100,14 +88,6 @@ export default function AccountBackOfficeShell({ children }) {
             </li>
             <li>
               <NavLink href="/account/heart-history">ประวัติหัวใจ</NavLink>
-            </li>
-            <li className="pt-2 border-t border-slate-100">
-              <Link
-                href="/game"
-                className={`${linkBase} ${linkIdle}`}
-              >
-                เกมพลิกการ์ด
-              </Link>
             </li>
             {isOwner ? (
               <li>
