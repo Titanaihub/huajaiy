@@ -318,6 +318,45 @@ export default function AdminDashboard() {
     }
   }
 
+  async function applyHeartDeltasAndRefresh(pd, rd, gd, successMsg) {
+    if (!selectedId) return;
+    if (pd === 0 && rd === 0 && gd === 0) {
+      setPanelMsg("ไม่มีการเปลี่ยนแปลง");
+      return;
+    }
+    const token = getMemberToken();
+    if (!token) return;
+    setHeartBusy(true);
+    setPanelMsg("");
+    try {
+      const data = await apiAdminAdjustMemberHearts(token, selectedId, {
+        pinkDelta: pd,
+        redDelta: rd,
+        redGiveawayDelta: gd
+      });
+      setHeartPinkDelta("");
+      setHeartRedDelta("");
+      setHeartGiveawayDelta("");
+      if (data?.user) {
+        setMemberFull((prev) =>
+          prev && prev.user ? { ...prev, user: data.user } : prev
+        );
+      }
+      setPanelMsg(successMsg);
+      void reloadMemberFull(selectedId).catch((err) => {
+        setPanelMsg(
+          (m) =>
+            `${m || successMsg} · โหลดรายละเอียดซ้ำไม่สำเร็จ: ${err.message || String(err)}`
+        );
+      });
+      void loadMembers();
+    } catch (err) {
+      setPanelMsg(err.message || String(err));
+    } finally {
+      setHeartBusy(false);
+    }
+  }
+
   async function submitHeartAdjust(e) {
     e.preventDefault();
     if (!selectedId) return;
@@ -333,27 +372,56 @@ export default function AdminDashboard() {
       );
       return;
     }
-    const token = getMemberToken();
-    if (!token) return;
-    setHeartBusy(true);
-    setPanelMsg("");
-    try {
-      await apiAdminAdjustMemberHearts(token, selectedId, {
-        pinkDelta,
-        redDelta,
-        redGiveawayDelta
-      });
-      setHeartPinkDelta("");
-      setHeartRedDelta("");
-      setHeartGiveawayDelta("");
-      await reloadMemberFull(selectedId);
-      await loadMembers();
-      setPanelMsg("ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป)");
-    } catch (err) {
-      setPanelMsg(err.message || String(err));
-    } finally {
-      setHeartBusy(false);
+    await applyHeartDeltasAndRefresh(
+      pinkDelta,
+      redDelta,
+      redGiveawayDelta,
+      "ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป) — สมาชิกกด「รีเฟรชยอด」ที่บัญชี"
+    );
+  }
+
+  async function quickZeroPlayableRed() {
+    const u = memberFull?.user;
+    if (!u || !selectedId) return;
+    const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+    if (r === 0) {
+      setPanelMsg("แดงเล่นได้คงเหลือ 0 อยู่แล้ว");
+      return;
     }
+    if (!window.confirm(`หักแดงเล่นได้ทั้งหมด ${r.toLocaleString("th-TH")} ดวง ให้เหลือ 0?`)) {
+      return;
+    }
+    await applyHeartDeltasAndRefresh(
+      0,
+      -r,
+      0,
+      "หักแดงเล่นได้หมดแล้ว — ให้สมาชิกกด「รีเฟรชยอด」"
+    );
+  }
+
+  async function quickZeroAllHearts() {
+    const u = memberFull?.user;
+    if (!u || !selectedId) return;
+    const p = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
+    const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+    const g = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
+    if (p === 0 && r === 0 && g === 0) {
+      setPanelMsg("หัวใจทุกประเภทเป็น 0 อยู่แล้ว");
+      return;
+    }
+    if (
+      !window.confirm(
+        `เคลียร์หัวใจเป็น 0 ทั้งหมด?\nชมพู ${p.toLocaleString("th-TH")} · แดงเล่น ${r.toLocaleString("th-TH")} · แดงแจก ${g.toLocaleString("th-TH")}`
+      )
+    ) {
+      return;
+    }
+    await applyHeartDeltasAndRefresh(
+      -p,
+      -r,
+      -g,
+      "เคลียร์หัวใจเป็น 0 แล้ว — ให้สมาชิกกด「รีเฟรชยอด」"
+    );
   }
 
   async function submitAdminProfile(e) {
@@ -979,6 +1047,24 @@ export default function AdminDashboard() {
                     <p className="mt-1 text-[11px] text-slate-600">
                       ชมพู / แดงเล่นได้ / แดงแจกผู้เล่น — ใส่ตัวเลขเต็ม บวกเพิ่ม ลบลด (ห้ามติดลบเกินยอดคงเหลือ)
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={heartBusy || !memberFull?.user}
+                        onClick={() => void quickZeroPlayableRed()}
+                        className="rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-900 hover:bg-red-100 disabled:opacity-50"
+                      >
+                        หักแดงเล่นหมด (ครั้งเดียว)
+                      </button>
+                      <button
+                        type="button"
+                        disabled={heartBusy || !memberFull?.user}
+                        onClick={() => void quickZeroAllHearts()}
+                        className="rounded-lg border border-slate-400 bg-white px-2 py-1 text-[11px] font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        เคลียร์หัวใจเป็น 0 ทั้งหมด
+                      </button>
+                    </div>
                     <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
                       <div>
                         <label className="block text-[10px] font-medium text-rose-600">ชมพู Δ</label>
