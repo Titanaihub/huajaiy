@@ -30,6 +30,27 @@ function roomGiftRedForCreator(user, creatorId) {
   return row ? Math.max(0, Math.floor(Number(row.balance)) || 0) : 0;
 }
 
+/** จับคู่แดงห้องกับเกม — ใช้ gameCreatedBy จาก API หรือสำรองจาก creatorUsername + roomGiftRed */
+function resolveCentralGiftCtx(partial, user) {
+  const allowGiftRedPlay = Boolean(partial?.allowGiftRedPlay);
+  let gameCreatedBy = partial?.gameCreatedBy ?? null;
+  if (gameCreatedBy != null && String(gameCreatedBy).trim() !== "") {
+    return { gameCreatedBy: String(gameCreatedBy).trim(), allowGiftRedPlay };
+  }
+  const cu = partial?.creatorUsername
+    ? String(partial.creatorUsername).trim().toLowerCase()
+    : "";
+  if (!allowGiftRedPlay && cu && user?.roomGiftRed?.length) {
+    const row = user.roomGiftRed.find(
+      (x) => String(x.creatorUsername || "").toLowerCase() === cu
+    );
+    if (row) {
+      return { gameCreatedBy: String(row.creatorId), allowGiftRedPlay };
+    }
+  }
+  return { gameCreatedBy: null, allowGiftRedPlay };
+}
+
 /**
  * เกมส่วนกลาง: ไม่ล็อกอิน = กระเป๋าสาธิต · ล็อกอิน = เช็กยอดชมพู + แดงทั่วไป + แดงจากรหัสห้องตามเกม
  */
@@ -302,6 +323,19 @@ export default function FlipGameDemo({
     gameCreatedBy: null,
     allowGiftRedPlay: false
   });
+  /** ใช้จับคู่แดงห้องเมื่อ meta ไม่ส่ง gameCreatedBy */
+  const [centralCreatorUsername, setCentralCreatorUsername] = useState(null);
+  const centralGiftCtxResolved = useMemo(
+    () =>
+      resolveCentralGiftCtx(
+        {
+          ...centralEntryGiftCtx,
+          creatorUsername: centralCreatorUsername
+        },
+        user
+      ),
+    [centralEntryGiftCtx, centralCreatorUsername, user]
+  );
   const [prizeList, setPrizeList] = useState(PRIZES);
   const [cards, setCards] = useState([]);
   const [winner, setWinner] = useState(null);
@@ -400,6 +434,7 @@ export default function FlipGameDemo({
     setPinkHeartCost(0);
     setRedHeartCost(0);
     setCentralEntryGiftCtx({ gameCreatedBy: null, allowGiftRedPlay: false });
+    setCentralCreatorUsername(null);
     setBootError(null);
     setSetPreviewUrls([]);
     setCentralSolutionShown(false);
@@ -428,6 +463,11 @@ export default function FlipGameDemo({
       gameCreatedBy: meta.gameCreatedBy ?? null,
       allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
     });
+    setCentralCreatorUsername(
+      meta.creatorUsername != null && String(meta.creatorUsername).trim()
+        ? String(meta.creatorUsername).trim().toLowerCase()
+        : null
+    );
     setHeartCost(p + r);
     if (Array.isArray(meta.prizes) && meta.prizes.length) {
       setPrizeList(meta.prizes);
@@ -480,11 +520,17 @@ export default function FlipGameDemo({
         gameCreatedBy: data.gameCreatedBy ?? null,
         allowGiftRedPlay: Boolean(data.allowGiftRedPlay)
       });
+      setCentralCreatorUsername(
+        data.creatorUsername != null && String(data.creatorUsername).trim()
+          ? String(data.creatorUsername).trim().toLowerCase()
+          : null
+      );
       setHeartCost(p + r);
     } else {
       setPinkHeartCost(0);
       setRedHeartCost(0);
       setCentralEntryGiftCtx({ gameCreatedBy: null, allowGiftRedPlay: false });
+      setCentralCreatorUsername(null);
       setHeartCost(Number(data.heartCost) || 0);
     }
     setApiGameMode(isCentral ? "central" : "legacy");
@@ -544,6 +590,11 @@ export default function FlipGameDemo({
       gameCreatedBy: st.gameCreatedBy ?? null,
       allowGiftRedPlay: Boolean(st.allowGiftRedPlay)
     });
+    setCentralCreatorUsername(
+      st.creatorUsername != null && String(st.creatorUsername).trim()
+        ? String(st.creatorUsername).trim().toLowerCase()
+        : null
+    );
     setHeartCost(
       Math.max(0, Number(st.pinkHeartCost) || 0) + Math.max(0, Number(st.redHeartCost) || 0)
     );
@@ -720,10 +771,14 @@ export default function FlipGameDemo({
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
           const needPay = p > 0 || r > 0;
-          const giftCtxFromMeta = {
-            gameCreatedBy: meta.gameCreatedBy ?? null,
-            allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
-          };
+          const giftCtxFromMeta = resolveCentralGiftCtx(
+            {
+              gameCreatedBy: meta.gameCreatedBy ?? null,
+              allowGiftRedPlay: Boolean(meta.allowGiftRedPlay),
+              creatorUsername: meta.creatorUsername ?? null
+            },
+            user
+          );
           const canPay = canAffordCentralEntry(user, p, r, giftCtxFromMeta);
           if (resolvedGameId) {
             if (needPay && !canPay) {
@@ -766,12 +821,16 @@ export default function FlipGameDemo({
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
           const chargedOnServer = Boolean(data.heartBalances);
-          const giftCtxFromStart = {
-            gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
-            allowGiftRedPlay: Boolean(
-              data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
-            )
-          };
+          const giftCtxFromStart = resolveCentralGiftCtx(
+            {
+              gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
+              allowGiftRedPlay: Boolean(
+                data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
+              ),
+              creatorUsername: data.creatorUsername ?? meta?.creatorUsername ?? null
+            },
+            user
+          );
           if (
             (p > 0 || r > 0) &&
             !chargedOnServer &&
@@ -1083,7 +1142,8 @@ export default function FlipGameDemo({
     if (sessionId || !playLocked || apiGameMode !== "central") return;
     const p = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
     const r = Math.max(0, Math.floor(Number(redHeartCost) || 0));
-    if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r, centralEntryGiftCtx)) return;
+    if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r, centralGiftCtxResolved))
+      return;
     let meta = null;
     setBusy(true);
     setBootError(null);
@@ -1117,12 +1177,16 @@ export default function FlipGameDemo({
         const dp = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
         const dr = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
         const chargedOnServer = Boolean(data.heartBalances);
-        const ctxAfterStart = {
-          gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
-          allowGiftRedPlay: Boolean(
-            data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
-          )
-        };
+        const ctxAfterStart = resolveCentralGiftCtx(
+          {
+            gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
+            allowGiftRedPlay: Boolean(
+              data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
+            ),
+            creatorUsername: data.creatorUsername ?? meta?.creatorUsername ?? null
+          },
+          user
+        );
         if (
           (dp > 0 || dr > 0) &&
           !chargedOnServer &&
@@ -1169,7 +1233,7 @@ export default function FlipGameDemo({
     apiGameMode,
     pinkHeartCost,
     redHeartCost,
-    centralEntryGiftCtx,
+    centralGiftCtxResolved,
     user,
     applyApiSession,
     applyCentralPreviewFromMeta,
@@ -1213,10 +1277,14 @@ export default function FlipGameDemo({
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
           const needPay = p > 0 || r > 0;
-          const gctx = {
-            gameCreatedBy: meta.gameCreatedBy ?? null,
-            allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
-          };
+          const gctx = resolveCentralGiftCtx(
+            {
+              gameCreatedBy: meta.gameCreatedBy ?? null,
+              allowGiftRedPlay: Boolean(meta.allowGiftRedPlay),
+              creatorUsername: meta.creatorUsername ?? null
+            },
+            user
+          );
           const canPay = canAffordCentralEntry(user, p, r, gctx);
           if (needPay && !canPay) {
             applyCentralPreviewFromMeta(
@@ -1240,10 +1308,14 @@ export default function FlipGameDemo({
           const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
           const needPay = p > 0 || r > 0;
-          const gctx2 = {
-            gameCreatedBy: meta.gameCreatedBy ?? null,
-            allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
-          };
+          const gctx2 = resolveCentralGiftCtx(
+            {
+              gameCreatedBy: meta.gameCreatedBy ?? null,
+              allowGiftRedPlay: Boolean(meta.allowGiftRedPlay),
+              creatorUsername: meta.creatorUsername ?? null
+            },
+            user
+          );
           const canPay = canAffordCentralEntry(user, p, r, gctx2);
           if (needPay && !canPay) {
             applyCentralPreviewFromMeta(meta);
@@ -1262,12 +1334,16 @@ export default function FlipGameDemo({
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
           const chargedOnServer = Boolean(data.heartBalances);
-          const gctxStart = {
-            gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
-            allowGiftRedPlay: Boolean(
-              data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
-            )
-          };
+          const gctxStart = resolveCentralGiftCtx(
+            {
+              gameCreatedBy: data.gameCreatedBy ?? meta?.gameCreatedBy ?? null,
+              allowGiftRedPlay: Boolean(
+                data.allowGiftRedPlay ?? meta?.allowGiftRedPlay
+              ),
+              creatorUsername: data.creatorUsername ?? meta?.creatorUsername ?? null
+            },
+            user
+          );
           if (
             (p > 0 || r > 0) &&
             !chargedOnServer &&
@@ -1321,7 +1397,34 @@ export default function FlipGameDemo({
     (pinkHeartCost > 0 || redHeartCost > 0);
   const centralCanAffordStart =
     !centralNeedsHeartsForStart ||
-    canAffordCentralEntry(user, pinkHeartCost, redHeartCost, centralEntryGiftCtx);
+    canAffordCentralEntry(user, pinkHeartCost, redHeartCost, centralGiftCtxResolved);
+
+  const centralAffordHint = useMemo(() => {
+    if (!user || !centralNeedsHeartsForStart || centralCanAffordStart) return "";
+    const p = pinkHeartCost;
+    const r = redHeartCost;
+    const pu = Math.max(0, Math.floor(Number(user.pinkHeartsBalance)) || 0);
+    const gr = Math.max(0, Math.floor(Number(user.redHeartsBalance)) || 0);
+    const ctx = centralGiftCtxResolved;
+    let gift = 0;
+    if (ctx.allowGiftRedPlay) gift = totalRoomGiftRed(user);
+    else if (ctx.gameCreatedBy) gift = roomGiftRedForCreator(user, ctx.gameCreatedBy);
+    const totalRed = gr + gift;
+    if (p > 0 && pu < p) {
+      return "เกมนี้หักหัวใจชมพูด้วย — แดงจากรหัสห้องใช้แทนชมพูไม่ได้ ต้องมีชมพูในบัญชีให้พอตามที่เกมกำหนด";
+    }
+    if (r > 0 && totalRed < r) {
+      return "หัวใจแดงรวม (ทั่วไป + แดงห้องของเจ้าของเกมนี้) ยังไม่พอต่อรอบ — ตรวจว่าเล่นเกมของ @ เดียวกับที่ออกรหัสให้คุณ";
+    }
+    return "";
+  }, [
+    user,
+    centralNeedsHeartsForStart,
+    centralCanAffordStart,
+    pinkHeartCost,
+    redHeartCost,
+    centralGiftCtxResolved
+  ]);
   const showCentralPlayActions =
     Boolean(resolvedGameId) &&
     mode === "api" &&
@@ -1442,11 +1545,17 @@ export default function FlipGameDemo({
               <p className="mt-2 text-xs text-sky-800/90">
                 กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะกลับมาหน้าจอเริ่มรอบ
               </p>
-            ) : (
+            ) : null}
+            {centralAffordHint && (!resolvedGameId || !centralCanAffordStart) ? (
+              <p className="mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-xs font-medium text-amber-950 ring-1 ring-amber-200/90">
+                {centralAffordHint}
+              </p>
+            ) : null}
+            {resolvedGameId && centralCanAffordStart ? (
               <p className="mt-2 text-xs text-emerald-800/90">
                 กดปุ่ม「เริ่มเล่นเกม」ด้านล่างเพื่อหักหัวใจ (ถ้ามี) แล้วเปิดป้ายได้
               </p>
-            )}
+            ) : null}
           </div>
         )
       ) : null}
@@ -1694,6 +1803,11 @@ export default function FlipGameDemo({
             <p className="text-center text-[11px] leading-relaxed text-slate-500 sm:text-left">
               「เริ่มเล่นเกม」หักหัวใจตามที่เกมกำหนด แล้วเริ่มเปิดป้าย · 「เฉลยเกม」หลังจบรอบ
               แสดงภาพใต้ป้ายที่ยังไม่ได้เปิด
+            </p>
+          ) : null}
+          {resolvedGameId && centralAffordHint && !centralCanAffordStart ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950 ring-1 ring-amber-200/90">
+              {centralAffordHint}
             </p>
           ) : null}
         </div>

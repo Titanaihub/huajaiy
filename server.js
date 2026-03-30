@@ -99,6 +99,26 @@ async function getPublishedCentralSnapshot(gameId) {
   }
 }
 
+/** ถ้าเกมไม่มี created_by แต่มี creatorUsername — หา UUID เจ้าของห้องให้หักแดงจากรหัสห้องตรงกัน */
+async function resolveGameCreatedById(game) {
+  if (!game) return null;
+  const existing = game.createdBy;
+  if (existing != null && String(existing).trim() !== "") {
+    return String(existing).trim();
+  }
+  const un =
+    game.creatorUsername != null
+      ? String(game.creatorUsername).trim().toLowerCase()
+      : "";
+  if (!un) return null;
+  try {
+    const u = await userService.findByUsername(un);
+    return u && u.id ? String(u.id) : null;
+  } catch {
+    return null;
+  }
+}
+
 function centralMetaFromSnap(snap, givenByRuleId = null) {
   const pink = snap.game.pinkHeartCost ?? 0;
   const red = snap.game.redHeartCost ?? 0;
@@ -131,10 +151,17 @@ function centralMetaFromSnap(snap, givenByRuleId = null) {
 async function centralMetaFromSnapWithCounts(snap) {
   try {
     const map = await centralPrizeAwardService.countAwardsByRuleForGame(snap.game.id);
-    return centralMetaFromSnap(snap, map);
+    const base = centralMetaFromSnap(snap, map);
+    const resolved = await resolveGameCreatedById(snap.game);
+    if (resolved) {
+      return { ...base, gameCreatedBy: resolved };
+    }
+    return base;
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
-      return centralMetaFromSnap(snap, null);
+      const base = centralMetaFromSnap(snap, null);
+      const resolved = await resolveGameCreatedById(snap.game);
+      return resolved ? { ...base, gameCreatedBy: resolved } : base;
     }
     throw e;
   }
@@ -334,6 +361,10 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
     if (snap) {
       const pink = snap.game.pinkHeartCost ?? 0;
       const red = snap.game.redHeartCost ?? 0;
+      const resolvedCreator = await resolveGameCreatedById(snap.game);
+      if (resolvedCreator) {
+        snap.game.createdBy = resolvedCreator;
+      }
       let afterUser = null;
       try {
         afterUser = await deductHeartsForGameStart(req.userId, {
@@ -343,7 +374,7 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
             gameMode: "central",
             gameId: snap.game.id,
             gameTitle: snap.game.title,
-            gameCreatedBy: snap.game.createdBy ?? null,
+            gameCreatedBy: resolvedCreator || snap.game.createdBy || null,
             allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay)
           }
         });
