@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { apiGetMyCentralPrizeAwards, getMemberToken } from "../lib/memberApi";
+import {
+  apiGetMyCentralPrizeAwards,
+  apiGetMyPrizeWithdrawals,
+  getMemberToken
+} from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const CAT_LABEL = {
@@ -85,18 +89,72 @@ function groupAwardsByCreator(list) {
   return groups;
 }
 
-/** เรียงจากเก่าไปใหม่ — สะสมยอดเงินสด */
-function buildDetailRows(items) {
-  const sorted = [...items].sort((a, b) => new Date(a.wonAt) - new Date(b.wonAt));
+function eventTimeMs(iso) {
+  if (!iso) return 0;
+  const t = new Date(iso).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/**
+ * เรียงจากเก่าไปใหม่ — สะสมยอดเงินสดจากการชนะ หักเมื่อมีการถอนที่ผู้สร้างอนุมัติแล้ว
+ * (คำขอที่ยัง pending ไม่แสดงเป็นแถว แต่จะหักจากยอดคงเหลือปัจจุบันแยกต่างหาก)
+ */
+function buildMergedLedgerRows(items, withdrawalsForCreator) {
+  const wds = Array.isArray(withdrawalsForCreator) ? withdrawalsForCreator : [];
+  const approved = wds.filter((w) => String(w.status) === "approved");
+  const events = [];
+
+  for (const a of items) {
+    events.push({ kind: "win", atMs: eventTimeMs(a.wonAt), award: a });
+  }
+  for (const w of approved) {
+    const at = w.resolvedAt || w.createdAt;
+    events.push({ kind: "withdraw", atMs: eventTimeMs(at), withdrawal: w });
+  }
+
+  events.sort((x, y) => {
+    if (x.atMs !== y.atMs) return x.atMs - y.atMs;
+    if (x.kind !== y.kind) return x.kind === "win" ? -1 : 1;
+    return 0;
+  });
+
   let run = 0;
-  return sorted.map((a) => {
-    const cashAmt = a.prizeCategory === "cash" ? parseCashBaht(a) : 0;
-    if (a.prizeCategory === "cash") run += cashAmt;
-    return { award: a, cashAmt: a.prizeCategory === "cash" ? cashAmt : null, runningCash: run };
+  return events.map((e) => {
+    if (e.kind === "win") {
+      const a = e.award;
+      const cashAmt = a.prizeCategory === "cash" ? parseCashBaht(a) : 0;
+      if (a.prizeCategory === "cash") run += cashAmt;
+      return {
+        kind: "win",
+        key: `win-${a.id}`,
+        award: a,
+        cashAmt: a.prizeCategory === "cash" ? cashAmt : null,
+        runningCash: run,
+        atLabel: a.wonAt
+      };
+    }
+    const w = e.withdrawal;
+    const amt = Math.max(0, Math.floor(Number(w.amountThb) || 0));
+    run -= amt;
+    return {
+      kind: "withdraw",
+      key: `wd-${w.id}`,
+      withdrawal: w,
+      cashAmt: -amt,
+      runningCash: run,
+      atLabel: w.resolvedAt || w.createdAt
+    };
   });
 }
 
-function CreatorPrizeCard({ group }) {
+function sumPendingWithdrawalsBaht(withdrawalsForCreator) {
+  const wds = Array.isArray(withdrawalsForCreator) ? withdrawalsForCreator : [];
+  return wds
+    .filter((w) => String(w.status) === "pending")
+    .reduce((s, w) => s + Math.max(0, Math.floor(Number(w.amountThb) || 0)), 0);
+}
+
+function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
   const { creatorUsername, items } = group;
   const creatorDisplay =
     creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
@@ -107,10 +165,25 @@ function CreatorPrizeCard({ group }) {
   const winCount = items.length;
 
   const [open, setOpen] = useState(false);
-  const detailRows = useMemo(() => buildDetailRows(items), [items]);
-  const finalCashBalance = detailRows.length
-    ? detailRows[detailRows.length - 1].runningCash
-    : 0;
+  const detailRows = useMemo(
+    () => buildMergedLedgerRows(items, withdrawalsForCreator),
+    [items, withdrawalsForCreator]
+  );
+  const pendingHoldBaht = useMemo(
+    () => sumPendingWithdrawalsBaht(withdrawalsForCreator),
+    [withdrawalsForCreator]
+  );
+  const ledgerEndCash =
+    detailRows.length > 0 ? detailRows[detailRows.length - 1].runningCash : 0;
+  const finalCashBalance = Math.max(0, ledgerEndCash - pendingHoldBaht);
+
+  const approvedWithdrawCount = useMemo(
+    () =>
+      (Array.isArray(withdrawalsForCreator) ? withdrawalsForCreator : []).filter(
+        (w) => String(w.status) === "approved"
+      ).length,
+    [withdrawalsForCreator]
+  );
 
   let nonCashSummary = null;
   if (nonCashItems.length > 0) {
@@ -159,6 +232,11 @@ function CreatorPrizeCard({ group }) {
               <td className="px-3 py-3 align-middle">{prizeMoneyCell}</td>
               <td className="px-3 py-3 align-middle tabular-nums text-slate-800">
                 {winCount} ครั้ง
+                {approvedWithdrawCount > 0 ? (
+                  <span className="block text-xs font-normal text-slate-600">
+                    ถอน {approvedWithdrawCount} ครั้ง
+                  </span>
+                ) : null}
               </td>
               <td className="px-3 py-3 align-middle">
                 <button
@@ -188,7 +266,7 @@ function CreatorPrizeCard({ group }) {
       {open ? (
         <div className="mt-4 border-t border-slate-100 pt-4">
           <p className="mb-3 text-xs text-slate-500">
-            วันเวลา = เวลาที่ระบบบันทึกการชนะรางวัล (หลังเปิดป้ายครบตามกติกา)
+            วันเวลา = เวลาที่ระบบบันทึกการชนะรางวัล (หลังเปิดป้ายครบตามกติกา) · แถว「ถอนเงิน」ใช้วันที่ผู้สร้างเกมอนุมัติการถอน
           </p>
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="min-w-[720px] w-full border-collapse text-left text-sm">
@@ -203,30 +281,51 @@ function CreatorPrizeCard({ group }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
-                {detailRows.map(({ award: a, cashAmt, runningCash }) => (
-                  <tr key={a.id} className="bg-white">
-                    <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
-                      {creatorDisplay}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-slate-700">
-                      {formatWonAt(a.wonAt)}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-600">
-                      {displayGameCode(a)}
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-800">{a.gameTitle}</td>
-                    <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
-                      {cashAmt != null ? (
-                        <span>{formatBaht(cashAmt)} บาท</span>
-                      ) : (
-                        <span className="text-slate-600">{prizeLine(a)}</span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 font-semibold tabular-nums text-slate-900">
-                      {formatBaht(runningCash)} บาท
-                    </td>
-                  </tr>
-                ))}
+                {detailRows.map((row) =>
+                  row.kind === "win" ? (
+                    <tr key={row.key} className="bg-white">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
+                        {creatorDisplay}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-slate-700">
+                        {formatWonAt(row.award.wonAt)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-600">
+                        {displayGameCode(row.award)}
+                      </td>
+                      <td className="px-3 py-2.5 text-slate-800">{row.award.gameTitle}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
+                        {row.cashAmt != null ? (
+                          <span>{formatBaht(row.cashAmt)} บาท</span>
+                        ) : (
+                          <span className="text-slate-600">{prizeLine(row.award)}</span>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 font-semibold tabular-nums text-slate-900">
+                        {formatBaht(row.runningCash)} บาท
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={row.key} className="bg-rose-50/40">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
+                        {creatorDisplay}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-slate-700">
+                        {formatWonAt(row.atLabel)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-500">
+                        —
+                      </td>
+                      <td className="px-3 py-2.5 font-medium text-rose-900">ถอนเงิน</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium text-rose-800">
+                        −{formatBaht(Math.abs(row.cashAmt))} บาท
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 font-semibold tabular-nums text-slate-900">
+                        {formatBaht(row.runningCash)} บาท
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -239,14 +338,21 @@ function CreatorPrizeCard({ group }) {
               </span>
             </p>
             <Link
-              href={`/contact?topic=prize-withdraw&ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
+              href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
               className="inline-flex shrink-0 items-center justify-center rounded-xl border-2 border-emerald-600 bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               ถอนเงินรางวัล
             </Link>
           </div>
+          {pendingHoldBaht > 0 ? (
+            <p className="mt-2 text-xs text-amber-800">
+              มีคำขอถอนรอดำเนินการรวม{" "}
+              <span className="font-semibold tabular-nums">{formatBaht(pendingHoldBaht)} บาท</span>{" "}
+              (หักจากยอดคงเหลือปัจจุบันด้านบน — ยังไม่แสดงเป็นแถวจนกว่าจะอนุมัติ)
+            </p>
+          ) : null}
           <p className="mt-2 text-xs text-slate-500">
-            การถอนเงินดำเนินการผ่านทีมงาน — กดปุ่มเพื่อไปฟอร์มติดต่อ (แนะนำแจ้งยูสผู้สร้างเกมและยอดที่ต้องการถอน)
+            ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ
           </p>
         </div>
       ) : null}
@@ -257,6 +363,7 @@ function CreatorPrizeCard({ group }) {
 export default function AccountMyPrizesSection() {
   const { user, loading: authLoading } = useMemberAuth();
   const [awards, setAwards] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -267,6 +374,7 @@ export default function AccountMyPrizesSection() {
     if (!user) {
       setLoading(false);
       setAwards([]);
+      setWithdrawals([]);
       return;
     }
     const token = getMemberToken();
@@ -279,8 +387,14 @@ export default function AccountMyPrizesSection() {
       setLoading(true);
       setErr("");
       try {
-        const data = await apiGetMyCentralPrizeAwards(token);
-        if (!cancelled) setAwards(Array.isArray(data.awards) ? data.awards : []);
+        const [awardRes, wdRes] = await Promise.all([
+          apiGetMyCentralPrizeAwards(token),
+          apiGetMyPrizeWithdrawals(token).catch(() => ({ withdrawals: [] }))
+        ]);
+        if (!cancelled) {
+          setAwards(Array.isArray(awardRes.awards) ? awardRes.awards : []);
+          setWithdrawals(Array.isArray(wdRes.withdrawals) ? wdRes.withdrawals : []);
+        }
       } catch (e) {
         if (!cancelled) setErr(e.message || String(e));
       } finally {
@@ -347,9 +461,13 @@ export default function AccountMyPrizesSection() {
         </div>
       ) : (
         <ul className="mt-6 space-y-3">
-          {groups.map((g) => (
-            <CreatorPrizeCard key={g.creatorKey} group={g} />
-          ))}
+          {groups.map((g) => {
+            const cu = String(g.creatorUsername || "").trim().toLowerCase();
+            const wds = withdrawals.filter(
+              (w) => String(w.creatorUsername || "").trim().toLowerCase() === cu
+            );
+            return <CreatorPrizeCard key={g.creatorKey} group={g} withdrawalsForCreator={wds} />;
+          })}
         </ul>
       )}
     </section>

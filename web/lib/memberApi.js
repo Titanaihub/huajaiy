@@ -166,3 +166,88 @@ export async function apiGetMyHeartLedger(token, { limit = 80, offset = 0 } = {}
   }
   return data;
 }
+
+export async function apiGetPrizeWithdrawalAvailable(token, creatorUsername) {
+  const qs = new URLSearchParams({
+    creatorUsername: String(creatorUsername || "").trim()
+  });
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-withdrawals/available?${qs}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดยอดถอนได้ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiPostPrizeWithdrawalRequest(token, payload) {
+  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    const err = new Error(data.error || "ส่งคำขอถอนไม่สำเร็จ");
+    err.code = data.code;
+    throw err;
+  }
+  return data;
+}
+
+export async function apiGetMyPrizeWithdrawals(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติคำขอถอนไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiGetCreatorWithdrawalStatus(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/creator-status`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดสถานะไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiGetIncomingPrizeWithdrawals(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/incoming`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดคำขอถอนไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiResolvePrizeWithdrawal(token, id, { action, note }) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-withdrawals/${encodeURIComponent(id)}/resolve`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ action, note: note || "" })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "อัปเดตสถานะไม่สำเร็จ");
+  }
+  return data;
+}

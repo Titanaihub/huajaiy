@@ -10,6 +10,7 @@ const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
 const shopService = require("./services/shopService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
+const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 const heartLedgerService = require("./services/heartLedgerService");
 const {
   validateProfilePatch,
@@ -316,6 +317,124 @@ router.get("/central-prize-awards/mine", authMiddleware, async (req, res) => {
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       return res.json({ ok: true, awards: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+const UUID_PARAM_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** ยอดถอนได้คงเหลือต่อผู้สร้างเกม (เงินสด) */
+router.get("/central-prize-withdrawals/available", authMiddleware, async (req, res) => {
+  try {
+    const creatorUsername = req.query.creatorUsername != null ? String(req.query.creatorUsername) : "";
+    const data = await centralPrizeWithdrawalService.getAvailability(req.userId, creatorUsername);
+    return res.json({ ok: true, ...data });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, dbRequired: true, availableBaht: 0, earnedBaht: 0, reservedBaht: 0 });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ส่งคำขอถอนเงินรางวัลไปยังผู้สร้างเกม */
+router.post("/central-prize-withdrawals", authMiddleware, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const rec = await centralPrizeWithdrawalService.createRequest({
+      requesterUserId: req.userId,
+      creatorUsername: body.creatorUsername,
+      amountThb: body.amountThb,
+      accountHolderName: body.accountHolderName,
+      accountNumber: body.accountNumber,
+      bankName: body.bankName
+    });
+    return res.json({ ok: true, withdrawal: rec });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: "ระบบฐานข้อมูลยังไม่พร้อม" });
+    }
+    if (e.code === "VALIDATION" || e.code === "INSUFFICIENT_BALANCE") {
+      return res.status(400).json({ ok: false, error: e.message, code: e.code });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.get("/central-prize-withdrawals/mine", authMiddleware, async (req, res) => {
+  try {
+    const list = await centralPrizeWithdrawalService.listForRequester(req.userId);
+    return res.json({ ok: true, withdrawals: list });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, withdrawals: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** มีเกมส่วนกลางที่สร้างไว้หรือไม่ — แสดงเมนูผู้สร้าง */
+router.get("/central-prize-withdrawals/creator-status", authMiddleware, async (req, res) => {
+  try {
+    const n = await centralPrizeWithdrawalService.countGamesCreatedBy(req.userId);
+    return res.json({ ok: true, gamesCreatedCount: n, isGameCreator: n > 0 });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, gamesCreatedCount: 0, isGameCreator: false, dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** คำขอถอนที่ส่งถึงผู้สร้างเกม (ฉัน) */
+router.get("/central-prize-withdrawals/incoming", authMiddleware, async (req, res) => {
+  try {
+    const list = await centralPrizeWithdrawalService.listIncomingForCreator(req.userId);
+    return res.json({ ok: true, withdrawals: list });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, withdrawals: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ผู้สร้างเกมอนุมัติ/ปฏิเสธหลังจ่ายเงิน */
+router.post("/central-prize-withdrawals/:id/resolve", authMiddleware, async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!UUID_PARAM_RE.test(id)) {
+      return res.status(400).json({ ok: false, error: "รูปแบบรหัสคำขอไม่ถูกต้อง" });
+    }
+    const action = req.body?.action;
+    const note = req.body?.note;
+    const rec = await centralPrizeWithdrawalService.resolveByCreator({
+      withdrawalId: id,
+      creatorUserId: req.userId,
+      action,
+      note
+    });
+    return res.json({ ok: true, withdrawal: rec });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    if (e.code === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION" || e.code === "CONFLICT") {
+      return res.status(400).json({ ok: false, error: e.message });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

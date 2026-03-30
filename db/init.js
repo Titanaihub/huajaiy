@@ -435,6 +435,31 @@ async function initDb() {
       FOREIGN KEY (rule_id) REFERENCES central_game_rules(id) ON DELETE SET NULL;
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS central_prize_withdrawal_requests (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        requester_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        creator_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        amount_thb INTEGER NOT NULL CHECK (amount_thb > 0),
+        account_holder_name TEXT NOT NULL,
+        account_number TEXT NOT NULL,
+        bank_name TEXT NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending', 'approved', 'rejected')),
+        creator_note TEXT,
+        resolved_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_cpwr_creator_pending
+       ON central_prize_withdrawal_requests(creator_user_id)
+       WHERE status = 'pending';`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_cpwr_requester ON central_prize_withdrawal_requests(requester_user_id);`
+    );
+
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"
     );

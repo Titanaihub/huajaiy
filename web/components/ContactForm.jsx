@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function safeDecodeParam(raw) {
   if (raw == null || raw === "") return "";
@@ -17,16 +17,11 @@ function safeDecodeParam(raw) {
   }
 }
 
-function sanitizeBalanceDisplay(s) {
-  const t = safeDecodeParam(s);
-  if (!t) return "";
-  const cleaned = t.replace(/[^\d.,]/g, "").slice(0, 24);
-  return cleaned;
-}
-
 export default function ContactForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const prefilledRef = useRef(false);
+  const prizeRedirectRef = useRef(false);
 
   const [topic, setTopic] = useState("");
   const [name, setName] = useState("");
@@ -35,46 +30,33 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
-  /** @type {'prize-withdraw' | null} */
-  const [flowHint, setFlowHint] = useState(null);
+
+  useEffect(() => {
+    const topicParam = searchParams.get("topic");
+    if (topicParam === "prize-withdraw" && !prizeRedirectRef.current) {
+      prizeRedirectRef.current = true;
+      const refParam = searchParams.get("ref");
+      const balanceParam = searchParams.get("balance");
+      const qs = new URLSearchParams();
+      if (refParam) qs.set("ref", refParam);
+      if (balanceParam) qs.set("balance", balanceParam);
+      const suffix = qs.toString();
+      router.replace(suffix ? `/account/prize-withdraw?${suffix}` : "/account/prize-withdraw");
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (prefilledRef.current) return;
     prefilledRef.current = true;
 
     const topicParam = searchParams.get("topic");
-    const refParam = searchParams.get("ref");
-    const balanceParam = searchParams.get("balance");
     const messageParam = searchParams.get("message");
 
     if (topicParam === "prize-withdraw") {
-      setFlowHint("prize-withdraw");
-      setTopic("ถอนเงินรางวัลจากเกมส่วนกลาง");
-
-      const refSafe = safeDecodeParam(refParam).slice(0, 120);
-      const balSafe = sanitizeBalanceDisplay(balanceParam);
-
-      const draft = [
-        "เรียน ทีมงาน HUAJAIY",
-        "",
-        "ประสงค์ขอถอนเงินรางวัล (เงินสดจากเกมส่วนกลาง)",
-        refSafe ? `อ้างอิงผู้สร้างเกม: ${refSafe}` : null,
-        balSafe
-          ? `ยอดรางวัลสะสมที่แสดงในหน้า「รางวัลของฉัน」(บาท): ${balSafe} — กรุณาตรวจสอบและแก้ไขให้ตรงยอดที่ต้องการถอน`
-          : "ยอดที่ขอถอน (บาท): ",
-        "",
-        "ช่องทางรับเงิน (เช่น ธนาคาร / ชื่อบัญชี / เลขบัญชี / พร้อมเพย์): ",
-        "",
-        "หมายเหตุเพิ่มเติม:"
-      ]
-        .filter(Boolean)
-        .join("\n");
-
-      setMessage((prev) => (prev.trim() ? prev : draft));
       return;
     }
 
-    if (topicParam && topicParam !== "prize-withdraw") {
+    if (topicParam) {
       const t = safeDecodeParam(topicParam).slice(0, 80);
       if (t) setTopic((prev) => (prev.trim() ? prev : t));
     }
@@ -105,7 +87,6 @@ export default function ContactForm() {
       setName("");
       setEmail("");
       setMessage("");
-      setFlowHint(null);
     } catch (err) {
       setError(err.message || "ส่งไม่สำเร็จ");
     } finally {
@@ -115,19 +96,6 @@ export default function ContactForm() {
 
   return (
     <div className="mt-6 space-y-4">
-      {flowHint === "prize-withdraw" ? (
-        <div
-          className="rounded-xl border border-emerald-200/90 bg-gradient-to-br from-emerald-50 to-white px-4 py-3.5 text-sm text-emerald-950 shadow-sm ring-1 ring-emerald-100"
-          role="status"
-        >
-          <p className="font-semibold text-emerald-900">คำขอถอนเงินรางวัล</p>
-          <p className="mt-1.5 leading-relaxed text-emerald-900/90">
-            คุณมาจากหน้า「รางวัลของฉัน」— เราเติมหัวข้อและร่างข้อความให้แล้ว
-            กรุณาตรวจสอบยอด ช่องทางรับเงิน ให้ครบถ้วน แล้วกดส่ง
-          </p>
-        </div>
-      ) : null}
-
       <form
         onSubmit={onSubmit}
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"

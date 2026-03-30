@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { apiGetCreatorWithdrawalStatus, getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const linkBase =
@@ -22,6 +24,29 @@ function NavLink({ href, children }) {
 export default function AccountBackOfficeShell({ children }) {
   const { user } = useMemberAuth();
   const isOwner = user && (user.role === "owner" || user.role === "admin");
+  const [isGameCreator, setIsGameCreator] = useState(false);
+
+  const loadCreatorStatus = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) {
+      setIsGameCreator(false);
+      return;
+    }
+    try {
+      const data = await apiGetCreatorWithdrawalStatus(token);
+      setIsGameCreator(Boolean(data?.isGameCreator));
+    } catch {
+      setIsGameCreator(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setIsGameCreator(false);
+      return;
+    }
+    void loadCreatorStatus();
+  }, [user, loadCreatorStatus]);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -51,6 +76,11 @@ export default function AccountBackOfficeShell({ children }) {
             <li>
               <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
             </li>
+            {isGameCreator ? (
+              <li>
+                <NavLink href="/account/creator-withdrawals">คำขอถอนรางวัลถึงฉัน</NavLink>
+              </li>
+            ) : null}
             {user?.role === "admin" ? (
               <li>
                 <NavLink href="/account/prize-payouts">จ่ายรางวัล</NavLink>
