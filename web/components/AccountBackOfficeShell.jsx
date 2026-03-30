@@ -68,6 +68,9 @@ export default function AccountBackOfficeShell({ children }) {
               <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
             </li>
             <li>
+              <NavLink href="/account/my-games">เกมของฉัน</NavLink>
+            </li>
+            <li>
               <NavLink href="/account/create-game">สร้างเกม</NavLink>
             </li>
             <li>

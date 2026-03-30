@@ -35,6 +35,13 @@ export default function MemberNav() {
           รางวัลของฉัน
         </Link>
         <Link
+          href="/account/my-games"
+          className="font-medium text-brand-700 transition hover:text-brand-900"
+          title="เกมที่คุณสร้าง — จัดการต่อได้หลังล็อกอิน"
+        >
+          เกมของฉัน
+        </Link>
+        <Link
           href="/account/create-game"
           className="font-medium text-brand-700 transition hover:text-brand-900"
           title="เปิดห้องเกม — วัตถุประสงค์และกฎระเบียบ"

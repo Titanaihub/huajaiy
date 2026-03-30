@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminCentralGameCreate } from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const PURPOSES = [
   {
@@ -46,6 +50,11 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
 }
 
 export default function CreateGameRoomForm() {
+  const searchParams = useSearchParams();
+  const gameFromUrl = searchParams.get("game");
+  const managingExisting =
+    typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim());
+
   const { user, loading } = useMemberAuth();
   const [purpose, setPurpose] = useState("shop_sales");
   const [otherReason, setOtherReason] = useState("");
@@ -56,6 +65,11 @@ export default function CreateGameRoomForm() {
   const [err, setErr] = useState("");
   const [studioGameId, setStudioGameId] = useState(null);
   const studioRef = useRef(null);
+
+  useEffect(() => {
+    if (!managingExisting) return;
+    setStudioGameId(gameFromUrl.trim());
+  }, [managingExisting, gameFromUrl]);
 
   useEffect(() => {
     if (!studioGameId || !studioRef.current) return;
@@ -136,15 +150,7 @@ export default function CreateGameRoomForm() {
     );
   }
 
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900">เปิดห้องเกม</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน
-        </p>
-      </div>
-
+  const intakeForm = (
       <form onSubmit={onSubmit} className="space-y-6">
         <fieldset className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <legend className="px-1 text-sm font-semibold text-slate-800">
@@ -290,8 +296,41 @@ export default function CreateGameRoomForm() {
           >
             ← กลับหลังบ้าน
           </Link>
+          <Link
+            href="/account/my-games"
+            className="text-sm font-medium text-brand-700 underline decoration-brand-200 underline-offset-2 hover:text-brand-900"
+          >
+            เกมของฉัน
+          </Link>
         </div>
       </form>
+  );
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">
+          {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
+        </h2>
+        <p className="mt-1 text-sm text-slate-600">
+          {managingExisting
+            ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ — แบบฟอร์มเปิดห้องใหม่อยู่ในกล่องที่พับไว้"
+            : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
+        </p>
+      </div>
+
+      {managingExisting ? (
+        <details className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm open:pb-4">
+          <summary className="cursor-pointer list-none px-2 py-2 text-sm font-medium text-slate-800 marker:hidden [&::-webkit-details-marker]:hidden">
+            <span className="underline decoration-slate-300 underline-offset-2">
+              เปิดห้องเกมใหม่ — แบบฟอร์มวัตถุประสงค์ (คลิกเพื่อขยาย)
+            </span>
+          </summary>
+          <div className="mt-2 border-t border-slate-100 px-2 pt-4">{intakeForm}</div>
+        </details>
+      ) : (
+        intakeForm
+      )}
 
       {studioGameId ? (
         <div
