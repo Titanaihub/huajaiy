@@ -17,7 +17,8 @@ const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
 const phoneHistoryService = require("./services/phoneHistoryService");
 const {
-  runMarch2026AunyaweePhongCleanup
+  runMarch2026AunyaweePhongCleanup,
+  previewMarch2026AunyaweePhongCleanup
 } = require("./services/oneoffUserCleanupMarch2026");
 
 const router = express.Router();
@@ -1048,10 +1049,30 @@ router.post(
 );
 
 /**
- * One-off: ลบข้อมูล aunyawee + phongphiphat47 ตามที่แอดมินขอ (มีแค่ครั้งเดียว)
+ * ดูก่อนรัน cleanup — แอดมินอย่างเดียว (ไม่ต้อง ONEOFF_USER_CLEANUP_KEY)
+ * GET .../oneoff/cleanup-march-2026-preview
+ */
+router.get(
+  "/oneoff/cleanup-march-2026-preview",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const result = await previewMarch2026AunyaweePhongCleanup();
+      return res.json(result);
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/**
+ * One-off: ลบข้อมูล aunyawee + phongphiphat47
  *
- * ตั้งบน Render (huajaiy-api): ONEOFF_USER_CLEANUP_KEY = สตริงสุ่มยาว ๆ
- * เรียกครั้งเดียวแล้วลบ env นี้ออก
+ * Body (optional): forceAunyaweeBalanceAdjust: true — ปรับยอด aunyawee แม้ไม่มีแถวลบ (ระวังรันซ้ำ)
  *
  * curl -X POST "$API/api/admin/oneoff/cleanup-march-2026-users" \
  *   -H "Authorization: Bearer <admin_jwt>" \
@@ -1083,7 +1104,9 @@ router.post(
           error: 'ต้องส่ง JSON body.confirm เท่ากับ "DELETE_AUNYAWEE_PHONG_MARCH_2026"'
         });
       }
-      const result = await runMarch2026AunyaweePhongCleanup();
+      const result = await runMarch2026AunyaweePhongCleanup({
+        forceAunyaweeBalanceAdjust: Boolean(req.body?.forceAunyaweeBalanceAdjust)
+      });
       return res.json(result);
     } catch (e) {
       if (e.code === "DB_REQUIRED") {

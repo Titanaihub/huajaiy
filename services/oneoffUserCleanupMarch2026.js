@@ -7,19 +7,93 @@ const PHONG_USERNAME = "phongphiphat47";
 const AUNYAWEE_SUBTRACT_GIVEAWAY = 4999;
 const AUNYAWEE_ADD_PLAYABLE_RED = 1;
 
-const LEDGER_KINDS_AUNYAWEE = [
-  "heart_purchase_approved",
-  "game_start",
-  "room_red_code_issue",
-  "room_red_code_refund"
-];
+/**
+ * ดูก่อนรันว่ามีแถวอะไรใน DB (ไม่แก้ข้อมูล)
+ */
+async function previewMarch2026AunyaweePhongCleanup() {
+  const pool = getPool();
+  if (!pool) {
+    const e = new Error("ต้องใช้ PostgreSQL (DATABASE_URL)");
+    e.code = "DB_REQUIRED";
+    throw e;
+  }
+  const au = await userService.findByUsername(AUNYAWEE_USERNAME);
+  const ph = await userService.findByUsername(PHONG_USERNAME);
+  const hint = await pool.query(
+    `SELECT id, username FROM users
+     WHERE username ILIKE $1 OR username ILIKE $2 OR username ILIKE $3
+     ORDER BY username`,
+    ["%aunyawee%", "%phong%", "%phiphat%"]
+  );
+  async function n(q, params) {
+    const r = await pool.query(q, params);
+    return Math.max(0, Number(r.rows[0]?.c) || 0);
+  }
+  if (!au || !ph) {
+    return {
+      ok: true,
+      preview: true,
+      foundAunyawee: au ? { id: au.id, username: au.username } : null,
+      foundPhong: ph ? { id: ph.id, username: ph.username } : null,
+      hintUsers: hint.rows.map((row) => ({
+        id: row.id,
+        username: row.username
+      })),
+      note:
+        "ไม่พบยูสเซอร์ตามชื่อที่ฮาร์ดโค้ด — ดู hintUsers ว่าใน DB เขียนต่างจาก aunyawee / phongphiphat47 หรือไม่"
+    };
+  }
+  const auId = au.id;
+  const phId = ph.id;
+  const ledgerKinds = await pool.query(
+    `SELECT kind, COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid GROUP BY kind ORDER BY kind`,
+    [auId]
+  );
+  return {
+    ok: true,
+    preview: true,
+    foundAunyawee: { id: auId, username: au.username },
+    foundPhong: { id: phId, username: ph.username },
+    counts: {
+      aunyaweeHeartPurchases: await n(
+        `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE user_id = $1::uuid`,
+        [auId]
+      ),
+      aunyaweeHeartLedgerRows: await n(
+        `SELECT COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid`,
+        [auId]
+      ),
+      aunyaweeLedgerByKind: ledgerKinds.rows,
+      aunyaweePrizeAwards: await n(
+        `SELECT COUNT(*)::int AS c FROM central_prize_awards WHERE winner_user_id = $1::uuid`,
+        [auId]
+      ),
+      aunyaweeUserRoomRedBalanceRows: await n(
+        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
+        [auId]
+      ),
+      phongRoomCodesAsCreator: await n(
+        `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
+        [phId]
+      ),
+      aunyaweeRoomCodesAsCreator: await n(
+        `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
+        [auId]
+      )
+    },
+    hintUsers: hint.rows.map((row) => ({
+      id: row.id,
+      username: row.username
+    }))
+  };
+}
 
 /**
  * One-off: ลบข้อมูลตามคำขอ aunyawee + phongphiphat47 (มีแอดมิน + คีย์ env หรือรันสคริปต์)
- * ไม่เรียก pool.end() — ใช้จาก server ได้
+ * @param {{ forceAunyaweeBalanceAdjust?: boolean }} [options]
  * @returns {Promise<{ ok: true, phongCodesDeleted: string[], aunyaweeCodesDeleted: string[], sql: object }>}
  */
-async function runMarch2026AunyaweePhongCleanup() {
+async function runMarch2026AunyaweePhongCleanup(options = {}) {
   const pool = getPool();
   if (!pool) {
     const e = new Error("ต้องใช้ PostgreSQL (DATABASE_URL)");
@@ -77,9 +151,8 @@ async function runMarch2026AunyaweePhongCleanup() {
     sql.prizeAwardsDeleted = delAwards.rowCount;
 
     const delLedger = await client.query(
-      `DELETE FROM heart_ledger
-       WHERE user_id = $1::uuid AND kind = ANY($2::varchar[])`,
-      [auId, LEDGER_KINDS_AUNYAWEE]
+      `DELETE FROM heart_ledger WHERE user_id = $1::uuid`,
+      [auId]
     );
     sql.ledgerDeleted = delLedger.rowCount;
 
@@ -101,10 +174,11 @@ async function runMarch2026AunyaweePhongCleanup() {
       sql.purchasesDeleted +
       sql.roomRedBalanceRowsDeleted;
 
-    if (touched === 0) {
+    const forceBal = Boolean(options.forceAunyaweeBalanceAdjust);
+    if (touched === 0 && !forceBal) {
       sql.balanceAdjusted = false;
       sql.note =
-        "ไม่มีแถวให้ลบในรอบนี้ — ข้ามการปรับยอด aunyawee (กันหัก 4999 ซ้ำเมื่อรันครั้งสอง)";
+        "ไม่มีแถวให้ลบในรอบนี้ — ข้ามการปรับยอด aunyawee · ถ้าต้องการปรับยอดบังคับ ส่ง JSON forceAunyaweeBalanceAdjust: true (ระวังรันซ้ำ)";
     } else {
       const balR = await client.query(
         `SELECT pink_hearts_balance, red_hearts_balance, COALESCE(red_giveaway_balance,0) AS g
@@ -155,6 +229,7 @@ async function runMarch2026AunyaweePhongCleanup() {
 
 module.exports = {
   runMarch2026AunyaweePhongCleanup,
+  previewMarch2026AunyaweePhongCleanup,
   AUNYAWEE_USERNAME,
   PHONG_USERNAME
 };
