@@ -72,6 +72,35 @@ async function previewMarch2026AunyaweePhongCleanup() {
         `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
         [auId]
       ),
+      phongUserRoomRedBalanceRows: await n(
+        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
+        [phId]
+      ),
+      roomRedBalanceRowsAsCreatorAunyawee: await n(
+        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE creator_id = $1::uuid`,
+        [auId]
+      ),
+      roomRedBalanceRowsAsCreatorPhong: await n(
+        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE creator_id = $1::uuid`,
+        [phId]
+      ),
+      phongHeartLedgerRows: await n(
+        `SELECT COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid`,
+        [phId]
+      ),
+      phongHeartPurchases: await n(
+        `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE user_id = $1::uuid`,
+        [phId]
+      ),
+      phongPrizeAwards: await n(
+        `SELECT COUNT(*)::int AS c FROM central_prize_awards WHERE winner_user_id = $1::uuid`,
+        [phId]
+      ),
+      withdrawalRequestsTouchingEither: await n(
+        `SELECT COUNT(*)::int AS c FROM central_prize_withdrawal_requests
+         WHERE requester_user_id = ANY($1::uuid[]) OR creator_user_id = ANY($1::uuid[])`,
+        [[auId, phId]]
+      ),
       phongRoomCodesAsCreator: await n(
         `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
         [phId]
@@ -90,6 +119,7 @@ async function previewMarch2026AunyaweePhongCleanup() {
 
 /**
  * One-off: ลบข้อมูลตามคำขอ aunyawee + phongphiphat47 (มีแอดมิน + คีย์ env หรือรันสคริปต์)
+ * รวม ledger/purchases/รางวัล/ยอดห้อง (ทั้งฝั่ง user และ creator) และคำขอถอนรางวัลที่เกี่ยวทั้งสองคน
  * @param {{ forceAunyaweeBalanceAdjust?: boolean }} [options]
  * @returns {Promise<{ ok: true, phongCodesDeleted: string[], aunyaweeCodesDeleted: string[], sql: object }>}
  */
@@ -133,6 +163,7 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
 
   const client = await pool.connect();
   const sql = {
+    withdrawalRequestsDeleted: 0,
     prizeAwardsDeleted: 0,
     ledgerDeleted: 0,
     purchasesDeleted: 0,
@@ -144,31 +175,40 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
   try {
     await client.query("BEGIN");
 
+    const delWd = await client.query(
+      `DELETE FROM central_prize_withdrawal_requests
+       WHERE requester_user_id = ANY($1::uuid[]) OR creator_user_id = ANY($1::uuid[])`,
+      [[auId, phId]]
+    );
+    sql.withdrawalRequestsDeleted = delWd.rowCount;
+
     const delAwards = await client.query(
-      `DELETE FROM central_prize_awards WHERE winner_user_id = $1::uuid`,
-      [auId]
+      `DELETE FROM central_prize_awards WHERE winner_user_id = ANY($1::uuid[])`,
+      [[auId, phId]]
     );
     sql.prizeAwardsDeleted = delAwards.rowCount;
 
     const delLedger = await client.query(
-      `DELETE FROM heart_ledger WHERE user_id = $1::uuid`,
-      [auId]
+      `DELETE FROM heart_ledger WHERE user_id = ANY($1::uuid[])`,
+      [[auId, phId]]
     );
     sql.ledgerDeleted = delLedger.rowCount;
 
     const delPurchases = await client.query(
-      `DELETE FROM heart_purchases WHERE user_id = $1::uuid`,
-      [auId]
+      `DELETE FROM heart_purchases WHERE user_id = ANY($1::uuid[])`,
+      [[auId, phId]]
     );
     sql.purchasesDeleted = delPurchases.rowCount;
 
     const delRoomBal = await client.query(
-      `DELETE FROM user_room_red_balance WHERE user_id = $1::uuid`,
-      [auId]
+      `DELETE FROM user_room_red_balance
+       WHERE user_id = ANY($1::uuid[]) OR creator_id = ANY($1::uuid[])`,
+      [[auId, phId]]
     );
     sql.roomRedBalanceRowsDeleted = delRoomBal.rowCount;
 
     const touched =
+      sql.withdrawalRequestsDeleted +
       sql.prizeAwardsDeleted +
       sql.ledgerDeleted +
       sql.purchasesDeleted +
