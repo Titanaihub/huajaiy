@@ -306,6 +306,21 @@ export async function apiListRoomRedGiftCodes(token) {
   return data;
 }
 
+export async function apiDeleteRoomRedGiftCode(token, codeId) {
+  const r = await fetch(
+    `${apiRoot()}/api/hearts/room-red-codes/${encodeURIComponent(codeId)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ลบรหัสไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiRedeemRoomRedGiftCode(token, code) {
   const r = await fetch(`${apiRoot()}/api/hearts/room-red-redeem`, {
     method: "POST",

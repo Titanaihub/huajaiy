@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiCreateRoomRedGiftCode,
+  apiDeleteRoomRedGiftCode,
   apiListRoomRedGiftCodes,
   apiRedeemRoomRedGiftCode,
   getMemberToken
@@ -44,6 +45,16 @@ export default function AccountRoomRedGiftSection() {
     void loadCodes();
   }, [loadCodes]);
 
+  const estimatedRedDeduction = useMemo(() => {
+    const ra = Math.max(1, Math.floor(Number(redAmount) || 1));
+    if (multiUseSingleCode) {
+      const mu = Math.max(1, Math.floor(Number(maxUses) || 1));
+      return ra * mu;
+    }
+    const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
+    return ra * n;
+  }, [redAmount, codeCount, maxUses, multiUseSingleCode]);
+
   async function onCreate(e) {
     e.preventDefault();
     const token = getMemberToken();
@@ -60,8 +71,9 @@ export default function AccountRoomRedGiftSection() {
           maxUses: mu,
           codeCount: 1
         });
+        const ded = Math.max(0, Math.floor(Number(data.redDeducted) || 0));
         setCreateMsg(
-          `สร้างรหัส ${data.code?.code || ""} แล้ว — แดง ${ra} ต่อการแลก · รหัสเดียวแลกได้ ${mu} ครั้ง (แจกได้หลายคน)`
+          `สร้างรหัส ${data.code?.code || ""} แล้ว — แดง ${ra} ต่อการแลก · รหัสเดียวแลกได้ ${mu} ครั้ง (แจกได้หลายคน) · หักแดงจากคุณ ${ded.toLocaleString("th-TH")} ดวง`
         );
       } else {
         const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
@@ -76,10 +88,12 @@ export default function AccountRoomRedGiftSection() {
           .map((c) => c.code)
           .join(", ");
         const more = list.length > 5 ? ` … อีก ${list.length - 5} รหัส` : "";
+        const ded = Math.max(0, Math.floor(Number(data.redDeducted) || 0));
         setCreateMsg(
-          `สร้าง ${list.length} รหัสแล้ว (แต่ละรหัส ${ra} แดง · คนละครั้ง) — ${preview}${more}`
+          `สร้าง ${list.length} รหัสแล้ว (แต่ละรหัส ${ra} แดง · คนละครั้ง) — ${preview}${more} · หักแดงจากคุณ ${ded.toLocaleString("th-TH")} ดวง`
         );
       }
+      await refresh();
       await loadCodes();
     } catch (ex) {
       setCreateMsg(ex?.message || "สร้างไม่สำเร็จ");
@@ -104,7 +118,7 @@ export default function AccountRoomRedGiftSection() {
       const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
       const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
       setRedeemMsg(
-        `แลกสำเร็จ — ได้หัวใจแดงห้อง ${added.toLocaleString("th-TH")} ดวง ของ ${un} · ยอดนี้อยู่ใน「หัวใจแดงจากรหัสห้อง」ไม่ได้บวกในหัวใจแดงทั่วไป — ดูที่เมนู「หัวใจของฉัน」หรือการ์ดภาพรวมบัญชี`
+        `แลกสำเร็จ — ได้หัวใจแดงห้อง ${added.toLocaleString("th-TH")} ดวง ของ ${un} · ดูยอดที่มุมบน「+ห้อง」ข้างแดงทั่วไป หรือเมนู「หัวใจของฉัน」 (ไม่บวกในแดงทั่วไป — ใช้เล่นตามกติกาเกมของเจ้าห้อง)`
       );
       setRedeemCode("");
       await loadCodes();
@@ -119,8 +133,7 @@ export default function AccountRoomRedGiftSection() {
     <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold text-slate-900">รหัสหัวใจแดงห้องเกม</h3>
       <p className="mt-2 text-sm text-slate-600">
-        <strong>เจ้าของห้อง:</strong> สร้างรหัสแจกผู้เล่น — ผู้เล่นแลกในช่องด้านล่าง หัวใจแดงจากรหัสจะใช้เล่นได้เฉพาะ
-        <strong> เกมของคุณ</strong> หรือเกมที่ผู้ดูแลเปิดตัวเลือก「รับแดงจากรหัสห้อง」ในหน้าตั้งค่าเกม
+        <strong>เจ้าของห้อง:</strong> สร้างรหัสแจกผู้เล่น — ระบบจะ<strong>หักหัวใจแดงจากคุณทันที</strong> ตามจำนวนที่แจก (จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส) ผู้เล่นแลกแล้วได้แดงห้อง (โชว์ที่มุมบน +ห้อง) ไม่ใช่แดงทั่วไป
       </p>
 
       <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
@@ -186,6 +199,10 @@ export default function AccountRoomRedGiftSection() {
             {createBusy ? "กำลังสร้าง…" : "สร้างรหัส"}
           </button>
         </div>
+        <p className="text-xs text-amber-900/90">
+          คาดว่าจะหักแดงทั่วไปของคุณ{" "}
+          <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong> — ถ้าไม่พอระบบจะไม่สร้างรหัส
+        </p>
       </form>
       {createMsg ? (
         <p className="mt-2 text-sm text-emerald-800" role="status">
@@ -219,7 +236,12 @@ export default function AccountRoomRedGiftSection() {
 
       <div className="mt-6 border-t border-slate-100 pt-4">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold text-slate-800">รหัสที่คุณสร้าง</h4>
+          <h4 className="text-sm font-semibold text-slate-800">
+            รหัสที่คุณสร้าง
+            <span className="mt-0.5 block text-xs font-normal text-slate-500">
+              กดลบเพื่อเอารหัสเก่าออกและคืนแดงส่วนที่ยังไม่ถูกแลก
+            </span>
+          </h4>
           <button
             type="button"
             onClick={() => loadCodes()}
@@ -241,14 +263,23 @@ export default function AccountRoomRedGiftSection() {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2"
               >
                 <code className="font-mono font-semibold text-slate-900">{c.code}</code>
-                <span className="text-xs text-slate-600">
-                  แดง {c.redAmount} ·{" "}
-                  {Number(c.maxUses) <= 1
-                    ? `ใช้แล้ว ${c.usesCount}/1 (ครั้งเดียวต่อรหัส)`
-                    : `ใช้แล้ว ${c.usesCount}/${c.maxUses}`}
-                  {c.expired ? " · หมดอายุ" : ""}
-                  {c.exhausted ? " · เต็ม" : ""}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-600">
+                    แดง {c.redAmount} ·{" "}
+                    {Number(c.maxUses) <= 1
+                      ? `ใช้แล้ว ${c.usesCount}/1 (ครั้งเดียวต่อรหัส)`
+                      : `ใช้แล้ว ${c.usesCount}/${c.maxUses}`}
+                    {c.expired ? " · หมดอายุ" : ""}
+                    {c.exhausted ? " · เต็ม" : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteCode(c)}
+                    className="rounded border border-red-200 bg-white px-2 py-0.5 text-xs font-medium text-red-800 hover:bg-red-50"
+                  >
+                    ลบ
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

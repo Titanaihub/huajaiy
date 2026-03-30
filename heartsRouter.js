@@ -70,7 +70,10 @@ router.get("/purchases/mine", authMiddleware, async (req, res) => {
   }
 });
 
-/** สร้างรหัสแจกหัวใจแดงห้องเกม (เจ้าของห้อง) — codeCount>1 = หลายรหัส แต่ละรหัสใช้ได้ครั้งเดียว */
+/**
+ * สร้างรหัสแจกหัวใจแดงห้องเกม — หักหัวใจแดงจากเจ้าของทันที
+ * ต้นทุน = จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส (หลายรหัส = ครั้งต่อรหัสเสมอ 1)
+ */
 router.post("/room-red-codes", authMiddleware, async (req, res) => {
   try {
     const redAmount = Math.max(1, Math.floor(Number(req.body?.redAmount) || 0));
@@ -84,28 +87,55 @@ router.post("/room-red-codes", authMiddleware, async (req, res) => {
         ? String(req.body.expiresAt).trim()
         : null;
 
-    if (codeCount > 1) {
-      const codes = await roomRedGiftService.createCodesBatch(req.userId, {
-        count: codeCount,
-        redAmount,
-        maxUses: 1,
-        expiresAt
-      });
-      return res.json({ ok: true, codes, code: codes[0] || null });
-    }
-
-    const row = await roomRedGiftService.createCode(req.userId, {
+    const maxUses = codeCount > 1 ? 1 : maxUsesSingle;
+    const result = await roomRedGiftService.issueRoomRedGiftCodes(req.userId, {
       redAmount,
-      maxUses: maxUsesSingle,
+      codeCount,
+      maxUses,
       expiresAt
     });
-    return res.json({ ok: true, code: row, codes: [row] });
+    return res.json({ ok: true, ...result });
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       return res.status(503).json({
         ok: false,
         error: "ฟีเจอร์รหัสห้องต้องใช้ฐานข้อมูล PostgreSQL"
       });
+    }
+    if (e.code === "INSUFFICIENT_REDS") {
+      return res.status(400).json({
+        ok: false,
+        error: e.message,
+        code: e.code
+      });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เจ้าของลบรหัสที่สร้าง — คืนหัวใจแดงส่วนที่ยังไม่ถูกแลก */
+router.delete("/room-red-codes/:id", authMiddleware, async (req, res) => {
+  try {
+    const out = await roomRedGiftService.deleteCodeByCreator(
+      req.userId,
+      req.params.id
+    );
+    return res.json({ ok: true, ...out });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error: "ฟีเจอร์รหัสห้องต้องใช้ฐานข้อมูล PostgreSQL"
+      });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    if (e.code === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, error: e.message });
     }
     if (e.code === "VALIDATION") {
       return res.status(400).json({ ok: false, error: e.message });
