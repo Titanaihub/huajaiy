@@ -24,6 +24,9 @@ export default function AccountRoomRedGiftSection() {
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemBusy, setRedeemBusy] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
+  const [deleteBusyId, setDeleteBusyId] = useState("");
+  const [deleteAllBusy, setDeleteAllBusy] = useState(false);
+  const [deleteErr, setDeleteErr] = useState("");
 
   const loadCodes = useCallback(async () => {
     const token = getMemberToken();
@@ -99,6 +102,49 @@ export default function AccountRoomRedGiftSection() {
       setCreateMsg(ex?.message || "สร้างไม่สำเร็จ");
     } finally {
       setCreateBusy(false);
+    }
+  }
+
+  async function onDeleteCode(c) {
+    const token = getMemberToken();
+    if (!token || !c?.id) return;
+    setDeleteErr("");
+    setDeleteBusyId(String(c.id));
+    try {
+      await apiDeleteRoomRedGiftCode(token, c.id);
+      await refresh();
+      await loadCodes();
+    } catch (ex) {
+      setDeleteErr(ex?.message || "ลบรหัสไม่สำเร็จ");
+    } finally {
+      setDeleteBusyId("");
+    }
+  }
+
+  async function onDeleteAllCodes() {
+    const token = getMemberToken();
+    if (!token || codes.length === 0) return;
+    if (
+      !window.confirm(
+        `ลบรหัสทั้ง ${codes.length} รายการ? ระบบจะคืนหัวใจแดงเฉพาะส่วนที่ยังไม่ถูกแลก (ตามจำนวนครั้งที่เหลือ)`
+      )
+    ) {
+      return;
+    }
+    setDeleteErr("");
+    setDeleteAllBusy(true);
+    try {
+      for (const c of codes) {
+        await apiDeleteRoomRedGiftCode(token, c.id);
+      }
+      await refresh();
+      await loadCodes();
+    } catch (ex) {
+      setDeleteErr(ex?.message || "ลบรหัสบางรายการไม่สำเร็จ — ลองรีเฟรชแล้วลบที่เหลือ");
+      await loadCodes();
+      await refresh();
+    } finally {
+      setDeleteAllBusy(false);
     }
   }
 
@@ -255,21 +301,38 @@ export default function AccountRoomRedGiftSection() {
       </div>
 
       <div className="mt-6 border-t border-slate-100 pt-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="text-sm font-semibold text-slate-800">
             รหัสที่คุณสร้าง
             <span className="mt-0.5 block text-xs font-normal text-slate-500">
               กดลบเพื่อเอารหัสเก่าออกและคืนแดงส่วนที่ยังไม่ถูกแลก
             </span>
           </h4>
-          <button
-            type="button"
-            onClick={() => loadCodes()}
-            className="text-xs font-medium text-brand-800 underline"
-          >
-            รีเฟรช
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {codes.length > 1 ? (
+              <button
+                type="button"
+                disabled={deleteAllBusy || listLoading}
+                onClick={() => void onDeleteAllCodes()}
+                className="rounded border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+              >
+                {deleteAllBusy ? "กำลังลบทั้งหมด…" : "ลบทั้งหมด"}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => loadCodes()}
+              className="text-xs font-medium text-brand-800 underline"
+            >
+              รีเฟรช
+            </button>
+          </div>
         </div>
+        {deleteErr ? (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {deleteErr}
+          </p>
+        ) : null}
         {listErr ? <p className="mt-2 text-sm text-red-600">{listErr}</p> : null}
         {listLoading ? (
           <p className="mt-2 text-sm text-slate-500">กำลังโหลด…</p>
@@ -294,10 +357,11 @@ export default function AccountRoomRedGiftSection() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => onDeleteCode(c)}
-                    className="rounded border border-red-200 bg-white px-2 py-0.5 text-xs font-medium text-red-800 hover:bg-red-50"
+                    disabled={Boolean(deleteBusyId) || deleteAllBusy}
+                    onClick={() => void onDeleteCode(c)}
+                    className="rounded border border-red-200 bg-white px-2 py-0.5 text-xs font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
                   >
-                    ลบ
+                    {deleteBusyId === String(c.id) ? "กำลังลบ…" : "ลบ"}
                   </button>
                 </div>
               </li>
