@@ -124,6 +124,10 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_heart_packages_active ON heart_packages(active) WHERE active = TRUE;`
     );
+    await client.query(`
+      ALTER TABLE heart_packages
+      ADD COLUMN IF NOT EXISTS retired BOOLEAN NOT NULL DEFAULT FALSE;
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS heart_purchases (

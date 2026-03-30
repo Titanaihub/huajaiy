@@ -70,11 +70,35 @@ export default function AdminHeartPackagesPanel() {
   }
 
   async function toggleActive(pkg) {
+    if (pkg.retired) return;
     const token = getMemberToken();
     if (!token) return;
     setBusyId(pkg.id);
     try {
       await apiAdminPatchHeartPackage(token, pkg.id, { active: !pkg.active });
+      await load();
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function retireForever(pkg) {
+    if (pkg.retired) return;
+    if (
+      !window.confirm(
+        `หยุดขายถาวร「${pkg.title}」?\nจะไม่มีปุ่มเปิดการขายอีก — ลบแพ็กได้ถ้าไม่มีประวัติซื้อ`
+      )
+    ) {
+      return;
+    }
+    const token = getMemberToken();
+    if (!token) return;
+    setBusyId(pkg.id);
+    setErr("");
+    try {
+      await apiAdminPatchHeartPackage(token, pkg.id, { retirePermanently: true });
       await load();
     } catch (e) {
       setErr(e.message || String(e));
@@ -209,17 +233,39 @@ export default function AdminHeartPackagesPanel() {
                     <td className="px-3 py-2 font-medium">{p.title}</td>
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
-                    <td className="px-3 py-2">{p.active ? "เปิด" : "ปิด"}</td>
+                    <td className="px-3 py-2">
+                      {p.retired ? (
+                        <span className="font-medium text-slate-600">หยุดขายถาวร</span>
+                      ) : p.active ? (
+                        "เปิด"
+                      ) : (
+                        "ปิด"
+                      )}
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <button
-                          type="button"
-                          disabled={busyId === p.id}
-                          onClick={() => toggleActive(p)}
-                          className="text-xs font-semibold text-brand-800 underline"
-                        >
-                          {p.active ? "ปิดการขาย" : "เปิดการขาย"}
-                        </button>
+                        {p.retired ? (
+                          <span className="text-xs text-slate-500">—</span>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              disabled={busyId === p.id}
+                              onClick={() => toggleActive(p)}
+                              className="text-xs font-semibold text-brand-800 underline"
+                            >
+                              {p.active ? "ปิดการขาย" : "เปิดการขาย"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyId === p.id}
+                              onClick={() => void retireForever(p)}
+                              className="text-xs font-semibold text-amber-900 underline"
+                            >
+                              หยุดขายถาวร
+                            </button>
+                          </>
+                        )}
                         <button
                           type="button"
                           disabled={busyId === p.id}

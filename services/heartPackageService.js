@@ -11,7 +11,8 @@ function rowToPackage(row) {
     priceThb: Math.max(0, Math.floor(Number(row.price_thb) || 0)),
     active: Boolean(row.active),
     sortOrder: Math.floor(Number(row.sort_order) || 0),
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    retired: Boolean(row.retired)
   };
 }
 
@@ -23,7 +24,8 @@ async function listActive() {
     throw err;
   }
   const r = await pool.query(
-    `SELECT * FROM heart_packages WHERE active = TRUE
+    `SELECT * FROM heart_packages
+     WHERE active = TRUE AND COALESCE(retired, FALSE) = FALSE
      ORDER BY sort_order ASC, created_at ASC`
   );
   return r.rows.map(rowToPackage);
@@ -126,7 +128,19 @@ async function update(id, patch) {
     patch.sortOrder != null
       ? Math.floor(Number(patch.sortOrder) || 0)
       : cur.sortOrder;
-  const active = patch.active != null ? Boolean(patch.active) : cur.active;
+  let retired = cur.retired;
+  if (patch.retirePermanently === true) {
+    retired = true;
+  }
+  let active = patch.active != null ? Boolean(patch.active) : cur.active;
+  if (retired) {
+    active = false;
+  }
+  if (cur.retired && patch.active === true) {
+    const e = new Error("แพ็กนี้หยุดขายถาวรแล้ว — ไม่สามารถเปิดการขายอีก");
+    e.code = "VALIDATION";
+    throw e;
+  }
   if (!title) {
     const e = new Error("ต้องมีชื่อแพ็กเกจ");
     e.code = "VALIDATION";
@@ -145,9 +159,9 @@ async function update(id, patch) {
   const r = await pool.query(
     `UPDATE heart_packages SET
       title = $2, description = $3, pink_qty = $4, red_qty = $5,
-      price_thb = $6, active = $7, sort_order = $8
+      price_thb = $6, active = $7, sort_order = $8, retired = $9
     WHERE id = $1 RETURNING *`,
-    [id, title, description, pinkQty, redQty, priceThb, active, sortOrder]
+    [id, title, description, pinkQty, redQty, priceThb, active, sortOrder, retired]
   );
   return rowToPackage(r.rows[0]);
 }
@@ -171,7 +185,7 @@ async function removeById(id) {
   const n = Math.max(0, Number(cnt.rows[0]?.c) || 0);
   if (n > 0) {
     const e = new Error(
-      `ลบไม่ได้ — มีประวัติการซื้อแพ็กนี้ ${n} รายการ · ใช้「ปิดการขาย」แทน หรือติดต่อผู้พัฒนา`
+      `ลบไม่ได้ — มีประวัติการซื้อแพ็กนี้ ${n} รายการ · ใช้「หยุดขายถาวร」แทน หรือติดต่อผู้พัฒนา`
     );
     e.code = "CONFLICT";
     throw e;
