@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { apiGetCreatorWithdrawalStatus, getMemberToken } from "../lib/memberApi";
+import { showMemberShopNav } from "../lib/memberUi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const linkBase =
@@ -89,9 +90,11 @@ export default function AccountBackOfficeShell({ children }) {
                 <NavLink href="/account/creator-withdrawals">คำขอถอนรางวัลถึงฉัน</NavLink>
               </li>
             ) : null}
-            <li>
-              <NavLink href="/account/shops">ร้านของฉัน</NavLink>
-            </li>
+            {showMemberShopNav(user) ? (
+              <li>
+                <NavLink href="/account/shops">ร้านของฉัน</NavLink>
+              </li>
+            ) : null}
             <li>
               <NavLink href="/account/hearts-shop">ซื้อหัวใจ</NavLink>
             </li>

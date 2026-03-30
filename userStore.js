@@ -139,7 +139,8 @@ function publicUser(u) {
     role: n.role || MEMBER,
     pinkHeartsBalance: n.pinkHeartsBalance,
     redHeartsBalance: n.redHeartsBalance,
-    heartsBalance: n.heartsBalance
+    heartsBalance: n.heartsBalance,
+    createdAt: n.createdAt != null ? String(n.createdAt) : null
   };
 }
 

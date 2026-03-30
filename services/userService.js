@@ -166,6 +166,11 @@ function publicUser(u) {
     u.redHeartsBalance == null
       ? 0
       : Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+  let createdAt = null;
+  if (u.createdAt != null) {
+    createdAt =
+      u.createdAt instanceof Date ? u.createdAt.toISOString() : String(u.createdAt);
+  }
   return {
     id: u.id,
     username: u.username,
@@ -179,7 +184,8 @@ function publicUser(u) {
     role: u.role || MEMBER,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
-    heartsBalance: p + r
+    heartsBalance: p + r,
+    createdAt
   };
 }
 
