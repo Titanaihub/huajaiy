@@ -313,8 +313,17 @@ async function getPublishedGameSnapshotById(gameId) {
   return getGameSnapshotById(gameId);
 }
 
-async function listGamesForAdmin() {
+/**
+ * @param {{ creatorId?: string | null }} [options] — ถ้าระบุ จะคืนเฉพาะเกมที่ created_by ตรงกับผู้ใช้ (สำหรับผู้สร้างที่ไม่ใช่แอดมิน)
+ */
+async function listGamesForAdmin(options = {}) {
   const pool = requirePool();
+  const creatorId =
+    options.creatorId != null && String(options.creatorId).trim() !== ""
+      ? String(options.creatorId).trim()
+      : null;
+  const where = creatorId ? " WHERE g.created_by = $1" : "";
+  const params = creatorId ? [creatorId] : [];
   const r = await pool.query(
     `SELECT g.*,
       COALESCE(pa.c, 0)::int AS prize_award_count
@@ -324,7 +333,9 @@ async function listGamesForAdmin() {
        FROM central_prize_awards
        GROUP BY game_id
      ) pa ON pa.game_id = g.id
-     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`
+     ${where}
+     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`,
+    params
   );
   return r.rows.map((row) => ({
     ...rowGame(row),

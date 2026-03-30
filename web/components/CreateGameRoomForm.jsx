@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminCentralGameCreate } from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -46,7 +46,6 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
 }
 
 export default function CreateGameRoomForm() {
-  const router = useRouter();
   const { user, loading } = useMemberAuth();
   const [purpose, setPurpose] = useState("shop_sales");
   const [otherReason, setOtherReason] = useState("");
@@ -55,14 +54,17 @@ export default function CreateGameRoomForm() {
   const [agreeRules, setAgreeRules] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [info, setInfo] = useState("");
+  const [studioGameId, setStudioGameId] = useState(null);
+  const studioRef = useRef(null);
 
-  const isAdmin = user?.role === "admin";
+  useEffect(() => {
+    if (!studioGameId || !studioRef.current) return;
+    studioRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [studioGameId]);
 
   async function onSubmit(e) {
     e.preventDefault();
     setErr("");
-    setInfo("");
 
     if (!agreeRules) {
       setErr("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
@@ -74,13 +76,6 @@ export default function CreateGameRoomForm() {
     }
     if (prizeConditions.trim().length < 15) {
       setErr("กรุณาอธิบายเงื่อนไขรางวัลให้ชัดเจน (อย่างน้อย 15 ตัวอักษร)");
-      return;
-    }
-
-    if (!isAdmin) {
-      setInfo(
-        "บัญชีของคุณยังไม่มีสิทธิ์สร้างห้องเกมบนระบบ — การสร้างเกมส่วนกลางใช้ได้เฉพาะผู้ดูแลระบบ (admin) เท่านั้น โปรดติดต่อทีมงานหรือดูวิธีขอสิทธิ์ที่หน้าแอดมิน"
-      );
       return;
     }
 
@@ -102,7 +97,7 @@ export default function CreateGameRoomForm() {
 
     setBusy(true);
     try {
-      await apiAdminCentralGameCreate(token, {
+      const data = await apiAdminCentralGameCreate(token, {
         title,
         description,
         setCount: 1,
@@ -110,7 +105,9 @@ export default function CreateGameRoomForm() {
         pinkHeartCost: 0,
         redHeartCost: 0
       });
-      router.push("/admin?tab=centralGame");
+      const gid = data.game?.id || data.snapshot?.game?.id || null;
+      if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
+      setStudioGameId(gid);
     } catch (ex) {
       setErr(ex?.message || "เปิดห้องเกมไม่สำเร็จ");
     } finally {
@@ -278,19 +275,6 @@ export default function CreateGameRoomForm() {
             {err}
           </p>
         ) : null}
-        {info ? (
-          <div
-            className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
-            role="status"
-          >
-            <p>{info}</p>
-            <p className="mt-3">
-              <Link href="/admin" className="font-semibold text-brand-900 underline">
-                ไปหน้าแอดมิน (คำแนะนำขอสิทธิ์)
-              </Link>
-            </p>
-          </div>
-        ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -298,11 +282,7 @@ export default function CreateGameRoomForm() {
             disabled={busy}
             className="rounded-xl bg-brand-800 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {busy
-              ? "กำลังเปิดห้อง…"
-              : isAdmin
-                ? "เปิดห้องเกม"
-                : "ยืนยันความตั้งใจ (ต้องเป็นผู้ดูแลระบบเพื่อสร้างจริง)"}
+            {busy ? "กำลังเปิดห้อง…" : "เปิดสร้างห้องเกม"}
           </button>
           <Link
             href="/account"
@@ -310,28 +290,24 @@ export default function CreateGameRoomForm() {
           >
             ← กลับหลังบ้าน
           </Link>
-          {isAdmin ? (
-            <Link
-              href="/admin?tab=centralGame"
-              className="text-sm font-medium text-brand-700 underline hover:text-brand-900"
-            >
-              ไปแท็บเกมส่วนกลาง
-            </Link>
-          ) : null}
         </div>
-
-        {!isAdmin ? (
-          <p className="text-xs text-slate-500">
-            ปุ่มด้านบนจะบันทึกความตั้งใจและเงื่อนไขในแบบฟอร์มเท่านั้น — การสร้างห้องเกมจริงบนเซิร์ฟเวอร์ต้องใช้บัญชี
-            admin หลังจากได้รับสิทธิ์แล้ว คุณสามารถกลับมาที่หน้านี้เพื่อกดเปิดห้องได้ทันที
-          </p>
-        ) : (
-          <p className="text-xs text-slate-500">
-            หลังเปิดห้อง ระบบจะสร้างเกมส่วนกลางแบบร่าง (ชุดละ 4 ป้าย) แล้วพาไปแท็บตั้งค่าเกม — คุณสามารถอัปโหลดรูป
-            กำหนดกติกา และเผยแพร่ได้จากนั้น
-          </p>
-        )}
       </form>
+
+      {studioGameId ? (
+        <div
+          ref={studioRef}
+          id="game-studio"
+          className="scroll-mt-8 border-t border-slate-200 pt-10"
+        >
+          <h3 className="text-base font-semibold text-slate-900">ตั้งค่าห้องเกม</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            เลือกเกมในตาราง อัปโหลดรูป กำหนดกติกา แล้วเผยแพร่เมื่อพร้อม — ใช้ระบบเดียวกับแผงเกมส่วนกลาง
+          </p>
+          <div className="mt-6">
+            <AdminCentralGamePanel key={studioGameId} embedded focusGameId={studioGameId} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

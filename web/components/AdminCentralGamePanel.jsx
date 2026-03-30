@@ -298,7 +298,10 @@ function RuleEditorRow({
   );
 }
 
-export default function AdminCentralGamePanel() {
+export default function AdminCentralGamePanel({
+  embedded = false,
+  focusGameId = null
+}) {
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -366,6 +369,23 @@ export default function AdminCentralGamePanel() {
   useEffect(() => {
     loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    if (!focusGameId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadList();
+      } catch {
+        /* loadList ตั้ง err เอง */
+      }
+      if (cancelled) return;
+      setSelectedId(focusGameId);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [focusGameId, loadList]);
 
   const loadDetail = useCallback(async (id) => {
     if (!id) return;
@@ -840,6 +860,7 @@ export default function AdminCentralGamePanel() {
         <p className={msg.includes("แล้ว") ? "text-green-700" : "text-amber-800"}>{msg}</p>
       ) : null}
 
+      {!embedded ? (
       <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-3">
         <button
           type="button"
@@ -948,6 +969,7 @@ export default function AdminCentralGamePanel() {
           </form>
         ) : null}
       </div>
+      ) : null}
 
       {publishPrompt ? (
         <div

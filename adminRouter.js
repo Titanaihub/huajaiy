@@ -22,6 +22,31 @@ function isUuidParam(id) {
   );
 }
 
+const CENTRAL_GAME_BUILDER_ROLES = new Set(["admin", "member", "owner"]);
+
+function requireGameBuilderRole(req, res, next) {
+  const r = req.userRole || "member";
+  if (!CENTRAL_GAME_BUILDER_ROLES.has(r)) {
+    return res.status(403).json({
+      ok: false,
+      error: "ไม่มีสิทธิ์สร้างหรือแก้ไขเกมส่วนกลาง"
+    });
+  }
+  next();
+}
+
+/** แอดมินทำได้ทุกเกม — สมาชิกทำได้เฉพาะเกมที่สร้างเอง (created_by) */
+async function assertOwnOrAdminCentralGame(req, gameId) {
+  if (req.userRole === "admin") return null;
+  const snap = await centralGameService.getGameSnapshotById(gameId);
+  if (!snap) return { status: 404, error: "ไม่พบเกม" };
+  const owner = snap.game.createdBy;
+  if (!owner || owner !== req.userId) {
+    return { status: 403, error: "ไม่มีสิทธิ์จัดการเกมนี้" };
+  }
+  return null;
+}
+
 /** ตรวจว่าโทเค็นเป็นบทบาทแอดมิน — ใช้ทดสอบหลังตั้ง role ในฐานข้อมูล */
 router.get("/ping", authMiddleware, requireRole("admin"), (req, res) => {
   res.json({
@@ -461,10 +486,13 @@ router.get("/game", authMiddleware, requireRole("admin"), async (_req, res) => {
 router.get(
   "/central-games",
   authMiddleware,
-  requireRole("admin"),
-  async (_req, res) => {
+  requireGameBuilderRole,
+  async (req, res) => {
     try {
-      const games = await centralGameService.listGamesForAdmin();
+      const isAdmin = req.userRole === "admin";
+      const games = await centralGameService.listGamesForAdmin(
+        isAdmin ? {} : { creatorId: req.userId }
+      );
       return res.json({ ok: true, games });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {
@@ -574,7 +602,7 @@ router.post(
 router.post(
   "/central-games",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const snap = await centralGameService.createGame({
@@ -609,12 +637,16 @@ router.post(
 router.get(
   "/central-games/:id",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       let snap = await centralGameService.getGameSnapshotById(id);
       if (!snap) {
@@ -662,12 +694,16 @@ router.get(
 router.patch(
   "/central-games/:id",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       const snap = await centralGameService.updateGameMeta(id, req.body || {});
       if (!snap) {
@@ -692,12 +728,16 @@ router.patch(
 router.put(
   "/central-games/:id/images",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       const snap = await centralGameService.replaceImages(id, req.body?.images, {
         oneImagePerSet: Boolean(req.body?.oneImagePerSet)
@@ -721,12 +761,16 @@ router.put(
 router.put(
   "/central-games/:id/rules",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       const snap = await centralGameService.replaceRules(id, req.body?.rules);
       return res.json({ ok: true, snapshot: snap });
@@ -748,12 +792,16 @@ router.put(
 router.post(
   "/central-games/:id/activate",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       const snap = await centralGameService.setActiveGame(id);
       return res.json({ ok: true, snapshot: snap });
@@ -775,12 +823,16 @@ router.post(
 router.post(
   "/central-games/:id/deactivate",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       await centralGameService.deactivateGame(id);
       return res.json({ ok: true });
@@ -799,12 +851,16 @@ router.post(
 router.delete(
   "/central-games/:id",
   authMiddleware,
-  requireRole("admin"),
+  requireGameBuilderRole,
   async (req, res) => {
     try {
       const { id } = req.params;
       if (!isUuidParam(id)) {
         return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const deny = await assertOwnOrAdminCentralGame(req, id);
+      if (deny) {
+        return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       await centralGameService.deleteGame(id);
       return res.json({ ok: true });
