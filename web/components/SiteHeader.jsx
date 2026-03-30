@@ -25,15 +25,6 @@ export default function SiteHeader() {
           <Link href="/" className={navClass}>
             หน้าแรก
           </Link>
-          <Link href="/shop" className={navClass}>
-            ร้านค้า
-          </Link>
-          <Link href="/cart" className={navClass}>
-            ตะกร้า
-          </Link>
-          <Link href="/orders" className={navClass}>
-            ออเดอร์
-          </Link>
           <Link href="/game" className={navClass}>
             เกม
           </Link>
