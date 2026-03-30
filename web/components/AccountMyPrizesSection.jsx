@@ -36,7 +36,7 @@ function formatWonAt(iso) {
   }
 }
 
-/** ดึงตัวเลขจำนวนเงินจากฟิลด์รางวัลเงินสด (เช่น "20" หรือ "1,000 บาท") */
+/** ดึงตัวเลขจำนวนเงินจากฟิลด์รางวัลเงินสด */
 function parseCashBaht(a) {
   if (a.prizeCategory !== "cash") return 0;
   const raw = [a.prizeValueText, a.prizeUnit].filter(Boolean).join(" ");
@@ -46,20 +46,32 @@ function parseCashBaht(a) {
   return Number.isFinite(n) ? n : 0;
 }
 
-function formatBahtTotal(n) {
+function formatBaht(n) {
   if (!Number.isFinite(n) || n === 0) return "0";
   if (Number.isInteger(n)) return n.toLocaleString("th-TH");
   return n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
 }
 
-function groupAwardsByGame(list) {
+function displayGameCode(a) {
+  const c = a.gameCode != null ? String(a.gameCode).trim() : "";
+  if (c) return c;
+  const id = String(a.gameId || "").replace(/-/g, "");
+  if (id.length >= 8) return `…${id.slice(-8)}`;
+  return a.gameId ? String(a.gameId).slice(0, 8) + "…" : "—";
+}
+
+function groupAwardsByCreator(list) {
   const map = new Map();
   for (const a of list) {
-    const id = a.gameId;
-    if (!map.has(id)) {
-      map.set(id, { gameId: id, gameTitle: a.gameTitle, items: [] });
+    const key = (a.creatorUsername || "").trim() || "_unknown";
+    if (!map.has(key)) {
+      map.set(key, {
+        creatorKey: key,
+        creatorUsername: (a.creatorUsername || "").trim(),
+        items: []
+      });
     }
-    map.get(id).items.push(a);
+    map.get(key).items.push(a);
   }
   const groups = [...map.values()];
   for (const g of groups) {
@@ -73,12 +85,32 @@ function groupAwardsByGame(list) {
   return groups;
 }
 
-function GamePrizeCard({ group }) {
-  const { gameId, gameTitle, items } = group;
+/** เรียงจากเก่าไปใหม่ — สะสมยอดเงินสด */
+function buildDetailRows(items) {
+  const sorted = [...items].sort((a, b) => new Date(a.wonAt) - new Date(b.wonAt));
+  let run = 0;
+  return sorted.map((a) => {
+    const cashAmt = a.prizeCategory === "cash" ? parseCashBaht(a) : 0;
+    if (a.prizeCategory === "cash") run += cashAmt;
+    return { award: a, cashAmt: a.prizeCategory === "cash" ? cashAmt : null, runningCash: run };
+  });
+}
+
+function CreatorPrizeCard({ group }) {
+  const { creatorUsername, items } = group;
+  const creatorDisplay =
+    creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
+
   const cashItems = items.filter((a) => a.prizeCategory === "cash");
   const nonCashItems = items.filter((a) => a.prizeCategory !== "cash");
   const cashTotal = cashItems.reduce((s, a) => s + parseCashBaht(a), 0);
+  const winCount = items.length;
+
   const [open, setOpen] = useState(false);
+  const detailRows = useMemo(() => buildDetailRows(items), [items]);
+  const finalCashBalance = detailRows.length
+    ? detailRows[detailRows.length - 1].runningCash
+    : 0;
 
   let nonCashSummary = null;
   if (nonCashItems.length > 0) {
@@ -94,25 +126,34 @@ function GamePrizeCard({ group }) {
 
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="font-semibold text-slate-900">{gameTitle}</p>
+      <h3 className="text-base font-semibold text-slate-900">
+        รางวัลเงินสดจาก{" "}
+        <span className="text-brand-800">{creatorDisplay}</span>
+      </h3>
 
       {cashItems.length > 0 ? (
         <p className="mt-2 text-sm text-slate-800">
-          เงินสดรวม{" "}
+          เงินรางวัลที่ได้ (รวมจากเกมที่ผู้สร้างรายนี้สร้าง){" "}
           <span className="font-bold tabular-nums text-slate-900">
-            {formatBahtTotal(cashTotal)}
+            {formatBaht(cashTotal)}
           </span>{" "}
           บาท
-          {cashItems.length > 1 ? (
-            <span className="font-normal text-slate-600">
-              {" "}
-              · ชนะ {cashItems.length} ครั้ง
-            </span>
-          ) : null}
+          <span className="font-normal text-slate-600">
+            {" "}
+            · ชนะ {winCount} ครั้ง
+          </span>
         </p>
-      ) : null}
+      ) : (
+        <p className="mt-2 text-sm text-slate-800">
+          ยังไม่มีรางวัลเงินสดจากผู้สร้างรายนี้
+          <span className="text-slate-600">
+            {" "}
+            · ชนะ {winCount} ครั้ง (รางวัลประเภทอื่น)
+          </span>
+        </p>
+      )}
 
-      {nonCashItems.length > 0 ? (
+      {nonCashSummary ? (
         <p className="mt-1.5 text-sm text-slate-700">{nonCashSummary}</p>
       ) : null}
 
@@ -120,33 +161,77 @@ function GamePrizeCard({ group }) {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+          className="text-sm font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
           aria-expanded={open}
         >
-          {open ? "ซ่อนรายละเอียดแต่ละครั้ง" : "ดูรายละเอียดแต่ละครั้ง"}
+          {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
         </button>
-        <Link
-          href={`/game/${encodeURIComponent(gameId)}`}
-          className="text-xs font-semibold text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
-        >
-          เปิดหน้าเกมนี้
-        </Link>
       </div>
 
       {open ? (
-        <ul className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-left">
-          {items.map((a) => (
-            <li
-              key={a.id}
-              className="rounded-lg bg-slate-50/90 px-3 py-2.5 text-sm text-slate-800"
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <p className="mb-3 text-xs text-slate-500">
+            วันเวลา = เวลาที่ระบบบันทึกการชนะรางวัล (หลังเปิดป้ายครบตามกติกา)
+          </p>
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="min-w-[720px] w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <th className="whitespace-nowrap px-3 py-2.5">ชื่อผู้สร้างเกม</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">วันเวลา</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
+                  <th className="min-w-[140px] px-3 py-2.5">ชื่อเกม</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">เงินรางวัลที่ได้</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">ยอดคงเหลือ (รวมเงินสด)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {detailRows.map(({ award: a, cashAmt, runningCash }) => (
+                  <tr key={a.id} className="bg-white">
+                    <td className="whitespace-nowrap px-3 py-2.5 font-medium text-slate-900">
+                      {creatorDisplay}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-slate-700">
+                      {formatWonAt(a.wonAt)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-600">
+                      {displayGameCode(a)}
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-800">{a.gameTitle}</td>
+                    <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
+                      {cashAmt != null ? (
+                        <span>{formatBaht(cashAmt)} บาท</span>
+                      ) : (
+                        <span className="text-slate-600">{prizeLine(a)}</span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-semibold tabular-nums text-slate-900">
+                      {formatBaht(runningCash)} บาท
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-emerald-100 bg-emerald-50/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-800">
+              <span className="font-medium text-slate-600">ยอดเงินสดคงเหลือปัจจุบัน (รวมจากผู้สร้างรายนี้): </span>
+              <span className="text-lg font-bold tabular-nums text-emerald-900">
+                {formatBaht(finalCashBalance)} บาท
+              </span>
+            </p>
+            <Link
+              href={`/contact?topic=prize-withdraw&ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
+              className="inline-flex shrink-0 items-center justify-center rounded-xl border-2 border-emerald-600 bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
-              <p className="text-slate-900">{prizeLine(a)}</p>
-              <p className="mt-1 text-xs text-slate-500">
-                ชุดที่ {a.setIndex + 1} · {formatWonAt(a.wonAt)}
-              </p>
-            </li>
-          ))}
-        </ul>
+              ถอนเงินรางวัล
+            </Link>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            การถอนเงินดำเนินการผ่านทีมงาน — กดปุ่มเพื่อไปฟอร์มติดต่อ (แนะนำแจ้งยูสผู้สร้างเกมและยอดที่ต้องการถอน)
+          </p>
+        </div>
       ) : null}
     </li>
   );
@@ -158,7 +243,7 @@ export default function AccountMyPrizesSection() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const groups = useMemo(() => groupAwardsByGame(awards), [awards]);
+  const groups = useMemo(() => groupAwardsByCreator(awards), [awards]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -215,7 +300,7 @@ export default function AccountMyPrizesSection() {
     <section>
       <h2 className="text-lg font-semibold text-slate-900">รางวัลของฉัน</h2>
       <p className="mt-1 text-sm text-slate-600">
-        สรุปตามเกม — เงินสดรวมยอดต่อเกม · กด「ดูรายละเอียดแต่ละครั้ง」เพื่อดูวันเวลาที่ได้รางวัล
+        สรุปตาม<strong className="font-medium text-slate-700"> ยูสเซอร์ผู้สร้างเกม</strong> — เงินรางวัลรวมจากเกมที่ผู้สร้างรายนั้นสร้าง · กด「ดูรายละเอียด」เพื่อดูตารางรายครั้ง พร้อมยอดสะสมและคำขอถอนเงิน
       </p>
 
       {err ? (
@@ -246,7 +331,7 @@ export default function AccountMyPrizesSection() {
       ) : (
         <ul className="mt-6 space-y-3">
           {groups.map((g) => (
-            <GamePrizeCard key={g.gameId} group={g} />
+            <CreatorPrizeCard key={g.creatorKey} group={g} />
           ))}
         </ul>
       )}

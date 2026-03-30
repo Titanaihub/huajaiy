@@ -165,7 +165,7 @@ async function listPublicRecipientsForRule(gameId, ruleId) {
 
 /**
  * รางวัลจากเกมส่วนกลางที่ผู้ใช้ได้รับ (ล็อกอิน)
- * @returns {Promise<Array<{ id: string; wonAt: string; prizeCategory: string; gameId: string; gameTitle: string; setIndex: number; prizeTitle: string | null; prizeValueText: string | null; prizeUnit: string | null }>>}
+ * @returns {Promise<Array<object>>}
  */
 async function listAwardsForUser(userId) {
   if (!userId) return [];
@@ -177,12 +177,15 @@ async function listAwardsForUser(userId) {
        a.prize_category AS "prizeCategory",
        a.game_id AS "gameId",
        COALESCE(NULLIF(trim(COALESCE(a.game_title_at_win, g.title)), ''), 'เกม') AS "gameTitle",
+       NULLIF(BTRIM(COALESCE(g.game_code::text, '')), '') AS "gameCode",
+       NULLIF(BTRIM(COALESCE(cu.username, '')), '') AS "creatorUsername",
        COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit"
      FROM central_prize_awards a
      LEFT JOIN central_games g ON g.id = a.game_id
+     LEFT JOIN users cu ON cu.id = g.created_by
      LEFT JOIN central_game_rules r ON r.id = a.rule_id
      WHERE a.winner_user_id = $1
        AND a.prize_category IS DISTINCT FROM 'none'
@@ -195,6 +198,8 @@ async function listAwardsForUser(userId) {
     prizeCategory: row.prizeCategory,
     gameId: String(row.gameId),
     gameTitle: String(row.gameTitle || "").trim() || "เกม",
+    gameCode: row.gameCode != null ? String(row.gameCode).trim() : "",
+    creatorUsername: row.creatorUsername != null ? String(row.creatorUsername).trim().toLowerCase() : "",
     setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
     prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
