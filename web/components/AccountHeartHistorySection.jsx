@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiGetMyHeartLedger, getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
@@ -11,8 +11,17 @@ const KIND_HINT = {
   admin_adjust: "แอดมินปรับยอด",
   marketplace_order: "สั่งซื้อสินค้า",
   heart_purchase_approved: "ซื้อหัวใจ (อนุมัติ)",
-  adjustment: "ปรับยอด"
+  adjustment: "ปรับยอด",
+  room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
+  room_red_code_refund: "ลบรหัสห้อง · คืนแดง"
 };
+
+const PLAY_KINDS = new Set(["game_start"]);
+const PURCHASE_KINDS = new Set([
+  "heart_purchase_approved",
+  "room_red_code_issue",
+  "room_red_code_refund"
+]);
 
 function formatWhen(iso) {
   if (!iso) return "—";
@@ -52,12 +61,46 @@ function deltaLine(pinkDelta, redDelta) {
   return <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{chunks}</div>;
 }
 
-export default function AccountHeartHistorySection() {
+/**
+ * @param {{ variant?: "play" | "purchase" | "all" }} props
+ */
+export default function AccountHeartHistorySection({ variant = "all" }) {
   const { user, loading: authLoading } = useMemberAuth();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [dbRequired, setDbRequired] = useState(false);
+
+  const loginNext =
+    variant === "purchase"
+      ? "/account/heart-history/purchases"
+      : variant === "play"
+        ? "/account/heart-history/play"
+        : "/account/heart-history/play";
+
+  const filtered = useMemo(() => {
+    if (variant === "play") {
+      return entries.filter((e) => PLAY_KINDS.has(e.kind));
+    }
+    if (variant === "purchase") {
+      return entries.filter((e) => PURCHASE_KINDS.has(e.kind));
+    }
+    return entries;
+  }, [entries, variant]);
+
+  const heading =
+    variant === "play"
+      ? "ประวัติหัวใจ (การเล่นเกม)"
+      : variant === "purchase"
+        ? "ประวัติหัวใจ (การซื้อ / ทุนรหัสห้อง)"
+        : "ประวัติหัวใจ";
+
+  const blurb =
+    variant === "play"
+      ? "เฉพาะรายการที่หักหัวใจตอนเริ่มเล่นเกมส่วนกลาง (และโหมดที่บันทึกแบบเดียวกัน)"
+      : variant === "purchase"
+        ? "การซื้อแพ็กหัวใจที่แอดมินอนุมัติ และการหัก/คืนแดงเมื่อสร้างหรือลบรหัสแจกห้อง"
+        : "บันทึกเมื่อมีการเพิ่มหรือหักหัวใจชมพู/แดงบนเซิร์ฟเวอร์";
 
   useEffect(() => {
     if (authLoading) return;
@@ -76,7 +119,7 @@ export default function AccountHeartHistorySection() {
       setLoading(true);
       setErr("");
       try {
-        const data = await apiGetMyHeartLedger(token, { limit: 100 });
+        const data = await apiGetMyHeartLedger(token, { limit: 200 });
         if (cancelled) return;
         setEntries(Array.isArray(data.entries) ? data.entries : []);
         setDbRequired(Boolean(data.dbRequired));
@@ -100,7 +143,7 @@ export default function AccountHeartHistorySection() {
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
         <Link
-          href="/login?next=/account/heart-history"
+          href={`/login?next=${encodeURIComponent(loginNext)}`}
           className="mt-3 inline-block font-semibold text-brand-800 underline hover:text-brand-950"
         >
           เข้าสู่ระบบ
@@ -111,11 +154,33 @@ export default function AccountHeartHistorySection() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">ประวัติหัวใจ</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        บันทึกเมื่อมีการเพิ่มหรือหักหัวใจชมพู/แดงบนเซิร์ฟเวอร์ — เช่น เริ่มเล่นเกมส่วนกลาง สั่งซื้อสินค้า
-        แอดมินอนุมัติแพ็กหัวใจ หรือแอดมินปรับยอด
-      </p>
+      <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
+      <p className="mt-1 text-sm text-slate-600">{blurb}</p>
+      {variant !== "all" ? (
+        <p className="mt-2 text-xs text-slate-500">
+          {variant === "play" ? (
+            <>
+              ดูการซื้อหัวใจได้ที่{" "}
+              <Link
+                href="/account/heart-history/purchases"
+                className="font-semibold text-brand-800 underline underline-offset-2 hover:text-brand-950"
+              >
+                ประวัติหัวใจ (ซื้อหัวใจ)
+              </Link>
+            </>
+          ) : (
+            <>
+              ดูการหักตอนเล่นเกมได้ที่{" "}
+              <Link
+                href="/account/heart-history/play"
+                className="font-semibold text-brand-800 underline underline-offset-2 hover:text-brand-950"
+              >
+                ประวัติหัวใจ (เล่นเกม)
+              </Link>
+            </>
+          )}
+        </p>
+      ) : null}
 
       {err ? (
         <p className="mt-4 text-sm text-red-700" role="alert">
@@ -131,16 +196,22 @@ export default function AccountHeartHistorySection() {
 
       {loading ? (
         <p className="mt-6 text-sm text-slate-500">กำลังโหลดรายการ…</p>
-      ) : entries.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-600">
-          <p>ยังไม่มีรายการในประวัติ</p>
+          <p>
+            {variant === "play"
+              ? "ยังไม่มีประวัติการหักหัวใจจากการเริ่มเล่นเกม"
+              : variant === "purchase"
+                ? "ยังไม่มีประวัติการซื้อหัวใจหรือทุนรหัสแจกห้องในช่วงที่แสดง"
+                : "ยังไม่มีรายการในประวัติ"}
+          </p>
           <p className="mt-2 text-xs text-slate-500">
             รายการจะปรากฏหลังมีการหัก/เพิ่มหัวใจ — ข้อมูลก่อนอัปเดตระบบนี้อาจไม่ย้อนหลัง
           </p>
         </div>
       ) : (
         <ul className="mt-6 space-y-3">
-          {entries.map((e) => (
+          {filtered.map((e) => (
             <li
               key={e.id}
               className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"

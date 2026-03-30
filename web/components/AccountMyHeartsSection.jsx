@@ -106,10 +106,10 @@ export default function AccountMyHeartsSection() {
           </button>
           <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
             <Link
-              href="/account/heart-history"
+              href="/account/heart-history/play"
               className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
             >
-              ประวัติได้/หักหัวใจ
+              ประวัติหัวใจ (เล่นเกม)
             </Link>
             <Link
               href="/account/hearts-shop"

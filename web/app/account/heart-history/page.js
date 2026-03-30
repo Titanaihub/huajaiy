@@ -1,9 +1,5 @@
-import AccountHeartHistorySection from "../../../components/AccountHeartHistorySection";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "ประวัติหัวใจ | HUAJAIY"
-};
-
-export default function AccountHeartHistoryPage() {
-  return <AccountHeartHistorySection />;
+export default function AccountHeartHistoryIndexPage() {
+  redirect("/account/heart-history/play");
 }

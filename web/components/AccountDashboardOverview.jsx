@@ -87,10 +87,10 @@ export default function AccountDashboardOverview() {
                 หัวใจของฉัน (แยกตามเจ้าห้อง · เข้าเล่นเกม)
               </Link>
               <Link
-                href="/account/heart-history"
+                href="/account/heart-history/play"
                 className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
               >
-                ดูประวัติได้/หักหัวใจ
+                ประวัติหัวใจ (เล่นเกม)
               </Link>
             </p>
           </div>
