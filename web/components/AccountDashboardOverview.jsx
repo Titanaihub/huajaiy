@@ -34,7 +34,7 @@ export default function AccountDashboardOverview() {
         <p className="mt-1 text-sm text-slate-600">
           @{user.username} · เบอร์ {user.phone}
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 max-w-md">
           <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-4 shadow-sm">
             <p className="text-xs font-semibold uppercase text-rose-800/80">
               หัวใจชมพู (เซิร์ฟเวอร์)
@@ -66,38 +66,6 @@ export default function AccountDashboardOverview() {
                 ดูประวัติได้/หักหัวใจ
               </Link>
             </p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase text-slate-500">ทางลัด</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li>
-                <Link href="/account/profile" className="font-medium text-brand-800 hover:underline">
-                  แก้ที่อยู่จัดส่ง / ข้อมูลส่วนตัว
-                </Link>
-              </li>
-              <li>
-                <Link href="/account/hearts-shop" className="font-medium text-brand-800 hover:underline">
-                  ซื้อหัวใจ (แนบสลิป)
-                </Link>
-              </li>
-              <li>
-                <Link href="/account/prizes" className="font-medium text-brand-800 hover:underline">
-                  รางวัลของฉัน
-                </Link>
-              </li>
-              <li>
-                <Link href="/game" className="font-medium text-brand-800 hover:underline">
-                  ไปหน้าเกม
-                </Link>
-              </li>
-              {(user.role === "owner" || user.role === "admin") && (
-                <li>
-                  <Link href="/owner" className="font-medium text-brand-800 hover:underline">
-                    คู่มือขั้นตอนขาย (เจ้าของร้าน)
-                  </Link>
-                </li>
-              )}
-            </ul>
           </div>
         </div>
       </section>
