@@ -29,31 +29,71 @@ async function previewMarch2026AunyaweePhongCleanup() {
     const r = await pool.query(q, params);
     return Math.max(0, Number(r.rows[0]?.c) || 0);
   }
-  if (!au || !ph) {
+  if (!au) {
     return {
       ok: true,
       preview: true,
-      foundAunyawee: au ? { id: au.id, username: au.username } : null,
+      foundAunyawee: null,
       foundPhong: ph ? { id: ph.id, username: ph.username } : null,
       hintUsers: hint.rows.map((row) => ({
         id: row.id,
         username: row.username
       })),
       note:
-        "ไม่พบยูสเซอร์ตามชื่อที่ฮาร์ดโค้ด — ดู hintUsers ว่าใน DB เขียนต่างจาก aunyawee / phongphiphat47 หรือไม่"
+        "ไม่พบ aunyawee — ดู hintUsers · ถ้าไม่พบ phong การรัน cleanup ยังทำกับ aunyawee ได้ (ไม่บังคับ phong)"
     };
   }
   const auId = au.id;
-  const phId = ph.id;
+  const phId = ph ? ph.id : null;
+  const idList = phId ? [auId, phId] : [auId];
   const ledgerKinds = await pool.query(
     `SELECT kind, COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid GROUP BY kind ORDER BY kind`,
     [auId]
   );
+  const phCounts = phId
+    ? {
+        phongUserRoomRedBalanceRows: await n(
+          `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
+          [phId]
+        ),
+        roomRedBalanceRowsAsCreatorPhong: await n(
+          `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE creator_id = $1::uuid`,
+          [phId]
+        ),
+        phongHeartLedgerRows: await n(
+          `SELECT COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid`,
+          [phId]
+        ),
+        phongHeartPurchases: await n(
+          `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE user_id = $1::uuid`,
+          [phId]
+        ),
+        phongPrizeAwards: await n(
+          `SELECT COUNT(*)::int AS c FROM central_prize_awards WHERE winner_user_id = $1::uuid`,
+          [phId]
+        ),
+        phongRoomCodesAsCreator: await n(
+          `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
+          [phId]
+        )
+      }
+    : {
+        phongUserRoomRedBalanceRows: 0,
+        roomRedBalanceRowsAsCreatorPhong: 0,
+        phongHeartLedgerRows: 0,
+        phongHeartPurchases: 0,
+        phongPrizeAwards: 0,
+        phongRoomCodesAsCreator: 0
+      };
+
   return {
     ok: true,
     preview: true,
     foundAunyawee: { id: auId, username: au.username },
-    foundPhong: { id: phId, username: ph.username },
+    foundPhong: ph ? { id: phId, username: ph.username } : null,
+    phongOptionalNote: ph
+      ? null
+      : "ไม่พบ phongphiphat47 ใน DB — POST cleanup จะลบรหัส/ข้อมูลเฉพาะ aunyawee (และแถวที่เกี่ยว aunyawee)",
     counts: {
       aunyaweeHeartPurchases: await n(
         `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE user_id = $1::uuid`,
@@ -72,43 +112,20 @@ async function previewMarch2026AunyaweePhongCleanup() {
         `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
         [auId]
       ),
-      phongUserRoomRedBalanceRows: await n(
-        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE user_id = $1::uuid`,
-        [phId]
-      ),
       roomRedBalanceRowsAsCreatorAunyawee: await n(
         `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE creator_id = $1::uuid`,
         [auId]
       ),
-      roomRedBalanceRowsAsCreatorPhong: await n(
-        `SELECT COUNT(*)::int AS c FROM user_room_red_balance WHERE creator_id = $1::uuid`,
-        [phId]
-      ),
-      phongHeartLedgerRows: await n(
-        `SELECT COUNT(*)::int AS c FROM heart_ledger WHERE user_id = $1::uuid`,
-        [phId]
-      ),
-      phongHeartPurchases: await n(
-        `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE user_id = $1::uuid`,
-        [phId]
-      ),
-      phongPrizeAwards: await n(
-        `SELECT COUNT(*)::int AS c FROM central_prize_awards WHERE winner_user_id = $1::uuid`,
-        [phId]
-      ),
       withdrawalRequestsTouchingEither: await n(
         `SELECT COUNT(*)::int AS c FROM central_prize_withdrawal_requests
          WHERE requester_user_id = ANY($1::uuid[]) OR creator_user_id = ANY($1::uuid[])`,
-        [[auId, phId]]
-      ),
-      phongRoomCodesAsCreator: await n(
-        `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
-        [phId]
+        [idList]
       ),
       aunyaweeRoomCodesAsCreator: await n(
         `SELECT COUNT(*)::int AS c FROM room_red_gift_codes WHERE creator_id = $1::uuid`,
         [auId]
-      )
+      ),
+      ...phCounts
     },
     hintUsers: hint.rows.map((row) => ({
       id: row.id,
@@ -138,20 +155,19 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
     e.code = "NOT_FOUND";
     throw e;
   }
-  if (!ph) {
-    const e = new Error(`ไม่พบผู้ใช้ ${PHONG_USERNAME}`);
-    e.code = "NOT_FOUND";
-    throw e;
-  }
 
   const auId = au.id;
-  const phId = ph.id;
+  const phId = ph ? ph.id : null;
+  /** ยูสที่ลบร่วมใน SQL — ถ้าไม่มี phong ใน DB ยังรันกับ aunyawee ได้ (เดิม throw ทำให้ไม่เคยลบรหัสห้อง) */
+  const targetIds = phId ? [auId, phId] : [auId];
 
   const phCodesDeleted = [];
-  const phCodes = await roomRedGiftService.listCodesForCreator(phId);
-  for (const c of phCodes) {
-    await roomRedGiftService.deleteCodeByCreator(phId, c.id);
-    phCodesDeleted.push(c.code);
+  if (phId) {
+    const phCodes = await roomRedGiftService.listCodesForCreator(phId);
+    for (const c of phCodes) {
+      await roomRedGiftService.deleteCodeByCreator(phId, c.id);
+      phCodesDeleted.push(c.code);
+    }
   }
 
   const auCodesDeleted = [];
@@ -168,6 +184,7 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
     ledgerDeleted: 0,
     purchasesDeleted: 0,
     roomRedBalanceRowsDeleted: 0,
+    roomGiftCodesBulkDeleted: 0,
     balanceAdjusted: false,
     aunyaweeBalances: null
   };
@@ -178,44 +195,54 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
     const delWd = await client.query(
       `DELETE FROM central_prize_withdrawal_requests
        WHERE requester_user_id = ANY($1::uuid[]) OR creator_user_id = ANY($1::uuid[])`,
-      [[auId, phId]]
+      [targetIds]
     );
     sql.withdrawalRequestsDeleted = delWd.rowCount;
 
     const delAwards = await client.query(
       `DELETE FROM central_prize_awards WHERE winner_user_id = ANY($1::uuid[])`,
-      [[auId, phId]]
+      [targetIds]
     );
     sql.prizeAwardsDeleted = delAwards.rowCount;
 
     const delLedger = await client.query(
       `DELETE FROM heart_ledger WHERE user_id = ANY($1::uuid[])`,
-      [[auId, phId]]
+      [targetIds]
     );
     sql.ledgerDeleted = delLedger.rowCount;
 
     const delPurchases = await client.query(
       `DELETE FROM heart_purchases WHERE user_id = ANY($1::uuid[])`,
-      [[auId, phId]]
+      [targetIds]
     );
     sql.purchasesDeleted = delPurchases.rowCount;
 
     const delRoomBal = await client.query(
       `DELETE FROM user_room_red_balance
        WHERE user_id = ANY($1::uuid[]) OR creator_id = ANY($1::uuid[])`,
-      [[auId, phId]]
+      [targetIds]
     );
     sql.roomRedBalanceRowsDeleted = delRoomBal.rowCount;
+
+    const delCodesLeft = await client.query(
+      `DELETE FROM room_red_gift_codes WHERE creator_id = ANY($1::uuid[])`,
+      [targetIds]
+    );
+    sql.roomGiftCodesBulkDeleted = delCodesLeft.rowCount;
 
     const touched =
       sql.withdrawalRequestsDeleted +
       sql.prizeAwardsDeleted +
       sql.ledgerDeleted +
       sql.purchasesDeleted +
-      sql.roomRedBalanceRowsDeleted;
+      sql.roomRedBalanceRowsDeleted +
+      sql.roomGiftCodesBulkDeleted;
 
     const forceBal = Boolean(options.forceAunyaweeBalanceAdjust);
-    if (touched === 0 && !forceBal) {
+    /** ลบรหัสห้องนอก transaction (คืนยอด) — ถ้าใน tx ไม่มีแถวแต่ลูปลบรหัสแล้ว ต้องปรับยอด aunyawee */
+    const hadServiceCodeDeletes =
+      auCodesDeleted.length > 0 || phCodesDeleted.length > 0;
+    if (touched === 0 && !forceBal && !hadServiceCodeDeletes) {
       sql.balanceAdjusted = false;
       sql.note =
         "ไม่มีแถวให้ลบในรอบนี้ — ข้ามการปรับยอด aunyawee · ถ้าต้องการปรับยอดบังคับ ส่ง JSON forceAunyaweeBalanceAdjust: true (ระวังรันซ้ำ)";
@@ -229,8 +256,14 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
       const pink = Math.max(0, Math.floor(Number(balR.rows[0].pink_hearts_balance) || 0));
       const red = Math.max(0, Math.floor(Number(balR.rows[0].red_hearts_balance) || 0));
       const give = Math.max(0, Math.floor(Number(balR.rows[0].g) || 0));
-      const newGive = Math.max(0, give - AUNYAWEE_SUBTRACT_GIVEAWAY);
-      const newRed = red + AUNYAWEE_ADD_PLAYABLE_RED;
+      /** หัก 4999 จากแดงแจกก่อน ที่เหลือหักจากแดงเล่นได้ (กรณียอดผิดอยู่ที่เล่นได้แต่แจกเป็น 0) */
+      let rem = AUNYAWEE_SUBTRACT_GIVEAWAY;
+      let newGive = give;
+      const takeFromGive = Math.min(newGive, rem);
+      newGive -= takeFromGive;
+      rem -= takeFromGive;
+      let newRed = Math.max(0, red - rem);
+      newRed += AUNYAWEE_ADD_PLAYABLE_RED;
       await client.query(
         `UPDATE users SET
           red_giveaway_balance = $2,
@@ -260,7 +293,8 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
 
   return {
     ok: true,
-    users: { aunyawee: auId, phongphiphat47: phId },
+    users: { aunyawee: auId, phongphiphat47: phId || null },
+    phongSkipped: !phId,
     phongCodesDeleted,
     aunyaweeCodesDeleted,
     sql
