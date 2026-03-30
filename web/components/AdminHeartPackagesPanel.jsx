@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCreateHeartPackage,
+  apiAdminDeleteHeartPackage,
   apiAdminHeartPackages,
   apiAdminPatchHeartPackage
 } from "../lib/rolesApi";
@@ -50,7 +51,7 @@ export default function AdminHeartPackagesPanel() {
       await apiAdminCreateHeartPackage(token, {
         title,
         description,
-        pinkQty: parseInt(pinkQty, 10) || 0,
+        pinkQty: 0,
         redQty: parseInt(redQty, 10) || 0,
         priceThb: parseInt(priceThb, 10) || 0,
         sortOrder: parseInt(sortOrder, 10) || 0,
@@ -74,6 +75,28 @@ export default function AdminHeartPackagesPanel() {
     setBusyId(pkg.id);
     try {
       await apiAdminPatchHeartPackage(token, pkg.id, { active: !pkg.active });
+      await load();
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function deletePkg(pkg) {
+    if (
+      !window.confirm(
+        `ลบแพ็ก「${pkg.title}」ถาวร?\n(ถ้ามีสมาชิกเคยซื้อแพ็กนี้แล้ว ระบบจะไม่ให้ลบ)`
+      )
+    ) {
+      return;
+    }
+    const token = getMemberToken();
+    if (!token) return;
+    setBusyId(pkg.id);
+    setErr("");
+    try {
+      await apiAdminDeleteHeartPackage(token, pkg.id);
       await load();
     } catch (e) {
       setErr(e.message || String(e));
@@ -170,7 +193,7 @@ export default function AdminHeartPackagesPanel() {
                 <th className="px-3 py-2">แดงแจก</th>
                 <th className="px-3 py-2">ราคา</th>
                 <th className="px-3 py-2">ขาย</th>
-                <th className="px-3 py-2 w-28" />
+                <th className="px-3 py-2 min-w-[10rem]">จัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -188,14 +211,24 @@ export default function AdminHeartPackagesPanel() {
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
                     <td className="px-3 py-2">{p.active ? "เปิด" : "ปิด"}</td>
                     <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        disabled={busyId === p.id}
-                        onClick={() => toggleActive(p)}
-                        className="text-xs font-semibold text-brand-800 underline"
-                      >
-                        {p.active ? "ปิดการขาย" : "เปิดการขาย"}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <button
+                          type="button"
+                          disabled={busyId === p.id}
+                          onClick={() => toggleActive(p)}
+                          className="text-xs font-semibold text-brand-800 underline"
+                        >
+                          {p.active ? "ปิดการขาย" : "เปิดการขาย"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busyId === p.id}
+                          onClick={() => void deletePkg(p)}
+                          className="text-xs font-semibold text-red-700 underline"
+                        >
+                          ลบ
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

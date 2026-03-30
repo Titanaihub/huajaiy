@@ -363,6 +363,36 @@ router.patch(
   }
 );
 
+router.delete(
+  "/heart-packages/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const removed = await heartPackageService.removeById(id);
+      if (!removed) {
+        return res.status(404).json({ ok: false, error: "ไม่พบแพ็กเกจ" });
+      }
+      return res.json({ ok: true, deleted: { id: removed.id, title: removed.title } });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
+      }
+      if (e.code === "CONFLICT") {
+        return res.status(409).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
 router.get(
   "/heart-purchases/pending",
   authMiddleware,

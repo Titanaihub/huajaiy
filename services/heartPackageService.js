@@ -152,10 +152,39 @@ async function update(id, patch) {
   return rowToPackage(r.rows[0]);
 }
 
+/**
+ * ลบแพ็กเกจ — ถ้ามี heart_purchases อ้างอิงจะลบไม่ได้ (FK RESTRICT)
+ */
+async function removeById(id) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const cur = await findById(id);
+  if (!cur) return null;
+  const cnt = await pool.query(
+    `SELECT COUNT(*)::int AS c FROM heart_purchases WHERE package_id = $1::uuid`,
+    [id]
+  );
+  const n = Math.max(0, Number(cnt.rows[0]?.c) || 0);
+  if (n > 0) {
+    const e = new Error(
+      `ลบไม่ได้ — มีประวัติการซื้อแพ็กนี้ ${n} รายการ · ใช้「ปิดการขาย」แทน หรือติดต่อผู้พัฒนา`
+    );
+    e.code = "CONFLICT";
+    throw e;
+  }
+  await pool.query(`DELETE FROM heart_packages WHERE id = $1::uuid`, [id]);
+  return cur;
+}
+
 module.exports = {
   listActive,
   listAllAdmin,
   findById,
   create,
-  update
+  update,
+  removeById
 };

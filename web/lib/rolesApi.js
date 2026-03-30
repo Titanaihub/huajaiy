@@ -369,6 +369,19 @@ export async function apiAdminPatchHeartPackage(token, id, body) {
   return data;
 }
 
+export async function apiAdminDeleteHeartPackage(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/heart-packages/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ลบแพ็กเกจไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminPendingHeartPurchases(token) {
   const r = await fetch(`${apiRoot()}/api/admin/heart-purchases/pending`, {
     headers: { Authorization: `Bearer ${token}` }
