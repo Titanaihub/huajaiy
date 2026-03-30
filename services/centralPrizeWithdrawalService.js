@@ -91,7 +91,22 @@ function mapRow(row) {
     status: row.status != null ? String(row.status) : "pending",
     creatorNote: row.creator_note != null ? String(row.creator_note) : "",
     resolvedAt: row.resolved_at || null,
-    createdAt: row.created_at || null
+    createdAt: row.created_at || null,
+    transferSlipUrl: row.transfer_slip_url != null ? String(row.transfer_slip_url).trim() : ""
+  };
+}
+
+function mapAdminWithdrawalRow(row) {
+  const base = mapRow(row);
+  const fn = row.requester_first_name != null ? String(row.requester_first_name).trim() : "";
+  const ln = row.requester_last_name != null ? String(row.requester_last_name).trim() : "";
+  const run = row.requester_username != null ? String(row.requester_username).trim().toLowerCase() : "";
+  const cun = row.creator_username != null ? String(row.creator_username).trim().toLowerCase() : "";
+  return {
+    ...base,
+    requesterUsername: run,
+    requesterDisplayName: [fn, ln].filter(Boolean).join(" ").trim() || (run ? `@${run}` : ""),
+    creatorUsername: cun
   };
 }
 
@@ -248,6 +263,116 @@ async function resolveByCreator({ withdrawalId, creatorUserId, action, note }) {
   return mapRow(up.rows[0]);
 }
 
+async function listPendingWithdrawalsForAdmin() {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT w.*,
+       ru.username AS requester_username,
+       ru.first_name AS requester_first_name,
+       ru.last_name AS requester_last_name,
+       cu.username AS creator_username
+     FROM central_prize_withdrawal_requests w
+     JOIN users ru ON ru.id = w.requester_user_id
+     JOIN users cu ON cu.id = w.creator_user_id
+     WHERE w.status = 'pending'
+     ORDER BY w.created_at ASC`
+  );
+  return r.rows.map((row) => mapAdminWithdrawalRow(row));
+}
+
+async function listAllWithdrawalsForAdmin({ limit = 5000 } = {}) {
+  const pool = requirePool();
+  const lim = Math.min(20000, Math.max(1, Math.floor(Number(limit) || 5000)));
+  const r = await pool.query(
+    `SELECT w.*,
+       ru.username AS requester_username,
+       ru.first_name AS requester_first_name,
+       ru.last_name AS requester_last_name,
+       cu.username AS creator_username
+     FROM central_prize_withdrawal_requests w
+     JOIN users ru ON ru.id = w.requester_user_id
+     JOIN users cu ON cu.id = w.creator_user_id
+     ORDER BY w.created_at DESC
+     LIMIT $1`,
+    [lim]
+  );
+  return r.rows.map((row) => mapAdminWithdrawalRow(row));
+}
+
+async function withdrawalReserveTotalsByRequester() {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT requester_user_id::text AS uid,
+       COALESCE(SUM(CASE WHEN status = 'approved' THEN amount_thb ELSE 0 END), 0)::bigint AS approved_baht,
+       COALESCE(SUM(CASE WHEN status = 'pending' THEN amount_thb ELSE 0 END), 0)::bigint AS pending_baht
+     FROM central_prize_withdrawal_requests
+     GROUP BY requester_user_id`
+  );
+  return r.rows.map((row) => ({
+    requesterUserId: String(row.uid),
+    approvedBaht: Math.max(0, Number(row.approved_baht) || 0),
+    pendingBaht: Math.max(0, Number(row.pending_baht) || 0)
+  }));
+}
+
+/**
+ * แอดมินอนุมัติ/ปฏิเสธคำขอถอน (ไม่จำกัดเฉพาะผู้สร้างเกม)
+ * @param {{ withdrawalId: string, action: 'approve'|'reject', note?: string, transferSlipUrl?: string }} p
+ */
+async function resolveByAdmin({ withdrawalId, action, note, transferSlipUrl }) {
+  const pool = requirePool();
+  const act = String(action || "").toLowerCase();
+  if (act !== "approve" && act !== "reject") {
+    const e = new Error("action ต้องเป็น approve หรือ reject");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (act === "reject") {
+    const n = note != null ? String(note).trim() : "";
+    if (!n) {
+      const e = new Error("กรุณากรอกหมายเหตุเมื่อยกเลิกการถอน");
+      e.code = "VALIDATION";
+      throw e;
+    }
+  }
+  const nextStatus = act === "approve" ? "approved" : "rejected";
+  const r = await pool.query(`SELECT * FROM central_prize_withdrawal_requests WHERE id = $1::uuid`, [
+    withdrawalId
+  ]);
+  if (r.rows.length === 0) {
+    const e = new Error("ไม่พบคำขอ");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  if (String(r.rows[0].status) !== "pending") {
+    const e = new Error("คำขอนี้ดำเนินการแล้ว");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const noteTrim = note != null ? String(note).trim().slice(0, 500) : "";
+  const slipTrim =
+    transferSlipUrl != null && act === "approve" ? String(transferSlipUrl).trim().slice(0, 800) : "";
+  const up = await pool.query(
+    `UPDATE central_prize_withdrawal_requests
+     SET status = $2,
+         creator_note = CASE WHEN $3 = '' THEN creator_note ELSE $3 END,
+         resolved_at = NOW(),
+         transfer_slip_url = CASE
+           WHEN $2 = 'approved' AND $4 <> '' THEN $4
+           ELSE transfer_slip_url
+         END
+     WHERE id = $1::uuid AND status = 'pending'
+     RETURNING *`,
+    [withdrawalId, nextStatus, noteTrim, slipTrim]
+  );
+  if (up.rows.length === 0) {
+    const e = new Error("อัปเดตไม่สำเร็จ");
+    e.code = "CONFLICT";
+    throw e;
+  }
+  return mapRow(up.rows[0]);
+}
+
 module.exports = {
   getAvailability,
   createRequest,
@@ -255,5 +380,9 @@ module.exports = {
   listIncomingForCreator,
   countGamesCreatedBy,
   resolveByCreator,
-  parseCashBahtFromAward
+  parseCashBahtFromAward,
+  listPendingWithdrawalsForAdmin,
+  listAllWithdrawalsForAdmin,
+  withdrawalReserveTotalsByRequester,
+  resolveByAdmin
 };

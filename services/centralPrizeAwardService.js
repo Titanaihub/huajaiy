@@ -231,6 +231,7 @@ async function listAllAwardsForAdmin(opts = {}) {
        a.game_id AS "gameId",
        COALESCE(NULLIF(trim(a.game_title_at_win), ''), NULLIF(trim(g.title), ''), 'เกม') AS "gameTitle",
        NULLIF(BTRIM(COALESCE(g.game_code::text, '')), '') AS "gameCode",
+       NULLIF(BTRIM(COALESCE(cu.username, '')), '') AS "creatorUsername",
        a.rule_id AS "ruleId",
        COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
@@ -243,6 +244,7 @@ async function listAllAwardsForAdmin(opts = {}) {
      FROM central_prize_awards a
      JOIN users u ON u.id = a.winner_user_id
      LEFT JOIN central_games g ON g.id = a.game_id
+     LEFT JOIN users cu ON cu.id = g.created_by
      LEFT JOIN central_game_rules r ON r.id = a.rule_id
      WHERE ${where}
      ORDER BY a.created_at DESC
@@ -257,6 +259,8 @@ async function listAllAwardsForAdmin(opts = {}) {
     gameId: String(row.gameId),
     gameTitle: String(row.gameTitle || "").trim() || "เกม",
     gameCode: row.gameCode != null ? String(row.gameCode).trim() : null,
+    creatorUsername:
+      row.creatorUsername != null ? String(row.creatorUsername).trim().toLowerCase() : "",
     ruleId: row.ruleId != null ? String(row.ruleId) : null,
     setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",

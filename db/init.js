@@ -459,6 +459,9 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_cpwr_requester ON central_prize_withdrawal_requests(requester_user_id);`
     );
+    await client.query(
+      `ALTER TABLE central_prize_withdrawal_requests ADD COLUMN IF NOT EXISTS transfer_slip_url TEXT;`
+    );
 
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"

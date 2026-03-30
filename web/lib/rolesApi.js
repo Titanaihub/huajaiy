@@ -155,6 +155,35 @@ export async function apiAdminCentralPrizeAwards(token, { gameId, limit } = {}) 
   return data;
 }
 
+/** คำขอถอน (รอดำเนินการ + รายการย้อนหลัง + ยอดจองต่อสมาชิก) — แอดมิน */
+export async function apiAdminCentralPrizeWithdrawalData(token, { withdrawalsLimit } = {}) {
+  const params = new URLSearchParams();
+  if (withdrawalsLimit != null) params.set("withdrawalsLimit", String(withdrawalsLimit));
+  const qs = params.toString();
+  const url = `${apiRoot()}/api/admin/central-prize-withdrawals/admin-data${qs ? `?${qs}` : ""}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดข้อมูลคำขอถอนไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminResolvePrizeWithdrawal(token, id, body) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/central-prize-withdrawals/${encodeURIComponent(id)}/admin-resolve`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body || {})
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "อัปเดตคำขอถอนไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminCentralGameDetail(token, id) {
   const r = await fetch(`${apiRoot()}/api/admin/central-games/${encodeURIComponent(id)}`, {
     headers: { Authorization: `Bearer ${token}` }

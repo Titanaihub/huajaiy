@@ -12,6 +12,7 @@ const centralGameService = require("./services/centralGameService");
 const heartPackageService = require("./services/heartPackageService");
 const heartPurchaseService = require("./services/heartPurchaseService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
+const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 
 const router = express.Router();
 
@@ -497,6 +498,73 @@ router.get(
           ok: false,
           error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
         });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/** ข้อมูลคำขอถอนรางวัลสำหรับหน้าแอดมิน「จ่ายรางวัล」 */
+router.get(
+  "/central-prize-withdrawals/admin-data",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const limRaw =
+        req.query.withdrawalsLimit != null ? Math.floor(Number(req.query.withdrawalsLimit)) : 8000;
+      const [pendingWithdrawals, withdrawals, reserveTotals] = await Promise.all([
+        centralPrizeWithdrawalService.listPendingWithdrawalsForAdmin(),
+        centralPrizeWithdrawalService.listAllWithdrawalsForAdmin({ limit: limRaw }),
+        centralPrizeWithdrawalService.withdrawalReserveTotalsByRequester()
+      ]);
+      return res.json({
+        ok: true,
+        pendingWithdrawals,
+        withdrawals,
+        reserveTotals
+      });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.json({
+          ok: true,
+          pendingWithdrawals: [],
+          withdrawals: [],
+          reserveTotals: [],
+          dbRequired: true
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/central-prize-withdrawals/:id/admin-resolve",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id || "").trim();
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบรหัสคำขอไม่ถูกต้อง" });
+      }
+      const action = req.body?.action;
+      const note = req.body?.note;
+      const transferSlipUrl = req.body?.transferSlipUrl;
+      const rec = await centralPrizeWithdrawalService.resolveByAdmin({
+        withdrawalId: id,
+        action,
+        note,
+        transferSlipUrl
+      });
+      return res.json({ ok: true, withdrawal: rec });
+    } catch (e) {
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      if (e.code === "VALIDATION" || e.code === "CONFLICT") {
+        return res.status(400).json({ ok: false, error: e.message });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }
