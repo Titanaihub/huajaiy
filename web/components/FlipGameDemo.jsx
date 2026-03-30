@@ -110,39 +110,6 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
-/** แยก setIndex / imageIndex จากคีย์ป้าย เช่น "0-3" */
-function parseCentralTileIndices(key) {
-  if (key == null || key === "") return null;
-  const s = String(key);
-  const i = s.indexOf("-");
-  if (i <= 0) return null;
-  const setIndex = Number(s.slice(0, i));
-  const imageIndex = Number(s.slice(i + 1));
-  if (!Number.isFinite(setIndex) || !Number.isFinite(imageIndex)) return null;
-  return { setIndex, imageIndex };
-}
-
-/**
- * กรอบเขียวเฉพาะ "หน้ารางวัล": ชุดที่มีกติการางวัล (ไม่ใช่ none) — นับทุกภาพในชุดยกเว้นใบสุดท้าย
- * (ข้อตกลงทั่วไป: ใบสุดท้ายมักเป็นหน้าไม่ชนะ / หน้าเศร้า)
- */
-function isCentralRewardFaceTile(key, prizeList, setImageCounts) {
-  const parsed = parseCentralTileIndices(key);
-  if (!parsed) return false;
-  const { setIndex, imageIndex } = parsed;
-  const si = Math.max(0, Math.floor(setIndex));
-  const hasPrizeRule = (prizeList || []).some(
-    (p) =>
-      Math.max(0, Math.floor(Number(p.setIndex)) || 0) === si &&
-      p.prizeCategory &&
-      String(p.prizeCategory) !== "none"
-  );
-  if (!hasPrizeRule) return false;
-  const cap = Math.max(1, Math.floor(Number(setImageCounts[si])) || 1);
-  if (cap <= 1) return true;
-  return imageIndex < cap - 1;
-}
-
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -231,16 +198,21 @@ function readStoredSession() {
   }
 }
 
-function writeStoredSession(sessionId, centralGameId) {
+function writeStoredSession(sessionId, centralGameId, opts = {}) {
   if (typeof window === "undefined" || !sessionId) return;
   try {
-    sessionStorage.setItem(
-      SESSION_STORE_KEY,
-      JSON.stringify({
-        sessionId,
-        centralGameId: centralGameId || null
-      })
-    );
+    const data = {
+      sessionId,
+      centralGameId: centralGameId || null
+    };
+    if (
+      opts.winningFlipIndex != null &&
+      Number.isInteger(opts.winningFlipIndex) &&
+      opts.winningFlipIndex >= 0
+    ) {
+      data.winningFlipIndex = opts.winningFlipIndex;
+    }
+    sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(data));
   } catch {
     /* ignore */
   }
@@ -336,6 +308,8 @@ export default function FlipGameDemo({
   const [recipientsModalError, setRecipientsModalError] = useState("");
   /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
+  /** ดัชนีป้ายบนกระดานที่พลิกแล้วทำให้ชนะรางวัล — ใช้กรอบเขียวเฉพาะใบนี้ (ไม่ใช่ทุกใบในชุด) */
+  const [centralWinningFlipIndex, setCentralWinningFlipIndex] = useState(null);
   /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
   const [setPreviewUrls, setSetPreviewUrls] = useState([]);
 
@@ -398,6 +372,8 @@ export default function FlipGameDemo({
     setRedHeartCost(0);
     setBootError(null);
     setSetPreviewUrls([]);
+    setCentralSolutionShown(false);
+    setCentralWinningFlipIndex(null);
   }, []);
 
   /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
@@ -413,6 +389,7 @@ export default function FlipGameDemo({
     );
     setResultModalOpen(false);
     setCentralSolutionShown(false);
+    setCentralWinningFlipIndex(null);
     const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
     const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
     setPinkHeartCost(p);
@@ -453,6 +430,8 @@ export default function FlipGameDemo({
   }, []);
 
   const applyApiSession = useCallback((data) => {
+    setCentralWinningFlipIndex(null);
+    setCentralSolutionShown(false);
     setMode("api");
     setPlayLocked(false);
     setPlayLockReason("");
@@ -514,7 +493,7 @@ export default function FlipGameDemo({
     setBootError(null);
   }, []);
 
-  const applyRestoredCentralState = useCallback((st) => {
+  const applyRestoredCentralState = useCallback((st, restoreOpts = {}) => {
     setMode("api");
     setApiGameMode("central");
     setPlayLocked(false);
@@ -529,6 +508,12 @@ export default function FlipGameDemo({
     const rowCells = Array.isArray(st.cells) ? st.cells : [];
     const n =
       rowCells.length > 0 ? rowCells.length : Math.max(1, Number(st.cardCount) || 12);
+    const storedWfi = restoreOpts.winningFlipIndex;
+    const validStoredWfi =
+      typeof storedWfi === "number" &&
+      Number.isInteger(storedWfi) &&
+      storedWfi >= 0 &&
+      storedWfi < n;
     setCards(
       Array.from({ length: n }, (_, i) => {
         const c = rowCells[i];
@@ -581,6 +566,7 @@ export default function FlipGameDemo({
         outcomeSetIndex:
           st.winner.setIndex != null ? Math.max(0, Math.floor(Number(st.winner.setIndex)) || 0) : undefined
       });
+      setCentralWinningFlipIndex(validStoredWfi ? storedWfi : null);
       setCentralSolutionShown(false);
       setResultModalOpen(true);
     } else if (st.finished && st.loss) {
@@ -591,8 +577,10 @@ export default function FlipGameDemo({
           st.loss.setIndex != null ? Math.max(0, Math.floor(Number(st.loss.setIndex)) || 0) : null
       });
       setCentralSolutionShown(false);
+      setCentralWinningFlipIndex(null);
       setResultModalOpen(true);
     } else {
+      setCentralWinningFlipIndex(null);
       setResultModalOpen(false);
     }
   }, []);
@@ -621,7 +609,9 @@ export default function FlipGameDemo({
                 if (resolvedGameId && st.gameId && st.gameId !== resolvedGameId) {
                   clearStoredSession();
                 } else {
-                  applyRestoredCentralState(st);
+                  applyRestoredCentralState(st, {
+                    winningFlipIndex: stored?.winningFlipIndex
+                  });
                   /* snapshot ตอนเริ่มรอบไม่อัปเดตรูป — ดึง meta ล่าสุดเพื่อรูปกติกา/ปกตรงกับที่เผยแพร่ */
                   if (resolvedGameId) {
                     try {
@@ -798,9 +788,11 @@ export default function FlipGameDemo({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (mode === "api" && apiGameMode === "central" && sessionId) {
-      writeStoredSession(sessionId, resolvedGameId);
+      writeStoredSession(sessionId, resolvedGameId, {
+        winningFlipIndex: centralWinningFlipIndex
+      });
     }
-  }, [mode, apiGameMode, sessionId, resolvedGameId]);
+  }, [mode, apiGameMode, sessionId, resolvedGameId, centralWinningFlipIndex]);
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
@@ -881,6 +873,7 @@ export default function FlipGameDemo({
           )
         );
         if (data.loss) {
+          setCentralWinningFlipIndex(null);
           setCentralLoss({
             ruleId: data.loss.ruleId,
             label: data.loss.label || "จบรอบ — ไม่มีรางวัล",
@@ -892,6 +885,7 @@ export default function FlipGameDemo({
           setCentralSolutionShown(false);
           setResultModalOpen(true);
         } else if (data.winner) {
+          setCentralWinningFlipIndex(i);
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
@@ -1603,18 +1597,21 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             !centralSolutionShown &&
             !card.revealed;
-          /** กรอบเขียว: เฉพาะหน้ารางวัล (ตามกติกาชุด + ลำดับภาพในชุด) */
-          const isGreenRewardTile =
+          /** กรอบเขียว: เฉพาะป้ายที่พลิกแล้วจบรอบด้วยรางวัล (ตรงกับแจ้งเตือน) */
+          const isCentralWinHighlight =
             mode === "api" &&
             apiGameMode === "central" &&
             card.revealed &&
-            isCentralRewardFaceTile(key, prizeList, setImageCounts);
-          /** เปิดแล้วแต่ไม่ใช่หน้ารางวัล — ลดความเด่นเล็กน้อย */
-          const isMutedNonRewardCentral =
+            winner != null &&
+            centralWinningFlipIndex != null &&
+            i === centralWinningFlipIndex;
+          /** หลังกดเฉลย: ป้ายที่ระบบเปิดให้ (ผู้เล่นไม่ได้เลือก) — ทับเงาเทาอ่อน ไม่ใช้กรอบเขียว */
+          const showCentralSolutionDim =
             mode === "api" &&
             apiGameMode === "central" &&
+            centralSolutionShown &&
             card.revealed &&
-            !isGreenRewardTile;
+            !card.openedByPlayer;
           return (
             <button
               key={card.index ?? i}
@@ -1628,10 +1625,10 @@ export default function FlipGameDemo({
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${
                 showRedUnpicked
                   ? "border-red-500 ring-2 ring-red-400/90"
-                  : isGreenRewardTile
+                  : isCentralWinHighlight
                     ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80"
-                    : isMutedNonRewardCentral
-                      ? "border-slate-200 bg-slate-100/80"
+                    : showCentralSolutionDim
+                      ? "border-slate-300 bg-slate-100"
                       : card.revealed
                         ? "border-slate-300 bg-slate-50"
                         : playLocked
@@ -1645,16 +1642,16 @@ export default function FlipGameDemo({
                   <img
                     src={card.imageUrl}
                     alt=""
-                    className={`h-full w-full object-cover transition-[filter,opacity,transform] duration-300 ${
-                      isMutedNonRewardCentral
-                        ? "opacity-[0.92] saturate-[0.92] brightness-[0.96]"
-                        : ""
-                    } ${
-                      isGreenRewardTile
-                        ? "brightness-[1.04] contrast-[1.03] saturate-[1.08]"
-                        : ""
+                    className={`h-full w-full object-cover transition-opacity duration-300 ${
+                      isCentralWinHighlight ? "brightness-[1.04] contrast-[1.02]" : ""
                     }`}
                   />
+                  {showCentralSolutionDim ? (
+                    <span
+                      className="pointer-events-none absolute inset-0 bg-slate-500/35"
+                      aria-hidden
+                    />
+                  ) : null}
                 </span>
               ) : card.revealed ? (
                 <span>{meta?.emoji ?? "✓"}</span>
