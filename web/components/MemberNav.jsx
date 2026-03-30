@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { showMemberShopNav } from "../lib/memberUi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function MemberNav() {
@@ -55,15 +54,6 @@ export default function MemberNav() {
         >
           ข้อมูลส่วนตัว
         </Link>
-        {showMemberShopNav(user) ? (
-          <Link
-            href="/account/shops"
-            className="font-medium text-brand-700 transition hover:text-brand-900"
-            title="ลงสินค้า จัดการร้าน"
-          >
-            ร้านของฉัน
-          </Link>
-        ) : null}
         {user.role === "admin" ? (
           <Link
             href="/admin"
