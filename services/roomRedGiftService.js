@@ -154,7 +154,7 @@ async function issueRoomRedGiftCodes(creatorId, options = {}) {
       `UPDATE users SET
         red_giveaway_balance = $2,
         red_hearts_balance = $3,
-        hearts_balance = $4 + $3 + $2
+        hearts_balance = $4::integer + $3::integer + $2::integer
       WHERE id = $1::uuid`,
       [creatorId, newGive, newRed, curPink]
     );
@@ -277,7 +277,7 @@ async function deleteCodeByCreator(creatorId, codeId) {
         `UPDATE users SET
           red_hearts_balance = $2,
           red_giveaway_balance = $3,
-          hearts_balance = $4 + $2 + $3
+          hearts_balance = $4::integer + $2::integer + $3::integer
         WHERE id = $1::uuid`,
         [creatorId, newRed, newGive, curPink]
       );

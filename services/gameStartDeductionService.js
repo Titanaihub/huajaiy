@@ -162,8 +162,8 @@ async function deductCentralGameStart(
       `UPDATE users SET
         pink_hearts_balance = $2,
         red_hearts_balance = $3,
-        hearts_balance = $2 + $3 + $4
-       WHERE id = $1`,
+        hearts_balance = $2::integer + $3::integer + $4::integer
+       WHERE id = $1::uuid`,
       [userId, newPink, newGeneralRed, giveawayHave]
     );
 

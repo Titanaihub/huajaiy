@@ -626,7 +626,7 @@ async function adjustAdminTripleHearts(
         pink_hearts_balance = $2,
         red_hearts_balance = $3,
         red_giveaway_balance = $4,
-        hearts_balance = $2 + $3 + $4
+        hearts_balance = $2::integer + $3::integer + $4::integer
        WHERE id = $1::uuid`,
       [userId, newP, newR, newG]
     );
