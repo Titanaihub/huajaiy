@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
-import { formatHeartCostPerRoundLine } from "../lib/formatHeartCostLabel";
+import { formatCentralLobbyHeartLine } from "../lib/formatHeartCostLabel";
 
 const DESC_LEN = 180;
 
@@ -61,7 +61,7 @@ export default function GameLobby({ initialGames = [] }) {
           {filtered.map((g) => {
             const cover = String(g.gameCoverUrl || "").trim();
             const href = `/game/${encodeURIComponent(g.id)}`;
-            const heartLine = formatHeartCostPerRoundLine(g.pinkHeartCost, g.redHeartCost);
+            const heartLine = formatCentralLobbyHeartLine(g);
             return (
               <li key={g.id}>
                 <Link

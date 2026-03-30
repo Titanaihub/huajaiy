@@ -51,13 +51,34 @@ function resolveCentralGiftCtx(partial, user) {
   return { gameCreatedBy: null, allowGiftRedPlay };
 }
 
+function currencyMetaFromApi(meta) {
+  if (!meta || typeof meta !== "object") return null;
+  const m = meta.heartCurrencyMode;
+  return {
+    heartCurrencyMode: ["both", "pink_only", "red_only", "either"].includes(m)
+      ? m
+      : "both",
+    acceptsPinkHearts: meta.acceptsPinkHearts !== false
+  };
+}
+
 /**
  * เกมส่วนกลาง: ไม่ล็อกอิน = กระเป๋าสาธิต · ล็อกอิน = เช็กยอดชมพู + แดงทั่วไป + แดงจากรหัสห้องตามเกม
+ * @param {{ heartCurrencyMode?: string; acceptsPinkHearts?: boolean } | null} currencyMeta — โหมด either + รับชมพู = พอแค่ชมพูหรือแดงฝั่งใดฝั่งหนึ่ง
  */
-function canAffordCentralEntry(user, pinkCost, redCost, entryCtx) {
+function canAffordCentralEntry(user, pinkCost, redCost, entryCtx, currencyMeta) {
   const ctx = entryCtx || {};
   const p = Math.max(0, Math.floor(Number(pinkCost)) || 0);
   const r = Math.max(0, Math.floor(Number(redCost)) || 0);
+  const mode = currencyMeta?.heartCurrencyMode;
+  const acc = currencyMeta?.acceptsPinkHearts !== false;
+  if (mode === "either" && acc) {
+    const fee = Math.max(p, r);
+    return (
+      canAffordCentralEntry(user, fee, 0, ctx, null) ||
+      canAffordCentralEntry(user, 0, fee, ctx, null)
+    );
+  }
   if (p === 0 && r === 0) return true;
   if (user) {
     const pu = Math.max(0, Math.floor(Number(user.pinkHeartsBalance)) || 0);
@@ -82,7 +103,7 @@ function spendCentralEntryOrFail(user, pinkCost, redCost, entryCtx) {
   const r = Math.max(0, Math.floor(Number(redCost)) || 0);
   if (p === 0 && r === 0) return true;
   if (user) {
-    return canAffordCentralEntry(user, p, r, entryCtx);
+    return canAffordCentralEntry(user, p, r, entryCtx, null);
   }
   return trySpendPinkRed(p, r);
 }
@@ -161,7 +182,7 @@ function parseCentralTileSetIndex(key) {
   return Math.max(0, Math.floor(setIndex));
 }
 
-async function fetchGameStart(centralGameId) {
+async function fetchGameStart(centralGameId, payWith) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
     const token = getMemberToken();
@@ -171,6 +192,9 @@ async function fetchGameStart(centralGameId) {
     centralGameId && String(centralGameId).trim()
       ? { gameId: String(centralGameId).trim() }
       : {};
+  if (payWith === "pink" || payWith === "red") {
+    body.payWith = payWith;
+  }
   const r = await fetch(gameApiUrl("start"), {
     method: "POST",
     headers,
@@ -319,6 +343,9 @@ export default function FlipGameDemo({
   const [heartCost, setHeartCost] = useState(0);
   const [pinkHeartCost, setPinkHeartCost] = useState(0);
   const [redHeartCost, setRedHeartCost] = useState(0);
+  const [heartCurrencyMode, setHeartCurrencyMode] = useState("both");
+  const [acceptsPinkHeartsMeta, setAcceptsPinkHeartsMeta] = useState(true);
+  const [centralPayWith, setCentralPayWith] = useState("pink");
   const [centralEntryGiftCtx, setCentralEntryGiftCtx] = useState({
     gameCreatedBy: null,
     allowGiftRedPlay: false
@@ -335,6 +362,10 @@ export default function FlipGameDemo({
         user
       ),
     [centralEntryGiftCtx, centralCreatorUsername, user]
+  );
+  const centralCurrencyMeta = useMemo(
+    () => ({ heartCurrencyMode, acceptsPinkHearts: acceptsPinkHeartsMeta }),
+    [heartCurrencyMode, acceptsPinkHeartsMeta]
   );
   const [prizeList, setPrizeList] = useState(PRIZES);
   const [cards, setCards] = useState([]);
@@ -433,6 +464,9 @@ export default function FlipGameDemo({
     setCentralDescription("");
     setPinkHeartCost(0);
     setRedHeartCost(0);
+    setHeartCurrencyMode("both");
+    setAcceptsPinkHeartsMeta(true);
+    setCentralPayWith("pink");
     setCentralEntryGiftCtx({ gameCreatedBy: null, allowGiftRedPlay: false });
     setCentralCreatorUsername(null);
     setBootError(null);
@@ -459,6 +493,13 @@ export default function FlipGameDemo({
     const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
     setPinkHeartCost(p);
     setRedHeartCost(r);
+    setHeartCurrencyMode(
+      ["both", "pink_only", "red_only", "either"].includes(meta.heartCurrencyMode)
+        ? meta.heartCurrencyMode
+        : "both"
+    );
+    setAcceptsPinkHeartsMeta(meta.acceptsPinkHearts !== false);
+    setCentralPayWith("pink");
     setCentralEntryGiftCtx({
       gameCreatedBy: meta.gameCreatedBy ?? null,
       allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
@@ -516,6 +557,12 @@ export default function FlipGameDemo({
       const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
       setPinkHeartCost(p);
       setRedHeartCost(r);
+      setHeartCurrencyMode(
+        ["both", "pink_only", "red_only", "either"].includes(data.heartCurrencyMode)
+          ? data.heartCurrencyMode
+          : "both"
+      );
+      setAcceptsPinkHeartsMeta(data.acceptsPinkHearts !== false);
       setCentralEntryGiftCtx({
         gameCreatedBy: data.gameCreatedBy ?? null,
         allowGiftRedPlay: Boolean(data.allowGiftRedPlay)
@@ -529,6 +576,8 @@ export default function FlipGameDemo({
     } else {
       setPinkHeartCost(0);
       setRedHeartCost(0);
+      setHeartCurrencyMode("both");
+      setAcceptsPinkHeartsMeta(true);
       setCentralEntryGiftCtx({ gameCreatedBy: null, allowGiftRedPlay: false });
       setCentralCreatorUsername(null);
       setHeartCost(Number(data.heartCost) || 0);
@@ -586,6 +635,12 @@ export default function FlipGameDemo({
     setSessionId(st.sessionId);
     setPinkHeartCost(Math.max(0, Number(st.pinkHeartCost) || 0));
     setRedHeartCost(Math.max(0, Number(st.redHeartCost) || 0));
+    setHeartCurrencyMode(
+      ["both", "pink_only", "red_only", "either"].includes(st.heartCurrencyMode)
+        ? st.heartCurrencyMode
+        : "both"
+    );
+    setAcceptsPinkHeartsMeta(st.acceptsPinkHearts !== false);
     setCentralEntryGiftCtx({
       gameCreatedBy: st.gameCreatedBy ?? null,
       allowGiftRedPlay: Boolean(st.allowGiftRedPlay)
@@ -779,7 +834,13 @@ export default function FlipGameDemo({
             },
             user
           );
-          const canPay = canAffordCentralEntry(user, p, r, giftCtxFromMeta);
+          const canPay = canAffordCentralEntry(
+            user,
+            p,
+            r,
+            giftCtxFromMeta,
+            currencyMetaFromApi(meta)
+          );
           if (resolvedGameId) {
             if (needPay && !canPay) {
               applyCentralPreviewFromMeta(
@@ -815,7 +876,14 @@ export default function FlipGameDemo({
             return;
           }
         }
-        const data = await fetchGameStart(resolvedGameId);
+        const payArgBoot =
+          user &&
+          meta?.gameMode === "central" &&
+          meta?.heartCurrencyMode === "either" &&
+          meta?.acceptsPinkHearts !== false
+            ? centralPayWith
+            : undefined;
+        const data = await fetchGameStart(resolvedGameId, payArgBoot);
         if (cancelled) return;
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
@@ -1142,7 +1210,10 @@ export default function FlipGameDemo({
     if (sessionId || !playLocked || apiGameMode !== "central") return;
     const p = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
     const r = Math.max(0, Math.floor(Number(redHeartCost) || 0));
-    if ((p > 0 || r > 0) && !canAffordCentralEntry(user, p, r, centralGiftCtxResolved))
+    if (
+      (p > 0 || r > 0) &&
+      !canAffordCentralEntry(user, p, r, centralGiftCtxResolved, centralCurrencyMeta)
+    )
       return;
     let meta = null;
     setBusy(true);
@@ -1159,11 +1230,18 @@ export default function FlipGameDemo({
       }
       const mp = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
       const mr = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
-      const ctxLive = {
-        gameCreatedBy: meta.gameCreatedBy ?? null,
-        allowGiftRedPlay: Boolean(meta.allowGiftRedPlay)
-      };
-      if ((mp > 0 || mr > 0) && !canAffordCentralEntry(user, mp, mr, ctxLive)) {
+      const ctxLive = resolveCentralGiftCtx(
+        {
+          gameCreatedBy: meta.gameCreatedBy ?? null,
+          allowGiftRedPlay: Boolean(meta.allowGiftRedPlay),
+          creatorUsername: meta.creatorUsername ?? null
+        },
+        user
+      );
+      if (
+        (mp > 0 || mr > 0) &&
+        !canAffordCentralEntry(user, mp, mr, ctxLive, currencyMetaFromApi(meta))
+      ) {
         applyCentralPreviewFromMeta(
           meta,
           user
@@ -1172,7 +1250,13 @@ export default function FlipGameDemo({
         );
         return;
       }
-      const data = await fetchGameStart(resolvedGameId);
+      const payArg =
+        user &&
+        meta?.heartCurrencyMode === "either" &&
+        meta?.acceptsPinkHearts !== false
+          ? centralPayWith
+          : undefined;
+      const data = await fetchGameStart(resolvedGameId, payArg);
       if (data.gameMode === "central") {
         const dp = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
         const dr = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
@@ -1234,6 +1318,8 @@ export default function FlipGameDemo({
     pinkHeartCost,
     redHeartCost,
     centralGiftCtxResolved,
+    centralCurrencyMeta,
+    centralPayWith,
     user,
     applyApiSession,
     applyCentralPreviewFromMeta,
@@ -1285,7 +1371,13 @@ export default function FlipGameDemo({
             },
             user
           );
-          const canPay = canAffordCentralEntry(user, p, r, gctx);
+          const canPay = canAffordCentralEntry(
+            user,
+            p,
+            r,
+            gctx,
+            currencyMetaFromApi(meta)
+          );
           if (needPay && !canPay) {
             applyCentralPreviewFromMeta(
               meta,
@@ -1316,7 +1408,13 @@ export default function FlipGameDemo({
             },
             user
           );
-          const canPay = canAffordCentralEntry(user, p, r, gctx2);
+          const canPay = canAffordCentralEntry(
+            user,
+            p,
+            r,
+            gctx2,
+            currencyMetaFromApi(meta)
+          );
           if (needPay && !canPay) {
             applyCentralPreviewFromMeta(meta);
             return;
@@ -1329,7 +1427,13 @@ export default function FlipGameDemo({
             return;
           }
         }
-        const data = await fetchGameStart(resolvedGameId);
+        const payArgMain =
+          user &&
+          meta?.heartCurrencyMode === "either" &&
+          meta?.acceptsPinkHearts !== false
+            ? centralPayWith
+            : undefined;
+        const data = await fetchGameStart(resolvedGameId, payArgMain);
         if (data.gameMode === "central") {
           const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
           const r = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
@@ -1397,7 +1501,13 @@ export default function FlipGameDemo({
     (pinkHeartCost > 0 || redHeartCost > 0);
   const centralCanAffordStart =
     !centralNeedsHeartsForStart ||
-    canAffordCentralEntry(user, pinkHeartCost, redHeartCost, centralGiftCtxResolved);
+    canAffordCentralEntry(
+      user,
+      pinkHeartCost,
+      redHeartCost,
+      centralGiftCtxResolved,
+      centralCurrencyMeta
+    );
 
   const centralAffordHint = useMemo(() => {
     if (!user || !centralNeedsHeartsForStart || centralCanAffordStart) return "";
@@ -1763,6 +1873,35 @@ export default function FlipGameDemo({
       {showCentralPlayActions ? (
         <div className="space-y-2">
           {showCompactCentralStatsBar ? compactCentralStatsBar : null}
+          {playLocked &&
+          user &&
+          heartCurrencyMode === "either" &&
+          acceptsPinkHeartsMeta &&
+          (pinkHeartCost > 0 || redHeartCost > 0) ? (
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-sm">
+              <p className="font-medium text-slate-700">เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ</p>
+              <div className="mt-2 flex flex-wrap gap-4">
+                <label className="inline-flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="central-pay-with"
+                    checked={centralPayWith === "pink"}
+                    onChange={() => setCentralPayWith("pink")}
+                  />
+                  ใช้หัวใจชมพู
+                </label>
+                <label className="inline-flex cursor-pointer items-center gap-2">
+                  <input
+                    type="radio"
+                    name="central-pay-with"
+                    checked={centralPayWith === "red"}
+                    onChange={() => setCentralPayWith("red")}
+                  />
+                  ใช้หัวใจแดง
+                </label>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
             <button
               type="button"

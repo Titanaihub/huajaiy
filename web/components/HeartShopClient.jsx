@@ -169,10 +169,8 @@ export default function HeartShopClient() {
                 {p.description ? (
                   <p className="mt-1 text-sm text-slate-600">{p.description}</p>
                 ) : null}
-                <p className="mt-2 text-sm">
-                  <span className="text-rose-600 font-medium">ชมพู {p.pinkQty}</span>
-                  {" · "}
-                  <span className="text-red-700 font-medium">แดง {p.redQty}</span>
+                <p className="mt-2 text-sm text-red-800">
+                  หัวใจแดงแจก {p.redQty} ดวง (ใช้สร้างรหัสแจกห้อง / ทุนแจกผู้เล่น)
                 </p>
                 <p className="mt-1 text-lg font-bold text-slate-900">
                   ฿{p.priceThb?.toLocaleString("th-TH")}
@@ -249,8 +247,7 @@ export default function HeartShopClient() {
           <ul className="mt-3 space-y-2 text-sm">
             {purchases.map((x) => (
               <li key={x.id} className="rounded-lg border border-slate-100 bg-white px-3 py-2">
-                <span className="font-medium">{purchaseStatusThai(x.status)}</span> · ชมพู{" "}
-                {x.pinkQty} แดง{" "}
+                <span className="font-medium">{purchaseStatusThai(x.status)}</span> · แดงแจก{" "}
                 {x.redQty} · ฿{x.priceThbSnapshot?.toLocaleString("th-TH")} ·{" "}
                 {new Date(x.createdAt).toLocaleString("th-TH")}
                 {x.slipUrl ? (

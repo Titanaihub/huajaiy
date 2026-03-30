@@ -76,8 +76,13 @@ async function create({
     e.code = "VALIDATION";
     throw e;
   }
-  if (pq + rq <= 0) {
-    const e = new Error("ต้องมีหัวใจชมพูหรือแดงอย่างน้อย 1");
+  if (pq > 0) {
+    const e = new Error("แพ็กจากแอดมินขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษเท่านั้น");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (rq <= 0) {
+    const e = new Error("ต้องกำหนดจำนวนหัวใจแดง (แจก) อย่างน้อย 1");
     e.code = "VALIDATION";
     throw e;
   }
@@ -127,8 +132,13 @@ async function update(id, patch) {
     e.code = "VALIDATION";
     throw e;
   }
-  if (pinkQty + redQty <= 0) {
-    const e = new Error("ต้องมีหัวใจชมพูหรือแดงอย่างน้อย 1");
+  if (pinkQty > 0) {
+    const e = new Error("แพ็กจากแอดมินขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษเท่านั้น");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (redQty <= 0) {
+    const e = new Error("ต้องกำหนดจำนวนหัวใจแดง (แจก) อย่างน้อย 1");
     e.code = "VALIDATION";
     throw e;
   }

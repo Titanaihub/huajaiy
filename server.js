@@ -122,6 +122,8 @@ async function resolveGameCreatedById(game) {
 function centralMetaFromSnap(snap, givenByRuleId = null) {
   const pink = snap.game.pinkHeartCost ?? 0;
   const red = snap.game.redHeartCost ?? 0;
+  const heartCurrencyMode = snap.game.heartCurrencyMode || "both";
+  const acceptsPinkHearts = snap.game.acceptsPinkHearts !== false;
   return {
     gameMode: "central",
     gameId: snap.game.id,
@@ -132,6 +134,8 @@ function centralMetaFromSnap(snap, givenByRuleId = null) {
     creatorUsername: snap.game.creatorUsername || null,
     gameCreatedBy: snap.game.createdBy || null,
     allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay),
+    heartCurrencyMode,
+    acceptsPinkHearts,
     pinkHeartCost: pink,
     redHeartCost: red,
     heartCost: pink + red,
@@ -165,6 +169,55 @@ async function centralMetaFromSnapWithCounts(snap) {
     }
     throw e;
   }
+}
+
+/**
+ * คำนวณยอดหักชมพู/แดงตามโหมดเกม (both | pink_only | red_only | either)
+ */
+function resolveCentralEntryHearts(snapGame, reqBody, forLoggedInUser) {
+  const mode = snapGame.heartCurrencyMode || "both";
+  let pink = Math.max(0, Math.floor(Number(snapGame.pinkHeartCost) || 0));
+  let red = Math.max(0, Math.floor(Number(snapGame.redHeartCost) || 0));
+  const acceptsPink = snapGame.acceptsPinkHearts !== false;
+  const pw = reqBody?.payWith === "red" ? "red" : "pink";
+
+  if (mode === "pink_only") {
+    red = 0;
+  } else if (mode === "red_only") {
+    pink = 0;
+  } else if (mode === "either") {
+    const fee = Math.max(pink, red);
+    if (fee <= 0) {
+      return { pinkCost: 0, redCost: 0 };
+    }
+    if (!acceptsPink) {
+      pink = 0;
+      red = fee;
+    } else if (forLoggedInUser && reqBody?.payWith !== "pink" && reqBody?.payWith !== "red") {
+      const e = new Error(
+        'เกมนี้เลือกจ่ายได้ทั้งชมพูหรือแดง — ส่ง payWith เป็น "pink" หรือ "red"'
+      );
+      e.code = "PAY_WITH_REQUIRED";
+      throw e;
+    } else if (!forLoggedInUser) {
+      pink = fee;
+      red = 0;
+    } else if (pw === "red") {
+      pink = 0;
+      red = fee;
+    } else {
+      pink = fee;
+      red = 0;
+    }
+  }
+
+  if (!acceptsPink && pink > 0) {
+    const e = new Error("เกมห้องนี้ไม่รับหัวใจชมพู");
+    e.code = "PINK_NOT_ACCEPTED";
+    throw e;
+  }
+
+  return { pinkCost: pink, redCost: red };
 }
 
 /** หักหัวใจตอนเริ่มรอบเมื่อมี Bearer (สมาชิก) — คืน user หลังหัก */
@@ -360,11 +413,29 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
       snap = await getActiveCentralSnapshot();
     }
     if (snap) {
-      const pink = snap.game.pinkHeartCost ?? 0;
-      const red = snap.game.redHeartCost ?? 0;
       const resolvedCreator = await resolveGameCreatedById(snap.game);
       if (resolvedCreator) {
         snap.game.createdBy = resolvedCreator;
+      }
+      let pink;
+      let red;
+      try {
+        const resolved = resolveCentralEntryHearts(
+          snap.game,
+          req.body || {},
+          Boolean(req.userId)
+        );
+        pink = resolved.pinkCost;
+        red = resolved.redCost;
+      } catch (err) {
+        if (err.code === "PAY_WITH_REQUIRED" || err.code === "PINK_NOT_ACCEPTED") {
+          return res.status(400).json({
+            ok: false,
+            error: err.message,
+            code: err.code
+          });
+        }
+        throw err;
       }
       let afterUser = null;
       try {

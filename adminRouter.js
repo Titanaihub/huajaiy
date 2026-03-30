@@ -700,6 +700,8 @@ router.post(
         heartCost: req.body?.heartCost,
         pinkHeartCost: req.body?.pinkHeartCost,
         redHeartCost: req.body?.redHeartCost,
+        heartCurrencyMode: req.body?.heartCurrencyMode,
+        acceptsPinkHearts: req.body?.acceptsPinkHearts,
         setImageCounts: req.body?.setImageCounts,
         createdBy: req.userId
       });

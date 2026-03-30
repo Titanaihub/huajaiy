@@ -16,7 +16,6 @@ export default function AdminHeartPackagesPanel() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [pinkQty, setPinkQty] = useState("0");
   const [redQty, setRedQty] = useState("0");
   const [priceThb, setPriceThb] = useState("0");
   const [sortOrder, setSortOrder] = useState("0");
@@ -59,7 +58,6 @@ export default function AdminHeartPackagesPanel() {
       });
       setTitle("");
       setDescription("");
-      setPinkQty("0");
       setRedQty("0");
       setPriceThb("0");
       setSortOrder("0");
@@ -87,7 +85,7 @@ export default function AdminHeartPackagesPanel() {
   return (
     <section className="space-y-6">
       <p className="text-sm text-slate-600">
-        สร้างแพ็กเกจขายหัวใจ (ชมพู / แดง) ราคาเป็นบาท — สมาชิกซื้อแล้วแนบสลิป แอดมินอนุมัติในแท็บ &quot;อนุมัติสลิป&quot;
+        ขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) สำหรับผู้สร้างเกม — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษที่แอดมินกำหนดเท่านั้น · สมาชิกแนบสลิป แอดมินอนุมัติในแท็บอนุมัติสลิป
       </p>
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
 
@@ -115,21 +113,14 @@ export default function AdminHeartPackagesPanel() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
-          <div>
-            <label className="text-xs font-medium text-rose-500">หัวใจชมพู</label>
-            <input
-              type="number"
-              min={0}
-              value={pinkQty}
-              onChange={(e) => setPinkQty(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
+          <div className="sm:col-span-2 rounded-lg border border-sky-200 bg-sky-50/80 px-3 py-2 text-xs text-sky-950">
+            ไม่มีช่องชมพู — ระบบบังคับแดงแจกอย่างเดียว
           </div>
           <div>
-            <label className="text-xs font-medium text-red-700">หัวใจแดง</label>
+            <label className="text-xs font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
             <input
               type="number"
-              min={0}
+              min={1}
               value={redQty}
               onChange={(e) => setRedQty(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
@@ -176,8 +167,7 @@ export default function AdminHeartPackagesPanel() {
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
               <tr>
                 <th className="px-3 py-2">ชื่อ</th>
-                <th className="px-3 py-2">ชมพู</th>
-                <th className="px-3 py-2">แดง</th>
+                <th className="px-3 py-2">แดงแจก</th>
                 <th className="px-3 py-2">ราคา</th>
                 <th className="px-3 py-2">ขาย</th>
                 <th className="px-3 py-2 w-28" />
@@ -186,7 +176,7 @@ export default function AdminHeartPackagesPanel() {
             <tbody>
               {list.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
                     ยังไม่มีแพ็กเกจ
                   </td>
                 </tr>
@@ -194,7 +184,6 @@ export default function AdminHeartPackagesPanel() {
                 list.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100">
                     <td className="px-3 py-2 font-medium">{p.title}</td>
-                    <td className="px-3 py-2 text-rose-600">{p.pinkQty}</td>
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
                     <td className="px-3 py-2">{p.active ? "เปิด" : "ปิด"}</td>

@@ -112,10 +112,20 @@ export default function AdminHeartPurchasesPanel() {
                 @{p.buyerUsername || "?"} — {p.buyerFirstName} {p.buyerLastName}
               </p>
               <p className="mt-1 text-sm text-slate-700">
-                แพ็กเกจ: <span className="font-medium">{p.packageTitle}</span> · ชมพู{" "}
-                <span className="text-rose-600">{p.pinkQty}</span> แดง{" "}
-                <span className="text-red-700">{p.redQty}</span> · ราคาตอนซื้อ ฿
-                {p.priceThbSnapshot?.toLocaleString("th-TH")}
+                แพ็กเกจ: <span className="font-medium">{p.packageTitle}</span>
+                {p.pinkQty > 0 ? (
+                  <>
+                    {" "}
+                    · ชมพู <span className="text-rose-600">{p.pinkQty}</span> แดง{" "}
+                    <span className="text-red-700">{p.redQty}</span>
+                  </>
+                ) : (
+                  <>
+                    {" "}
+                    · แดงแจก <span className="text-red-700">{p.redQty}</span>
+                  </>
+                )}{" "}
+                · ราคาตอนซื้อ ฿{p.priceThbSnapshot?.toLocaleString("th-TH")}
               </p>
               <p className="mt-1 text-xs text-slate-500">
                 {new Date(p.createdAt).toLocaleString("th-TH")} · {statusThai(p.status)}

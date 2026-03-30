@@ -169,6 +169,14 @@ async function ensurePublishedGameCode(gameId) {
   }
 }
 
+const HEART_CURRENCY_MODES = new Set(["both", "pink_only", "red_only", "either"]);
+
+function normalizeHeartCurrencyMode(raw) {
+  const m = String(raw || "").trim().toLowerCase().replace(/-/g, "_");
+  if (HEART_CURRENCY_MODES.has(m)) return m;
+  return "both";
+}
+
 function rowGame(row) {
   const legacyHeart = Math.max(0, Math.floor(Number(row.heart_cost) || 0));
   let pinkHeartCost = Math.max(0, Math.floor(Number(row.pink_heart_cost) || 0));
@@ -217,7 +225,10 @@ function rowGame(row) {
       row.creator_username != null && String(row.creator_username).trim()
         ? String(row.creator_username).trim().toLowerCase()
         : null,
-    allowGiftRedPlay: Boolean(row.allow_gift_red_play)
+    allowGiftRedPlay: Boolean(row.allow_gift_red_play),
+    heartCurrencyMode: normalizeHeartCurrencyMode(row.heart_currency_mode),
+    acceptsPinkHearts:
+      row.accepts_pink_hearts == null ? true : Boolean(row.accepts_pink_hearts)
   };
 }
 
@@ -298,7 +309,9 @@ async function listPublishedGamesForPublic() {
       gameCoverUrl: game.gameCoverUrl,
       creatorUsername: game.creatorUsername,
       pinkHeartCost: game.pinkHeartCost,
-      redHeartCost: game.redHeartCost
+      redHeartCost: game.redHeartCost,
+      heartCurrencyMode: game.heartCurrencyMode,
+      acceptsPinkHearts: game.acceptsPinkHearts
     };
   });
 }
@@ -373,6 +386,79 @@ function normalizePinkRedCosts(body, fallbackPink = 0, fallbackRed = 0) {
   return { pink, red };
 }
 
+/**
+ * @param {string} modeRaw
+ * @param {boolean} acceptsPink
+ */
+function syncCostsForCurrencyMode(modeRaw, pink, red, acceptsPink) {
+  const mode = normalizeHeartCurrencyMode(modeRaw);
+  let p = Math.max(0, Math.floor(Number(pink) || 0));
+  let r = Math.max(0, Math.floor(Number(red) || 0));
+  if (mode === "pink_only") {
+    r = 0;
+  } else if (mode === "red_only") {
+    p = 0;
+  } else if (mode === "either") {
+    const fee = Math.max(p, r);
+    if (acceptsPink !== false) {
+      p = fee;
+      r = fee;
+    } else {
+      p = 0;
+      r = fee;
+    }
+  }
+  return { mode, pink: p, red: r, heartSum: p + r };
+}
+
+/**
+ * @param {{ heartCurrencyMode?: string; pinkHeartCost?: number; redHeartCost?: number; acceptsPinkHearts?: boolean }} g
+ */
+function assertHeartEconomyValid(g) {
+  const mode = normalizeHeartCurrencyMode(g?.heartCurrencyMode);
+  const pink = Math.max(0, Math.floor(Number(g?.pinkHeartCost) || 0));
+  const red = Math.max(0, Math.floor(Number(g?.redHeartCost) || 0));
+  const accepts = g?.acceptsPinkHearts !== false;
+  if (!accepts && pink > 0) {
+    const e = new Error("ปิดรับหัวใจชมพูแล้ว — ตั้งค่าหัวใจชมพูต่อรอบเป็น 0");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (!accepts && mode === "pink_only") {
+    const e = new Error("ห้องที่ไม่รับชมพูต้องไม่ใช้โหมดชำระเฉพาะชมพู");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (mode === "pink_only" && pink <= 0) {
+    const e = new Error("โหมดชำระเฉพาะชมพู — ต้องกำหนดจำนวนชมพูต่อรอบ");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (mode === "red_only" && red <= 0) {
+    const e = new Error("โหมดชำระเฉพาะแดง — ต้องกำหนดจำนวนแดงต่อรอบ");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (mode === "either") {
+    const fee = Math.max(pink, red);
+    if (fee <= 0) {
+      const e = new Error("โหมดจ่ายชมพูหรือแดงอย่างใดอย่างหนึ่ง — ต้องกำหนดจำนวนต่อรอบ > 0");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    if (accepts && pink !== red) {
+      const e = new Error("โหมดจ่ายอย่างใดอย่างหนึ่ง — ใส่ชมพูและแดงให้เท่ากัน (ค่าธรรมเนียมเดียวกัน)");
+      e.code = "VALIDATION";
+      throw e;
+    }
+  }
+  if (mode === "both" && pink + red <= 0) {
+    const e = new Error("โหมดหักทั้งชมพูและแดง — ต้องกำหนดอย่างน้อยหนึ่งยอด");
+    e.code = "VALIDATION";
+    throw e;
+  }
+}
+
 async function createGame({
   title,
   description: descriptionBody,
@@ -383,6 +469,8 @@ async function createGame({
   heartCost = 0,
   pinkHeartCost,
   redHeartCost,
+  heartCurrencyMode: heartCurrencyModeBody,
+  acceptsPinkHearts: acceptsPinkBody,
   tileBackCoverUrl,
   gameCoverUrl: gameCoverUrlBody,
   createdBy = null
@@ -415,21 +503,37 @@ async function createGame({
   }
   const maxPer = Math.max(...sizes, 1);
   const id = crypto.randomUUID();
-  const { pink, red } = normalizePinkRedCosts(
+  let { pink, red } = normalizePinkRedCosts(
     { heartCost, pinkHeartCost, redHeartCost },
     0,
     0
   );
-  const heartSum = pink + red;
+  const acceptsPink =
+    acceptsPinkBody !== undefined ? Boolean(acceptsPinkBody) : true;
+  const mode = normalizeHeartCurrencyMode(heartCurrencyModeBody);
+  const synced = syncCostsForCurrencyMode(mode, pink, red, acceptsPink);
+  pink = synced.pink;
+  red = synced.red;
+  const heartSum = synced.heartSum;
+  assertHeartEconomyValid({
+    heartCurrencyMode: mode,
+    pinkHeartCost: pink,
+    redHeartCost: red,
+    acceptsPinkHearts: acceptsPink
+  });
   const gameDesc = normalizeGameDescription(descriptionBody);
   let gcv = null;
   if (gameCoverUrlBody !== undefined && gameCoverUrlBody !== null && String(gameCoverUrlBody).trim()) {
     gcv = normalizeGameCoverUrl(gameCoverUrlBody);
   }
   await pool.query(
-    `INSERT INTO central_games (id, title, description, tile_count, set_count, images_per_set, set_image_counts, heart_cost, pink_heart_cost, red_heart_cost, game_cover_url, is_active, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, FALSE, $12)`,
-    [id, t, gameDesc, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, gcv, createdBy]
+    `INSERT INTO central_games (
+       id, title, description, tile_count, set_count, images_per_set, set_image_counts,
+       heart_cost, pink_heart_cost, red_heart_cost, game_cover_url, is_active, created_by,
+       heart_currency_mode, accepts_pink_hearts
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, FALSE, $12, $13, $14)`,
+    [id, t, gameDesc, tc, sc, maxPer, JSON.stringify(sizes), heartSum, pink, red, gcv, createdBy, mode, acceptsPink]
   );
   return getGameSnapshotById(id);
 }
@@ -477,7 +581,24 @@ async function updateGameMeta(gameId, patch) {
     pink = Math.max(0, Math.floor(Number(patch.heartCost) || 0));
     red = 0;
   }
-  const heartSum = pink + red;
+  const mode =
+    patch.heartCurrencyMode != null
+      ? normalizeHeartCurrencyMode(patch.heartCurrencyMode)
+      : c.heartCurrencyMode;
+  const acceptsPink =
+    patch.acceptsPinkHearts !== undefined
+      ? Boolean(patch.acceptsPinkHearts)
+      : c.acceptsPinkHearts !== false;
+  const synced = syncCostsForCurrencyMode(mode, pink, red, acceptsPink);
+  pink = synced.pink;
+  red = synced.red;
+  const heartSum = synced.heartSum;
+  assertHeartEconomyValid({
+    heartCurrencyMode: mode,
+    pinkHeartCost: pink,
+    redHeartCost: red,
+    acceptsPinkHearts: acceptsPink
+  });
   if (!title) {
     const e = new Error("ต้องมีชื่อเกม");
     e.code = "VALIDATION";
@@ -493,7 +614,9 @@ async function updateGameMeta(gameId, patch) {
       tc === c.tileCount &&
       JSON.stringify(sizes) === JSON.stringify(c.setImageCounts) &&
       pink === c.pinkHeartCost &&
-      red === c.redHeartCost;
+      red === c.redHeartCost &&
+      mode === c.heartCurrencyMode &&
+      acceptsPink === (c.acceptsPinkHearts !== false);
     if (!sameLayout) {
       const e = new Error(MSG_AWARDS_LOCK);
       e.code = "VALIDATION";
@@ -511,7 +634,9 @@ async function updateGameMeta(gameId, patch) {
     heartSum,
     pink,
     red,
-    description
+    description,
+    mode,
+    acceptsPink
   ];
   if (patch.tileBackCoverUrl !== undefined) {
     const v =
@@ -544,7 +669,7 @@ async function updateGameMeta(gameId, patch) {
   }
   const extraSql = extraFragments.length ? `, ${extraFragments.join(", ")}` : "";
   await pool.query(
-    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, updated_at = NOW()${extraSql} WHERE id = $1`,
+    `UPDATE central_games SET title = $2, tile_count = $3, set_count = $4, images_per_set = $5, set_image_counts = $6::jsonb, heart_cost = $7, pink_heart_cost = $8, red_heart_cost = $9, description = $10, heart_currency_mode = $11, accepts_pink_hearts = $12, updated_at = NOW()${extraSql} WHERE id = $1`,
     params
   );
   const publishedAfter =

@@ -520,6 +520,15 @@ async function initDb() {
     `);
 
     await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS heart_currency_mode VARCHAR(16) NOT NULL DEFAULT 'both';
+    `);
+    await client.query(`
+      ALTER TABLE central_games
+      ADD COLUMN IF NOT EXISTS accepts_pink_hearts BOOLEAN NOT NULL DEFAULT TRUE;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS user_room_red_balance (
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

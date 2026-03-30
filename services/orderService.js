@@ -3,6 +3,9 @@ const { getPool } = require("../db/pool");
 const productService = require("./productService");
 const heartLedgerService = require("./heartLedgerService");
 
+/** หัวใจชมพูจากสั่งซื้อร้านปิด — ได้ชมพูจากกิจกรรมแอดมิน/รหัสพิเศษเท่านั้น */
+const MARKETPLACE_GRANTS_PINK_HEARTS = false;
+
 async function createOrder(userId, { totalPrice, heartsGranted, items }) {
   const pool = getPool();
   if (!pool) {
@@ -95,7 +98,7 @@ async function createMarketplaceOrder(userId, payload) {
         throw e;
       }
       const lineSubtotal = row.price_thb * qty;
-      const hb = (row.hearts_bonus || 0) * qty;
+      const hb = MARKETPLACE_GRANTS_PINK_HEARTS ? (row.hearts_bonus || 0) * qty : 0;
       totalPrice += lineSubtotal;
       heartsGranted += hb;
       items.push({

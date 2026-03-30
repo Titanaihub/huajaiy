@@ -54,7 +54,14 @@ async function createPurchase(userId, packageId, slipUrl) {
     e.code = "PACKAGE_INVALID";
     throw e;
   }
-  if (pkg.pinkQty + pkg.redQty <= 0) {
+  if (pkg.pinkQty > 0) {
+    const e = new Error(
+      "แพ็กนี้ไม่รองรับการซื้อ — ขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) จากแอดมิน"
+    );
+    e.code = "PACKAGE_INVALID";
+    throw e;
+  }
+  if (pkg.redQty <= 0) {
     const e = new Error("แพ็กเกจไม่ถูกต้อง");
     e.code = "PACKAGE_INVALID";
     throw e;

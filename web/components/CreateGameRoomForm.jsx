@@ -117,7 +117,9 @@ export default function CreateGameRoomForm() {
         setCount: 1,
         imagesPerSet: 4,
         pinkHeartCost: 0,
-        redHeartCost: 0
+        redHeartCost: 0,
+        heartCurrencyMode: "both",
+        acceptsPinkHearts: true
       });
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");

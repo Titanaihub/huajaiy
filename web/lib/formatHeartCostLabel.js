@@ -15,6 +15,31 @@ export function formatHeartCostPerRoundLine(pinkHeartCost, redHeartCost) {
   return `หักหัวใจต่อรอบ: ${parts.join(" · ")}`;
 }
 
+/**
+ * ล็อบบี้ — รองรับโหมดชำระจาก API
+ * @param {{ pinkHeartCost?: number; redHeartCost?: number; heartCurrencyMode?: string; acceptsPinkHearts?: boolean }} g
+ */
+export function formatCentralLobbyHeartLine(g) {
+  const p = Math.max(0, Math.floor(Number(g?.pinkHeartCost) || 0));
+  const r = Math.max(0, Math.floor(Number(g?.redHeartCost) || 0));
+  const mode = String(g?.heartCurrencyMode || "both").toLowerCase();
+  if (p === 0 && r === 0) return null;
+  if (mode === "either") {
+    const fee = Math.max(p, r);
+    const acc = g?.acceptsPinkHearts !== false;
+    return acc
+      ? `หักต่อรอบ: ${fee} ดวง (เลือกจ่ายชมพูหรือแดง)`
+      : `หักต่อรอบ: ${fee} ดวง (แดง)`;
+  }
+  if (mode === "pink_only") {
+    return p > 0 ? `หักต่อรอบ: ${p} หัวใจชมพู` : null;
+  }
+  if (mode === "red_only") {
+    return r > 0 ? `หักต่อรอบ: ${r} หัวใจแดง` : null;
+  }
+  return formatHeartCostPerRoundLine(p, r);
+}
+
 /** สรุปสั้นไม่มีคำนำหน้า (เช่น ในแดชบอร์ดที่มีหัวข้อแยกแล้ว) */
 export function formatHeartCostSummary(pinkHeartCost, redHeartCost) {
   const parts = heartCostParts(pinkHeartCost, redHeartCost);

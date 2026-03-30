@@ -316,6 +316,9 @@ export default function AdminCentralGamePanel({
   const [setSizes, setSetSizes] = useState([4, 4, 4, 4, 4]);
   const [pinkHeartCost, setPinkHeartCost] = useState(0);
   const [redHeartCost, setRedHeartCost] = useState(0);
+  /** @type {['both'|'pink_only'|'red_only'|'either', function]} */
+  const [heartCurrencyMode, setHeartCurrencyMode] = useState("both");
+  const [acceptsPinkHearts, setAcceptsPinkHearts] = useState(true);
 
   const [imageMap, setImageMap] = useState({});
   /** URL รูปหน้าปก — ว่าง = ใช้รูปหัวใจชมพูเริ่มต้นบนเว็บ */
@@ -334,6 +337,8 @@ export default function AdminCentralGamePanel({
   const [newSetSizes, setNewSetSizes] = useState([4, 4, 4, 4, 4]);
   const [newPinkHeart, setNewPinkHeart] = useState(0);
   const [newRedHeart, setNewRedHeart] = useState(0);
+  const [newHeartCurrencyMode, setNewHeartCurrencyMode] = useState("both");
+  const [newAcceptsPink, setNewAcceptsPink] = useState(true);
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
@@ -432,6 +437,11 @@ export default function AdminCentralGamePanel({
       setRedHeartCost(typeof g.redHeartCost === "number" ? g.redHeartCost : 0);
       setLobbyVisible(Boolean(g.isPublished));
       setAllowGiftRedPlay(Boolean(g.allowGiftRedPlay));
+      const hcm = g.heartCurrencyMode;
+      setHeartCurrencyMode(
+        ["both", "pink_only", "red_only", "either"].includes(hcm) ? hcm : "both"
+      );
+      setAcceptsPinkHearts(g.acceptsPinkHearts !== false);
       const map = {};
       for (const im of data.images || []) {
         const k0 = `${im.setIndex}-0`;
@@ -515,7 +525,9 @@ export default function AdminCentralGamePanel({
         setImageCounts: counts,
         tileCount: counts.reduce((a, b) => a + b, 0),
         pinkHeartCost: newPinkHeart,
-        redHeartCost: newRedHeart
+        redHeartCost: newRedHeart,
+        heartCurrencyMode: newHeartCurrencyMode,
+        acceptsPinkHearts: newAcceptsPink
       });
       const gid = data.snapshot?.game?.id;
       const gtitle = data.snapshot?.game?.title || newTitle;
@@ -578,6 +590,8 @@ export default function AdminCentralGamePanel({
       tileCount: counts.reduce((a, b) => a + b, 0),
       pinkHeartCost,
       redHeartCost,
+      heartCurrencyMode,
+      acceptsPinkHearts,
       isPublished: lobbyVisible,
       allowGiftRedPlay
     });
@@ -936,10 +950,34 @@ export default function AdminCentralGamePanel({
             <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
               <p className="text-xs font-semibold text-slate-800">การหักหัวใจต่อรอบ</p>
               <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                กำหนดได้ว่าจะหักสีไหน: <strong>เฉพาะชมพู</strong> (ใส่แดง 0) · <strong>เฉพาะแดง</strong> (ใส่ชมพู 0) ·
-                หรือ<strong>ทั้งสองสี</strong> — ผู้เล่นต้องมียอดครบทุกสีที่ตั้งไว้ (ไม่สลับสีแทนกัน)
+                เลือกโหมดชำระและจำนวนต่อรอบ — โหมดจ่ายอย่างใดอย่างหนึ่งให้ใส่ชมพูและแดงให้เท่ากัน
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="text-xs text-slate-600">โหมดชำระหัวใจ</label>
+                  <select
+                    value={newHeartCurrencyMode}
+                    onChange={(e) => setNewHeartCurrencyMode(e.target.value)}
+                    className="mt-1 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="both">หักทั้งชมพูและแดง</option>
+                    <option value="pink_only">รับเฉพาะหัวใจชมพู</option>
+                    <option value="red_only">รับเฉพาะหัวใจแดง</option>
+                    <option value="either">รับชมพูหรือแดงอย่างใดอย่างหนึ่ง</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2 flex gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-2">
+                  <input
+                    id="new-central-accepts-pink"
+                    type="checkbox"
+                    checked={newAcceptsPink}
+                    onChange={(e) => setNewAcceptsPink(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                  />
+                  <label htmlFor="new-central-accepts-pink" className="text-xs leading-relaxed text-slate-700">
+                    ห้องนี้รับหัวใจชมพู
+                  </label>
+                </div>
                 <div>
                   <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
                   <input
@@ -1211,10 +1249,37 @@ export default function AdminCentralGamePanel({
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
                 <p className="text-xs font-semibold text-slate-800">การหักหัวใจต่อรอบ</p>
                 <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  กำหนดได้ว่าจะหักสีไหน: <strong>เฉพาะชมพู</strong> (แดง = 0) · <strong>เฉพาะแดง</strong> (ชมพู = 0) ·
-                  หรือ<strong>ทั้งสองสี</strong> — ผู้เล่นต้องมียอดครบทุกสีที่ตั้งไว้
+                  เลือกโหมดชำระ: หักทั้งชมพูและแดงในรอบเดียวกัน · เฉพาะชมพู · เฉพาะแดง ·
+                  หรือให้ผู้เล่นเลือกจ่ายชมพูหรือแดงอย่างใดอย่างหนึ่ง (ใส่สองช่องให้เท่ากัน)
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="text-xs text-slate-600">โหมดชำระหัวใจ</label>
+                    <select
+                      value={heartCurrencyMode}
+                      onChange={(e) => setHeartCurrencyMode(e.target.value)}
+                      disabled={prizeAwardCount > 0}
+                      className="mt-1 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-100"
+                    >
+                      <option value="both">หักทั้งชมพูและแดง (ตามจำนวนที่ใส่)</option>
+                      <option value="pink_only">รับเฉพาะหัวใจชมพู</option>
+                      <option value="red_only">รับเฉพาะหัวใจแดง</option>
+                      <option value="either">รับชมพูหรือแดงอย่างใดอย่างหนึ่ง (ผู้เล่นเลือกตอนเริ่ม)</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2 flex gap-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-2">
+                    <input
+                      id="central-accepts-pink"
+                      type="checkbox"
+                      checked={acceptsPinkHearts}
+                      onChange={(e) => setAcceptsPinkHearts(e.target.checked)}
+                      disabled={prizeAwardCount > 0}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                    />
+                    <label htmlFor="central-accepts-pink" className="text-xs leading-relaxed text-slate-700">
+                      ห้องนี้รับหัวใจชมพู (ปิดถ้าต้องการให้เล่นด้วยแดงเท่านั้น — โหมดจ่ายอย่างใดอย่างหนึ่งจะเหลือแค่แดง)
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs text-slate-600">หักหัวใจชมพูต่อรอบ</label>
                     <input

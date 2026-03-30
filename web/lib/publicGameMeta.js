@@ -78,6 +78,8 @@ export async function fetchPublicCentralGameMetaById(gameId) {
     const cu = String(data.creatorUsername || "").trim().toLowerCase();
     const pinkHeartCost = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
     const redHeartCost = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
+    const heartCurrencyMode = data.heartCurrencyMode || "both";
+    const acceptsPinkHearts = data.acceptsPinkHearts !== false;
     return {
       gameId: data.gameId || id,
       title: title || "เกม",
@@ -88,7 +90,9 @@ export async function fetchPublicCentralGameMetaById(gameId) {
       coverImageUrl: customCover || DEFAULT_CENTRAL_GAME_COVER_PATH,
       creatorUsername: cu || null,
       pinkHeartCost,
-      redHeartCost
+      redHeartCost,
+      heartCurrencyMode,
+      acceptsPinkHearts
     };
   } catch {
     return null;
