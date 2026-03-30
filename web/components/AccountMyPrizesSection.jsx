@@ -265,9 +265,6 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
 
       {open ? (
         <div className="mt-4 border-t border-slate-100 pt-4">
-          <p className="mb-3 text-xs text-slate-500">
-            วันเวลา = เวลาที่ระบบบันทึกการชนะรางวัล (หลังเปิดป้ายครบตามกติกา) · แถว「ถอนเงิน」ใช้วันที่ผู้สร้างเกมอนุมัติการถอน
-          </p>
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="min-w-[720px] w-full border-collapse text-left text-sm">
               <thead>
@@ -430,9 +427,6 @@ export default function AccountMyPrizesSection() {
   return (
     <section>
       <h2 className="text-lg font-semibold text-slate-900">รางวัลของฉัน</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        สรุปตาม<strong className="font-medium text-slate-700"> ยูสเซอร์ผู้สร้างเกม</strong> — เงินรางวัลรวมจากเกมที่ผู้สร้างรายนั้นสร้าง · กด「ดูรายละเอียด」เพื่อดูตารางรายครั้ง พร้อมยอดสะสมและคำขอถอนเงิน
-      </p>
 
       {err ? (
         <p className="mt-4 text-sm text-red-700" role="alert">
