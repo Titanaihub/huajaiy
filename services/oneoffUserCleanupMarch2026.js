@@ -7,6 +7,30 @@ const PHONG_USERNAME = "phongphiphat47";
 const AUNYAWEE_SUBTRACT_GIVEAWAY = 4999;
 const AUNYAWEE_ADD_PLAYABLE_RED = 1;
 
+/** @param {unknown} raw */
+function parseAunyaweeExactBalances(raw) {
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = /** @type {Record<string, unknown>} */ (raw);
+  if (
+    o.pink === undefined ||
+    o.redPlayable === undefined ||
+    o.redGiveaway === undefined
+  ) {
+    return null;
+  }
+  const pink = Math.max(0, Math.floor(Number(o.pink)));
+  const redPlayable = Math.max(0, Math.floor(Number(o.redPlayable)));
+  const redGiveaway = Math.max(0, Math.floor(Number(o.redGiveaway)));
+  if (
+    !Number.isFinite(pink) ||
+    !Number.isFinite(redPlayable) ||
+    !Number.isFinite(redGiveaway)
+  ) {
+    return null;
+  }
+  return { pink, redPlayable, redGiveaway };
+}
+
 /**
  * ดูก่อนรันว่ามีแถวอะไรใน DB (ไม่แก้ข้อมูล)
  */
@@ -137,7 +161,11 @@ async function previewMarch2026AunyaweePhongCleanup() {
 /**
  * One-off: ลบข้อมูลตามคำขอ aunyawee + phongphiphat47 (มีแอดมิน + คีย์ env หรือรันสคริปต์)
  * รวม ledger/purchases/รางวัล/ยอดห้อง (ทั้งฝั่ง user และ creator) และคำขอถอนรางวัลที่เกี่ยวทั้งสองคน
- * @param {{ forceAunyaweeBalanceAdjust?: boolean }} [options]
+ * @param {{
+ *   forceAunyaweeBalanceAdjust?: boolean;
+ *   aunyaweeExactBalances?: { pink: number; redPlayable: number; redGiveaway: number } | null;
+ * }} [options]
+ * aunyaweeExactBalances — ตั้งยอด aunyawee ตรงๆ (ทับสูตรหัก 4999) ใช้เมื่อยอดจริงไม่ตรงสูตร เช่น หลังคืนแดงจากลบรหัส
  * @returns {Promise<{ ok: true, phongCodesDeleted: string[], aunyaweeCodesDeleted: string[], sql: object }>}
  */
 async function runMarch2026AunyaweePhongCleanup(options = {}) {
@@ -176,6 +204,8 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
     await roomRedGiftService.deleteCodeByCreator(auId, c.id);
     auCodesDeleted.push(c.code);
   }
+
+  const exactBalances = parseAunyaweeExactBalances(options.aunyaweeExactBalances);
 
   const client = await pool.connect();
   const sql = {
@@ -242,10 +272,19 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
     /** ลบรหัสห้องนอก transaction (คืนยอด) — ถ้าใน tx ไม่มีแถวแต่ลูปลบรหัสแล้ว ต้องปรับยอด aunyawee */
     const hadServiceCodeDeletes =
       auCodesDeleted.length > 0 || phCodesDeleted.length > 0;
-    if (touched === 0 && !forceBal && !hadServiceCodeDeletes) {
+    if (
+      options.aunyaweeExactBalances != null &&
+      options.aunyaweeExactBalances !== undefined &&
+      !exactBalances
+    ) {
+      throw new Error(
+        "aunyaweeExactBalances ต้องเป็น object ที่มี pink, redPlayable, redGiveaway (ตัวเลข ≥ 0)"
+      );
+    }
+    if (touched === 0 && !forceBal && !hadServiceCodeDeletes && !exactBalances) {
       sql.balanceAdjusted = false;
       sql.note =
-        "ไม่มีแถวให้ลบในรอบนี้ — ข้ามการปรับยอด aunyawee · ถ้าต้องการปรับยอดบังคับ ส่ง JSON forceAunyaweeBalanceAdjust: true (ระวังรันซ้ำ)";
+        "ไม่มีแถวให้ลบในรอบนี้ — ข้ามการปรับยอด aunyawee · ถ้าต้องการปรับยอดบังคับ ส่ง JSON forceAunyaweeBalanceAdjust: true หรือ aunyaweeExactBalances (ระวังรันซ้ำ)";
     } else {
       const balR = await client.query(
         `SELECT pink_hearts_balance, red_hearts_balance, COALESCE(red_giveaway_balance,0) AS g
@@ -256,26 +295,39 @@ async function runMarch2026AunyaweePhongCleanup(options = {}) {
       const pink = Math.max(0, Math.floor(Number(balR.rows[0].pink_hearts_balance) || 0));
       const red = Math.max(0, Math.floor(Number(balR.rows[0].red_hearts_balance) || 0));
       const give = Math.max(0, Math.floor(Number(balR.rows[0].g) || 0));
-      /** หัก 4999 จากแดงแจกก่อน ที่เหลือหักจากแดงเล่นได้ (กรณียอดผิดอยู่ที่เล่นได้แต่แจกเป็น 0) */
-      let rem = AUNYAWEE_SUBTRACT_GIVEAWAY;
-      let newGive = give;
-      const takeFromGive = Math.min(newGive, rem);
-      newGive -= takeFromGive;
-      rem -= takeFromGive;
-      let newRed = Math.max(0, red - rem);
-      newRed += AUNYAWEE_ADD_PLAYABLE_RED;
+      let newPink;
+      let newRed;
+      let newGive;
+      if (exactBalances) {
+        newPink = exactBalances.pink;
+        newRed = exactBalances.redPlayable;
+        newGive = exactBalances.redGiveaway;
+        sql.balanceMode = "exact";
+      } else {
+        /** หัก 4999 จากแดงแจกก่อน ที่เหลือหักจากแดงเล่นได้ (กรณียอดผิดอยู่ที่เล่นได้แต่แจกเป็น 0) */
+        let rem = AUNYAWEE_SUBTRACT_GIVEAWAY;
+        newGive = give;
+        const takeFromGive = Math.min(newGive, rem);
+        newGive -= takeFromGive;
+        rem -= takeFromGive;
+        newRed = Math.max(0, red - rem);
+        newRed += AUNYAWEE_ADD_PLAYABLE_RED;
+        newPink = pink;
+        sql.balanceMode = "subtract4999";
+      }
       await client.query(
         `UPDATE users SET
+          pink_hearts_balance = $4,
           red_giveaway_balance = $2,
           red_hearts_balance = $3,
           hearts_balance = $4::integer + $3::integer + $2::integer
          WHERE id = $1::uuid`,
-        [auId, newGive, newRed, pink]
+        [auId, newGive, newRed, newPink]
       );
       sql.balanceAdjusted = true;
       sql.aunyaweeBalances = {
         before: { pink, red, giveaway: give },
-        after: { pink, red: newRed, giveaway: newGive }
+        after: { pink: newPink, red: newRed, giveaway: newGive }
       };
     }
 

@@ -1073,6 +1073,8 @@ router.get(
  * One-off: ลบข้อมูล aunyawee + phongphiphat47
  *
  * Body (optional): forceAunyaweeBalanceAdjust: true — ปรับยอด aunyawee แม้ไม่มีแถวลบ (ระวังรันซ้ำ)
+ * Body (optional): aunyaweeExactBalances: { pink, redPlayable, redGiveaway } — ตั้งยอดตรงๆ (ทับสูตร 4999)
+ *   ใช้เมื่อยอดจริงไม่ตรงสูตร เช่น หลังคืนแดงจากลบรหัส เหลือ 5099 — ส่งทั้งสามฟิลด์เป็นตัวเลข ≥ 0
  *
  * curl -X POST "$API/api/admin/oneoff/cleanup-march-2026-users" \
  *   -H "Authorization: Bearer <admin_jwt>" \
@@ -1105,7 +1107,8 @@ router.post(
         });
       }
       const result = await runMarch2026AunyaweePhongCleanup({
-        forceAunyaweeBalanceAdjust: Boolean(req.body?.forceAunyaweeBalanceAdjust)
+        forceAunyaweeBalanceAdjust: Boolean(req.body?.forceAunyaweeBalanceAdjust),
+        aunyaweeExactBalances: req.body?.aunyaweeExactBalances
       });
       return res.json(result);
     } catch (e) {
