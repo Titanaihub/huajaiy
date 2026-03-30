@@ -263,6 +263,18 @@ export async function apiResolvePrizeWithdrawal(token, id, { action, note }) {
   return data;
 }
 
+/** รายการเกมเผยแพร่ — ใช้จับคู่เจ้าของห้องกับลิงก์เล่น */
+export async function apiListPublishedGames() {
+  const r = await fetch(`${apiRoot()}/api/game/list?_nc=${Date.now()}`, {
+    cache: "no-store"
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดรายการเกมไม่สำเร็จ");
+  }
+  return data;
+}
+
 /** รหัสแจกหัวใจแดงห้องเกม — POST /api/hearts/room-red-codes */
 export async function apiCreateRoomRedGiftCode(token, { redAmount, maxUses = 1, expiresAt = null }) {
   const r = await fetch(`${apiRoot()}/api/hearts/room-red-codes`, {

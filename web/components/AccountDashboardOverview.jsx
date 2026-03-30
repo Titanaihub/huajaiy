@@ -77,7 +77,13 @@ export default function AccountDashboardOverview() {
             >
               รีเฟรชยอด
             </button>
-            <p className="mt-2">
+            <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              <Link
+                href="/account/my-hearts"
+                className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+              >
+                หัวใจของฉัน (แยกตามเจ้าห้อง · เข้าเล่นเกม)
+              </Link>
               <Link
                 href="/account/heart-history"
                 className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"

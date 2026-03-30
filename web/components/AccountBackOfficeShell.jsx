@@ -85,6 +85,9 @@ export default function AccountBackOfficeShell({ children }) {
               </li>
             ) : null}
             <li>
+              <NavLink href="/account/my-hearts">หัวใจของฉัน</NavLink>
+            </li>
+            <li>
               <NavLink href="/account/hearts-shop">ซื้อหัวใจ</NavLink>
             </li>
             <li>
