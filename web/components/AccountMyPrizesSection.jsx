@@ -209,7 +209,7 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="overflow-x-auto rounded-lg border border-slate-200">
-        <table className="w-full min-w-[480px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[560px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50">
               <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
@@ -220,6 +220,9 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
               </th>
               <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
                 ชนะกี่ครั้ง
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold text-slate-600">
+                ยอดคงเหลือ
               </th>
               <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
                 รายละเอียด
@@ -237,6 +240,11 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
                     ถอน {approvedWithdrawCount} ครั้ง
                   </span>
                 ) : null}
+              </td>
+              <td className="px-3 py-3 text-center align-middle">
+                <span className="inline-block font-bold tabular-nums text-emerald-900">
+                  {formatBaht(finalCashBalance)} บาท
+                </span>
               </td>
               <td className="px-3 py-3 align-middle">
                 <button
