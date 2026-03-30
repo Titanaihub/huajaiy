@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
   DEFAULT_TILE_BACK_COVER_PATH
@@ -110,6 +110,17 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
+/** อ่าน setIndex จากคีย์ป้าย เช่น "0-3" */
+function parseCentralTileSetIndex(key) {
+  if (key == null || key === "") return null;
+  const s = String(key);
+  const dash = s.indexOf("-");
+  if (dash <= 0) return null;
+  const setIndex = Number(s.slice(0, dash));
+  if (!Number.isFinite(setIndex)) return null;
+  return Math.max(0, Math.floor(setIndex));
+}
+
 async function fetchGameStart(centralGameId) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
@@ -198,21 +209,16 @@ function readStoredSession() {
   }
 }
 
-function writeStoredSession(sessionId, centralGameId, opts = {}) {
+function writeStoredSession(sessionId, centralGameId) {
   if (typeof window === "undefined" || !sessionId) return;
   try {
-    const data = {
-      sessionId,
-      centralGameId: centralGameId || null
-    };
-    if (
-      opts.outcomeFlipIndex != null &&
-      Number.isInteger(opts.outcomeFlipIndex) &&
-      opts.outcomeFlipIndex >= 0
-    ) {
-      data.outcomeFlipIndex = opts.outcomeFlipIndex;
-    }
-    sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(data));
+    sessionStorage.setItem(
+      SESSION_STORE_KEY,
+      JSON.stringify({
+        sessionId,
+        centralGameId: centralGameId || null
+      })
+    );
   } catch {
     /* ignore */
   }
@@ -308,8 +314,8 @@ export default function FlipGameDemo({
   const [recipientsModalError, setRecipientsModalError] = useState("");
   /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
-  /** ดัชนีป้ายที่พลิกแล้วจบรอบ (ชนะหรือแพ้) — กรอบเขียวหลังปิดโมดัลแจ้งผล */
-  const [centralOutcomeFlipIndex, setCentralOutcomeFlipIndex] = useState(null);
+  /** ลำดับการเปิดป้ายในรอบ (เกมส่วนกลาง) — ใช้เลือกกรอบเขียวครบ need ใบในชุดที่จบรอบ */
+  const centralRevealSeqRef = useRef(0);
   /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
   const [setPreviewUrls, setSetPreviewUrls] = useState([]);
 
@@ -373,7 +379,7 @@ export default function FlipGameDemo({
     setBootError(null);
     setSetPreviewUrls([]);
     setCentralSolutionShown(false);
-    setCentralOutcomeFlipIndex(null);
+    centralRevealSeqRef.current = 0;
   }, []);
 
   /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
@@ -389,7 +395,7 @@ export default function FlipGameDemo({
     );
     setResultModalOpen(false);
     setCentralSolutionShown(false);
-    setCentralOutcomeFlipIndex(null);
+    centralRevealSeqRef.current = 0;
     const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
     const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
     setPinkHeartCost(p);
@@ -430,7 +436,7 @@ export default function FlipGameDemo({
   }, []);
 
   const applyApiSession = useCallback((data) => {
-    setCentralOutcomeFlipIndex(null);
+    centralRevealSeqRef.current = 0;
     setCentralSolutionShown(false);
     setMode("api");
     setPlayLocked(false);
@@ -493,7 +499,7 @@ export default function FlipGameDemo({
     setBootError(null);
   }, []);
 
-  const applyRestoredCentralState = useCallback((st, restoreOpts = {}) => {
+  const applyRestoredCentralState = useCallback((st) => {
     setMode("api");
     setApiGameMode("central");
     setPlayLocked(false);
@@ -508,29 +514,26 @@ export default function FlipGameDemo({
     const rowCells = Array.isArray(st.cells) ? st.cells : [];
     const n =
       rowCells.length > 0 ? rowCells.length : Math.max(1, Number(st.cardCount) || 12);
-    const storedOfi =
-      restoreOpts.outcomeFlipIndex ??
-      restoreOpts.winningFlipIndex /* เลกาซี sessionStorage */;
-    const validStoredOfi =
-      typeof storedOfi === "number" &&
-      Number.isInteger(storedOfi) &&
-      storedOfi >= 0 &&
-      storedOfi < n;
+    centralRevealSeqRef.current = 0;
+    let restoreSeq = 0;
     setCards(
       Array.from({ length: n }, (_, i) => {
         const c = rowCells[i];
         if (!c || !c.revealed) {
           return { index: i, revealed: false, key: null, imageUrl: null, openedByPlayer: false };
         }
+        restoreSeq += 1;
         return {
           index: i,
           revealed: true,
           key: c.key ?? `${c.setIndex}-${c.imageIndex}`,
           imageUrl: c.imageUrl ?? null,
-          openedByPlayer: true
+          openedByPlayer: true,
+          revealSeq: restoreSeq
         };
       })
     );
+    centralRevealSeqRef.current = restoreSeq;
     setFlips(Number(st.flips) || 0);
     const sc = Math.max(1, Number(st.setCount) || 1);
     const sic = Array.isArray(st.setImageCounts) ? st.setImageCounts : [];
@@ -568,7 +571,6 @@ export default function FlipGameDemo({
         outcomeSetIndex:
           st.winner.setIndex != null ? Math.max(0, Math.floor(Number(st.winner.setIndex)) || 0) : undefined
       });
-      setCentralOutcomeFlipIndex(validStoredOfi ? storedOfi : null);
       setCentralSolutionShown(false);
       setResultModalOpen(true);
     } else if (st.finished && st.loss) {
@@ -579,10 +581,8 @@ export default function FlipGameDemo({
           st.loss.setIndex != null ? Math.max(0, Math.floor(Number(st.loss.setIndex)) || 0) : null
       });
       setCentralSolutionShown(false);
-      setCentralOutcomeFlipIndex(validStoredOfi ? storedOfi : null);
       setResultModalOpen(true);
     } else {
-      setCentralOutcomeFlipIndex(null);
       setResultModalOpen(false);
     }
   }, []);
@@ -611,10 +611,7 @@ export default function FlipGameDemo({
                 if (resolvedGameId && st.gameId && st.gameId !== resolvedGameId) {
                   clearStoredSession();
                 } else {
-                  applyRestoredCentralState(st, {
-                    outcomeFlipIndex:
-                      stored?.outcomeFlipIndex ?? stored?.winningFlipIndex
-                  });
+                  applyRestoredCentralState(st);
                   /* snapshot ตอนเริ่มรอบไม่อัปเดตรูป — ดึง meta ล่าสุดเพื่อรูปกติกา/ปกตรงกับที่เผยแพร่ */
                   if (resolvedGameId) {
                     try {
@@ -791,14 +788,59 @@ export default function FlipGameDemo({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (mode === "api" && apiGameMode === "central" && sessionId) {
-      writeStoredSession(sessionId, resolvedGameId, {
-        outcomeFlipIndex: centralOutcomeFlipIndex
-      });
+      writeStoredSession(sessionId, resolvedGameId);
     }
-  }, [mode, apiGameMode, sessionId, resolvedGameId, centralOutcomeFlipIndex]);
+  }, [mode, apiGameMode, sessionId, resolvedGameId]);
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
+
+  /** กรอบเขียว: ป้ายที่ผู้เล่นเปิดในชุดที่จบรอบ จำนวนเท่า need ของกติกา — หลังปิดโมดัล */
+  const centralOutcomeHighlightIndices = useMemo(() => {
+    if (mode !== "api" || apiGameMode !== "central" || !roundFinished || resultModalOpen) {
+      return new Set();
+    }
+    const outcomeSetIdx =
+      winner?.outcomeSetIndex != null
+        ? Math.max(0, Math.floor(Number(winner.outcomeSetIndex)) || 0)
+        : centralLoss?.setIndex != null
+          ? Math.max(0, Math.floor(Number(centralLoss.setIndex)) || 0)
+          : null;
+    if (outcomeSetIdx == null) return new Set();
+
+    const ruleIdStr =
+      winner != null ? String(winner.key || "") : String(centralLoss?.ruleId ?? "");
+    const rule =
+      ruleIdStr && prizeList.length
+        ? prizeList.find((p) => String(p.ruleId) === ruleIdStr)
+        : null;
+    const need =
+      rule != null ? Math.max(1, Math.floor(Number(rule.need) || 0)) : null;
+
+    const inSet = cards
+      .map((c, idx) => ({ idx, c }))
+      .filter(
+        ({ c }) =>
+          c.revealed &&
+          c.openedByPlayer &&
+          parseCentralTileSetIndex(c.key) === outcomeSetIdx
+      )
+      .sort((a, b) => (a.c.revealSeq ?? a.idx) - (b.c.revealSeq ?? b.idx));
+
+    if (need == null) {
+      return new Set(inSet.map((x) => x.idx));
+    }
+    return new Set(inSet.slice(0, need).map((x) => x.idx));
+  }, [
+    mode,
+    apiGameMode,
+    roundFinished,
+    resultModalOpen,
+    cards,
+    winner,
+    centralLoss,
+    prizeList
+  ]);
 
   useEffect(() => {
     if (!resultOverlayVisible) {
@@ -862,6 +904,8 @@ export default function FlipGameDemo({
       if (isCentral) {
         if (Array.isArray(data.setCounts)) setSetCounts(data.setCounts);
         setFlips(data.flips);
+        centralRevealSeqRef.current += 1;
+        const revealSeq = centralRevealSeqRef.current;
         setCards((prev) =>
           prev.map((x, idx) =>
             idx === i
@@ -870,13 +914,13 @@ export default function FlipGameDemo({
                   revealed: true,
                   key: `${data.setIndex}-${data.imageIndex}`,
                   imageUrl: data.imageUrl || null,
-                  openedByPlayer: true
+                  openedByPlayer: true,
+                  revealSeq
                 }
               : x
           )
         );
         if (data.loss) {
-          setCentralOutcomeFlipIndex(i);
           setCentralLoss({
             ruleId: data.loss.ruleId,
             label: data.loss.label || "จบรอบ — ไม่มีรางวัล",
@@ -888,7 +932,6 @@ export default function FlipGameDemo({
           setCentralSolutionShown(false);
           setResultModalOpen(true);
         } else if (data.winner) {
-          setCentralOutcomeFlipIndex(i);
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
@@ -1600,15 +1643,12 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             !centralSolutionShown &&
             !card.revealed;
-          /** กรอบเขียว: ป้ายที่พลิกแล้วจบรอบ (ชนะหรือแพ้) — หลังปิดโมดัลแจ้งเตือน */
+          /** กรอบเขียว: ป้ายที่เปิดในชุดที่จบรอบ ครบ need ตามกติกา — หลังปิดโมดัล */
           const isCentralOutcomeHighlight =
             mode === "api" &&
             apiGameMode === "central" &&
             card.revealed &&
-            roundFinished &&
-            !resultModalOpen &&
-            centralOutcomeFlipIndex != null &&
-            i === centralOutcomeFlipIndex;
+            centralOutcomeHighlightIndices.has(i);
           /** หลังกดเฉลย: ป้ายที่ระบบเปิดให้ (ผู้เล่นไม่ได้เลือก) — ทับเงาเทาอ่อน ไม่ใช้กรอบเขียว */
           const showCentralSolutionDim =
             mode === "api" &&
