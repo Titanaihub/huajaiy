@@ -447,7 +447,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       {open ? (
         <div className="border-t border-slate-100 p-3">
           <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="min-w-[900px] w-full border-collapse text-left text-xs sm:text-sm">
+            <table className="min-w-[720px] w-full border-collapse text-left text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 font-semibold text-slate-600">
                   <th className="whitespace-nowrap px-2 py-2">วันที่</th>
@@ -456,7 +456,6 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                   <th className="px-2 py-2">ชื่อเกม</th>
                   <th className="whitespace-nowrap px-2 py-2">เงินรางวัล</th>
                   <th className="whitespace-nowrap px-2 py-2">ยอดคงเหลือ</th>
-                  <th className="px-2 py-2">รายละเอียด</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -487,9 +486,6 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
                       </td>
-                      <td className="px-2 py-2 text-slate-600">
-                        ชุดที่ {row.award.setIndex + 1} · {prizeLine(row.award)}
-                      </td>
                     </tr>
                   ) : (
                     <tr key={row.key} className="bg-rose-50/50">
@@ -500,15 +496,17 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                         {row.creatorUsername ? `@${row.creatorUsername}` : "—"}
                       </td>
                       <td className="px-2 py-2 text-slate-500">—</td>
-                      <td className="px-2 py-2 font-medium text-rose-900">ถอนเงิน</td>
+                      <td className="px-2 py-2">
+                        <span className="font-medium text-rose-900">ถอนเงิน</span>
+                        <span className="mt-0.5 block text-[11px] text-slate-600">
+                          {row.withdrawal.accountNumber} · {row.withdrawal.bankName}
+                        </span>
+                      </td>
                       <td className="whitespace-nowrap px-2 py-2 font-medium tabular-nums text-rose-800">
                         −{formatBahtTotal(Math.abs(row.cashAmt))} บาท
                       </td>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
-                      </td>
-                      <td className="px-2 py-2 text-slate-600">
-                        ถอนเงิน · {row.withdrawal.accountNumber} {row.withdrawal.bankName}
                       </td>
                     </tr>
                   )
