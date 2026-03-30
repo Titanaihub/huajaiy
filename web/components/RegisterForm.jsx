@@ -251,17 +251,13 @@ export default function RegisterForm() {
             role="status"
           >
             <p className="font-semibold text-amber-950">
-              ชื่อและนามสกุลคู่นี้เคยมีในระบบแล้ว
+              ชื่อและนามสกุลนี้มีในระบบแล้ว
             </p>
             <p className="mt-2 leading-relaxed">
-              คุณแน่ใจหรือไม่ว่าไม่ได้สมัครซ้ำซ้อน?
-              คนละคนแต่ชื่อ–นามสกุลซ้ำกันมีได้ — หากเป็นคุณคนเดิมที่เคยสมัครแล้ว
-              กรุณาเข้าสู่ระบบแทน
+              หากพบว่าเป็นการสมัครซ้ำซ้อน จะขัดการจ่ายรางวัล
             </p>
-            <p className="mt-2 text-xs text-slate-600">
-              ระบบบันทึกที่อยู่ IP ตอนสมัครเพื่อช่วยตรวจสอบการใช้งาน
-            </p>
-            <fieldset className="mt-4 space-y-2">
+            <p className="mt-2 font-semibold text-amber-950">ยืนยันว่า</p>
+            <fieldset className="mt-3 space-y-2">
               <legend className="sr-only">สถานะการสมัครก่อนหน้า</legend>
               <label className="flex cursor-pointer items-start gap-2">
                 <input
@@ -272,7 +268,7 @@ export default function RegisterForm() {
                   onChange={() => setDuplicateChoice("repeat")}
                   className="mt-1"
                 />
-                <span>เคยสมัครมาก่อน (ใช้บัญชีเดิม — ไปเข้าสู่ระบบ)</span>
+                <span>เคยสมัครมาก่อน (จำรหัสไม่ได้ติดต่อเจ้าหน้าที่)</span>
               </label>
               <label className="flex cursor-pointer items-start gap-2">
                 <input
@@ -284,7 +280,7 @@ export default function RegisterForm() {
                   className="mt-1"
                 />
                 <span>
-                  ไม่เคยสมัครมาก่อน (เป็นคนละคน / ชื่อ–นามสกุลซ้ำ — ยืนยันให้สมัครได้)
+                  ไม่เคยสมัครมาก่อน (เป็นคนละคน เพียงแต่ ชื่อ–นามสกุล เหมือนกันเท่านั้น)
                 </span>
               </label>
             </fieldset>
@@ -294,7 +290,10 @@ export default function RegisterForm() {
                 <Link href="/login" className="underline">
                   เข้าสู่ระบบ
                 </Link>{" "}
-                แทนการสมัครใหม่
+                ด้วยบัญชีเดิม — จำรหัสผ่านไม่ได้กรุณา{" "}
+                <Link href="/contact" className="underline">
+                  ติดต่อเจ้าหน้าที่
+                </Link>
               </p>
             ) : null}
           </div>
