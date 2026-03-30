@@ -69,36 +69,22 @@ export default function AdminHeartPackagesPanel() {
     }
   }
 
-  async function toggleActive(pkg) {
-    if (pkg.retired) return;
+  /** ปิดการขายเท่านั้น — 「เปิดการขาย」แสดงแต่กดไม่ได้ (ถือว่าปิดถาวรในหน้าแอดมิน) */
+  async function closeSale(pkg) {
+    if (!pkg.active) return;
     const token = getMemberToken();
     if (!token) return;
-    setBusyId(pkg.id);
-    try {
-      await apiAdminPatchHeartPackage(token, pkg.id, { active: !pkg.active });
-      await load();
-    } catch (e) {
-      setErr(e.message || String(e));
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function retireForever(pkg) {
-    if (pkg.retired) return;
     if (
       !window.confirm(
-        `หยุดขายถาวร「${pkg.title}」?\nจะไม่มีปุ่มเปิดการขายอีก — ลบแพ็กได้ถ้าไม่มีประวัติซื้อ`
+        `ปิดการขาย「${pkg.title}」?\nหลังปิดแล้วจะไม่มีปุ่มเปิดผ่านหน้านี้อีก (ลบแพ็กได้ถ้าไม่มีประวัติซื้อ)`
       )
     ) {
       return;
     }
-    const token = getMemberToken();
-    if (!token) return;
     setBusyId(pkg.id);
     setErr("");
     try {
-      await apiAdminPatchHeartPackage(token, pkg.id, { retirePermanently: true });
+      await apiAdminPatchHeartPackage(token, pkg.id, { active: false });
       await load();
     } catch (e) {
       setErr(e.message || String(e));
@@ -133,6 +119,7 @@ export default function AdminHeartPackagesPanel() {
     <section className="space-y-6">
       <p className="text-sm text-slate-600">
         ขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) สำหรับผู้สร้างเกม — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษที่แอดมินกำหนดเท่านั้น · สมาชิกแนบสลิป แอดมินอนุมัติในแท็บอนุมัติสลิป
+        · หลัง<strong>ปิดการขาย</strong> รายการ「เปิดการขาย」จะกดไม่ได้ (ปิดถาวรในหน้านี้)
       </p>
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
 
@@ -234,37 +221,26 @@ export default function AdminHeartPackagesPanel() {
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
                     <td className="px-3 py-2">
-                      {p.retired ? (
-                        <span className="font-medium text-slate-600">หยุดขายถาวร</span>
-                      ) : p.active ? (
-                        "เปิด"
-                      ) : (
-                        "ปิด"
-                      )}
+                      {p.active ? "เปิด" : p.retired ? "หยุดขายถาวร" : "ปิด (ถาวรในหน้านี้)"}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        {p.retired ? (
-                          <span className="text-xs text-slate-500">—</span>
+                        {p.active ? (
+                          <button
+                            type="button"
+                            disabled={busyId === p.id}
+                            onClick={() => void closeSale(p)}
+                            className="text-xs font-semibold text-brand-800 underline"
+                          >
+                            ปิดการขาย
+                          </button>
                         ) : (
-                          <>
-                            <button
-                              type="button"
-                              disabled={busyId === p.id}
-                              onClick={() => toggleActive(p)}
-                              className="text-xs font-semibold text-brand-800 underline"
-                            >
-                              {p.active ? "ปิดการขาย" : "เปิดการขาย"}
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busyId === p.id}
-                              onClick={() => void retireForever(p)}
-                              className="text-xs font-semibold text-amber-900 underline"
-                            >
-                              หยุดขายถาวร
-                            </button>
-                          </>
+                          <span
+                            className="cursor-not-allowed select-none text-xs font-semibold text-slate-400 underline decoration-slate-300"
+                            title="ปิดการขายแล้ว — เปิดผ่านหน้านี้ไม่ได้ (ถือว่าปิดถาวร)"
+                          >
+                            เปิดการขาย
+                          </span>
                         )}
                         <button
                           type="button"
