@@ -206,11 +206,11 @@ function writeStoredSession(sessionId, centralGameId, opts = {}) {
       centralGameId: centralGameId || null
     };
     if (
-      opts.winningFlipIndex != null &&
-      Number.isInteger(opts.winningFlipIndex) &&
-      opts.winningFlipIndex >= 0
+      opts.outcomeFlipIndex != null &&
+      Number.isInteger(opts.outcomeFlipIndex) &&
+      opts.outcomeFlipIndex >= 0
     ) {
-      data.winningFlipIndex = opts.winningFlipIndex;
+      data.outcomeFlipIndex = opts.outcomeFlipIndex;
     }
     sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(data));
   } catch {
@@ -308,8 +308,8 @@ export default function FlipGameDemo({
   const [recipientsModalError, setRecipientsModalError] = useState("");
   /** กดเฉลยภาพใต้ป้ายที่ยังไม่เปิดแล้ว */
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
-  /** ดัชนีป้ายบนกระดานที่พลิกแล้วทำให้ชนะรางวัล — ใช้กรอบเขียวเฉพาะใบนี้ (ไม่ใช่ทุกใบในชุด) */
-  const [centralWinningFlipIndex, setCentralWinningFlipIndex] = useState(null);
+  /** ดัชนีป้ายที่พลิกแล้วจบรอบ (ชนะหรือแพ้) — กรอบเขียวหลังปิดโมดัลแจ้งผล */
+  const [centralOutcomeFlipIndex, setCentralOutcomeFlipIndex] = useState(null);
   /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
   const [setPreviewUrls, setSetPreviewUrls] = useState([]);
 
@@ -373,7 +373,7 @@ export default function FlipGameDemo({
     setBootError(null);
     setSetPreviewUrls([]);
     setCentralSolutionShown(false);
-    setCentralWinningFlipIndex(null);
+    setCentralOutcomeFlipIndex(null);
   }, []);
 
   /** แสดงกระดานเกมส่วนกลางจาก meta โดยไม่มี session — ให้ผู้เล่นเห็นเกมจริงแต่เปิดป้ายไม่ได้จนกว่าจะมีหัวใจ */
@@ -389,7 +389,7 @@ export default function FlipGameDemo({
     );
     setResultModalOpen(false);
     setCentralSolutionShown(false);
-    setCentralWinningFlipIndex(null);
+    setCentralOutcomeFlipIndex(null);
     const p = Math.max(0, Math.floor(Number(meta.pinkHeartCost) || 0));
     const r = Math.max(0, Math.floor(Number(meta.redHeartCost) || 0));
     setPinkHeartCost(p);
@@ -430,7 +430,7 @@ export default function FlipGameDemo({
   }, []);
 
   const applyApiSession = useCallback((data) => {
-    setCentralWinningFlipIndex(null);
+    setCentralOutcomeFlipIndex(null);
     setCentralSolutionShown(false);
     setMode("api");
     setPlayLocked(false);
@@ -508,12 +508,14 @@ export default function FlipGameDemo({
     const rowCells = Array.isArray(st.cells) ? st.cells : [];
     const n =
       rowCells.length > 0 ? rowCells.length : Math.max(1, Number(st.cardCount) || 12);
-    const storedWfi = restoreOpts.winningFlipIndex;
-    const validStoredWfi =
-      typeof storedWfi === "number" &&
-      Number.isInteger(storedWfi) &&
-      storedWfi >= 0 &&
-      storedWfi < n;
+    const storedOfi =
+      restoreOpts.outcomeFlipIndex ??
+      restoreOpts.winningFlipIndex /* เลกาซี sessionStorage */;
+    const validStoredOfi =
+      typeof storedOfi === "number" &&
+      Number.isInteger(storedOfi) &&
+      storedOfi >= 0 &&
+      storedOfi < n;
     setCards(
       Array.from({ length: n }, (_, i) => {
         const c = rowCells[i];
@@ -566,7 +568,7 @@ export default function FlipGameDemo({
         outcomeSetIndex:
           st.winner.setIndex != null ? Math.max(0, Math.floor(Number(st.winner.setIndex)) || 0) : undefined
       });
-      setCentralWinningFlipIndex(validStoredWfi ? storedWfi : null);
+      setCentralOutcomeFlipIndex(validStoredOfi ? storedOfi : null);
       setCentralSolutionShown(false);
       setResultModalOpen(true);
     } else if (st.finished && st.loss) {
@@ -577,10 +579,10 @@ export default function FlipGameDemo({
           st.loss.setIndex != null ? Math.max(0, Math.floor(Number(st.loss.setIndex)) || 0) : null
       });
       setCentralSolutionShown(false);
-      setCentralWinningFlipIndex(null);
+      setCentralOutcomeFlipIndex(validStoredOfi ? storedOfi : null);
       setResultModalOpen(true);
     } else {
-      setCentralWinningFlipIndex(null);
+      setCentralOutcomeFlipIndex(null);
       setResultModalOpen(false);
     }
   }, []);
@@ -610,7 +612,8 @@ export default function FlipGameDemo({
                   clearStoredSession();
                 } else {
                   applyRestoredCentralState(st, {
-                    winningFlipIndex: stored?.winningFlipIndex
+                    outcomeFlipIndex:
+                      stored?.outcomeFlipIndex ?? stored?.winningFlipIndex
                   });
                   /* snapshot ตอนเริ่มรอบไม่อัปเดตรูป — ดึง meta ล่าสุดเพื่อรูปกติกา/ปกตรงกับที่เผยแพร่ */
                   if (resolvedGameId) {
@@ -789,10 +792,10 @@ export default function FlipGameDemo({
     if (typeof window === "undefined") return;
     if (mode === "api" && apiGameMode === "central" && sessionId) {
       writeStoredSession(sessionId, resolvedGameId, {
-        winningFlipIndex: centralWinningFlipIndex
+        outcomeFlipIndex: centralOutcomeFlipIndex
       });
     }
-  }, [mode, apiGameMode, sessionId, resolvedGameId, centralWinningFlipIndex]);
+  }, [mode, apiGameMode, sessionId, resolvedGameId, centralOutcomeFlipIndex]);
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
@@ -873,7 +876,7 @@ export default function FlipGameDemo({
           )
         );
         if (data.loss) {
-          setCentralWinningFlipIndex(null);
+          setCentralOutcomeFlipIndex(i);
           setCentralLoss({
             ruleId: data.loss.ruleId,
             label: data.loss.label || "จบรอบ — ไม่มีรางวัล",
@@ -885,7 +888,7 @@ export default function FlipGameDemo({
           setCentralSolutionShown(false);
           setResultModalOpen(true);
         } else if (data.winner) {
-          setCentralWinningFlipIndex(i);
+          setCentralOutcomeFlipIndex(i);
           setWinner({
             key: data.winner.ruleId || "win",
             label: data.winner.label || "ได้รับรางวัล",
@@ -1597,14 +1600,15 @@ export default function FlipGameDemo({
             !resultModalOpen &&
             !centralSolutionShown &&
             !card.revealed;
-          /** กรอบเขียว: เฉพาะป้ายที่พลิกแล้วจบรอบด้วยรางวัล (ตรงกับแจ้งเตือน) */
-          const isCentralWinHighlight =
+          /** กรอบเขียว: ป้ายที่พลิกแล้วจบรอบ (ชนะหรือแพ้) — หลังปิดโมดัลแจ้งเตือน */
+          const isCentralOutcomeHighlight =
             mode === "api" &&
             apiGameMode === "central" &&
             card.revealed &&
-            winner != null &&
-            centralWinningFlipIndex != null &&
-            i === centralWinningFlipIndex;
+            roundFinished &&
+            !resultModalOpen &&
+            centralOutcomeFlipIndex != null &&
+            i === centralOutcomeFlipIndex;
           /** หลังกดเฉลย: ป้ายที่ระบบเปิดให้ (ผู้เล่นไม่ได้เลือก) — ทับเงาเทาอ่อน ไม่ใช้กรอบเขียว */
           const showCentralSolutionDim =
             mode === "api" &&
@@ -1625,7 +1629,7 @@ export default function FlipGameDemo({
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${
                 showRedUnpicked
                   ? "border-red-500 ring-2 ring-red-400/90"
-                  : isCentralWinHighlight
+                  : isCentralOutcomeHighlight
                     ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80"
                     : showCentralSolutionDim
                       ? "border-slate-300 bg-slate-100"
@@ -1643,7 +1647,7 @@ export default function FlipGameDemo({
                     src={card.imageUrl}
                     alt=""
                     className={`h-full w-full object-cover transition-opacity duration-300 ${
-                      isCentralWinHighlight ? "brightness-[1.04] contrast-[1.02]" : ""
+                      isCentralOutcomeHighlight ? "brightness-[1.04] contrast-[1.02]" : ""
                     }`}
                   />
                   {showCentralSolutionDim ? (
