@@ -124,49 +124,66 @@ function CreatorPrizeCard({ group }) {
       .join(" · ");
   }
 
+  const prizeMoneyCell =
+    cashItems.length > 0 ? (
+      <span className="font-bold tabular-nums text-slate-900">
+        {formatBaht(cashTotal)} บาท
+      </span>
+    ) : (
+      <span className="text-slate-500">0 บาท</span>
+    );
+
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-900">
-        รางวัลเงินสดจาก{" "}
-        <span className="text-brand-800">{creatorDisplay}</span>
-      </h3>
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="w-full min-w-[480px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                รางวัลเงินสดจาก
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                เงินรางวัลที่ได้
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                ชนะกี่ครั้ง
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                รายละเอียด
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-white">
+              <td className="px-3 py-3 font-medium text-brand-800">{creatorDisplay}</td>
+              <td className="px-3 py-3 align-middle">{prizeMoneyCell}</td>
+              <td className="px-3 py-3 align-middle tabular-nums text-slate-800">
+                {winCount} ครั้ง
+              </td>
+              <td className="px-3 py-3 align-middle">
+                <button
+                  type="button"
+                  onClick={() => setOpen((v) => !v)}
+                  className="text-sm font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                  aria-expanded={open}
+                >
+                  {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      {cashItems.length > 0 ? (
-        <p className="mt-2 text-sm text-slate-800">
-          เงินรางวัลที่ได้ (รวมจากเกมที่ผู้สร้างรายนี้สร้าง){" "}
-          <span className="font-bold tabular-nums text-slate-900">
-            {formatBaht(cashTotal)}
-          </span>{" "}
-          บาท
-          <span className="font-normal text-slate-600">
-            {" "}
-            · ชนะ {winCount} ครั้ง
-          </span>
+      {cashItems.length === 0 && winCount > 0 ? (
+        <p className="mt-2 text-xs text-slate-600">
+          ยังไม่มีรางวัลเงินสดจากผู้สร้างรายนี้ (มีเฉพาะรางวัลประเภทอื่น)
         </p>
-      ) : (
-        <p className="mt-2 text-sm text-slate-800">
-          ยังไม่มีรางวัลเงินสดจากผู้สร้างรายนี้
-          <span className="text-slate-600">
-            {" "}
-            · ชนะ {winCount} ครั้ง (รางวัลประเภทอื่น)
-          </span>
-        </p>
-      )}
-
-      {nonCashSummary ? (
-        <p className="mt-1.5 text-sm text-slate-700">{nonCashSummary}</p>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="text-sm font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
-          aria-expanded={open}
-        >
-          {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
-        </button>
-      </div>
+      {nonCashSummary ? (
+        <p className="mt-2 text-sm text-slate-700">{nonCashSummary}</p>
+      ) : null}
 
       {open ? (
         <div className="mt-4 border-t border-slate-100 pt-4">
