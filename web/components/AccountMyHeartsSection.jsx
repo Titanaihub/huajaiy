@@ -87,7 +87,9 @@ export default function AccountMyHeartsSection() {
             <InlineHeart className="text-rose-400" />
             {pink.toLocaleString("th-TH")}
           </p>
-          <p className="mt-3 text-xs font-semibold uppercase text-red-900/80">หัวใจแดงทั่วไป</p>
+          <p className="mt-3 text-xs font-semibold uppercase text-red-900/80">
+            หัวใจแดงทั่วไป (ไม่รวมแดงจากรหัสห้อง)
+          </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
             <InlineHeart className="text-red-600" />
             {red.toLocaleString("th-TH")}

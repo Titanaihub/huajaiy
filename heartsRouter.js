@@ -70,21 +70,36 @@ router.get("/purchases/mine", authMiddleware, async (req, res) => {
   }
 });
 
-/** สร้างรหัสแจกหัวใจแดงห้องเกม (เจ้าของห้อง) */
+/** สร้างรหัสแจกหัวใจแดงห้องเกม (เจ้าของห้อง) — codeCount>1 = หลายรหัส แต่ละรหัสใช้ได้ครั้งเดียว */
 router.post("/room-red-codes", authMiddleware, async (req, res) => {
   try {
     const redAmount = Math.max(1, Math.floor(Number(req.body?.redAmount) || 0));
-    const maxUses = Math.max(1, Math.floor(Number(req.body?.maxUses) || 1));
+    const codeCount = Math.min(
+      100,
+      Math.max(1, Math.floor(Number(req.body?.codeCount ?? req.body?.quantity) || 1))
+    );
+    const maxUsesSingle = Math.max(1, Math.floor(Number(req.body?.maxUses) || 1));
     const expiresAt =
       req.body?.expiresAt != null && String(req.body.expiresAt).trim()
         ? String(req.body.expiresAt).trim()
         : null;
+
+    if (codeCount > 1) {
+      const codes = await roomRedGiftService.createCodesBatch(req.userId, {
+        count: codeCount,
+        redAmount,
+        maxUses: 1,
+        expiresAt
+      });
+      return res.json({ ok: true, codes, code: codes[0] || null });
+    }
+
     const row = await roomRedGiftService.createCode(req.userId, {
       redAmount,
-      maxUses,
+      maxUses: maxUsesSingle,
       expiresAt
     });
-    return res.json({ ok: true, code: row });
+    return res.json({ ok: true, code: row, codes: [row] });
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       return res.status(503).json({
@@ -123,9 +138,16 @@ router.post("/room-red-redeem", authMiddleware, async (req, res) => {
     const roomGiftRed = await roomRedGiftService.listRoomGiftBalancesForUser(
       req.userId
     );
+    let creatorUsername = null;
+    if (result.creatorId) {
+      const cr = await userService.findById(result.creatorId);
+      creatorUsername =
+        cr && cr.username ? String(cr.username).toLowerCase() : null;
+    }
     return res.json({
       ok: true,
       ...result,
+      creatorUsername,
       user: user ? { ...userService.publicUser(user), roomGiftRed } : null
     });
   } catch (e) {

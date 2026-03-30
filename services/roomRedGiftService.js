@@ -62,6 +62,26 @@ async function createCode(creatorId, opts = {}) {
   throw e;
 }
 
+/**
+ * สร้างหลายรหัสแยกกัน (แต่ละรหัสมักใช้ maxUses = 1)
+ * @param {string} creatorId
+ * @param {{ redAmount: number, count: number, maxUses?: number, expiresAt?: string | null }} opts
+ */
+async function createCodesBatch(creatorId, opts = {}) {
+  const count = Math.min(100, Math.max(1, Math.floor(Number(opts.count) || 0)));
+  const maxUses = Math.max(1, Math.floor(Number(opts.maxUses) || 1));
+  const redAmount = Math.max(1, Math.floor(Number(opts.redAmount) || 0));
+  const expiresAt =
+    opts.expiresAt != null && String(opts.expiresAt).trim()
+      ? String(opts.expiresAt).trim()
+      : null;
+  const out = [];
+  for (let i = 0; i < count; i += 1) {
+    out.push(await createCode(creatorId, { redAmount, maxUses, expiresAt }));
+  }
+  return out;
+}
+
 async function listCodesForCreator(creatorId) {
   const pool = getPool();
   if (!pool) {
@@ -202,6 +222,7 @@ async function redeemCode(redeemerUserId, rawCode) {
 
 module.exports = {
   createCode,
+  createCodesBatch,
   listCodesForCreator,
   listRoomGiftBalancesForUser,
   redeemCode

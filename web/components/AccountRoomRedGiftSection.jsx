@@ -10,12 +10,14 @@ import {
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountRoomRedGiftSection() {
-  const { refresh } = useMemberAuth();
+  const { refresh, applyUser } = useMemberAuth();
   const [codes, setCodes] = useState([]);
   const [listErr, setListErr] = useState("");
   const [listLoading, setListLoading] = useState(true);
-  const [redAmount, setRedAmount] = useState(1);
-  const [maxUses, setMaxUses] = useState(1);
+  const [redAmount, setRedAmount] = useState(50);
+  const [codeCount, setCodeCount] = useState(3);
+  const [multiUseSingleCode, setMultiUseSingleCode] = useState(false);
+  const [maxUses, setMaxUses] = useState(3);
   const [createBusy, setCreateBusy] = useState(false);
   const [createMsg, setCreateMsg] = useState("");
   const [redeemCode, setRedeemCode] = useState("");
@@ -49,11 +51,35 @@ export default function AccountRoomRedGiftSection() {
     setCreateBusy(true);
     setCreateMsg("");
     try {
-      const data = await apiCreateRoomRedGiftCode(token, {
-        redAmount: Math.max(1, Math.floor(Number(redAmount) || 1)),
-        maxUses: Math.max(1, Math.floor(Number(maxUses) || 1))
-      });
-      setCreateMsg(`สร้างรหัส ${data.code?.code || ""} แล้ว — แจกให้ผู้เล่นกรอกด้านล่าง`);
+      const ra = Math.max(1, Math.floor(Number(redAmount) || 1));
+      let data;
+      if (multiUseSingleCode) {
+        const mu = Math.max(1, Math.floor(Number(maxUses) || 1));
+        data = await apiCreateRoomRedGiftCode(token, {
+          redAmount: ra,
+          maxUses: mu,
+          codeCount: 1
+        });
+        setCreateMsg(
+          `สร้างรหัส ${data.code?.code || ""} แล้ว — แดง ${ra} ต่อการแลก · รหัสเดียวแลกได้ ${mu} ครั้ง (แจกได้หลายคน)`
+        );
+      } else {
+        const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
+        data = await apiCreateRoomRedGiftCode(token, {
+          redAmount: ra,
+          codeCount: n,
+          maxUses: 1
+        });
+        const list = data.codes || (data.code ? [data.code] : []);
+        const preview = list
+          .slice(0, 5)
+          .map((c) => c.code)
+          .join(", ");
+        const more = list.length > 5 ? ` … อีก ${list.length - 5} รหัส` : "";
+        setCreateMsg(
+          `สร้าง ${list.length} รหัสแล้ว (แต่ละรหัส ${ra} แดง · คนละครั้ง) — ${preview}${more}`
+        );
+      }
       await loadCodes();
     } catch (ex) {
       setCreateMsg(ex?.message || "สร้างไม่สำเร็จ");
@@ -71,11 +97,14 @@ export default function AccountRoomRedGiftSection() {
     try {
       const data = await apiRedeemRoomRedGiftCode(token, redeemCode.trim());
       if (data.user) {
-        /* sync ยอดในบริบทสมาชิก */
+        applyUser(data.user);
+      } else {
         await refresh();
       }
+      const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
+      const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
       setRedeemMsg(
-        `แลกสำเร็จ — ได้หัวใจแดงห้อง ${data.redAdded || 0} ดวง · ใช้เล่นได้เฉพาะเกมของเจ้าของห้องที่ออกรหัส หรือเกมที่เปิดตัวเลือกรับแดงจากรหัสห้อง`
+        `แลกสำเร็จ — ได้หัวใจแดงห้อง ${added.toLocaleString("th-TH")} ดวง ของ ${un} · ยอดนี้อยู่ใน「หัวใจแดงจากรหัสห้อง」ไม่ได้บวกในหัวใจแดงทั่วไป — ดูที่เมนู「หัวใจของฉัน」หรือการ์ดภาพรวมบัญชี`
       );
       setRedeemCode("");
       await loadCodes();
@@ -94,34 +123,69 @@ export default function AccountRoomRedGiftSection() {
         <strong> เกมของคุณ</strong> หรือเกมที่ผู้ดูแลเปิดตัวเลือก「รับแดงจากรหัสห้อง」ในหน้าตั้งค่าเกม
       </p>
 
-      <form onSubmit={onCreate} className="mt-4 flex flex-wrap items-end gap-3 border-t border-slate-100 pt-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-600">แดงต่อการแลก 1 ครั้ง</label>
+      <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-slate-700">
           <input
-            type="number"
-            min={1}
-            value={redAmount}
-            onChange={(e) => setRedAmount(e.target.value)}
-            className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+            type="checkbox"
+            checked={multiUseSingleCode}
+            onChange={(e) => setMultiUseSingleCode(e.target.checked)}
+            className="mt-1"
           />
+          <span>
+            <strong>โหมดพิเศษ:</strong> รหัสเดียว แต่หลายคนแลกได้ (กรอกจำนวนครั้ง) — คนละครั้งให้ใช้ช่อง「จำนวนรหัส」ด้านล่างแทน
+          </span>
+        </label>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-600">
+              แดงต่อการแลก 1 ครั้ง (ต่อรหัส)
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={redAmount}
+              onChange={(e) => setRedAmount(e.target.value)}
+              className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+            />
+          </div>
+          {multiUseSingleCode ? (
+            <div>
+              <label className="block text-xs font-medium text-slate-600">
+                รหัสเดียวนี้แลกได้กี่ครั้ง (หลายคน)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={1000}
+                value={maxUses}
+                onChange={(e) => setMaxUses(e.target.value)}
+                className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-medium text-slate-600">
+                จำนวนรหัส (แยกคนละรหัส · แต่ละรหัสใช้ได้ครั้งเดียว)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={codeCount}
+                onChange={(e) => setCodeCount(e.target.value)}
+                className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={createBusy}
+            className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+          >
+            {createBusy ? "กำลังสร้าง…" : "สร้างรหัส"}
+          </button>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-600">จำนวนครั้งที่แลกได้ทั้งรหัส</label>
-          <input
-            type="number"
-            min={1}
-            value={maxUses}
-            onChange={(e) => setMaxUses(e.target.value)}
-            className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={createBusy}
-          className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
-        >
-          {createBusy ? "กำลังสร้าง…" : "สร้างรหัสใหม่"}
-        </button>
       </form>
       {createMsg ? (
         <p className="mt-2 text-sm text-emerald-800" role="status">
@@ -178,7 +242,10 @@ export default function AccountRoomRedGiftSection() {
               >
                 <code className="font-mono font-semibold text-slate-900">{c.code}</code>
                 <span className="text-xs text-slate-600">
-                  แดง {c.redAmount} · ใช้แล้ว {c.usesCount}/{c.maxUses}
+                  แดง {c.redAmount} ·{" "}
+                  {Number(c.maxUses) <= 1
+                    ? `ใช้แล้ว ${c.usesCount}/1 (ครั้งเดียวต่อรหัส)`
+                    : `ใช้แล้ว ${c.usesCount}/${c.maxUses}`}
                   {c.expired ? " · หมดอายุ" : ""}
                   {c.exhausted ? " · เต็ม" : ""}
                 </span>

@@ -275,15 +275,18 @@ export async function apiListPublishedGames() {
   return data;
 }
 
-/** รหัสแจกหัวใจแดงห้องเกม — POST /api/hearts/room-red-codes */
-export async function apiCreateRoomRedGiftCode(token, { redAmount, maxUses = 1, expiresAt = null }) {
+/** รหัสแจกหัวใจแดงห้องเกม — POST /api/hearts/room-red-codes (codeCount>1 = หลายรหัส คนละครั้ง) */
+export async function apiCreateRoomRedGiftCode(
+  token,
+  { redAmount, maxUses = 1, codeCount = 1, expiresAt = null }
+) {
   const r = await fetch(`${apiRoot()}/api/hearts/room-red-codes`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ redAmount, maxUses, expiresAt })
+    body: JSON.stringify({ redAmount, maxUses, codeCount, expiresAt })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {

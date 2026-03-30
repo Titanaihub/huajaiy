@@ -83,6 +83,11 @@ export default function MemberAuthProvider({ children }) {
     return data;
   }, []);
 
+  /** อัปเดต user จาก response API (เช่น แลกรหัสห้อง) โดยไม่ต้องรอ GET /me */
+  const applyUser = useCallback((next) => {
+    if (next && typeof next === "object") setUser(next);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -91,9 +96,10 @@ export default function MemberAuthProvider({ children }) {
       register,
       logout,
       refresh,
-      patchProfile
+      patchProfile,
+      applyUser
     }),
-    [user, loading, login, register, logout, refresh, patchProfile]
+    [user, loading, login, register, logout, refresh, patchProfile, applyUser]
   );
 
   return (
