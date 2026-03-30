@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "db:init": "node scripts/run-db-init.js"
+    "db:init": "node scripts/run-db-init.js",
+    "cleanup:users-march2026": "node scripts/cleanup-users-20260330.js"
   },
   "engines": {
     "node": ">=20"

@@ -16,6 +16,9 @@ const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawal
 const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
 const phoneHistoryService = require("./services/phoneHistoryService");
+const {
+  runMarch2026AunyaweePhongCleanup
+} = require("./services/oneoffUserCleanupMarch2026");
 
 const router = express.Router();
 
@@ -1039,6 +1042,56 @@ router.post(
       await nameChangeRequestService.setStatus(id, "rejected", note);
       return res.json({ ok: true });
     } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/**
+ * One-off: ลบข้อมูล aunyawee + phongphiphat47 ตามที่แอดมินขอ (มีแค่ครั้งเดียว)
+ *
+ * ตั้งบน Render (huajaiy-api): ONEOFF_USER_CLEANUP_KEY = สตริงสุ่มยาว ๆ
+ * เรียกครั้งเดียวแล้วลบ env นี้ออก
+ *
+ * curl -X POST "$API/api/admin/oneoff/cleanup-march-2026-users" \
+ *   -H "Authorization: Bearer <admin_jwt>" \
+ *   -H "Content-Type: application/json" \
+ *   -H "x-oneoff-user-cleanup-key: $ONEOFF_USER_CLEANUP_KEY" \
+ *   -d '{"confirm":"DELETE_AUNYAWEE_PHONG_MARCH_2026"}'
+ */
+router.post(
+  "/oneoff/cleanup-march-2026-users",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const expected = process.env.ONEOFF_USER_CLEANUP_KEY;
+      if (!expected || String(expected).length < 8) {
+        return res.status(503).json({
+          ok: false,
+          error:
+            "ยังไม่เปิดใช้ — ตั้ง ONEOFF_USER_CLEANUP_KEY ใน API (อย่างน้อย 8 ตัว) แล้ว deploy ชั่วคราว"
+        });
+      }
+      const got = req.headers["x-oneoff-user-cleanup-key"];
+      if (String(got || "") !== String(expected)) {
+        return res.status(403).json({ ok: false, error: "คีย์ oneoff ไม่ถูกต้อง" });
+      }
+      if (req.body?.confirm !== "DELETE_AUNYAWEE_PHONG_MARCH_2026") {
+        return res.status(400).json({
+          ok: false,
+          error: 'ต้องส่ง JSON body.confirm เท่ากับ "DELETE_AUNYAWEE_PHONG_MARCH_2026"'
+        });
+      }
+      const result = await runMarch2026AunyaweePhongCleanup();
+      return res.json(result);
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
       return res.status(500).json({ ok: false, error: e.message });
     }
   }
