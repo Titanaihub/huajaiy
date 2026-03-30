@@ -16,7 +16,7 @@ export default function AccountPrizePayoutSection() {
       <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-6 text-sm text-amber-950">
         <p className="font-semibold">เฉพาะผู้ดูแลระบบ</p>
         <p className="mt-2 text-amber-900">
-          หน้านี้ใช้ดูรายการผู้ได้รับรางวัลจากเกมส่วนกลางเพื่อติดตามการจ่ายรางวัล — เข้าด้วยบัญชีแอดมินเท่านั้น
+          หน้านี้ใช้ดูรายการผู้ได้รับรางวัลและคำขอถอน — สมาชิกทั่วไปเห็นเมนูเพื่อทดสอบระบบ แต่ใช้งานแผงจ่ายรางวัลได้เมื่อเป็นแอดมินเท่านั้น
         </p>
         <Link href="/account" className="mt-3 inline-block text-sm font-semibold text-brand-800 underline">
           กลับภาพรวมบัญชี

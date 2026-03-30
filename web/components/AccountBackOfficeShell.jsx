@@ -68,22 +68,25 @@ export default function AccountBackOfficeShell({ children }) {
               <NavLink href="/account">ภาพรวม</NavLink>
             </li>
             <li>
+              <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
+            </li>
+            <li>
+              <Link href="/admin" className={`${linkBase} ${linkIdle}`}>
+                สร้างเกม
+              </Link>
+            </li>
+            <li>
+              <NavLink href="/account/prize-payouts">จ่ายรางวัล</NavLink>
+            </li>
+            <li>
               <NavLink href="/account/profile">ข้อมูลส่วนตัว</NavLink>
             </li>
             <li>
               <NavLink href="/account/orders">ออเดอร์ของฉัน</NavLink>
             </li>
-            <li>
-              <NavLink href="/account/prizes">รางวัลของฉัน</NavLink>
-            </li>
             {isGameCreator ? (
               <li>
                 <NavLink href="/account/creator-withdrawals">คำขอถอนรางวัลถึงฉัน</NavLink>
-              </li>
-            ) : null}
-            {user?.role === "admin" ? (
-              <li>
-                <NavLink href="/account/prize-payouts">จ่ายรางวัล</NavLink>
               </li>
             ) : null}
             <li>
