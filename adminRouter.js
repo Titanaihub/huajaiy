@@ -274,7 +274,11 @@ router.patch(
       if (e.code === "NOT_FOUND") {
         return res.status(404).json({ ok: false, error: e.message });
       }
-      if (e.code === "PHONE_TAKEN" || e.code === "VALIDATION") {
+      if (
+        e.code === "PHONE_TAKEN" ||
+        e.code === "USERNAME_TAKEN" ||
+        e.code === "VALIDATION"
+      ) {
         return res.status(400).json({ ok: false, error: e.message });
       }
       return res.status(500).json({ ok: false, error: e.message });

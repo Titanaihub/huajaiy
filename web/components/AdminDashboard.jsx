@@ -50,6 +50,7 @@ export default function AdminDashboard() {
   const [heartRedDelta, setHeartRedDelta] = useState("");
   const [heartGiveawayDelta, setHeartGiveawayDelta] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
+  const [admUsername, setAdmUsername] = useState("");
   const [admFirstName, setAdmFirstName] = useState("");
   const [admLastName, setAdmLastName] = useState("");
   const [admPhone, setAdmPhone] = useState("");
@@ -67,6 +68,7 @@ export default function AdminDashboard() {
   const [admProfileBusy, setAdmProfileBusy] = useState(false);
   const [admAccountDisabled, setAdmAccountDisabled] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPasswordPlain, setShowNewPasswordPlain] = useState(false);
   const [passBusy, setPassBusy] = useState(false);
   const [panelMsg, setPanelMsg] = useState("");
 
@@ -129,6 +131,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const u = memberFull?.user;
     if (!u?.id) return;
+    setAdmUsername(String(u.username || ""));
     setAdmFirstName(String(u.firstName || ""));
     setAdmLastName(String(u.lastName || ""));
     setAdmPhone(String(u.phone || ""));
@@ -362,6 +365,7 @@ export default function AdminDashboard() {
     setPanelMsg("");
     try {
       await apiAdminPatchMember(token, selectedId, {
+        username: admUsername.trim().toLowerCase(),
         firstName: admFirstName.trim(),
         lastName: admLastName.trim(),
         phone: admPhone.trim(),
@@ -507,7 +511,7 @@ export default function AdminDashboard() {
         <section className="space-y-4">
           <p className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-700">
             <strong>สิทธิ์แอดมิน:</strong> ดูยูสเซอร์ทุกคนในตาราง · แก้ชื่อ–นามสกุล เบอร์ ที่อยู่ บทบาท ·{" "}
-            <strong>รหัสผ่าน</strong> ดูแบบตัวอักษรจริงไม่ได้ (เก็บแฮช) — ตั้งรหัสใหม่ให้สมาชิกได้ ·{" "}
+            <strong>รหัสผ่าน</strong> ในตารางเป็นเครื่องหมายปกติ (แฮชใน DB ไม่แสดงตัวจริง) — ตั้งรหัสใหม่แล้วกด「แสดง」เวลาพิมพ์ ·{" "}
             <strong>ระงับบัญชี</strong> ห้ามล็อกอินและใช้ API · แก้<strong>เกมส่วนกลาง</strong>ที่แท็บ「เกมส่วนกลาง」
           </p>
           <form onSubmit={submitSearch} className="flex flex-wrap items-end gap-3">
@@ -546,6 +550,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ยูสเซอร์</th>
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
                     <th className="px-3 py-2">เบอร์</th>
+                    <th className="px-3 py-2 text-slate-600">รหัสผ่าน</th>
                     <th className="px-3 py-2 text-rose-600">ชมพู</th>
                     <th className="px-3 py-2 text-red-700">แดงเล่น</th>
                     <th className="px-3 py-2 text-rose-800">แดงแจก</th>
@@ -558,7 +563,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={11} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -578,6 +583,17 @@ export default function AdminDashboard() {
                           {u.firstName} {u.lastName}
                         </td>
                         <td className="px-3 py-2">{u.phone}</td>
+                        <td
+                          className="px-3 py-2"
+                          title="ระบบเก็บรหัสแบบแฮชเท่านั้น — ไม่มีข้อความจริงให้แสดง · ตั้งรหัสใหม่ได้ที่「ดูทั้งหมด」"
+                        >
+                          <span className="inline-block font-mono text-xs tracking-widest text-slate-500">
+                            ••••••••
+                          </span>
+                          <span className="ml-1 text-[10px] font-normal text-slate-400">
+                            (แฮช)
+                          </span>
+                        </td>
                         <td className="px-3 py-2 font-medium text-rose-600">
                           {u.pinkHeartsBalance ?? 0}
                         </td>
@@ -785,7 +801,26 @@ export default function AdminDashboard() {
                     <h4 className="text-xs font-semibold uppercase text-brand-900">
                       แก้ไขโปรไฟล์สมาชิก (บันทึกตรงฐานข้อมูล)
                     </h4>
+                    <p className="mt-2 rounded-md border border-sky-200 bg-sky-50/90 px-2 py-1.5 text-[11px] text-sky-950">
+                      <strong>รหัสผ่าน:</strong> ของเดิมไม่มีแบบตัวอักษรในระบบ (แฮชเท่านั้น) —{" "}
+                      <strong>ดูตัวที่พิมพ์ได้</strong>เฉพาะตอนตั้งรหัสใหม่ด้านล่าง (กด「แสดง」) · แก้
+                      <strong>ยูสเซอร์</strong>ได้ในช่องแรก (a–z ตัวเลข _ 3–32 ตัว) — ล็อกอินหลังเปลี่ยนต้องใช้ยูสใหม่
+                    </p>
                     <form onSubmit={submitAdminProfile} className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] font-medium text-slate-600">
+                          ยูสเซอร์ (ล็อกอิน) — a–z ตัวเลข _ ความยาว 3–32
+                        </label>
+                        <input
+                          required
+                          value={admUsername}
+                          onChange={(e) => setAdmUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                          className="mt-0.5 w-full max-w-md rounded-lg border border-slate-300 px-2 py-1.5 font-mono text-sm"
+                          minLength={3}
+                          maxLength={32}
+                          autoComplete="off"
+                        />
+                      </div>
                       <div>
                         <label className="text-[10px] font-medium text-slate-600">ชื่อ</label>
                         <input
@@ -990,14 +1025,24 @@ export default function AdminDashboard() {
                       ตั้งรหัสผ่านใหม่ให้สมาชิก
                     </h4>
                     <form onSubmit={submitNewPassword} className="mt-2 flex flex-wrap items-end gap-2">
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="รหัสใหม่ (อย่างน้อย 6 ตัว)"
-                        className="min-w-[200px] flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-                        autoComplete="new-password"
-                      />
+                      <div className="flex min-w-[200px] flex-1 items-stretch gap-1 rounded-lg border border-slate-300 bg-white focus-within:ring-2 focus-within:ring-brand-300">
+                        <input
+                          type={showNewPasswordPlain ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="รหัสใหม่ (อย่างน้อย 6 ตัว)"
+                          className="min-w-0 flex-1 rounded-l-lg border-0 bg-transparent px-2 py-1.5 text-sm outline-none"
+                          autoComplete="new-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPasswordPlain((v) => !v)}
+                          className="shrink-0 rounded-r-lg border-l border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                          title={showNewPasswordPlain ? "ซ่อนรหัส" : "แสดงรหัสที่พิมพ์"}
+                        >
+                          {showNewPasswordPlain ? "ซ่อน" : "แสดง"}
+                        </button>
+                      </div>
                       <button
                         type="submit"
                         disabled={passBusy}
@@ -1006,6 +1051,9 @@ export default function AdminDashboard() {
                         {passBusy ? "…" : "ตั้งรหัส"}
                       </button>
                     </form>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      กด「แสดง」เพื่อเห็นตัวอักษรขณะพิมพ์รหัสใหม่ — รหัสเดิมของสมาชิกดูไม่ได้เพราะเก็บแฮชใน DB
+                    </p>
                   </div>
 
                   <div>

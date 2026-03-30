@@ -13,6 +13,7 @@ const {
   MAX_FIELD,
   MAX_POSTAL
 } = require("../shippingAddress");
+const { validateUsername } = require("../authValidators");
 
 function normalizeBirthDate(v) {
   if (v == null) return null;
@@ -681,6 +682,27 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
 
   const has = (k) => Object.prototype.hasOwnProperty.call(b, k);
 
+  let nextUsername = String(current.username || "").toLowerCase();
+  if (has("username")) {
+    const vu = validateUsername(b.username);
+    if (!vu.ok) {
+      const e = new Error(vu.error);
+      e.code = "VALIDATION";
+      throw e;
+    }
+    nextUsername = vu.value;
+  }
+  const usernameChanged =
+    has("username") && nextUsername !== String(current.username || "").toLowerCase();
+  if (usernameChanged) {
+    const taken = await findByUsername(nextUsername);
+    if (taken && String(taken.id) !== String(userId)) {
+      const e = new Error("ชื่อผู้ใช้นี้ถูกใช้แล้ว");
+      e.code = "USERNAME_TAKEN";
+      throw e;
+    }
+  }
+
   const nextFirst = has("firstName")
     ? String(b.firstName ?? "").trim().slice(0, 64)
     : current.firstName;
@@ -764,6 +786,7 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
   const pool = getPool();
   if (!pool) {
     const patch = {
+      username: nextUsername,
       firstName: nextFirst,
       lastName: nextLast,
       phone: nextPhone,
@@ -799,25 +822,27 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
     if (updateShipping && shipDb) {
       await client.query(
         `UPDATE users SET
-          first_name = $2,
-          last_name = $3,
-          phone = $4,
-          country_code = $5,
-          gender = $6,
-          birth_date = $7,
-          role = $8,
-          shipping_address = $9,
-          shipping_house_no = $10,
-          shipping_moo = $11,
-          shipping_road = $12,
-          shipping_subdistrict = $13,
-          shipping_district = $14,
-          shipping_province = $15,
-          shipping_postal_code = $16,
-          account_disabled = $17
+          username = $2,
+          first_name = $3,
+          last_name = $4,
+          phone = $5,
+          country_code = $6,
+          gender = $7,
+          birth_date = $8,
+          role = $9,
+          shipping_address = $10,
+          shipping_house_no = $11,
+          shipping_moo = $12,
+          shipping_road = $13,
+          shipping_subdistrict = $14,
+          shipping_district = $15,
+          shipping_province = $16,
+          shipping_postal_code = $17,
+          account_disabled = $18
         WHERE id = $1::uuid`,
         [
           userId,
+          nextUsername,
           nextFirst,
           nextLast,
           newPhone,
@@ -839,17 +864,19 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
     } else {
       await client.query(
         `UPDATE users SET
-          first_name = $2,
-          last_name = $3,
-          phone = $4,
-          country_code = $5,
-          gender = $6,
-          birth_date = $7,
-          role = $8,
-          account_disabled = $9
+          username = $2,
+          first_name = $3,
+          last_name = $4,
+          phone = $5,
+          country_code = $6,
+          gender = $7,
+          birth_date = $8,
+          role = $9,
+          account_disabled = $10
         WHERE id = $1::uuid`,
         [
           userId,
+          nextUsername,
           nextFirst,
           nextLast,
           newPhone,
@@ -874,6 +901,11 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
         const pe = new Error("เบอร์นี้ถูกใช้แล้ว");
         pe.code = "PHONE_TAKEN";
         throw pe;
+      }
+      if (d.includes("(username)")) {
+        const ue = new Error("ชื่อผู้ใช้นี้ถูกใช้แล้ว");
+        ue.code = "USERNAME_TAKEN";
+        throw ue;
       }
     }
     throw e;
