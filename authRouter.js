@@ -13,6 +13,7 @@ const shopService = require("./services/shopService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 const heartLedgerService = require("./services/heartLedgerService");
+const roomRedGiftService = require("./services/roomRedGiftService");
 const {
   validateProfilePatch,
   validateNameChangeRequest
@@ -37,6 +38,18 @@ function signToken(user) {
     getJwtSecret(),
     { expiresIn: "30d" }
   );
+}
+
+/** รวมยอดหัวใจแดงจากรหัสของห้อง (scoped) ให้สอดคล้องกับ GET /me */
+async function publicUserWithRoomGiftRed(user) {
+  const base = userService.publicUser(user);
+  let roomGiftRed = [];
+  try {
+    roomGiftRed = await roomRedGiftService.listRoomGiftBalancesForUser(user.id);
+  } catch (e) {
+    if (e.code !== "DB_REQUIRED") throw e;
+  }
+  return { ...base, roomGiftRed };
 }
 
 /** โหลดบทบาทจาก DB ทุกครั้ง — โทเค็นเก่ายังใช้ได้ แต่ role ตามข้อมูลล่าสุด */
@@ -178,7 +191,7 @@ router.post("/register", async (req, res) => {
     return res.json({
       ok: true,
       token,
-      user: userService.publicUser(user)
+      user: await publicUserWithRoomGiftRed(user)
     });
   } catch (e) {
     if (e.code === "USERNAME_TAKEN") {
@@ -212,7 +225,7 @@ router.post("/login", async (req, res) => {
     return res.json({
       ok: true,
       token,
-      user: userService.publicUser(user)
+      user: await publicUserWithRoomGiftRed(user)
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
@@ -225,7 +238,10 @@ router.get("/me", authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
-    return res.json({ ok: true, user: userService.publicUser(user) });
+    return res.json({
+      ok: true,
+      user: await publicUserWithRoomGiftRed(user)
+    });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
@@ -243,7 +259,7 @@ router.patch("/profile", authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
-    return res.json({ ok: true, user: userService.publicUser(user) });
+    return res.json({ ok: true, user: await publicUserWithRoomGiftRed(user) });
   } catch (e) {
     if (e.code === "PHONE_TAKEN") {
       return res.status(400).json({

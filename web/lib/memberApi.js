@@ -262,3 +262,47 @@ export async function apiResolvePrizeWithdrawal(token, id, { action, note }) {
   }
   return data;
 }
+
+/** รหัสแจกหัวใจแดงห้องเกม — POST /api/hearts/room-red-codes */
+export async function apiCreateRoomRedGiftCode(token, { redAmount, maxUses = 1, expiresAt = null }) {
+  const r = await fetch(`${apiRoot()}/api/hearts/room-red-codes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ redAmount, maxUses, expiresAt })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "สร้างรหัสไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiListRoomRedGiftCodes(token) {
+  const r = await fetch(`${apiRoot()}/api/hearts/room-red-codes/mine`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดรหัสไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiRedeemRoomRedGiftCode(token, code) {
+  const r = await fetch(`${apiRoot()}/api/hearts/room-red-redeem`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ code })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "แลกรหัสไม่สำเร็จ");
+  }
+  return data;
+}

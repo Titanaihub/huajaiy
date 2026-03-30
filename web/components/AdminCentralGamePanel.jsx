@@ -324,6 +324,8 @@ export default function AdminCentralGamePanel({
   const [tileBackCoverUrl, setTileBackCoverUrl] = useState("");
   /** แสดงในรายการหน้า /game (ล็อบบี้) */
   const [lobbyVisible, setLobbyVisible] = useState(false);
+  /** อนุญาตให้ใช้หัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง) หักเล่นในเกมนี้ — มักใช้กับเกมส่วนกลางที่แอดมินตั้ง */
+  const [allowGiftRedPlay, setAllowGiftRedPlay] = useState(false);
   const [rules, setRules] = useState([]);
 
   const [newTitle, setNewTitle] = useState("เกมส่วนกลาง");
@@ -429,6 +431,7 @@ export default function AdminCentralGamePanel({
       );
       setRedHeartCost(typeof g.redHeartCost === "number" ? g.redHeartCost : 0);
       setLobbyVisible(Boolean(g.isPublished));
+      setAllowGiftRedPlay(Boolean(g.allowGiftRedPlay));
       const map = {};
       for (const im of data.images || []) {
         const k0 = `${im.setIndex}-0`;
@@ -575,7 +578,8 @@ export default function AdminCentralGamePanel({
       tileCount: counts.reduce((a, b) => a + b, 0),
       pinkHeartCost,
       redHeartCost,
-      isPublished: lobbyVisible
+      isPublished: lobbyVisible,
+      allowGiftRedPlay
     });
   }
 
@@ -1169,6 +1173,20 @@ export default function AdminCentralGamePanel({
                   <span className="font-semibold text-slate-900">แสดงในหน้าเกม (รายการ)</span>
                   — เกมจะอยู่ในล็อบบี้ <span className="font-mono text-[11px]">/game</span> ให้ผู้เล่นค้นหาและคลิกเข้าเล่น ·
                   กด「บันทึกข้อมูล」เพื่อยืนยัน · การเปิด「เผยแพร่บนเว็บ」จะเปิดตัวเลือกนี้ให้อัตโนมัติ · ต้องอัปโหลดรูปครบและมีกติกาที่เล่นได้ก่อนจึงจะติ๊กได้สำเร็จ
+                </label>
+              </div>
+              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
+                <input
+                  id="central-game-allow-gift-red"
+                  type="checkbox"
+                  checked={allowGiftRedPlay}
+                  onChange={(e) => setAllowGiftRedPlay(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300"
+                />
+                <label htmlFor="central-game-allow-gift-red" className="text-xs leading-relaxed text-amber-950">
+                  <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
+                  — ถ้าเปิด ผู้เล่นสามารถใช้ยอดแดงที่ได้จากการแลกรหัสจากเจ้าของห้องคนใดก็ได้มาหักเล่นในเกมนี้ได้
+                  (เหมาะกับเกมกลางที่แอดมินตั้ง) · ถ้าปิด ผู้เล่นจะใช้แดงจากรหัสได้เฉพาะในเกมของเจ้าของห้องที่ออกรหัสนั้น
                 </label>
               </div>
               <div>

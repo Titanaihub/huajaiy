@@ -216,7 +216,8 @@ function rowGame(row) {
     creatorUsername:
       row.creator_username != null && String(row.creator_username).trim()
         ? String(row.creator_username).trim().toLowerCase()
-        : null
+        : null,
+    allowGiftRedPlay: Boolean(row.allow_gift_red_play)
   };
 }
 
@@ -536,6 +537,10 @@ async function updateGameMeta(gameId, patch) {
     }
     params.push(want);
     extraFragments.push(`is_published = $${params.length}`);
+  }
+  if (patch.allowGiftRedPlay !== undefined) {
+    params.push(Boolean(patch.allowGiftRedPlay));
+    extraFragments.push(`allow_gift_red_play = $${params.length}`);
   }
   const extraSql = extraFragments.length ? `, ${extraFragments.join(", ")}` : "";
   await pool.query(

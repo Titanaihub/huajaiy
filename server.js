@@ -25,6 +25,7 @@ const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
 const centralGameService = require("./services/centralGameService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralGameSession = require("./centralGameSession");
+const gameStartDeductionService = require("./services/gameStartDeductionService");
 const { validateUsername } = require("./authValidators");
 
 const app = express();
@@ -109,6 +110,8 @@ function centralMetaFromSnap(snap, givenByRuleId = null) {
     gameCoverUrl: snap.game.gameCoverUrl || null,
     tileBackCoverUrl: snap.game.tileBackCoverUrl || null,
     creatorUsername: snap.game.creatorUsername || null,
+    gameCreatedBy: snap.game.createdBy || null,
+    allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay),
     pinkHeartCost: pink,
     redHeartCost: red,
     heartCost: pink + red,
@@ -143,32 +146,24 @@ async function deductHeartsForGameStart(
   { pinkCost = 0, redCost = 0, legacyTotalCost, ledgerContext } = {}
 ) {
   if (!userId) return null;
+  const pink = Math.max(0, Math.floor(Number(pinkCost) || 0));
+  const red = Math.max(0, Math.floor(Number(redCost) || 0));
+  if (pink > 0 || red > 0) {
+    const title = ledgerContext?.gameTitle ? String(ledgerContext.gameTitle).trim() : "";
+    return gameStartDeductionService.deductCentralGameStart(userId, {
+      pinkCost: pink,
+      redCost: red,
+      gameId: ledgerContext?.gameId || null,
+      gameTitle: title,
+      gameCreatedBy: ledgerContext?.gameCreatedBy ?? null,
+      allowGiftRedPlay: Boolean(ledgerContext?.allowGiftRedPlay)
+    });
+  }
   const u = await userService.findById(userId);
   if (!u) {
     const e = new Error("ไม่พบบัญชี");
     e.code = "AUTH";
     throw e;
-  }
-  const pink = Math.max(0, Math.floor(Number(pinkCost) || 0));
-  const red = Math.max(0, Math.floor(Number(redCost) || 0));
-  if (pink > 0 || red > 0) {
-    if (u.pinkHeartsBalance < pink || u.redHeartsBalance < red) {
-      const e = new Error("หัวใจไม่พอเริ่มรอบ");
-      e.code = "INSUFFICIENT_HEARTS";
-      throw e;
-    }
-    const title = ledgerContext?.gameTitle ? String(ledgerContext.gameTitle).trim() : "";
-    return userService.adjustDualHearts(userId, -pink, -red, {
-      kind: "game_start",
-      label: title ? `เริ่มเล่นเกม「${title}」` : "เริ่มเล่นเกมส่วนกลาง",
-      meta: {
-        gameMode: ledgerContext?.gameMode || "central",
-        gameId: ledgerContext?.gameId || null,
-        gameTitle: title || null,
-        pinkCharged: pink,
-        redCharged: red
-      }
-    });
   }
   if (legacyTotalCost != null) {
     const total = Math.max(0, Math.floor(Number(legacyTotalCost) || 0));
@@ -347,7 +342,9 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
           ledgerContext: {
             gameMode: "central",
             gameId: snap.game.id,
-            gameTitle: snap.game.title
+            gameTitle: snap.game.title,
+            gameCreatedBy: snap.game.createdBy ?? null,
+            allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay)
           }
         });
       } catch (err) {

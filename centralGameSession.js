@@ -241,6 +241,8 @@ function getSessionStateForClient(sessionId) {
     description: game.description || "",
     gameCoverUrl: game.gameCoverUrl || null,
     tileBackCoverUrl: game.tileBackCoverUrl || null,
+    gameCreatedBy: game.createdBy || null,
+    allowGiftRedPlay: Boolean(game.allowGiftRedPlay),
     pinkHeartCost: game.pinkHeartCost ?? 0,
     redHeartCost: game.redHeartCost ?? 0,
     heartCost: (game.pinkHeartCost ?? 0) + (game.redHeartCost ?? 0),

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import InlineHeart from "./InlineHeart";
+import AccountRoomRedGiftSection from "./AccountRoomRedGiftSection";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountDashboardOverview() {
@@ -26,6 +27,11 @@ export default function AccountDashboardOverview() {
 
   const pink = Number(user.pinkHeartsBalance ?? 0);
   const red = Number(user.redHeartsBalance ?? 0);
+  const roomGift = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
+  const roomGiftTotal = roomGift.reduce(
+    (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
+    0
+  );
 
   return (
     <div className="space-y-8">
@@ -48,6 +54,19 @@ export default function AccountDashboardOverview() {
               <InlineHeart className="text-red-600" />
               {red.toLocaleString("th-TH")}
             </p>
+            {roomGiftTotal > 0 ? (
+              <div className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+                <p className="font-semibold">หัวใจแดงจากรหัสห้อง (รวม {roomGiftTotal.toLocaleString("th-TH")})</p>
+                <ul className="mt-1 space-y-0.5 text-amber-900/90">
+                  {roomGift.map((g) => (
+                    <li key={g.creatorId}>
+                      @{g.creatorUsername || "เจ้าของห้อง"}:{" "}
+                      {Math.max(0, Math.floor(Number(g.balance) || 0)).toLocaleString("th-TH")} — ใช้เล่นได้เฉพาะเกมของเจ้าของหรือเกมที่เปิดรับรหัสห้อง
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <p className="mt-2 text-xs text-rose-900/70">
               รวม {(pink + red).toLocaleString("th-TH")} — มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
             </p>
@@ -69,6 +88,8 @@ export default function AccountDashboardOverview() {
           </div>
         </div>
       </section>
+
+      <AccountRoomRedGiftSection />
     </div>
   );
 }
