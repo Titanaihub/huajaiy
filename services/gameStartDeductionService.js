@@ -60,7 +60,8 @@ async function deductCentralGameStart(
     await client.query("BEGIN");
 
     const uRes = await client.query(
-      `SELECT pink_hearts_balance, red_hearts_balance
+      `SELECT pink_hearts_balance, red_hearts_balance,
+              COALESCE(red_giveaway_balance, 0) AS red_giveaway_balance
        FROM users WHERE id = $1 FOR UPDATE`,
       [userId]
     );
@@ -72,6 +73,10 @@ async function deductCentralGameStart(
     }
     const pinkHave = Math.max(0, Math.floor(Number(uRes.rows[0].pink_hearts_balance) || 0));
     const generalRedHave = Math.max(0, Math.floor(Number(uRes.rows[0].red_hearts_balance) || 0));
+    const giveawayHave = Math.max(
+      0,
+      Math.floor(Number(uRes.rows[0].red_giveaway_balance) || 0)
+    );
 
     if (pinkHave < pink) {
       await client.query("ROLLBACK");
@@ -157,9 +162,9 @@ async function deductCentralGameStart(
       `UPDATE users SET
         pink_hearts_balance = $2,
         red_hearts_balance = $3,
-        hearts_balance = $2 + $3
+        hearts_balance = $2 + $3 + $4
        WHERE id = $1`,
-      [userId, newPink, newGeneralRed]
+      [userId, newPink, newGeneralRed, giveawayHave]
     );
 
     const title = gameTitle ? String(gameTitle).trim() : "";

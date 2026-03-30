@@ -131,7 +131,8 @@ async function createMarketplaceOrder(userId, payload) {
           pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
           hearts_balance =
             GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
-            GREATEST(0, COALESCE(red_hearts_balance, 0))
+            GREATEST(0, COALESCE(red_hearts_balance, 0)) +
+            COALESCE(red_giveaway_balance, 0)
         WHERE id = $1
         RETURNING pink_hearts_balance, red_hearts_balance`,
         [userId, heartsGranted]

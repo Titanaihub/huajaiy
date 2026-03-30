@@ -35,6 +35,66 @@ function formatWhen(iso) {
   }
 }
 
+function giveawayLedgerNote(entry) {
+  const m = entry.meta;
+  if (!m || typeof m !== "object") return null;
+  if (entry.kind === "heart_purchase_approved") {
+    if (m.redGrantedToGiveaway == null) return null;
+    const toGive = Number(m.redGrantedToGiveaway) || 0;
+    if (toGive > 0) {
+      const after =
+        m.redGiveawayBalanceAfter != null
+          ? Number(m.redGiveawayBalanceAfter)
+          : null;
+      return (
+        <p className="mt-1 text-xs text-red-900/90">
+          แดงแจกผู้เล่น +{toGive.toLocaleString("th-TH")}
+          {after != null && Number.isFinite(after)
+            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
+            : ""}
+        </p>
+      );
+    }
+  }
+  if (entry.kind === "room_red_code_issue") {
+    const gd = Number(m.giveawayDeducted) || 0;
+    const pd = Number(m.playableRedDeducted) || 0;
+    if (gd > 0 || pd > 0) {
+      const after =
+        m.redGiveawayBalanceAfter != null
+          ? Number(m.redGiveawayBalanceAfter)
+          : null;
+      return (
+        <p className="mt-1 text-xs text-red-900/90">
+          หักแดงแจก {gd.toLocaleString("th-TH")} · หักแดงเล่นได้ {pd.toLocaleString("th-TH")}
+          {after != null && Number.isFinite(after)
+            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
+            : ""}
+        </p>
+      );
+    }
+  }
+  if (entry.kind === "room_red_code_refund") {
+    const gr = Number(m.giveawayRefunded) || 0;
+    const pr = Number(m.playableRefunded) || 0;
+    if (gr > 0 || pr > 0) {
+      const after =
+        m.redGiveawayBalanceAfter != null
+          ? Number(m.redGiveawayBalanceAfter)
+          : null;
+      return (
+        <p className="mt-1 text-xs text-emerald-900/90">
+          คืนแดงแจก {gr.toLocaleString("th-TH")} · คืนแดงเล่นได้ {pr.toLocaleString("th-TH")}
+          {after != null && Number.isFinite(after)
+            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
+            : ""}
+        </p>
+      );
+    }
+  }
+  return null;
+}
+
 function deltaLine(pinkDelta, redDelta) {
   const chunks = [];
   if (pinkDelta !== 0) {
@@ -231,6 +291,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
                 {e.label || "—"}
               </p>
               <div className="mt-2">{deltaLine(e.pinkDelta, e.redDelta)}</div>
+              {giveawayLedgerNote(e)}
               <p className="mt-2 text-xs text-slate-500">
                 คงเหลือหลังรายการนี้: ชมพู{" "}
                 <span className="font-semibold tabular-nums text-slate-700">

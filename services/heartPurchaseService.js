@@ -161,29 +161,38 @@ async function approve(purchaseId, adminUserId, note) {
     const balR = await client.query(
       `UPDATE users SET
         pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
-        red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
+        red_giveaway_balance = GREATEST(0, COALESCE(red_giveaway_balance, 0) + $3),
         hearts_balance =
           GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
-          GREATEST(0, COALESCE(red_hearts_balance, 0) + $3)
+          GREATEST(0, COALESCE(red_hearts_balance, 0)) +
+          GREATEST(0, COALESCE(red_giveaway_balance, 0) + $3)
       WHERE id = $1
-      RETURNING pink_hearts_balance, red_hearts_balance`,
+      RETURNING pink_hearts_balance, red_hearts_balance, red_giveaway_balance`,
       [buyerId, pink, red]
     );
     if (balR.rows.length > 0) {
+      const rowB = balR.rows[0];
+      const pinkAfter = Math.max(0, Math.floor(Number(rowB.pink_hearts_balance) || 0));
+      const redPlayAfter = Math.max(0, Math.floor(Number(rowB.red_hearts_balance) || 0));
+      const giveAfter = Math.max(0, Math.floor(Number(rowB.red_giveaway_balance) || 0));
       await heartLedgerService.insertWithClient(client, {
         userId: buyerId,
         pinkDelta: pink,
-        redDelta: red,
-        pinkAfter: Math.max(0, Math.floor(Number(balR.rows[0].pink_hearts_balance) || 0)),
-        redAfter: Math.max(0, Math.floor(Number(balR.rows[0].red_hearts_balance) || 0)),
+        redDelta: 0,
+        pinkAfter,
+        redAfter: redPlayAfter,
         kind: "heart_purchase_approved",
-        label: `อนุมัติซื้อแพ็ก「${pkgTitle}」`,
+        label:
+          red > 0
+            ? `อนุมัติซื้อแพ็ก「${pkgTitle}」· แดงแจกผู้เล่น +${red}`
+            : `อนุมัติซื้อแพ็ก「${pkgTitle}」`,
         meta: {
           purchaseId,
           packageId: row.package_id != null ? String(row.package_id) : null,
           packageTitle: pkgTitle,
           pinkGranted: pink,
-          redGranted: red,
+          redGrantedToGiveaway: red,
+          redGiveawayBalanceAfter: giveAfter,
           resolvedByUserId: adminUserId != null ? String(adminUserId) : null
         }
       });

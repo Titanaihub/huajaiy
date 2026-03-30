@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import InlineHeart from "./InlineHeart";
-import AccountRoomRedGiftSection from "./AccountRoomRedGiftSection";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountDashboardOverview() {
@@ -70,7 +69,8 @@ export default function AccountDashboardOverview() {
               </div>
             ) : null}
             <p className="mt-2 text-xs text-rose-900/70">
-              รวม {(pink + red).toLocaleString("th-TH")} — มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
+              รวมในบัญชี (ชมพู + แดงเล่นได้) {(pink + red).toLocaleString("th-TH")} — แดงแจกสำหรับออกรหัสดูที่เมนู
+              「แจกหัวใจ」— มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
             </p>
             <button
               type="button"
@@ -92,12 +92,16 @@ export default function AccountDashboardOverview() {
               >
                 ประวัติหัวใจ (เล่นเกม)
               </Link>
+              <Link
+                href="/account/give-hearts"
+                className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+              >
+                แจกหัวใจ (ทุนรหัสห้อง)
+              </Link>
             </p>
           </div>
         </div>
       </section>
-
-      <AccountRoomRedGiftSection />
     </div>
   );
 }

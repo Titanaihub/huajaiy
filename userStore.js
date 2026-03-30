@@ -49,7 +49,15 @@ function normalizeHearts(u) {
   }
   p = Math.max(0, Math.floor(Number(p) || 0));
   r = Math.max(0, Math.floor(Number(r) || 0));
-  return { ...u, pinkHeartsBalance: p, redHeartsBalance: r, heartsBalance: p + r };
+  let g = u.redGiveawayBalance;
+  g = Math.max(0, Math.floor(Number(g) || 0));
+  return {
+    ...u,
+    pinkHeartsBalance: p,
+    redHeartsBalance: r,
+    redGiveawayBalance: g,
+    heartsBalance: p + r + g
+  };
 }
 
 function findByUsername(username) {
@@ -115,6 +123,7 @@ function createUser({
     role: role || MEMBER,
     pinkHeartsBalance: 0,
     redHeartsBalance: 0,
+    redGiveawayBalance: 0,
     heartsBalance: 0,
     createdAt: new Date().toISOString()
   };
@@ -139,6 +148,7 @@ function publicUser(u) {
     role: n.role || MEMBER,
     pinkHeartsBalance: n.pinkHeartsBalance,
     redHeartsBalance: n.redHeartsBalance,
+    redGiveawayBalance: n.redGiveawayBalance ?? 0,
     heartsBalance: n.heartsBalance,
     createdAt: n.createdAt != null ? String(n.createdAt) : null
   };

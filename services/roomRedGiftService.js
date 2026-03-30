@@ -26,17 +26,30 @@ function parseExpiresInput(v) {
 /**
  * @param {import("pg").PoolClient} client
  */
-async function insertOneCode(client, creatorId, redAmount, maxUses, expiresAtIso) {
+async function insertOneCode(
+  client,
+  creatorId,
+  redAmount,
+  maxUses,
+  expiresAtIso,
+  fundedGiveaway,
+  fundedPlayable
+) {
+  const fg = Math.max(0, Math.floor(Number(fundedGiveaway) || 0));
+  const fp = Math.max(0, Math.floor(Number(fundedPlayable) || 0));
   for (let attempt = 0; attempt < 24; attempt += 1) {
     const code = makeGiftCode();
     const id = crypto.randomUUID();
     try {
       const r = await client.query(
-        `INSERT INTO room_red_gift_codes (id, code, creator_id, red_amount, max_uses, uses_count, expires_at)
-         VALUES ($1, $2, $3::uuid, $4, $5, 0, $6)
+        `INSERT INTO room_red_gift_codes (
+           id, code, creator_id, red_amount, max_uses, uses_count, expires_at,
+           funded_giveaway, funded_playable
+         )
+         VALUES ($1, $2, $3::uuid, $4, $5, 0, $6, $7, $8)
          RETURNING id, code, creator_id AS "creatorId", red_amount AS "redAmount",
            max_uses AS "maxUses", uses_count AS "usesCount", expires_at AS "expiresAt", created_at AS "createdAt"`,
-        [id, code, creatorId, redAmount, maxUses, expiresAtIso]
+        [id, code, creatorId, redAmount, maxUses, expiresAtIso, fg, fp]
       );
       return r.rows[0];
     } catch (e) {
@@ -79,7 +92,8 @@ async function issueRoomRedGiftCodes(creatorId, options = {}) {
     await client.query("BEGIN");
 
     const uRes = await client.query(
-      `SELECT pink_hearts_balance, red_hearts_balance FROM users WHERE id = $1::uuid FOR UPDATE`,
+      `SELECT pink_hearts_balance, red_hearts_balance, COALESCE(red_giveaway_balance, 0) AS red_giveaway_balance
+       FROM users WHERE id = $1::uuid FOR UPDATE`,
       [creatorId]
     );
     if (uRes.rows.length === 0) {
@@ -96,43 +110,71 @@ async function issueRoomRedGiftCodes(creatorId, options = {}) {
       0,
       Math.floor(Number(uRes.rows[0].red_hearts_balance) || 0)
     );
-    if (curRed < totalRedCost) {
-      await client.query("ROLLBACK");
-      const e = new Error(
-        `หัวใจแดงในระบบไม่พอ — ต้องการ ${totalRedCost} ดวง คงเหลือ ${curRed} ดวง (คำนวณ: จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส)`
-      );
-      e.code = "INSUFFICIENT_REDS";
-      throw e;
-    }
+    const curGive = Math.max(
+      0,
+      Math.floor(Number(uRes.rows[0].red_giveaway_balance) || 0)
+    );
+
+    let remGive = curGive;
+    let remPlay = curRed;
+    const perCodeCost = redAmount * maxUses;
 
     for (let i = 0; i < codeCount; i += 1) {
+      const fromG = Math.min(remGive, perCodeCost);
+      const needP = perCodeCost - fromG;
+      if (needP > remPlay) {
+        await client.query("ROLLBACK");
+        const totalHave = curGive + curRed;
+        const e = new Error(
+          `ทุนสร้างรหัสไม่พอ — ต้องการ ${totalRedCost} ดวง (แดงแจก + แดงเล่นได้รวมกัน) · คงเหลือแจก ${curGive} · เล่นได้ ${curRed} · รวม ${totalHave} (ซื้อแพ็กจากแอดมินได้แดงแจก · แดงเล่นได้ใช้สร้างรหัสได้เมื่อแจกไม่พอ)`
+        );
+        e.code = "INSUFFICIENT_REDS";
+        throw e;
+      }
+      remGive -= fromG;
+      remPlay -= needP;
       codes.push(
-        await insertOneCode(client, creatorId, redAmount, maxUses, expiresAtIso)
+        await insertOneCode(
+          client,
+          creatorId,
+          redAmount,
+          maxUses,
+          expiresAtIso,
+          fromG,
+          needP
+        )
       );
     }
 
-    const newRed = curRed - totalRedCost;
+    const fromGiveawayTotal = curGive - remGive;
+    const fromPlayableTotal = curRed - remPlay;
+    const newGive = remGive;
+    const newRed = remPlay;
     await client.query(
       `UPDATE users SET
-        red_hearts_balance = $2,
-        hearts_balance = $3 + $2
+        red_giveaway_balance = $2,
+        red_hearts_balance = $3,
+        hearts_balance = $4 + $3 + $2
       WHERE id = $1::uuid`,
-      [creatorId, newRed, curPink]
+      [creatorId, newGive, newRed, curPink]
     );
 
     await heartLedgerService.insertWithClient(client, {
       userId: creatorId,
       pinkDelta: 0,
-      redDelta: -totalRedCost,
+      redDelta: -fromPlayableTotal,
       pinkAfter: curPink,
       redAfter: newRed,
       kind: "room_red_code_issue",
-      label: `สร้างรหัสแจกแดงห้อง · ${codeCount} รหัส · หักรวม ${totalRedCost}`,
+      label: `สร้างรหัสแจกแดงห้อง · ${codeCount} รหัส · หักรวม ${totalRedCost} (แจก ${fromGiveawayTotal} · เล่นได้ ${fromPlayableTotal})`,
       meta: {
         codeCount,
         redPerRedemption: redAmount,
         maxUsesPerCode: maxUses,
-        codeIds: codes.map((c) => c.id)
+        codeIds: codes.map((c) => c.id),
+        giveawayDeducted: fromGiveawayTotal,
+        playableRedDeducted: fromPlayableTotal,
+        redGiveawayBalanceAfter: newGive
       }
     });
 
@@ -193,12 +235,28 @@ async function deleteCodeByCreator(creatorId, codeId) {
     const used = Math.max(0, Math.floor(Number(c.uses_count) || 0));
     const remainingUses = Math.max(0, maxU - used);
     const refund = remainingUses * redAmt;
+    const fundedG = Math.max(
+      0,
+      Math.floor(Number(c.funded_giveaway) || 0)
+    );
+    const fundedP = Math.max(
+      0,
+      Math.floor(Number(c.funded_playable) || 0)
+    );
+    const sumFunded = fundedG + fundedP;
+    let refundG = 0;
+    let refundP = refund;
+    if (refund > 0 && sumFunded > 0) {
+      refundG = Math.floor((refund * fundedG) / sumFunded);
+      refundP = refund - refundG;
+    }
 
     await client.query(`DELETE FROM room_red_gift_codes WHERE id = $1::uuid`, [id]);
 
     if (refund > 0) {
       const uRes = await client.query(
-        `SELECT pink_hearts_balance, red_hearts_balance FROM users WHERE id = $1::uuid FOR UPDATE`,
+        `SELECT pink_hearts_balance, red_hearts_balance, COALESCE(red_giveaway_balance, 0) AS red_giveaway_balance
+         FROM users WHERE id = $1::uuid FOR UPDATE`,
         [creatorId]
       );
       const curPink = Math.max(
@@ -209,23 +267,36 @@ async function deleteCodeByCreator(creatorId, codeId) {
         0,
         Math.floor(Number(uRes.rows[0].red_hearts_balance) || 0)
       );
-      const newRed = curRed + refund;
+      const curGive = Math.max(
+        0,
+        Math.floor(Number(uRes.rows[0].red_giveaway_balance) || 0)
+      );
+      const newRed = curRed + refundP;
+      const newGive = curGive + refundG;
       await client.query(
         `UPDATE users SET
           red_hearts_balance = $2,
-          hearts_balance = $3 + $2
+          red_giveaway_balance = $3,
+          hearts_balance = $4 + $2 + $3
         WHERE id = $1::uuid`,
-        [creatorId, newRed, curPink]
+        [creatorId, newRed, newGive, curPink]
       );
       await heartLedgerService.insertWithClient(client, {
         userId: creatorId,
         pinkDelta: 0,
-        redDelta: refund,
+        redDelta: refundP,
         pinkAfter: curPink,
         redAfter: newRed,
         kind: "room_red_code_refund",
-        label: `ลบรหัสแจกแดงห้อง · คืน ${refund} ดวง`,
-        meta: { deletedCodeId: id, code: c.code, remainingUses }
+        label: `ลบรหัสแจกแดงห้อง · คืน ${refund} ดวง (แจก ${refundG} · เล่นได้ ${refundP})`,
+        meta: {
+          deletedCodeId: id,
+          code: c.code,
+          remainingUses,
+          giveawayRefunded: refundG,
+          playableRefunded: refundP,
+          redGiveawayBalanceAfter: newGive
+        }
       });
     }
 

@@ -440,7 +440,7 @@ export default function AdminDashboard() {
           </form>
 
           <p className="text-xs text-slate-500">
-            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · หัวใจชมพู/แดง = ยอดบนเซิร์ฟเวอร์
+            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · ชมพู / แดงเล่นได้ / แดงแจก = ยอดบนเซิร์ฟเวอร์
           </p>
 
           {listErr ? <p className="text-sm text-red-600">{listErr}</p> : null}
@@ -455,7 +455,8 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
                     <th className="px-3 py-2">เบอร์</th>
                     <th className="px-3 py-2 text-rose-600">ชมพู</th>
-                    <th className="px-3 py-2 text-red-700">แดง</th>
+                    <th className="px-3 py-2 text-red-700">แดงเล่น</th>
+                    <th className="px-3 py-2 text-rose-800">แดงแจก</th>
                     <th className="px-3 py-2">บทบาท</th>
                     <th className="px-3 py-2">สมัคร</th>
                     <th className="px-3 py-2 w-24" />
@@ -464,7 +465,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={9} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -489,6 +490,9 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2 font-medium text-red-700">
                           {u.redHeartsBalance ?? 0}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-rose-900">
+                          {u.redGiveawayBalance ?? 0}
                         </td>
                         <td className="px-3 py-2">{roleLabel(u.role)}</td>
                         <td className="px-3 py-2 text-xs text-slate-600">
@@ -595,15 +599,23 @@ export default function AdminDashboard() {
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">หัวใจแดง (DB)</dt>
+                      <dt className="text-slate-500">หัวใจแดงเล่นได้ (DB)</dt>
                       <dd className="text-lg font-semibold text-red-700">
                         {detail.redHeartsBalance ?? 0}
                       </dd>
                     </div>
                     <div>
+                      <dt className="text-slate-500">หัวใจแดงแจก (DB)</dt>
+                      <dd className="text-lg font-semibold text-rose-900">
+                        {detail.redGiveawayBalance ?? 0}
+                      </dd>
+                    </div>
+                    <div>
                       <dt className="text-slate-500">รวม</dt>
                       <dd className="font-medium text-slate-800">
-                        {(detail.pinkHeartsBalance ?? 0) + (detail.redHeartsBalance ?? 0)}
+                        {(detail.pinkHeartsBalance ?? 0) +
+                          (detail.redHeartsBalance ?? 0) +
+                          (detail.redGiveawayBalance ?? 0)}
                       </dd>
                     </div>
                     <div>

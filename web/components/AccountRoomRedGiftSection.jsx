@@ -11,7 +11,7 @@ import {
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountRoomRedGiftSection() {
-  const { refresh, applyUser } = useMemberAuth();
+  const { user, refresh, applyUser } = useMemberAuth();
   const [codes, setCodes] = useState([]);
   const [listErr, setListErr] = useState("");
   const [listLoading, setListLoading] = useState(true);
@@ -129,11 +129,31 @@ export default function AccountRoomRedGiftSection() {
     }
   }
 
+  const giveawayBal = Math.max(0, Math.floor(Number(user?.redGiveawayBalance) || 0));
+  const playableRedBal = Math.max(0, Math.floor(Number(user?.redHeartsBalance) || 0));
+
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold text-slate-900">รหัสหัวใจแดงห้องเกม</h3>
-      <p className="mt-2 text-sm text-slate-600">
-        <strong>เจ้าของห้อง:</strong> สร้างรหัสแจกผู้เล่น — ระบบจะ<strong>หักหัวใจแดงจากคุณทันที</strong> ตามจำนวนที่แจก (จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส) ผู้เล่นแลกแล้วได้แดงห้อง (โชว์ที่มุมบน +ห้อง) ไม่ใช่แดงทั่วไป
+      <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50/70 px-3 py-2 text-sm text-rose-950">
+        <p className="font-semibold text-rose-900">ยอดสำหรับออกรหัส (แดงแจก)</p>
+        <p className="mt-1 tabular-nums text-lg font-bold text-red-800">
+          {giveawayBal.toLocaleString("th-TH")} ดวง
+        </p>
+        <p className="mt-1 text-xs text-rose-900/85">
+          ได้จากการที่แอดมินอนุมัติแพ็กหัวใจที่มีแดง — ใช้สร้างรหัสให้ผู้เล่นเท่านั้น ไม่นำไปหักเล่นเกม
+        </p>
+        <p className="mt-2 text-xs text-slate-600">
+          แดงเล่นได้ (ทั่วไป) คงเหลือ{" "}
+          <span className="font-semibold tabular-nums text-slate-800">
+            {playableRedBal.toLocaleString("th-TH")}
+          </span>{" "}
+          — ถ้าแดงแจกไม่พอ ระบบจะใช้ส่วนนี้เติมทุนรหัสได้ (ไม่แนะนำให้ใช้ยอดเล่นเป็นทุนแจก)
+        </p>
+      </div>
+      <p className="mt-3 text-sm text-slate-600">
+        <strong>เจ้าของห้อง:</strong> สร้างรหัสแจกผู้เล่น — ระบบจะ<strong>หักจากแดงแจกก่อน</strong> แล้วจึงใช้แดงเล่นได้ถ้าไม่พอ
+        (จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส) ผู้เล่นแลกแล้วได้แดงห้อง (มุมบน +ห้อง) ไม่ใช่แดงทั่วไป
       </p>
 
       <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
@@ -200,8 +220,8 @@ export default function AccountRoomRedGiftSection() {
           </button>
         </div>
         <p className="text-xs text-amber-900/90">
-          คาดว่าจะหักแดงทั่วไปของคุณ{" "}
-          <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong> — ถ้าไม่พอระบบจะไม่สร้างรหัส
+          คาดว่าจะหักรวม <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong> (แดงแจกก่อน
+          แล้วจึงแดงเล่นได้) — ถ้ารวมไม่พอระบบจะไม่สร้างรหัส
         </p>
       </form>
       {createMsg ? (
@@ -210,7 +230,7 @@ export default function AccountRoomRedGiftSection() {
         </p>
       ) : null}
 
-      <div className="mt-6 border-t border-slate-100 pt-4">
+      <div id="room-red-redeem" className="mt-6 scroll-mt-24 border-t border-slate-100 pt-4">
         <h4 className="text-sm font-semibold text-slate-800">แลกรหัส (ผู้เล่น)</h4>
         <form onSubmit={onRedeem} className="mt-2 flex flex-wrap items-end gap-2">
           <input

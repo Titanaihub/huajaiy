@@ -137,6 +137,14 @@ export default function MemberNav() {
                 ซื้อหัวใจ
               </Link>
               <Link
+                href="/account/give-hearts"
+                className={`${cls} ${isActivePath(p, "/account/give-hearts") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                role="menuitem"
+                title="แดงแจกผู้เล่น · สร้างรหัสห้อง / แลกรหัส"
+              >
+                แจกหัวใจ
+              </Link>
+              <Link
                 href="/account/heart-history/purchases"
                 className={`${cls} ${p.startsWith("/account/heart-history/purchases") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
                 role="menuitem"

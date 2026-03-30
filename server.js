@@ -223,6 +223,7 @@ function heartBalancesPayload(u) {
   return {
     pinkHeartsBalance: u.pinkHeartsBalance,
     redHeartsBalance: u.redHeartsBalance,
+    redGiveawayBalance: u.redGiveawayBalance ?? 0,
     heartsBalance: u.heartsBalance
   };
 }

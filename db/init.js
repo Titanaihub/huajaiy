@@ -87,6 +87,10 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS red_hearts_balance INTEGER NOT NULL DEFAULT 0;
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS red_giveaway_balance INTEGER NOT NULL DEFAULT 0;
+    `);
     /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
     await client.query(`
       UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))
@@ -96,7 +100,8 @@ async function initDb() {
     `);
     await client.query(`
       UPDATE users SET
-        hearts_balance = COALESCE(pink_hearts_balance, 0) + COALESCE(red_hearts_balance, 0);
+        hearts_balance = COALESCE(pink_hearts_balance, 0) + COALESCE(red_hearts_balance, 0)
+          + COALESCE(red_giveaway_balance, 0);
     `);
 
     await client.query(`
@@ -538,6 +543,22 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_room_red_gift_codes_creator ON room_red_gift_codes(creator_id);`
     );
+    await client.query(`
+      ALTER TABLE room_red_gift_codes
+      ADD COLUMN IF NOT EXISTS funded_giveaway INTEGER NOT NULL DEFAULT 0;
+    `);
+    await client.query(`
+      ALTER TABLE room_red_gift_codes
+      ADD COLUMN IF NOT EXISTS funded_playable INTEGER NOT NULL DEFAULT 0;
+    `);
+    /* รหัสเก่า (ก่อนมีคอลัมน์ทุน) ถือว่าหักจากแดงเล่นได้ทั้งหมด — คืนยอดสอดคล้องเดิม */
+    await client.query(`
+      UPDATE room_red_gift_codes
+      SET funded_playable = red_amount * max_uses,
+          funded_giveaway = 0
+      WHERE funded_playable = 0 AND funded_giveaway = 0
+        AND red_amount > 0 AND max_uses > 0;
+    `);
 
     console.log(
       "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"

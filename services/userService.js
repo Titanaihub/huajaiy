@@ -30,7 +30,11 @@ function rowToUser(row) {
     row.red_hearts_balance == null
       ? 0
       : Math.max(0, Math.floor(Number(row.red_hearts_balance) || 0));
-  const sum = pink + red;
+  const giveaway =
+    row.red_giveaway_balance == null
+      ? 0
+      : Math.max(0, Math.floor(Number(row.red_giveaway_balance) || 0));
+  const sum = pink + red + giveaway;
   const parts = partsFromRow(row);
   const line =
     (row.shipping_address && String(row.shipping_address).trim()) ||
@@ -52,6 +56,7 @@ function rowToUser(row) {
     role: row.role || MEMBER,
     pinkHeartsBalance: pink,
     redHeartsBalance: red,
+    redGiveawayBalance: giveaway,
     heartsBalance: sum,
     createdAt: row.created_at
   };
@@ -206,6 +211,10 @@ function publicUser(u) {
     u.redHeartsBalance == null
       ? 0
       : Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+  const g =
+    u.redGiveawayBalance == null
+      ? 0
+      : Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
   let createdAt = null;
   if (u.createdAt != null) {
     createdAt =
@@ -228,7 +237,8 @@ function publicUser(u) {
     role: u.role || MEMBER,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
-    heartsBalance: p + r,
+    redGiveawayBalance: g,
+    heartsBalance: p + r + g,
     createdAt
   };
 }
@@ -427,10 +437,11 @@ async function adjustDualHearts(userId, pinkDelta = 0, redDelta = 0, ledgerOpts 
       Math.floor(Number(u.pinkHeartsBalance ?? u.heartsBalance) || 0) + pd
     );
     const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0) + rd);
+    const g = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
     userStore.updateUser(userId, {
       pinkHeartsBalance: p,
       redHeartsBalance: r,
-      heartsBalance: p + r
+      heartsBalance: p + r + g
     });
     return findById(userId);
   }
@@ -443,7 +454,8 @@ async function adjustDualHearts(userId, pinkDelta = 0, redDelta = 0, ledgerOpts 
         red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
         hearts_balance =
           GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
-          GREATEST(0, COALESCE(red_hearts_balance, 0) + $3)
+          GREATEST(0, COALESCE(red_hearts_balance, 0) + $3) +
+          COALESCE(red_giveaway_balance, 0)
       WHERE id = $1
       RETURNING pink_hearts_balance, red_hearts_balance`,
       [userId, pd, rd]
@@ -512,6 +524,7 @@ function adminMemberListItem(u) {
   if (!u) return null;
   const p = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
   const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+  const g = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
   return {
     id: u.id,
     username: u.username,
@@ -524,7 +537,8 @@ function adminMemberListItem(u) {
     birthDate: u.birthDate ?? null,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
-    heartsBalance: p + r,
+    redGiveawayBalance: g,
+    heartsBalance: p + r + g,
     createdAt: createdAtIso(u)
   };
 }

@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiListPublishedGames } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
-import AccountRoomRedGiftSection from "./AccountRoomRedGiftSection";
 
 function normUser(s) {
   return String(s || "")
@@ -135,7 +134,13 @@ export default function AccountMyHeartsSection() {
 
         {roomGift.length === 0 ? (
           <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            ยังไม่มียอดแดงจากรหัสห้อง — กรอกรหัสที่เจ้าห้องแจกได้ในช่องด้านล่าง
+            ยังไม่มียอดแดงจากรหัสห้อง — แลกรหัสที่เจ้าห้องแจกได้ที่{" "}
+            <Link
+              href="/account/give-hearts#room-red-redeem"
+              className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            >
+              แจกหัวใจ → แลกรหัส
+            </Link>
           </p>
         ) : (
           <ul className="mt-4 space-y-4">
@@ -209,7 +214,18 @@ export default function AccountMyHeartsSection() {
         )}
       </section>
 
-      <AccountRoomRedGiftSection />
+      <section className="max-w-2xl rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-4 text-sm text-slate-700">
+        <p className="font-semibold text-slate-900">ผู้สร้าง — ออกรหัสแจกผู้เล่น</p>
+        <p className="mt-1">
+          ยอดแดงแจกและช่องสร้างรหัสอยู่ที่{" "}
+          <Link
+            href="/account/give-hearts"
+            className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+          >
+            เมนูผู้สร้าง → แจกหัวใจ
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
