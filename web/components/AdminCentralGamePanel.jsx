@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
   DEFAULT_TILE_BACK_COVER_PATH
@@ -302,6 +303,7 @@ export default function AdminCentralGamePanel({
   embedded = false,
   focusGameId = null
 }) {
+  const router = useRouter();
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -353,34 +355,31 @@ export default function AdminCentralGamePanel({
     [newSetSizes]
   );
 
+  /** กันคำขอ list ซ้ำซ้อน (mount + focusGameId) หรือรีเฟรชติดๆ — คำขอเก่าที่ล้มหรือช้ากว่าไม่ทับ state */
+  const gamesListRequestIdRef = useRef(0);
+
   const loadList = useCallback(async () => {
     const token = getMemberToken();
     if (!token) return;
+    const reqId = ++gamesListRequestIdRef.current;
     setErr("");
     try {
       const data = await apiAdminCentralGamesList(token);
+      if (reqId !== gamesListRequestIdRef.current) return;
       setGames(data.games || []);
     } catch (e) {
+      if (reqId !== gamesListRequestIdRef.current) return;
       setErr(e.message || String(e));
       setGames([]);
     }
   }, []);
 
   useEffect(() => {
-    loadList();
-  }, [loadList]);
-
-  useEffect(() => {
-    if (!focusGameId) return;
     let cancelled = false;
     (async () => {
-      try {
-        await loadList();
-      } catch {
-        /* loadList ตั้ง err เอง */
-      }
+      await loadList();
       if (cancelled) return;
-      setSelectedId(focusGameId);
+      if (focusGameId) setSelectedId(focusGameId);
     })();
     return () => {
       cancelled = true;
@@ -658,6 +657,10 @@ export default function AdminCentralGamePanel({
       setSelectedId(id);
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === id ? null : p));
+      if (embedded) {
+        router.push("/account/my-games?published=1");
+        return;
+      }
       setMsg("เผยแพร่แล้ว — เกมนี้เป็นเกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
       await loadDetail(id);
@@ -685,6 +688,10 @@ export default function AdminCentralGamePanel({
       await apiAdminCentralGameActivate(token, selectedId);
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
+      if (embedded) {
+        router.push("/account/my-games?published=1");
+        return;
+      }
       setMsg("เผยแพร่แล้ว — เกมหลักบนเว็บ และแสดงในรายการหน้า /game");
       await loadList();
       await loadDetail(selectedId);

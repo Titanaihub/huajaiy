@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminCentralGamesList } from "../lib/rolesApi";
@@ -34,10 +34,18 @@ function gameStatusBadge(g) {
 
 export default function AccountMyGamesList() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useMemberAuth();
   const [games, setGames] = useState([]);
   const [listErr, setListErr] = useState("");
   const [listLoading, setListLoading] = useState(true);
+  const [publishSuccessBanner, setPublishSuccessBanner] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("published") !== "1") return;
+    setPublishSuccessBanner(true);
+    router.replace("/account/my-games", { scroll: false });
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -98,6 +106,19 @@ export default function AccountMyGamesList() {
           + เปิดห้องเกมใหม่
         </Link>
       </p>
+
+      {publishSuccessBanner ? (
+        <div
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 shadow-sm"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="font-semibold">เผยแพร่สำเร็จ</p>
+          <p className="mt-1 text-emerald-900/90">
+            เกมของคุณแสดงในรายการด้านล่างแล้ว — กด「ดูหน้าเล่น」หรือ「จัดการเกม」ได้ตามต้องการ
+          </p>
+        </div>
+      ) : null}
 
       {listErr ? (
         <p className="text-sm text-red-600" role="alert">

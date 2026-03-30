@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
@@ -51,6 +51,8 @@ export default function AdminDashboard() {
   const [newPassword, setNewPassword] = useState("");
   const [passBusy, setPassBusy] = useState(false);
   const [panelMsg, setPanelMsg] = useState("");
+
+  const memberDetailRef = useRef(null);
 
   const [requests, setRequests] = useState([]);
   const [reqLoading, setReqLoading] = useState(false);
@@ -171,8 +173,17 @@ export default function AdminDashboard() {
 
   async function reloadMemberFull(id) {
     const token = getMemberToken();
-    if (!token || !id) return;
-    const data = await apiAdminMemberFull(token, id);
+    if (!token) {
+      throw new Error("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+    }
+    const sid = id == null ? "" : String(id).trim();
+    if (!sid) {
+      throw new Error("ไม่พบรหัสสมาชิก — รีเฟรชรายการแล้วลองใหม่");
+    }
+    const data = await apiAdminMemberFull(token, sid);
+    if (!data?.user) {
+      throw new Error("เซิร์ฟเวอร์ไม่ส่งข้อมูลผู้ใช้ — ลองอีกครั้ง");
+    }
     setMemberFull({
       user: data.user,
       orders: data.orders || [],
@@ -183,25 +194,44 @@ export default function AdminDashboard() {
     });
   }
 
-  async function openDetail(id) {
-    setSelectedId(id);
+  async function openDetail(rawId) {
+    const id = rawId != null && String(rawId).trim() !== "" ? String(rawId).trim() : "";
     setMemberFull(null);
     setDetailErr("");
     setPanelMsg("");
     setHeartPinkDelta("");
     setHeartRedDelta("");
     setNewPassword("");
+    if (!id) {
+      setSelectedId(null);
+      setDetailErr("ไม่พบรหัสสมาชิกในแถวนี้ — รีเฟรชรายการแล้วลองใหม่");
+      return;
+    }
+    setSelectedId(id);
     const token = getMemberToken();
-    if (!token) return;
+    if (!token) {
+      setDetailErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+      return;
+    }
     setDetailLoading(true);
     try {
       await reloadMemberFull(id);
     } catch (e) {
       setDetailErr(e.message || String(e));
+      setMemberFull(null);
     } finally {
       setDetailLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (tab !== "members") return;
+    if (!selectedId || detailLoading || !memberFull?.user) return;
+    const t = window.setTimeout(() => {
+      memberDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [tab, selectedId, detailLoading, memberFull?.user?.id]);
 
   function submitSearch(e) {
     e.preventDefault();
@@ -439,11 +469,14 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   ) : (
-                    list.map((u) => (
+                    list.map((u) => {
+                      const rowId =
+                        u.id != null && String(u.id).trim() !== "" ? String(u.id).trim() : "";
+                      return (
                       <tr
-                        key={u.id}
+                        key={rowId || u.username}
                         className={`border-b border-slate-100 ${
-                          selectedId === u.id ? "bg-brand-50/60" : ""
+                          selectedId && rowId && selectedId === rowId ? "bg-brand-50/60" : ""
                         }`}
                       >
                         <td className="px-3 py-2 font-mono text-xs">{u.username}</td>
@@ -463,17 +496,24 @@ export default function AdminDashboard() {
                             ? new Date(u.createdAt).toLocaleString("th-TH")
                             : "—"}
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="relative z-[1] px-3 py-2">
                           <button
                             type="button"
-                            onClick={() => openDetail(u.id)}
-                            className="text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                            disabled={!rowId}
+                            title={!rowId ? "ไม่มีรหัสผู้ใช้ในแถวนี้ — รีเฟรชรายการ" : undefined}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (rowId) openDetail(rowId);
+                            }}
+                            className="cursor-pointer text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
                           >
                             ดูทั้งหมด
                           </button>
                         </td>
                       </tr>
-                    ))
+                    );
+                    })
                   )}
                 </tbody>
               </table>
@@ -500,7 +540,11 @@ export default function AdminDashboard() {
           </div>
 
           {selectedId ? (
-            <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div
+              ref={memberDetailRef}
+              id="admin-member-detail"
+              className="scroll-mt-28 space-y-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+            >
               <h3 className="text-sm font-semibold text-slate-900">
                 โปรไฟล์และกิจกรรม (สมาชิก)
               </h3>

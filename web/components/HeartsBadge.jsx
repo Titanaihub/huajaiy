@@ -19,7 +19,7 @@ export default function HeartsBadge() {
         title="หัวใจชมพูและแดงในระบบ — แตะเพื่อเปิดหลังบ้านสมาชิก"
       >
         <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจชมพู">
-          <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(255,0,220,0.95))_drop-shadow(0_0_14px_rgba(255,0,180,0.65))]">
+          <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(216,43,125,0.95))_drop-shadow(0_0_14px_rgba(200,30,95,0.72))]">
             <GlossyHeartIcon tone="pink" className="h-4 w-4 shrink-0" />
           </span>
           {pink.toLocaleString("th-TH")}
@@ -28,7 +28,7 @@ export default function HeartsBadge() {
           |
         </span>
         <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจแดง">
-          <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(255,60,60,1))_drop-shadow(0_0_16px_rgba(255,0,0,0.7))]">
+          <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(233,29,53,0.98))_drop-shadow(0_0_16px_rgba(196,18,40,0.75))]">
             <GlossyHeartIcon tone="red" className="h-4 w-4 shrink-0" />
           </span>
           {red.toLocaleString("th-TH")}
@@ -46,7 +46,7 @@ export default function HeartsBadge() {
       {ready ? (
         <>
           <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจชมพู">
-            <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(255,0,220,0.95))_drop-shadow(0_0_14px_rgba(255,0,180,0.65))]">
+            <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(216,43,125,0.95))_drop-shadow(0_0_14px_rgba(200,30,95,0.72))]">
               <GlossyHeartIcon tone="pink" className="h-4 w-4 shrink-0" />
             </span>
             {(0).toLocaleString("th-TH")}
@@ -55,7 +55,7 @@ export default function HeartsBadge() {
             |
           </span>
           <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจแดง">
-            <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(255,60,60,1))_drop-shadow(0_0_16px_rgba(255,0,0,0.7))]">
+            <span className="inline-flex overflow-visible [filter:drop-shadow(0_0_5px_rgba(233,29,53,0.98))_drop-shadow(0_0_16px_rgba(196,18,40,0.75))]">
               <GlossyHeartIcon tone="red" className="h-4 w-4 shrink-0" />
             </span>
             {(0).toLocaleString("th-TH")}

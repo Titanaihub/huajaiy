@@ -23,8 +23,9 @@ export default function GlossyHeartIcon({
 
   const isPink = tone === "pink";
 
-  const glowA = isPink ? "#ff00ee" : "#ff2222";
-  const glowB = isPink ? "#ff00aa" : "#ff0000";
+  /* โทนชมพูอิงสีหัวใจโลโก้ HUAJAIY (~#D82B7D) — แดงคู่ให้สดเข้มในระดับเดียวกัน */
+  const glowA = isPink ? "#ff5aad" : "#ff3d4d";
+  const glowB = isPink ? "#d82b7d" : "#d01028";
 
   return (
     <svg
@@ -57,19 +58,19 @@ export default function GlossyHeartIcon({
         <linearGradient id={lg} x1="10%" y1="0%" x2="90%" y2="100%">
           {isPink ? (
             <>
-              <stop offset="0%" stopColor="#fff0ff" />
-              <stop offset="18%" stopColor="#ff66ff" />
-              <stop offset="45%" stopColor="#ff00cc" />
-              <stop offset="72%" stopColor="#d900a8" />
-              <stop offset="100%" stopColor="#7a0066" />
+              <stop offset="0%" stopColor="#fff5f9" />
+              <stop offset="18%" stopColor="#ff7eb8" />
+              <stop offset="42%" stopColor="#e8368f" />
+              <stop offset="68%" stopColor="#d82b7d" />
+              <stop offset="100%" stopColor="#7a1a4a" />
             </>
           ) : (
             <>
-              <stop offset="0%" stopColor="#fff0f0" />
-              <stop offset="20%" stopColor="#ff6b6b" />
-              <stop offset="48%" stopColor="#ff0033" />
-              <stop offset="75%" stopColor="#cc0000" />
-              <stop offset="100%" stopColor="#660000" />
+              <stop offset="0%" stopColor="#fff5f5" />
+              <stop offset="20%" stopColor="#ff6a6a" />
+              <stop offset="46%" stopColor="#e91d35" />
+              <stop offset="72%" stopColor="#c41228" />
+              <stop offset="100%" stopColor="#6b0f18" />
             </>
           )}
         </linearGradient>
