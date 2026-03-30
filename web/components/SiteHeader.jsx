@@ -1,6 +1,5 @@
 import Link from "next/link";
 import BrandLogo from "./BrandLogo";
-import CartBadge from "./CartBadge";
 import HeartsBadge from "./HeartsBadge";
 import MemberNav from "./MemberNav";
 
@@ -15,7 +14,6 @@ export default function SiteHeader() {
           <BrandLogo />
           <div className="flex items-center gap-2 border-l border-rose-200/70 pl-2 sm:pl-3">
             <HeartsBadge />
-            <CartBadge />
           </div>
         </div>
         <nav
