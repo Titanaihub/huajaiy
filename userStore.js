@@ -51,12 +51,16 @@ function normalizeHearts(u) {
   r = Math.max(0, Math.floor(Number(r) || 0));
   let g = u.redGiveawayBalance;
   g = Math.max(0, Math.floor(Number(g) || 0));
+  let ad = u.accountDisabled;
+  if (ad == null) ad = false;
+  ad = Boolean(ad);
   return {
     ...u,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
     redGiveawayBalance: g,
-    heartsBalance: p + r + g
+    heartsBalance: p + r + g,
+    accountDisabled: ad
   };
 }
 
@@ -125,6 +129,7 @@ function createUser({
     redHeartsBalance: 0,
     redGiveawayBalance: 0,
     heartsBalance: 0,
+    accountDisabled: false,
     createdAt: new Date().toISOString()
   };
   users.push(user);
@@ -150,6 +155,7 @@ function publicUser(u) {
     redHeartsBalance: n.redHeartsBalance,
     redGiveawayBalance: n.redGiveawayBalance ?? 0,
     heartsBalance: n.heartsBalance,
+    accountDisabled: Boolean(n.accountDisabled),
     createdAt: n.createdAt != null ? String(n.createdAt) : null
   };
 }

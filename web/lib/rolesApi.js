@@ -65,7 +65,22 @@ export async function apiAdminMemberFull(token, id) {
   return data;
 }
 
-/** @param body {{ pinkDelta?: number, redDelta?: number } | { delta: number }} */
+/** @param body { Record<string, unknown> } โปรไฟล์ — ส่งเฉพาะฟิลด์ที่ต้องการแก้ */
+export async function apiAdminPatchMember(token, id, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/members/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "บันทึกโปรไฟล์ไม่สำเร็จ");
+  return data;
+}
+
+/** @param body {{ pinkDelta?: number, redDelta?: number, redGiveawayDelta?: number } | { delta: number }} */
 export async function apiAdminAdjustMemberHearts(token, id, body) {
   const r = await fetch(
     `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/hearts`,

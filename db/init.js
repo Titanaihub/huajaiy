@@ -91,6 +91,10 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS red_giveaway_balance INTEGER NOT NULL DEFAULT 0;
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS account_disabled BOOLEAN NOT NULL DEFAULT FALSE;
+    `);
     /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
     await client.query(`
       UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))

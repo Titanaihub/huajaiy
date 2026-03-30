@@ -14,6 +14,7 @@ import {
   apiAdminListMembers,
   apiAdminMemberFull,
   apiAdminNameChangeRequests,
+  apiAdminPatchMember,
   apiAdminRejectNameChange,
   apiAdminSetMemberPassword,
   apiAdminShops,
@@ -41,13 +42,30 @@ export default function AdminDashboard() {
   const [listErr, setListErr] = useState("");
 
   const [selectedId, setSelectedId] = useState(null);
-  /** @type {null | { user: object, orders: array, shops: array, stats: object, nameChangeRequestPending: boolean, heartsNote?: string }} */
+  /** @type {null | { user: object, orders: array, shops: array, stats: object, nameChangeRequestPending: boolean, heartsNote?: string, heartLedger?: array, roomRedCodes?: array, phoneHistory?: array }} */
   const [memberFull, setMemberFull] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
   const [heartPinkDelta, setHeartPinkDelta] = useState("");
   const [heartRedDelta, setHeartRedDelta] = useState("");
+  const [heartGiveawayDelta, setHeartGiveawayDelta] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
+  const [admFirstName, setAdmFirstName] = useState("");
+  const [admLastName, setAdmLastName] = useState("");
+  const [admPhone, setAdmPhone] = useState("");
+  const [admCountryCode, setAdmCountryCode] = useState("TH");
+  const [admGender, setAdmGender] = useState("");
+  const [admBirthDate, setAdmBirthDate] = useState("");
+  const [admRole, setAdmRole] = useState("member");
+  const [admHouseNo, setAdmHouseNo] = useState("");
+  const [admMoo, setAdmMoo] = useState("");
+  const [admRoad, setAdmRoad] = useState("");
+  const [admSubdistrict, setAdmSubdistrict] = useState("");
+  const [admDistrict, setAdmDistrict] = useState("");
+  const [admProvince, setAdmProvince] = useState("");
+  const [admPostalCode, setAdmPostalCode] = useState("");
+  const [admProfileBusy, setAdmProfileBusy] = useState(false);
+  const [admAccountDisabled, setAdmAccountDisabled] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [passBusy, setPassBusy] = useState(false);
   const [panelMsg, setPanelMsg] = useState("");
@@ -107,6 +125,26 @@ export default function AdminDashboard() {
     if (tab !== "members") return;
     loadMembers();
   }, [tab, loadMembers]);
+
+  useEffect(() => {
+    const u = memberFull?.user;
+    if (!u?.id) return;
+    setAdmFirstName(String(u.firstName || ""));
+    setAdmLastName(String(u.lastName || ""));
+    setAdmPhone(String(u.phone || ""));
+    setAdmCountryCode(String(u.countryCode || "TH").slice(0, 8));
+    setAdmGender(u.gender != null ? String(u.gender) : "");
+    setAdmBirthDate(u.birthDate != null ? String(u.birthDate).slice(0, 10) : "");
+    setAdmRole(String(u.role || "member"));
+    const sp = u.shippingAddressParts && typeof u.shippingAddressParts === "object" ? u.shippingAddressParts : {};
+    setAdmHouseNo(String(sp.houseNo || ""));
+    setAdmMoo(String(sp.moo || ""));
+    setAdmRoad(String(sp.road || ""));
+    setAdmSubdistrict(String(sp.subdistrict || ""));
+    setAdmDistrict(String(sp.district || ""));
+    setAdmProvince(String(sp.province || ""));
+    setAdmPostalCode(String(sp.postalCode || ""));
+  }, [memberFull?.user]);
 
   const loadRequests = useCallback(async () => {
     const token = getMemberToken();
@@ -190,7 +228,10 @@ export default function AdminDashboard() {
       shops: data.shops || [],
       stats: data.stats || {},
       nameChangeRequestPending: Boolean(data.nameChangeRequestPending),
-      heartsNote: data.heartsNote
+      heartsNote: data.heartsNote,
+      heartLedger: data.heartLedger || [],
+      roomRedCodes: data.roomRedCodes || [],
+      phoneHistory: data.phoneHistory || []
     });
   }
 
@@ -279,10 +320,14 @@ export default function AdminDashboard() {
     if (!selectedId) return;
     const pd = parseInt(heartPinkDelta, 10);
     const rd = parseInt(heartRedDelta, 10);
+    const gd = parseInt(heartGiveawayDelta, 10);
     const pinkDelta = Number.isFinite(pd) ? pd : 0;
     const redDelta = Number.isFinite(rd) ? rd : 0;
-    if (pinkDelta === 0 && redDelta === 0) {
-      setPanelMsg("ใส่ตัวเลขเต็มอย่างน้อยหนึ่งช่อง (ชมพูหรือแดง) — บวกเพิ่ม ลบลด");
+    const redGiveawayDelta = Number.isFinite(gd) ? gd : 0;
+    if (pinkDelta === 0 && redDelta === 0 && redGiveawayDelta === 0) {
+      setPanelMsg(
+        "ใส่ตัวเลขเต็มอย่างน้อยหนึ่งช่อง (ชมพู / แดงเล่นได้ / แดงแจก) — บวกเพิ่ม ลบลด"
+      );
       return;
     }
     const token = getMemberToken();
@@ -290,9 +335,14 @@ export default function AdminDashboard() {
     setHeartBusy(true);
     setPanelMsg("");
     try {
-      await apiAdminAdjustMemberHearts(token, selectedId, { pinkDelta, redDelta });
+      await apiAdminAdjustMemberHearts(token, selectedId, {
+        pinkDelta,
+        redDelta,
+        redGiveawayDelta
+      });
       setHeartPinkDelta("");
       setHeartRedDelta("");
+      setHeartGiveawayDelta("");
       await reloadMemberFull(selectedId);
       await loadMembers();
       setPanelMsg("ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป)");
@@ -300,6 +350,43 @@ export default function AdminDashboard() {
       setPanelMsg(err.message || String(err));
     } finally {
       setHeartBusy(false);
+    }
+  }
+
+  async function submitAdminProfile(e) {
+    e.preventDefault();
+    if (!selectedId) return;
+    const token = getMemberToken();
+    if (!token) return;
+    setAdmProfileBusy(true);
+    setPanelMsg("");
+    try {
+      await apiAdminPatchMember(token, selectedId, {
+        firstName: admFirstName.trim(),
+        lastName: admLastName.trim(),
+        phone: admPhone.trim(),
+        countryCode: admCountryCode.trim() || "TH",
+        gender: admGender.trim() || null,
+        birthDate: admBirthDate.trim() || null,
+        role: admRole,
+        shippingAddressParts: {
+          houseNo: admHouseNo,
+          moo: admMoo,
+          road: admRoad,
+          subdistrict: admSubdistrict,
+          district: admDistrict,
+          province: admProvince,
+          postalCode: admPostalCode
+        },
+        accountDisabled: admAccountDisabled
+      });
+      await reloadMemberFull(selectedId);
+      await loadMembers();
+      setPanelMsg("บันทึกโปรไฟล์สมาชิกแล้ว");
+    } catch (err) {
+      setPanelMsg(err.message || String(err));
+    } finally {
+      setAdmProfileBusy(false);
     }
   }
 
@@ -418,6 +505,11 @@ export default function AdminDashboard() {
 
       {tab === "members" ? (
         <section className="space-y-4">
+          <p className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-sm text-slate-700">
+            <strong>สิทธิ์แอดมิน:</strong> ดูยูสเซอร์ทุกคนในตาราง · แก้ชื่อ–นามสกุล เบอร์ ที่อยู่ บทบาท ·{" "}
+            <strong>รหัสผ่าน</strong> ดูแบบตัวอักษรจริงไม่ได้ (เก็บแฮช) — ตั้งรหัสใหม่ให้สมาชิกได้ ·{" "}
+            <strong>ระงับบัญชี</strong> ห้ามล็อกอินและใช้ API · แก้<strong>เกมส่วนกลาง</strong>ที่แท็บ「เกมส่วนกลาง」
+          </p>
           <form onSubmit={submitSearch} className="flex flex-wrap items-end gap-3">
             <div className="min-w-[200px] flex-1">
               <label htmlFor="admin-q" className="block text-xs font-medium text-slate-600">
@@ -457,6 +549,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2 text-rose-600">ชมพู</th>
                     <th className="px-3 py-2 text-red-700">แดงเล่น</th>
                     <th className="px-3 py-2 text-rose-800">แดงแจก</th>
+                    <th className="px-3 py-2">สถานะบัญชี</th>
                     <th className="px-3 py-2">บทบาท</th>
                     <th className="px-3 py-2">สมัคร</th>
                     <th className="px-3 py-2 w-24" />
@@ -465,7 +558,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={10} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -493,6 +586,15 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2 font-medium text-rose-900">
                           {u.redGiveawayBalance ?? 0}
+                        </td>
+                        <td className="px-3 py-2">
+                          {u.accountDisabled ? (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">
+                              ระงับ
+                            </span>
+                          ) : (
+                            <span className="text-slate-600">ใช้งานได้</span>
+                          )}
                         </td>
                         <td className="px-3 py-2">{roleLabel(u.role)}</td>
                         <td className="px-3 py-2 text-xs text-slate-600">
@@ -575,8 +677,18 @@ export default function AdminDashboard() {
                       <dd className="font-mono text-xs break-all">{detail.id}</dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">ยูสเซอร์</dt>
-                      <dd className="font-medium">{detail.username}</dd>
+                      <dt className="text-slate-500">ยูสเซอร์ (ล็อกอิน)</dt>
+                      <dd className="font-mono font-semibold text-slate-900">{detail.username}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">สถานะบัญชี</dt>
+                      <dd>
+                        {detail.accountDisabled ? (
+                          <span className="font-semibold text-red-700">ระงับ — ห้ามเข้าสู่ระบบ</span>
+                        ) : (
+                          <span className="text-emerald-800">ใช้งานได้</span>
+                        )}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-slate-500">ชื่อ–นามสกุล (ในระบบ)</dt>
@@ -587,6 +699,10 @@ export default function AdminDashboard() {
                     <div>
                       <dt className="text-slate-500">เบอร์โทร</dt>
                       <dd>{detail.phone}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-slate-500">รหัสประเทศ</dt>
+                      <dd>{detail.countryCode || "TH"}</dd>
                     </div>
                     <div>
                       <dt className="text-slate-500">บทบาท</dt>
@@ -629,9 +745,15 @@ export default function AdminDashboard() {
                       <dt className="text-slate-500">คำขอเปลี่ยนชื่อค้าง</dt>
                       <dd>{memberFull.nameChangeRequestPending ? "มี — ดูแท็บคำขอ" : "ไม่มี"}</dd>
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <dt className="text-slate-500">รหัสผ่าน</dt>
-                      <dd className="text-slate-700">{detail.passwordNote}</dd>
+                      <dd className="text-slate-700">
+                        <p>{detail.passwordNote}</p>
+                        <p className="mt-1 text-xs text-amber-900/90">
+                          ระบบไม่เก็บและไม่แสดงรหัสผ่านตัวจริงของผู้ใช้ — แอดมิน<strong>ตั้งรหัสใหม่</strong>
+                          ให้ได้ด้านล่างเท่านั้น (สมาชิกใช้รหัสใหม่ล็อกอิน)
+                        </p>
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-slate-500">เพศ / วันเกิด</dt>
@@ -659,10 +781,169 @@ export default function AdminDashboard() {
                     </div>
                   </dl>
 
+                  <div className="rounded-lg border border-brand-200 bg-brand-50/50 p-4">
+                    <h4 className="text-xs font-semibold uppercase text-brand-900">
+                      แก้ไขโปรไฟล์สมาชิก (บันทึกตรงฐานข้อมูล)
+                    </h4>
+                    <form onSubmit={submitAdminProfile} className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">ชื่อ</label>
+                        <input
+                          required
+                          value={admFirstName}
+                          onChange={(e) => setAdmFirstName(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">นามสกุล</label>
+                        <input
+                          required
+                          value={admLastName}
+                          onChange={(e) => setAdmLastName(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">เบอร์โทร</label>
+                        <input
+                          required
+                          value={admPhone}
+                          onChange={(e) => setAdmPhone(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">รหัสประเทศ</label>
+                        <input
+                          value={admCountryCode}
+                          onChange={(e) => setAdmCountryCode(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 font-mono text-xs"
+                          placeholder="TH"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">เพศ</label>
+                        <input
+                          value={admGender}
+                          onChange={(e) => setAdmGender(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5"
+                          placeholder="เว้นว่างได้"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-slate-600">วันเกิด (YYYY-MM-DD)</label>
+                        <input
+                          type="date"
+                          value={admBirthDate}
+                          onChange={(e) => setAdmBirthDate(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] font-medium text-slate-600">บทบาท</label>
+                        <select
+                          value={admRole}
+                          onChange={(e) => setAdmRole(e.target.value)}
+                          className="mt-0.5 w-full max-w-xs rounded-lg border border-slate-300 px-2 py-1.5"
+                        >
+                          <option value="member">สมาชิก</option>
+                          <option value="owner">เจ้าของร้าน</option>
+                          <option value="admin">แอดมิน</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50/60 px-3 py-2">
+                        <label className="flex cursor-pointer items-start gap-2 text-sm text-red-950">
+                          <input
+                            type="checkbox"
+                            checked={admAccountDisabled}
+                            onChange={(e) => setAdmAccountDisabled(e.target.checked)}
+                            className="mt-1"
+                          />
+                          <span>
+                            <strong>ระงับบัญชี</strong> — ห้ามล็อกอินและห้ามใช้งาน API ด้วยโทเค็นเดิม
+                            (สมาชิกจะได้ข้อความว่าบัญชีถูกระงับ)
+                          </span>
+                        </label>
+                      </div>
+                      <div className="sm:col-span-2 border-t border-slate-200 pt-2 text-[10px] font-semibold uppercase text-slate-500">
+                        ที่อยู่จัดส่ง (แยกช่อง)
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">บ้านเลขที่</label>
+                        <input
+                          value={admHouseNo}
+                          onChange={(e) => setAdmHouseNo(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">หมู่</label>
+                        <input
+                          value={admMoo}
+                          onChange={(e) => setAdmMoo(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] text-slate-600">ถนน</label>
+                        <input
+                          value={admRoad}
+                          onChange={(e) => setAdmRoad(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">ตำบล/แขวง</label>
+                        <input
+                          value={admSubdistrict}
+                          onChange={(e) => setAdmSubdistrict(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">อำเภอ/เขต</label>
+                        <input
+                          value={admDistrict}
+                          onChange={(e) => setAdmDistrict(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">จังหวัด</label>
+                        <input
+                          value={admProvince}
+                          onChange={(e) => setAdmProvince(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-600">รหัสไปรษณีย์</label>
+                        <input
+                          value={admPostalCode}
+                          onChange={(e) => setAdmPostalCode(e.target.value)}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-xs"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <button
+                          type="submit"
+                          disabled={admProfileBusy}
+                          className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+                        >
+                          {admProfileBusy ? "กำลังบันทึก…" : "บันทึกโปรไฟล์"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
                   <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4">
                     <h4 className="text-xs font-semibold uppercase text-slate-600">
                       เติมหัวใจให้สมาชิก (ฟรี — ไม่ผ่านสลิป)
                     </h4>
+                    <p className="mt-1 text-[11px] text-slate-600">
+                      ชมพู / แดงเล่นได้ / แดงแจกผู้เล่น — ใส่ตัวเลขเต็ม บวกเพิ่ม ลบลด (ห้ามติดลบเกินยอดคงเหลือ)
+                    </p>
                     <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
                       <div>
                         <label className="block text-[10px] font-medium text-rose-600">ชมพู Δ</label>
@@ -675,11 +956,21 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-medium text-red-700">แดง Δ</label>
+                        <label className="block text-[10px] font-medium text-red-700">แดงเล่น Δ</label>
                         <input
                           type="number"
                           value={heartRedDelta}
                           onChange={(e) => setHeartRedDelta(e.target.value)}
+                          placeholder="0"
+                          className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-rose-900">แดงแจก Δ</label>
+                        <input
+                          type="number"
+                          value={heartGiveawayDelta}
+                          onChange={(e) => setHeartGiveawayDelta(e.target.value)}
                           placeholder="0"
                           className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
                         />
@@ -770,6 +1061,116 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </div>
+
+                  <details className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                      ประวัติหัวใจ (ledger) ล่าสุด
+                    </summary>
+                    <div className="mt-3 max-h-80 overflow-auto text-xs">
+                      {(memberFull.heartLedger || []).length === 0 ? (
+                        <p className="text-slate-500">ไม่มีรายการหรือฐานข้อมูลไม่พร้อม</p>
+                      ) : (
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b text-slate-500">
+                              <th className="py-1 pr-2 text-left">เมื่อ</th>
+                              <th className="py-1 pr-2">ชนิด</th>
+                              <th className="py-1 pr-2">Δชมพู</th>
+                              <th className="py-1 pr-2">Δแดงเล่น</th>
+                              <th className="py-1 text-left">รายละเอียด</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(memberFull.heartLedger || []).map((row) => (
+                              <tr key={row.id} className="border-b border-slate-100 align-top">
+                                <td className="py-1 pr-2 whitespace-nowrap">
+                                  {row.createdAt
+                                    ? new Date(row.createdAt).toLocaleString("th-TH")
+                                    : "—"}
+                                </td>
+                                <td className="py-1 pr-2 font-mono">{row.kind}</td>
+                                <td className="py-1 pr-2 tabular-nums">{row.pinkDelta}</td>
+                                <td className="py-1 pr-2 tabular-nums">{row.redDelta}</td>
+                                <td className="max-w-[14rem] py-1 text-slate-700 sm:max-w-md">
+                                  <span className="line-clamp-2">{row.label || "—"}</span>
+                                  {row.meta &&
+                                  typeof row.meta === "object" &&
+                                  row.meta.redGiveawayDelta != null &&
+                                  Number(row.meta.redGiveawayDelta) !== 0 ? (
+                                    <span className="mt-0.5 block text-[10px] text-rose-900">
+                                      แดงแจก Δ {String(row.meta.redGiveawayDelta)} · คงเหลือแจก{" "}
+                                      {row.meta.redGiveawayBalanceAfter ?? "—"}
+                                    </span>
+                                  ) : null}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </details>
+
+                  <details className="mt-2 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                      รหัสแจกห้องที่สมาชิกนี้สร้าง
+                    </summary>
+                    <div className="mt-3 max-h-64 overflow-auto text-xs">
+                      {(memberFull.roomRedCodes || []).length === 0 ? (
+                        <p className="text-slate-500">ไม่มีรหัสหรือฐานข้อมูลไม่พร้อม</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {(memberFull.roomRedCodes || []).map((c) => (
+                            <li
+                              key={c.id}
+                              className="rounded border border-slate-200 bg-white px-2 py-1.5 font-mono"
+                            >
+                              <span className="font-semibold text-slate-900">{c.code}</span>
+                              <span className="ml-2 text-slate-600">
+                                แดง {c.redAmount} · ใช้ {c.usesCount}/{c.maxUses}
+                                {c.expired ? " · หมดอายุ" : ""}
+                                {c.exhausted ? " · เต็ม" : ""}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </details>
+
+                  <details className="mt-2 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                      ประวัติเปลี่ยนเบอร์โทร
+                    </summary>
+                    <div className="mt-3 max-h-48 overflow-auto text-xs">
+                      {(memberFull.phoneHistory || []).length === 0 ? (
+                        <p className="text-slate-500">ไม่มีประวัติหรือฐานข้อมูลไม่พร้อม</p>
+                      ) : (
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b text-slate-500">
+                              <th className="py-1 pr-2 text-left">เมื่อ</th>
+                              <th className="py-1 pr-2">จาก</th>
+                              <th className="py-1 pr-2">เป็น</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(memberFull.phoneHistory || []).map((ph) => (
+                              <tr key={ph.id} className="border-b border-slate-100">
+                                <td className="py-1 pr-2 whitespace-nowrap">
+                                  {ph.changedAt
+                                    ? new Date(ph.changedAt).toLocaleString("th-TH")
+                                    : "—"}
+                                </td>
+                                <td className="py-1 pr-2">{ph.oldPhone}</td>
+                                <td className="py-1 pr-2">{ph.newPhone}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </details>
                 </>
               ) : null}
             </div>

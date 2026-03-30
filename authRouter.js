@@ -73,6 +73,13 @@ async function authMiddleware(req, res, next) {
     if (!user) {
       return res.status(401).json({ ok: false, error: "ไม่พบบัญชี" });
     }
+    if (user.accountDisabled) {
+      return res.status(403).json({
+        ok: false,
+        error: "บัญชีนี้ถูกระงับการใช้งาน",
+        code: "ACCOUNT_DISABLED"
+      });
+    }
     req.username = user.username;
     req.userRole = user.role || MEMBER;
     next();
@@ -110,6 +117,13 @@ async function optionalAuthMiddleware(req, res, next) {
     const user = await userService.findById(payload.sub);
     if (!user) {
       return res.status(401).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    if (user.accountDisabled) {
+      return res.status(403).json({
+        ok: false,
+        error: "บัญชีนี้ถูกระงับการใช้งาน",
+        code: "ACCOUNT_DISABLED"
+      });
     }
     req.userId = user.id;
     req.username = user.username;
@@ -219,6 +233,13 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({
         ok: false,
         error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+      });
+    }
+    if (user.accountDisabled) {
+      return res.status(403).json({
+        ok: false,
+        error: "บัญชีนี้ถูกระงับการใช้งาน — ติดต่อผู้ดูแลระบบ",
+        code: "ACCOUNT_DISABLED"
       });
     }
     const token = signToken(user);

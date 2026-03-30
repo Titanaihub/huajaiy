@@ -13,6 +13,9 @@ const heartPackageService = require("./services/heartPackageService");
 const heartPurchaseService = require("./services/heartPurchaseService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
+const heartLedgerService = require("./services/heartLedgerService");
+const roomRedGiftService = require("./services/roomRedGiftService");
+const phoneHistoryService = require("./services/phoneHistoryService");
 
 const router = express.Router();
 
@@ -99,6 +102,24 @@ router.get(
       const shops = await shopService.listByOwner(id);
       const nameChangeRequestPending =
         await nameChangeRequestService.hasPendingForUser(id);
+      let heartLedger = [];
+      try {
+        heartLedger = await heartLedgerService.listForUser(id, { limit: 80 });
+      } catch (le) {
+        if (le.code !== "DB_REQUIRED") throw le;
+      }
+      let roomRedCodes = [];
+      try {
+        roomRedCodes = await roomRedGiftService.listCodesForCreator(id);
+      } catch (re) {
+        if (re.code !== "DB_REQUIRED") throw re;
+      }
+      let phoneHistory = [];
+      try {
+        phoneHistory = await phoneHistoryService.listForUser(id);
+      } catch (pe) {
+        if (pe.code !== "DB_REQUIRED") throw pe;
+      }
       return res.json({
         ok: true,
         user: userService.adminMemberDetail(u),
@@ -106,8 +127,11 @@ router.get(
         shops,
         stats,
         nameChangeRequestPending,
+        heartLedger,
+        roomRedCodes,
+        phoneHistory,
         heartsNote:
-          "หัวใจชมพู/แดงอยู่บนเซิร์ฟเวอร์ — ตัวเลขมุมจอ (localStorage) เป็นคนละกระเป๋ากับเกมสาธิต"
+          "ยูสเซอร์ดูได้จากตาราง/รายละเอียด · รหัสผ่านเก็บแบบแฮช (ดูข้อความจริงไม่ได้) — ตั้งรหัสใหม่ได้ด้านล่าง · ระงับบัญชี = ห้ามล็อกอินและห้ามใช้ API ด้วยโทเค็นเดิม · เกมส่วนกลางแก้ได้ที่แท็บ「เกมส่วนกลาง」"
       });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message });
@@ -151,12 +175,20 @@ router.post(
       }
       let pinkDelta = req.body?.pinkDelta != null ? Number(req.body.pinkDelta) : null;
       let redDelta = req.body?.redDelta != null ? Number(req.body.redDelta) : null;
+      let redGiveawayDelta =
+        req.body?.redGiveawayDelta != null ? Number(req.body.redGiveawayDelta) : 0;
       if (pinkDelta == null && redDelta == null && req.body?.delta != null) {
         pinkDelta = Number(req.body.delta);
         redDelta = 0;
       }
       if (pinkDelta == null) pinkDelta = 0;
       if (redDelta == null) redDelta = 0;
+      if (!Number.isFinite(redGiveawayDelta) || Math.floor(redGiveawayDelta) !== redGiveawayDelta) {
+        return res.status(400).json({
+          ok: false,
+          error: "redGiveawayDelta ต้องเป็นจำนวนเต็ม"
+        });
+      }
       if (!Number.isFinite(pinkDelta) || Math.floor(pinkDelta) !== pinkDelta) {
         return res.status(400).json({
           ok: false,
@@ -169,33 +201,82 @@ router.post(
           error: "redDelta ต้องเป็นจำนวนเต็ม"
         });
       }
-      if (pinkDelta === 0 && redDelta === 0) {
+      if (pinkDelta === 0 && redDelta === 0 && redGiveawayDelta === 0) {
         return res.status(400).json({
           ok: false,
-          error: "ส่ง pinkDelta หรือ redDelta อย่างน้อยหนึ่งค่า (ไม่ใช่ 0 ทั้งคู่)"
+          error:
+            "ส่ง pinkDelta / redDelta / redGiveawayDelta อย่างน้อยหนึ่งค่า (ไม่ใช่ 0 ทั้งหมด)"
         });
       }
-      if (Math.abs(pinkDelta) > 1_000_000 || Math.abs(redDelta) > 1_000_000) {
+      if (
+        Math.abs(pinkDelta) > 1_000_000 ||
+        Math.abs(redDelta) > 1_000_000 ||
+        Math.abs(redGiveawayDelta) > 1_000_000
+      ) {
         return res.status(400).json({ ok: false, error: "ค่าปรับใหญ่เกินไป" });
       }
       const u = await userService.findById(id);
       if (!u) {
         return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
       }
-      const updated = await userService.adjustDualHearts(id, pinkDelta, redDelta, {
-        kind: "admin_adjust",
-        label: `แอดมิน @${req.username || "?"} ปรับยอดหัวใจ`,
-        meta: {
-          adminUsername: req.username || null,
-          pinkDelta,
-          redDelta
+      const updated = await userService.adjustAdminTripleHearts(
+        id,
+        pinkDelta,
+        redDelta,
+        redGiveawayDelta,
+        {
+          kind: "admin_adjust",
+          label: `แอดมิน @${req.username || "?"} ปรับยอดหัวใจ`,
+          meta: {
+            adminUsername: req.username || null,
+            pinkDelta,
+            redDelta,
+            redGiveawayDelta
+          }
         }
+      );
+      return res.json({
+        ok: true,
+        user: userService.adminMemberDetail(updated)
+      });
+    } catch (e) {
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.patch(
+  "/members/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const fwd = req.headers["x-forwarded-for"];
+      const clientIp =
+        (typeof fwd === "string" && fwd.split(",")[0].trim()) ||
+        req.socket?.remoteAddress ||
+        null;
+      const updated = await userService.adminPatchMember(id, req.body || {}, {
+        clientIp
       });
       return res.json({
         ok: true,
         user: userService.adminMemberDetail(updated)
       });
     } catch (e) {
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      if (e.code === "PHONE_TAKEN" || e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
       return res.status(500).json({ ok: false, error: e.message });
     }
   }
