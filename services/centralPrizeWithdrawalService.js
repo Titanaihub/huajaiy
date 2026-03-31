@@ -306,15 +306,15 @@ async function resolveByCreator({
   const noteTrim = note != null ? String(note).trim().slice(0, 500) : "";
   const up = await pool.query(
     `UPDATE central_prize_withdrawal_requests
-     SET status = $2,
-         creator_note = CASE WHEN $3 = '' THEN creator_note ELSE $3 END,
+     SET status = $2::text,
+         creator_note = CASE WHEN $3::text = '' THEN creator_note ELSE $3::text END,
          resolved_at = NOW(),
          transfer_slip_url = CASE
-           WHEN $2 = 'approved' AND $5 <> '' THEN $5
+           WHEN $2::text = 'approved' AND $5::text <> '' THEN $5::text
            ELSE transfer_slip_url
          END,
          transfer_date = CASE
-           WHEN $2 = 'approved' AND $6 IS NOT NULL THEN $6::date
+           WHEN $2::text = 'approved' AND $6::date IS NOT NULL THEN $6::date
            ELSE transfer_date
          END
      WHERE id = $1::uuid AND creator_user_id = $4::uuid AND status = 'pending'
