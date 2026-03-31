@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiGetMyHeartLedger,
+  apiGetMyRoomRedRedemptions,
   apiListPublishedGames,
   apiRedeemRoomRedGiftCode,
   getMemberToken
@@ -35,6 +36,7 @@ export default function AccountMyHeartsSection() {
   const [redeemBusy, setRedeemBusy] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
   const [ledgerEntries, setLedgerEntries] = useState([]);
+  const [redemptionRows, setRedemptionRows] = useState([]);
 
   const loadGames = useCallback(async () => {
     setGamesErr("");
@@ -68,11 +70,26 @@ export default function AccountMyHeartsSection() {
     }
   }, []);
 
+  const loadRedemptions = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) {
+      setRedemptionRows([]);
+      return;
+    }
+    try {
+      const data = await apiGetMyRoomRedRedemptions(token, { limit: 1000 });
+      setRedemptionRows(Array.isArray(data.items) ? data.items : []);
+    } catch {
+      setRedemptionRows([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (!loading && user) {
       void loadLedger();
+      void loadRedemptions();
     }
-  }, [loading, user, loadLedger]);
+  }, [loading, user, loadLedger, loadRedemptions]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -93,25 +110,26 @@ export default function AccountMyHeartsSection() {
 
   const roomHistoryByCreator = useMemo(() => {
     const out = new Map();
+    for (const x of redemptionRows) {
+      const creatorId = x?.creatorId != null ? String(x.creatorId) : "";
+      if (!creatorId) continue;
+      const amount = Math.max(0, Math.floor(Number(x.redAmount) || 0));
+      if (amount <= 0) continue;
+      const row = {
+        createdAt: x.redeemedAt || null,
+        code: x.code != null ? String(x.code).trim().toUpperCase() : "—",
+        item: "รับหัวใจแดงจากรหัส",
+        amount,
+        isPlus: true
+      };
+      if (!out.has(creatorId)) out.set(creatorId, []);
+      out.get(creatorId).push(row);
+    }
     for (const entry of ledgerEntries) {
       const kind = String(entry?.kind || "");
       const meta = entry?.meta && typeof entry.meta === "object" ? entry.meta : null;
       if (!meta) continue;
-      if (kind === "room_red_code_redeem") {
-        const creatorId = meta.creatorId != null ? String(meta.creatorId) : "";
-        if (!creatorId) continue;
-        const amount = Math.max(0, Math.floor(Number(meta.roomRedAdded) || 0));
-        if (amount <= 0) continue;
-        const row = {
-          createdAt: entry.createdAt || null,
-          code: meta.code != null ? String(meta.code).trim().toUpperCase() : "—",
-          item: "รับหัวใจแดงจากรหัส",
-          amount,
-          isPlus: true
-        };
-        if (!out.has(creatorId)) out.set(creatorId, []);
-        out.get(creatorId).push(row);
-      } else if (kind === "game_start") {
+      if (kind === "game_start") {
         const byRoom = meta.redFromRoomGifts;
         if (!byRoom || typeof byRoom !== "object") continue;
         const gameTitle = meta.gameTitle != null ? String(meta.gameTitle).trim() : "";
@@ -135,7 +153,7 @@ export default function AccountMyHeartsSection() {
       rows.sort((a, b) => asDateMs(b.createdAt) - asDateMs(a.createdAt));
     }
     return out;
-  }, [ledgerEntries]);
+  }, [ledgerEntries, redemptionRows]);
 
   async function onRedeem(e) {
     e.preventDefault();
@@ -147,6 +165,7 @@ export default function AccountMyHeartsSection() {
       const data = await apiRedeemRoomRedGiftCode(token, redeemCode.trim());
       await refresh();
       await loadLedger();
+      await loadRedemptions();
       const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
       const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
       setRedeemMsg(`รับหัวใจแดงสำเร็จ ${added.toLocaleString("th-TH")} ดวง จาก ${un}`);

@@ -178,6 +178,18 @@ export async function apiGetMyHeartLedger(token, { limit = 80, offset = 0 } = {}
   return data;
 }
 
+export async function apiGetMyRoomRedRedemptions(token, { limit = 300 } = {}) {
+  const qs = new URLSearchParams({ limit: String(limit) });
+  const r = await fetch(`${apiRoot()}/api/auth/room-red-redemptions/mine?${qs}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติแลกรหัสหัวใจแดงไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiGetPrizeWithdrawalAvailable(token, creatorUsername) {
   const qs = new URLSearchParams({
     creatorUsername: String(creatorUsername || "").trim()

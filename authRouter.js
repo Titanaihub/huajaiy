@@ -364,6 +364,20 @@ router.get("/heart-ledger/mine", authMiddleware, async (req, res) => {
   }
 });
 
+/** ประวัติแลกรหัสหัวใจแดงของฉัน (อ่านจากตาราง redemption โดยตรง) */
+router.get("/room-red-redemptions/mine", authMiddleware, async (req, res) => {
+  try {
+    const limit = req.query.limit != null ? Number(req.query.limit) : 300;
+    const items = await roomRedGiftService.listRedemptionsForUser(req.userId, limit);
+    return res.json({ ok: true, items });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, items: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** รางวัลจากเกมส่วนกลางที่บันทึกไว้กับบัญชีนี้ */
 router.get("/central-prize-awards/mine", authMiddleware, async (req, res) => {
   try {
