@@ -1,6 +1,7 @@
 const { getPool } = require("../db/pool");
 const centralPrizeAwardService = require("./centralPrizeAwardService");
 const userService = require("./userService");
+const MIN_WITHDRAW_BAHT = 20;
 
 function requirePool() {
   const pool = getPool();
@@ -131,8 +132,8 @@ async function createRequest({
 }) {
   const pool = requirePool();
   const amt = Math.floor(Number(amountThb));
-  if (!Number.isFinite(amt) || amt < 1) {
-    const e = new Error("จำนวนเงินต้องเป็นตัวเลขบวก");
+  if (!Number.isFinite(amt) || amt < MIN_WITHDRAW_BAHT) {
+    const e = new Error(`จำนวนเงินถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
     e.code = "VALIDATION";
     throw e;
   }

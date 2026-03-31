@@ -13,6 +13,8 @@ import {
 import PrizeWithdrawalHistoryTable from "./PrizeWithdrawalHistoryTable";
 import { useMemberAuth } from "./MemberAuthProvider";
 
+const MIN_WITHDRAW_BAHT = 20;
+
 function formatBaht(n) {
   if (!Number.isFinite(n)) return "0";
   return Math.floor(n).toLocaleString("th-TH");
@@ -135,8 +137,8 @@ export default function PrizeWithdrawForm() {
       return;
     }
     const amt = parseInt(amountDigits, 10);
-    if (!Number.isFinite(amt) || amt < 1) {
-      setSubmitErr("กรุณากรอกจำนวนเงินที่ถอน (ตัวเลขเท่านั้น)");
+    if (!Number.isFinite(amt) || amt < MIN_WITHDRAW_BAHT) {
+      setSubmitErr(`ถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
       return;
     }
     if (!accountHolderName.trim()) {
@@ -287,7 +289,7 @@ export default function PrizeWithdrawForm() {
             className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-mono text-base tabular-nums shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
           />
           <p className="mt-1 text-xs text-slate-500">
-            ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
+            ขั้นต่ำ {MIN_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
           </p>
         </div>
 
@@ -345,7 +347,7 @@ export default function PrizeWithdrawForm() {
           disabled={
             busy ||
             !avail ||
-            avail.availableBaht < 1 ||
+            avail.availableBaht < MIN_WITHDRAW_BAHT ||
             loadingAvail ||
             done
           }
