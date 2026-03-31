@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCreateHeartPackage,
@@ -8,6 +9,18 @@ import {
   apiAdminHeartPackages,
   apiAdminPatchHeartPackage
 } from "../lib/rolesApi";
+
+async function uploadImageToApi(file) {
+  const API_BASE = getApiBase().replace(/\/$/, "");
+  const body = new FormData();
+  body.append("image", file);
+  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok || !data.publicUrl) {
+    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
+  }
+  return data.publicUrl;
+}
 
 export default function AdminHeartPackagesPanel() {
   const [list, setList] = useState([]);
@@ -20,7 +33,18 @@ export default function AdminHeartPackagesPanel() {
   const [redQty, setRedQty] = useState("0");
   const [priceThb, setPriceThb] = useState("0");
   const [sortOrder, setSortOrder] = useState("0");
+  const [paymentAccountName, setPaymentAccountName] = useState("");
+  const [paymentAccountNumber, setPaymentAccountNumber] = useState("");
+  const [paymentBankName, setPaymentBankName] = useState("");
+  const [paymentQrFile, setPaymentQrFile] = useState(null);
   const [createMsg, setCreateMsg] = useState("");
+  const [paymentEditPkg, setPaymentEditPkg] = useState(null);
+  const [paymentEditName, setPaymentEditName] = useState("");
+  const [paymentEditNumber, setPaymentEditNumber] = useState("");
+  const [paymentEditBank, setPaymentEditBank] = useState("");
+  const [paymentEditQrFile, setPaymentEditQrFile] = useState(null);
+  const [paymentEditBusy, setPaymentEditBusy] = useState(false);
+  const [paymentEditMsg, setPaymentEditMsg] = useState("");
 
   const load = useCallback(async () => {
     const token = getMemberToken();
@@ -48,6 +72,11 @@ export default function AdminHeartPackagesPanel() {
     if (!token) return;
     setCreateMsg("");
     try {
+      if (!paymentQrFile) {
+        setCreateMsg("กรุณาเลือกไฟล์รูป QR โค้ดสำหรับสแกนจ่าย");
+        return;
+      }
+      const qrUrl = await uploadImageToApi(paymentQrFile);
       await apiAdminCreateHeartPackage(token, {
         title,
         description,
@@ -55,17 +84,68 @@ export default function AdminHeartPackagesPanel() {
         redQty: parseInt(redQty, 10) || 0,
         priceThb: parseInt(priceThb, 10) || 0,
         sortOrder: parseInt(sortOrder, 10) || 0,
-        active: true
+        active: true,
+        paymentAccountName: paymentAccountName.trim(),
+        paymentAccountNumber: paymentAccountNumber.trim(),
+        paymentBankName: paymentBankName.trim(),
+        paymentQrUrl: qrUrl
       });
       setTitle("");
       setDescription("");
       setRedQty("0");
       setPriceThb("0");
       setSortOrder("0");
+      setPaymentAccountName("");
+      setPaymentAccountNumber("");
+      setPaymentBankName("");
+      setPaymentQrFile(null);
       setCreateMsg("สร้างแล้ว");
       await load();
     } catch (e) {
       setCreateMsg(e.message || String(e));
+    }
+  }
+
+  function openPaymentEdit(pkg) {
+    setPaymentEditPkg(pkg);
+    setPaymentEditName(pkg.paymentAccountName || "");
+    setPaymentEditNumber(pkg.paymentAccountNumber || "");
+    setPaymentEditBank(pkg.paymentBankName || "");
+    setPaymentEditQrFile(null);
+    setPaymentEditMsg("");
+  }
+
+  async function savePaymentEdit(e) {
+    e.preventDefault();
+    const token = getMemberToken();
+    if (!token || !paymentEditPkg) return;
+    setPaymentEditBusy(true);
+    setPaymentEditMsg("");
+    try {
+      if (!paymentEditName.trim() || !paymentEditNumber.trim() || !paymentEditBank.trim()) {
+        setPaymentEditMsg("กรอกชื่อบัญชี เลขบัญชี และธนาคารให้ครบ");
+        return;
+      }
+      let qrUrl = paymentEditPkg.paymentQrUrl || "";
+      if (paymentEditQrFile) {
+        qrUrl = await uploadImageToApi(paymentEditQrFile);
+      }
+      if (!/^https?:\/\//i.test(qrUrl)) {
+        setPaymentEditMsg("ต้องมี QR โค้ด — อัปโหลดรูปใหม่หรือคงของเดิม");
+        return;
+      }
+      await apiAdminPatchHeartPackage(token, paymentEditPkg.id, {
+        paymentAccountName: paymentEditName.trim(),
+        paymentAccountNumber: paymentEditNumber.trim(),
+        paymentBankName: paymentEditBank.trim(),
+        paymentQrUrl: qrUrl
+      });
+      setPaymentEditPkg(null);
+      await load();
+    } catch (e) {
+      setPaymentEditMsg(e.message || String(e));
+    } finally {
+      setPaymentEditBusy(false);
     }
   }
 
@@ -179,6 +259,46 @@ export default function AdminHeartPackagesPanel() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </div>
+          <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+            ข้อมูลรับโอน — สมาชิกจะเห็นตอนเลือกแพ็กเพื่อโอนและแนบสลิป
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600">ชื่อบัญชี (รับโอน)</label>
+            <input
+              value={paymentAccountName}
+              onChange={(e) => setPaymentAccountName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              required
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-slate-600">หมายเลขบัญชี</label>
+            <input
+              value={paymentAccountNumber}
+              onChange={(e) => setPaymentAccountNumber(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              required
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs font-medium text-slate-600">ชื่อธนาคาร</label>
+            <input
+              value={paymentBankName}
+              onChange={(e) => setPaymentBankName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              required
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="text-xs font-medium text-slate-600">อัปโหลด QR โค้ด (สแกนจ่าย)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPaymentQrFile(e.target.files?.[0] || null)}
+              className="mt-1 block w-full text-sm"
+              required
+            />
+          </div>
         </div>
         {createMsg ? (
           <p className={`text-sm ${createMsg.includes("แล้ว") ? "text-green-700" : "text-red-600"}`}>
@@ -203,6 +323,7 @@ export default function AdminHeartPackagesPanel() {
                 <th className="px-3 py-2">ชื่อ</th>
                 <th className="px-3 py-2">แดงแจก</th>
                 <th className="px-3 py-2">ราคา</th>
+                <th className="px-3 py-2">บัญชีโอน</th>
                 <th className="px-3 py-2">ขาย</th>
                 <th className="px-3 py-2 min-w-[10rem]">จัดการ</th>
               </tr>
@@ -210,7 +331,7 @@ export default function AdminHeartPackagesPanel() {
             <tbody>
               {list.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
                     ยังไม่มีแพ็กเกจ
                   </td>
                 </tr>
@@ -220,11 +341,26 @@ export default function AdminHeartPackagesPanel() {
                     <td className="px-3 py-2 font-medium">{p.title}</td>
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
+                    <td className="px-3 py-2 text-xs text-slate-600">
+                      {p.paymentAccountName && p.paymentQrUrl ? (
+                        <span className="text-emerald-800">ครบ</span>
+                      ) : (
+                        <span className="text-amber-800">ยังไม่ตั้ง</span>
+                      )}
+                    </td>
                     <td className="px-3 py-2">
                       {p.active ? "เปิด" : p.retired ? "หยุดขายถาวร" : "ปิด (ถาวรในหน้านี้)"}
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <button
+                          type="button"
+                          disabled={busyId === p.id}
+                          onClick={() => openPaymentEdit(p)}
+                          className="text-xs font-semibold text-slate-700 underline"
+                        >
+                          บัญชีโอน
+                        </button>
                         {p.active ? (
                           <button
                             type="button"
@@ -259,6 +395,84 @@ export default function AdminHeartPackagesPanel() {
           </table>
         </div>
       )}
+
+      {paymentEditPkg ? (
+        <form
+          onSubmit={savePaymentEdit}
+          className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3"
+        >
+          <h3 className="text-sm font-semibold text-slate-900">
+            ตั้งค่าบัญชีโอน: {paymentEditPkg.title}
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="text-xs font-medium text-slate-600">ชื่อบัญชี</label>
+              <input
+                value={paymentEditName}
+                onChange={(e) => setPaymentEditName(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">หมายเลขบัญชี</label>
+              <input
+                value={paymentEditNumber}
+                onChange={(e) => setPaymentEditNumber(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium text-slate-600">ชื่อธนาคาร</label>
+              <input
+                value={paymentEditBank}
+                onChange={(e) => setPaymentEditBank(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium text-slate-600">
+                อัปโหลด QR ใหม่ (เว้นว่างถ้าคงรูปเดิม)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPaymentEditQrFile(e.target.files?.[0] || null)}
+                className="mt-1 block w-full text-sm"
+              />
+              {paymentEditPkg.paymentQrUrl ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  รูปปัจจุบัน:{" "}
+                  <a
+                    href={paymentEditPkg.paymentQrUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-800 underline"
+                  >
+                    เปิดดู
+                  </a>
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {paymentEditMsg ? <p className="text-sm text-red-600">{paymentEditMsg}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              disabled={paymentEditBusy}
+              className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+            >
+              {paymentEditBusy ? "กำลังบันทึก…" : "บันทึก"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentEditPkg(null)}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </form>
+      ) : null}
     </section>
   );
 }

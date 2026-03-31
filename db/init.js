@@ -128,6 +128,22 @@ async function initDb() {
       ALTER TABLE heart_packages
       ADD COLUMN IF NOT EXISTS retired BOOLEAN NOT NULL DEFAULT FALSE;
     `);
+    await client.query(`
+      ALTER TABLE heart_packages
+      ADD COLUMN IF NOT EXISTS payment_account_name VARCHAR(200);
+    `);
+    await client.query(`
+      ALTER TABLE heart_packages
+      ADD COLUMN IF NOT EXISTS payment_account_number VARCHAR(64);
+    `);
+    await client.query(`
+      ALTER TABLE heart_packages
+      ADD COLUMN IF NOT EXISTS payment_bank_name VARCHAR(160);
+    `);
+    await client.query(`
+      ALTER TABLE heart_packages
+      ADD COLUMN IF NOT EXISTS payment_qr_url TEXT;
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS heart_purchases (

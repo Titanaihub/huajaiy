@@ -202,6 +202,33 @@ export default function HeartShopClient() {
           <h3 className="text-sm font-semibold text-slate-800">
             ส่งสลิป: {selected.title}
           </h3>
+          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-800">
+            <p className="text-xs font-semibold uppercase text-slate-500">โอนเงินมาที่</p>
+            <ul className="mt-2 space-y-1 text-slate-700">
+              <li>
+                <span className="font-medium text-slate-600">ชื่อบัญชี:</span>{" "}
+                {selected.paymentAccountName || "—"}
+              </li>
+              <li>
+                <span className="font-medium text-slate-600">เลขบัญชี:</span>{" "}
+                {selected.paymentAccountNumber || "—"}
+              </li>
+              <li>
+                <span className="font-medium text-slate-600">ธนาคาร:</span>{" "}
+                {selected.paymentBankName || "—"}
+              </li>
+            </ul>
+            {selected.paymentQrUrl ? (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-slate-600">สแกน QR จ่าย</p>
+                <img
+                  src={selected.paymentQrUrl}
+                  alt="QR ชำระเงิน"
+                  className="mt-2 max-h-48 w-auto max-w-full rounded-lg border border-slate-200 bg-white object-contain"
+                />
+              </div>
+            ) : null}
+          </div>
           <form onSubmit={submitPurchase} className="mt-3 space-y-3">
             <div>
               <label className="text-xs font-medium text-slate-600">รูปสลิปโอนเงิน</label>
