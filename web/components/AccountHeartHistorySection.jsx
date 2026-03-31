@@ -13,14 +13,16 @@ const KIND_HINT = {
   heart_purchase_approved: "ซื้อหัวใจ (อนุมัติ)",
   adjustment: "ปรับยอด",
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
-  room_red_code_refund: "ลบรหัสห้อง · คืนแดง"
+  room_red_code_refund: "ลบรหัสห้อง · คืนแดง",
+  room_red_code_redeem: "แลกรหัสห้อง · ได้แดง"
 };
 
 const PLAY_KINDS = new Set(["game_start"]);
 const PURCHASE_KINDS = new Set([
   "heart_purchase_approved",
   "room_red_code_issue",
-  "room_red_code_refund"
+  "room_red_code_refund",
+  "room_red_code_redeem"
 ]);
 
 function formatWhen(iso) {
@@ -87,6 +89,24 @@ function giveawayLedgerNote(entry) {
           คืนแดงแจก {gr.toLocaleString("th-TH")} · คืนแดงเล่นได้ {pr.toLocaleString("th-TH")}
           {after != null && Number.isFinite(after)
             ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
+            : ""}
+        </p>
+      );
+    }
+  }
+  if (entry.kind === "room_red_code_redeem") {
+    const add = Number(m.roomRedAdded) || 0;
+    const after = m.roomRedBalanceAfter != null ? Number(m.roomRedBalanceAfter) : null;
+    const code = m.code != null ? String(m.code).trim().toUpperCase() : "";
+    const creator =
+      m.creatorUsername != null ? String(m.creatorUsername).trim().replace(/^@+/, "") : "";
+    if (add > 0) {
+      return (
+        <p className="mt-1 text-xs text-emerald-900/90">
+          แลกรหัส {code || "—"} · ได้แดง {add.toLocaleString("th-TH")}
+          {creator ? ` · จาก @${creator}` : ""}
+          {after != null && Number.isFinite(after)
+            ? ` · ยอดแดงห้องนี้ ${after.toLocaleString("th-TH")}`
             : ""}
         </p>
       );

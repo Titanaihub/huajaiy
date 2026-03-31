@@ -458,7 +458,11 @@ async function redeemCode(redeemerUserId, rawCode) {
     await client.query("BEGIN");
 
     const cRes = await client.query(
-      `SELECT * FROM room_red_gift_codes WHERE code = $1 FOR UPDATE`,
+      `SELECT c.*, u.username AS creator_username
+       FROM room_red_gift_codes c
+       LEFT JOIN users u ON u.id = c.creator_id
+       WHERE c.code = $1
+       FOR UPDATE`,
       [code]
     );
     if (cRes.rows.length === 0) {
@@ -499,12 +503,13 @@ async function redeemCode(redeemerUserId, rawCode) {
     );
 
     const amt = Math.max(1, Math.floor(Number(c.red_amount) || 0));
-    await client.query(
+    const balRes = await client.query(
       `INSERT INTO user_room_red_balance (user_id, creator_id, balance)
        VALUES ($1::uuid, $2::uuid, $3)
        ON CONFLICT (user_id, creator_id) DO UPDATE SET
          balance = user_room_red_balance.balance + EXCLUDED.balance,
-         updated_at = NOW()`,
+         updated_at = NOW()
+       RETURNING balance`,
       [redeemerUserId, c.creator_id, amt]
     );
     await client.query(
@@ -512,6 +517,42 @@ async function redeemCode(redeemerUserId, rawCode) {
        VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5)`,
       [crypto.randomUUID(), c.id, c.creator_id, redeemerUserId, amt]
     );
+    const uRes = await client.query(
+      `SELECT pink_hearts_balance, red_hearts_balance
+       FROM users
+       WHERE id = $1::uuid`,
+      [redeemerUserId]
+    );
+    const pinkAfter = Math.max(0, Math.floor(Number(uRes.rows[0]?.pink_hearts_balance) || 0));
+    const redAfter = Math.max(0, Math.floor(Number(uRes.rows[0]?.red_hearts_balance) || 0));
+    const roomAfter = Math.max(
+      0,
+      Math.floor(
+        Number(
+          balRes.rows?.[0]?.balance ??
+            balRes.rows?.[0]?.room_red_balance ??
+            balRes.rows?.[0]?.user_room_red_balance
+        ) || 0
+      )
+    );
+    await heartLedgerService.insertWithClient(client, {
+      userId: redeemerUserId,
+      pinkDelta: 0,
+      redDelta: 0,
+      pinkAfter,
+      redAfter,
+      kind: "room_red_code_redeem",
+      label: "แลกรหัสห้อง · ได้หัวใจแดง",
+      meta: {
+        codeId: c.id != null ? String(c.id) : null,
+        code: c.code != null ? String(c.code).trim().toUpperCase() : null,
+        creatorId: c.creator_id != null ? String(c.creator_id) : null,
+        creatorUsername:
+          c.creator_username != null ? String(c.creator_username).trim().toLowerCase() : null,
+        roomRedAdded: amt,
+        roomRedBalanceAfter: roomAfter
+      }
+    });
 
     await client.query("COMMIT");
 
