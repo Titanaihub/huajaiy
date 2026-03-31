@@ -29,11 +29,9 @@ export default function LoginForm({ redirectAfterLogin = null }) {
 
   return (
     <>
-      <h1 className="text-xl font-semibold text-slate-900">เข้าสู่ระบบ</h1>
-      <p className="mt-2 text-sm text-slate-600">ใช้ชื่อผู้ใช้และรหัสผ่านที่สมัครไว้</p>
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label htmlFor="login-username" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="login-username" className="block text-sm font-medium text-white">
             ชื่อผู้ใช้
           </label>
           <input
@@ -46,7 +44,7 @@ export default function LoginForm({ redirectAfterLogin = null }) {
           />
         </div>
         <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="login-password" className="block text-sm font-medium text-white">
             รหัสผ่าน
           </label>
           <input
@@ -59,7 +57,11 @@ export default function LoginForm({ redirectAfterLogin = null }) {
             autoComplete="current-password"
           />
         </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? (
+          <p className="rounded-lg bg-black/25 px-3 py-2 text-sm text-amber-100 ring-1 ring-white/20">
+            {error}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={loading}
@@ -68,9 +70,9 @@ export default function LoginForm({ redirectAfterLogin = null }) {
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-6 text-center text-sm text-white/95">
         ยังไม่มีบัญชี?{" "}
-        <Link href="/register" className="text-blue-600 underline">
+        <Link href="/register" className="font-semibold text-white underline decoration-white/70 underline-offset-2 hover:decoration-white">
           สมัครสมาชิก
         </Link>
       </p>
