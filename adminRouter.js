@@ -841,7 +841,9 @@ router.patch(
       if (deny) {
         return res.status(deny.status).json({ ok: false, error: deny.error });
       }
-      const snap = await centralGameService.updateGameMeta(id, req.body || {});
+      const snap = await centralGameService.updateGameMeta(id, req.body || {}, {
+        allowUnsafeEdit: req.userRole === "admin"
+      });
       if (!snap) {
         return res.status(404).json({ ok: false, error: "ไม่พบเกม" });
       }
@@ -876,7 +878,8 @@ router.put(
         return res.status(deny.status).json({ ok: false, error: deny.error });
       }
       const snap = await centralGameService.replaceImages(id, req.body?.images, {
-        oneImagePerSet: Boolean(req.body?.oneImagePerSet)
+        oneImagePerSet: Boolean(req.body?.oneImagePerSet),
+        allowUnsafeEdit: req.userRole === "admin"
       });
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
@@ -908,7 +911,9 @@ router.put(
       if (deny) {
         return res.status(deny.status).json({ ok: false, error: deny.error });
       }
-      const snap = await centralGameService.replaceRules(id, req.body?.rules);
+      const snap = await centralGameService.replaceRules(id, req.body?.rules, {
+        allowUnsafeEdit: req.userRole === "admin"
+      });
       return res.json({ ok: true, snapshot: snap });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {

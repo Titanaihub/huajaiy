@@ -313,6 +313,7 @@ export default function AdminCentralGamePanel({
   embedded = false,
   focusGameId = null
 }) {
+  const creatorLimitedMode = embedded;
   const router = useRouter();
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -362,6 +363,7 @@ export default function AdminCentralGamePanel({
   const [gamePrizeQtyLocked, setGamePrizeQtyLocked] = useState(false);
   /** รหัสเกม (ออกเมื่อเผยแพร่แล้ว — อ่านอย่างเดียว) */
   const [gameCode, setGameCode] = useState("");
+  const awardEditLocked = creatorLimitedMode && prizeAwardCount > 0;
 
   const tileCount = useMemo(
     () => setSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
@@ -1154,7 +1156,7 @@ export default function AdminCentralGamePanel({
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
           {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
 
-          {prizeAwardCount > 0 ? (
+          {awardEditLocked ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
               <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
             </div>
@@ -1179,13 +1181,16 @@ export default function AdminCentralGamePanel({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-slate-600">ชื่อเกม (แก้ไขไม่ได้)</label>
+                <label className="text-xs text-slate-600">
+                  ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
+                </label>
                 <input
                   value={title}
-                  readOnly
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800"
-                  placeholder="ชื่อเกม (ล็อก)"
-                  title="ชื่อเกมถูกล็อก แก้ไขไม่ได้"
+                  onChange={(e) => setTitle(e.target.value)}
+                  readOnly={creatorLimitedMode}
+                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-slate-800 ${creatorLimitedMode ? "border-slate-200 bg-slate-50" : ""}`}
+                  placeholder={creatorLimitedMode ? "ชื่อเกม (ล็อก)" : "ชื่อเกม"}
+                  title={creatorLimitedMode ? "ชื่อเกมถูกล็อก แก้ไขไม่ได้" : undefined}
                 />
               </div>
               <div>
@@ -1243,7 +1248,7 @@ export default function AdminCentralGamePanel({
                     setSetCount(n);
                     setSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
                   }}
-                  disabled={prizeAwardCount > 0}
+                  disabled={awardEditLocked}
                   className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
@@ -1263,7 +1268,7 @@ export default function AdminCentralGamePanel({
                     <select
                       value={heartCurrencyMode}
                       onChange={(e) => setHeartCurrencyMode(e.target.value)}
-                      disabled={prizeAwardCount > 0}
+                      disabled={awardEditLocked}
                       className="mt-1 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-100"
                     >
                       <option value="both">หักทั้งชมพูและแดง (ตามจำนวนที่ใส่)</option>
@@ -1278,7 +1283,7 @@ export default function AdminCentralGamePanel({
                       type="checkbox"
                       checked={acceptsPinkHearts}
                       onChange={(e) => setAcceptsPinkHearts(e.target.checked)}
-                      disabled={prizeAwardCount > 0}
+                      disabled={awardEditLocked}
                       className="mt-0.5 h-4 w-4 rounded border-slate-300"
                     />
                     <label htmlFor="central-accepts-pink" className="text-xs leading-relaxed text-slate-700">
@@ -1292,7 +1297,7 @@ export default function AdminCentralGamePanel({
                       min={0}
                       value={pinkHeartCost}
                       onChange={(e) => setPinkHeartCost(parseInt(e.target.value, 10) || 0)}
-                      disabled={prizeAwardCount > 0}
+                      disabled={awardEditLocked}
                       className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                     />
                   </div>
@@ -1303,7 +1308,7 @@ export default function AdminCentralGamePanel({
                       min={0}
                       value={redHeartCost}
                       onChange={(e) => setRedHeartCost(parseInt(e.target.value, 10) || 0)}
-                      disabled={prizeAwardCount > 0}
+                      disabled={awardEditLocked}
                       className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-100"
                     />
                   </div>
@@ -1348,7 +1353,7 @@ export default function AdminCentralGamePanel({
                               return next;
                             });
                           }}
-                          disabled={prizeAwardCount > 0}
+                          disabled={awardEditLocked}
                           className="mt-0.5 w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-slate-100"
                         />
                       </div>
@@ -1377,7 +1382,7 @@ export default function AdminCentralGamePanel({
                         <input
                           type="file"
                           accept="image/*"
-                          disabled={prizeAwardCount > 0}
+                          disabled={awardEditLocked}
                           className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-brand-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-brand-900 disabled:cursor-not-allowed disabled:opacity-50"
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
@@ -1409,8 +1414,8 @@ export default function AdminCentralGamePanel({
                             setSizes={setSizes}
                             updateRule={updateRule}
                             setRules={setRules}
-                            gamePrizeQtyLocked={gamePrizeQtyLocked || prizeAwardCount > 0}
-                            structureLocked={prizeAwardCount > 0}
+                            gamePrizeQtyLocked={gamePrizeQtyLocked || awardEditLocked}
+                            structureLocked={awardEditLocked}
                           />
                         ))}
                       </div>
@@ -1457,8 +1462,8 @@ export default function AdminCentralGamePanel({
                             setSizes={setSizes}
                             updateRule={updateRule}
                             setRules={setRules}
-                            gamePrizeQtyLocked={gamePrizeQtyLocked || prizeAwardCount > 0}
-                            structureLocked={prizeAwardCount > 0}
+                            gamePrizeQtyLocked={gamePrizeQtyLocked || awardEditLocked}
+                            structureLocked={awardEditLocked}
                           />
                         );
                       })}

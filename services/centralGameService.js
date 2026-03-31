@@ -557,7 +557,7 @@ async function createGame({
   return getGameSnapshotById(id);
 }
 
-async function updateGameMeta(gameId, patch) {
+async function updateGameMeta(gameId, patch, options = {}) {
   const pool = requirePool();
   const cur = await pool.query(`SELECT * FROM central_games WHERE id = $1`, [gameId]);
   if (cur.rows.length === 0) return null;
@@ -627,7 +627,8 @@ async function updateGameMeta(gameId, patch) {
     patch.description !== undefined
       ? normalizeGameDescription(patch.description)
       : normalizeGameDescription(cur.rows[0].description);
-  if (awardCountEarly > 0) {
+  const allowUnsafeEdit = Boolean(options.allowUnsafeEdit);
+  if (awardCountEarly > 0 && !allowUnsafeEdit) {
     const sameLayout =
       sc === c.setCount &&
       tc === c.tileCount &&
@@ -708,8 +709,9 @@ async function replaceImages(gameId, images, options = {}) {
     e.code = "NOT_FOUND";
     throw e;
   }
+  const allowUnsafeEdit = Boolean(options.allowUnsafeEdit);
   const imgAwardCount = await getPrizeAwardCountForGame(gameId);
-  if (imgAwardCount > 0) {
+  if (imgAwardCount > 0 && !allowUnsafeEdit) {
     const e = new Error(
       "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ไม่สามารถเปลี่ยนชุดรูปป้ายได้"
     );
@@ -839,7 +841,7 @@ function centralRuleStructureUnchanged(old, f) {
   );
 }
 
-async function replaceRules(gameId, rules) {
+async function replaceRules(gameId, rules, options = {}) {
   const pool = requirePool();
   const snap = await getGameSnapshotById(gameId);
   if (!snap) {
@@ -854,8 +856,9 @@ async function replaceRules(gameId, rules) {
     throw e;
   }
 
+  const allowUnsafeEdit = Boolean(options.allowUnsafeEdit);
   const awardCount = await getPrizeAwardCountForGame(gameId);
-  if (awardCount > 0 && rules.length !== snap.rules.length) {
+  if (awardCount > 0 && !allowUnsafeEdit && rules.length !== snap.rules.length) {
     const e = new Error(
       "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ห้ามเพิ่มหรือลบแถวกติกา (เพิ่มจำนวนรางวัลในแถวเดิมได้เท่านั้น)"
     );
@@ -916,7 +919,7 @@ async function replaceRules(gameId, rules) {
     const prizeUnit = String(r.prizeUnit || "").slice(0, 32);
     const description = String(r.description || "").slice(0, 2000);
 
-    if (awardCount > 0) {
+    if (awardCount > 0 && !allowUnsafeEdit) {
       if (!priorId) {
         const e = new Error(
           "มีผู้ได้รับรางวัลจากเกมนี้แล้ว — ต้องส่ง id กติกาเดิมทุกแถว (โหลดหน้าแก้ไขใหม่แล้วลองอีกครั้ง)"
@@ -945,7 +948,7 @@ async function replaceRules(gameId, rules) {
       }
     }
 
-    if ((publishedLocked || awardCount > 0) && cat !== "none" && priorId) {
+    if (!allowUnsafeEdit && (publishedLocked || awardCount > 0) && cat !== "none" && priorId) {
       const old = oldById.get(priorId);
       const oldQty =
         old.prizeCategory === "none"
