@@ -582,7 +582,7 @@ export default function AdminDashboard() {
           </form>
 
           <p className="text-xs text-slate-500">
-            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · ชมพู / แดงเล่นได้ / แดงแจก = ยอดบนเซิร์ฟเวอร์
+            พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · แสดงยอดชมพู / แดงแจก
           </p>
 
           {listErr ? <p className="text-sm text-red-600">{listErr}</p> : null}
@@ -598,7 +598,6 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">เบอร์</th>
                     <th className="px-3 py-2 text-slate-600">รหัสผ่าน</th>
                     <th className="px-3 py-2 text-rose-600">ชมพู</th>
-                    <th className="px-3 py-2 text-red-700">แดงเล่น</th>
                     <th className="px-3 py-2 text-rose-800">แดงแจก</th>
                     <th className="px-3 py-2">สถานะบัญชี</th>
                     <th className="px-3 py-2">บทบาท</th>
@@ -609,7 +608,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-3 py-8 text-center text-slate-500">
+                      <td colSpan={10} className="px-3 py-8 text-center text-slate-500">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -617,12 +616,6 @@ export default function AdminDashboard() {
                     list.map((u) => {
                       const rowId =
                         u.id != null && String(u.id).trim() !== "" ? String(u.id).trim() : "";
-                      const redMain = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
-                      const redRoom = Math.max(0, Math.floor(Number(u.roomGiftRedTotal) || 0));
-                      const redDisplay = Math.max(
-                        0,
-                        Math.floor(Number(u.redHeartsDisplay) || redMain + redRoom)
-                      );
                       return (
                       <tr
                         key={rowId || u.username}
@@ -648,14 +641,6 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2 font-medium text-rose-600">
                           {u.pinkHeartsBalance ?? 0}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-red-700">
-                          <span className="tabular-nums">{redDisplay.toLocaleString("th-TH")}</span>
-                          {redRoom > 0 ? (
-                            <span className="ml-1 text-[10px] font-semibold text-amber-900/90">
-                              (+ห้อง {redRoom.toLocaleString("th-TH")})
-                            </span>
-                          ) : null}
                         </td>
                         <td className="px-3 py-2 font-medium text-rose-900">
                           {u.redGiveawayBalance ?? 0}
@@ -813,12 +798,6 @@ export default function AdminDashboard() {
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-slate-500">หัวใจแดงเล่นได้ (DB)</dt>
-                      <dd className="text-lg font-semibold text-red-700">
-                        {detail.redHeartsBalance ?? 0}
-                      </dd>
-                    </div>
-                    <div>
                       <dt className="text-slate-500">หัวใจแดงแจก (DB)</dt>
                       <dd className="text-lg font-semibold text-rose-900">
                         {detail.redGiveawayBalance ?? 0}
@@ -827,9 +806,7 @@ export default function AdminDashboard() {
                     <div>
                       <dt className="text-slate-500">รวม</dt>
                       <dd className="font-medium text-slate-800">
-                        {(detail.pinkHeartsBalance ?? 0) +
-                          (detail.redHeartsBalance ?? 0) +
-                          (detail.redGiveawayBalance ?? 0)}
+                        {(detail.pinkHeartsBalance ?? 0) + (detail.redGiveawayBalance ?? 0)}
                       </dd>
                     </div>
                     <div>
@@ -1186,7 +1163,6 @@ export default function AdminDashboard() {
                               <th className="py-1 pr-2 text-left">เมื่อ</th>
                               <th className="py-1 pr-2">ชนิด</th>
                               <th className="py-1 pr-2">Δชมพู</th>
-                              <th className="py-1 pr-2">Δแดงเล่น</th>
                               <th className="py-1 text-left">รายละเอียด</th>
                             </tr>
                           </thead>
@@ -1200,7 +1176,6 @@ export default function AdminDashboard() {
                                 </td>
                                 <td className="py-1 pr-2 font-mono">{row.kind}</td>
                                 <td className="py-1 pr-2 tabular-nums">{row.pinkDelta}</td>
-                                <td className="py-1 pr-2 tabular-nums">{row.redDelta}</td>
                                 <td className="max-w-[14rem] py-1 text-slate-700 sm:max-w-md">
                                   <span className="line-clamp-2">{row.label || "—"}</span>
                                   {row.meta &&
