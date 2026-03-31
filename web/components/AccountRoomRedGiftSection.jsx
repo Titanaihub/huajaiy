@@ -16,8 +16,6 @@ export default function AccountRoomRedGiftSection() {
   const [listLoading, setListLoading] = useState(true);
   const [redAmount, setRedAmount] = useState(50);
   const [codeCount, setCodeCount] = useState(3);
-  const [multiUseSingleCode, setMultiUseSingleCode] = useState(false);
-  const [maxUses, setMaxUses] = useState(3);
   const [createBusy, setCreateBusy] = useState(false);
   const [createMsg, setCreateMsg] = useState("");
   const [deleteBusyId, setDeleteBusyId] = useState("");
@@ -46,13 +44,9 @@ export default function AccountRoomRedGiftSection() {
 
   const estimatedRedDeduction = useMemo(() => {
     const ra = Math.max(1, Math.floor(Number(redAmount) || 1));
-    if (multiUseSingleCode) {
-      const mu = Math.max(1, Math.floor(Number(maxUses) || 1));
-      return ra * mu;
-    }
     const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
     return ra * n;
-  }, [redAmount, codeCount, maxUses, multiUseSingleCode]);
+  }, [redAmount, codeCount]);
 
   async function onCreate(e) {
     e.preventDefault();
@@ -62,36 +56,22 @@ export default function AccountRoomRedGiftSection() {
     setCreateMsg("");
     try {
       const ra = Math.max(1, Math.floor(Number(redAmount) || 1));
-      let data;
-      if (multiUseSingleCode) {
-        const mu = Math.max(1, Math.floor(Number(maxUses) || 1));
-        data = await apiCreateRoomRedGiftCode(token, {
-          redAmount: ra,
-          maxUses: mu,
-          codeCount: 1
-        });
-        const ded = Math.max(0, Math.floor(Number(data.redDeducted) || 0));
-        setCreateMsg(
-          `สร้างรหัส ${data.code?.code || ""} แล้ว — แดง ${ra} ต่อการแลก · รหัสเดียวแลกได้ ${mu} ครั้ง (แจกได้หลายคน) · หักแดงจากคุณ ${ded.toLocaleString("th-TH")} ดวง`
-        );
-      } else {
-        const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
-        data = await apiCreateRoomRedGiftCode(token, {
-          redAmount: ra,
-          codeCount: n,
-          maxUses: 1
-        });
-        const list = data.codes || (data.code ? [data.code] : []);
-        const preview = list
-          .slice(0, 5)
-          .map((c) => c.code)
-          .join(", ");
-        const more = list.length > 5 ? ` … อีก ${list.length - 5} รหัส` : "";
-        const ded = Math.max(0, Math.floor(Number(data.redDeducted) || 0));
-        setCreateMsg(
-          `สร้าง ${list.length} รหัสแล้ว (แต่ละรหัส ${ra} แดง · คนละครั้ง) — ${preview}${more} · หักแดงจากคุณ ${ded.toLocaleString("th-TH")} ดวง`
-        );
-      }
+      const n = Math.min(100, Math.max(1, Math.floor(Number(codeCount) || 1)));
+      const data = await apiCreateRoomRedGiftCode(token, {
+        redAmount: ra,
+        codeCount: n,
+        maxUses: 1
+      });
+      const list = data.codes || (data.code ? [data.code] : []);
+      const preview = list
+        .slice(0, 5)
+        .map((c) => c.code)
+        .join(", ");
+      const more = list.length > 5 ? ` … อีก ${list.length - 5} รหัส` : "";
+      const ded = Math.max(0, Math.floor(Number(data.redDeducted) || 0));
+      setCreateMsg(
+        `สร้าง ${list.length} รหัสแล้ว (แต่ละรหัส ${ra} แดง · คนละครั้ง) — ${preview}${more} · หักแดงจากคุณ ${ded.toLocaleString("th-TH")} ดวง`
+      );
       await refresh();
       await loadCodes();
     } catch (ex) {
@@ -145,10 +125,57 @@ export default function AccountRoomRedGiftSection() {
   }
 
   const giveawayBal = Math.max(0, Math.floor(Number(user?.redGiveawayBalance) || 0));
+  function exportCsv() {
+    const rows = [
+      ["code", "redAmount", "maxUses", "usesCount", "status", "redeemedBy"],
+      ...codes.map((c) => [
+        c.code || "",
+        String(c.redAmount ?? ""),
+        String(c.maxUses ?? ""),
+        String(c.usesCount ?? ""),
+        c.cancelled ? "cancelled" : c.exhausted ? "used-up" : c.expired ? "expired" : "active",
+        Array.isArray(c.redeemedByUsernames) ? c.redeemedByUsernames.join(";") : ""
+      ])
+    ];
+    const csv = rows
+      .map((r) => r.map((v) => `"${String(v).replaceAll("\"", "\"\"")}"`).join(","))
+      .join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `room-red-codes-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function printCodes() {
+    const stamp = new Date().toLocaleString("th-TH");
+    const rows = codes
+      .map((c) => {
+        const status = c.cancelled
+          ? "ยกเลิกแล้ว"
+          : c.exhausted
+            ? "ใช้ครบแล้ว"
+            : c.expired
+              ? "หมดอายุ"
+              : "พร้อมใช้";
+        return `<tr><td>${c.code || ""}</td><td>${c.redAmount || 0}</td><td>${c.maxUses || 1}</td><td>${c.usesCount || 0}</td><td>${status}</td></tr>`;
+      })
+      .join("");
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"/><title>พิมพ์รหัสหัวใจแดง</title><style>body{font-family:Tahoma,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}h1{font-size:20px} .muted{color:#666;font-size:12px}</style></head><body><h1>รายการรหัสหัวใจแดงสำหรับแจก</h1><p class="muted">พิมพ์เมื่อ ${stamp}</p><table><thead><tr><th>รหัส</th><th>แดง/ครั้ง</th><th>สิทธิ์ใช้</th><th>ใช้แล้ว</th><th>สถานะ</th></tr></thead><tbody>${rows || "<tr><td colspan='5'>ยังไม่มีรหัส</td></tr>"}</tbody></table></body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
+  }
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-900">รหัสหัวใจแดงห้องเกม</h3>
       <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50/70 px-3 py-2 text-sm text-rose-950">
         <p className="font-semibold text-rose-900">หัวใจแดงทั้งหมด (สำหรับแจกเล่นเกม)</p>
         <p className="mt-1 tabular-nums text-lg font-bold text-red-800">
@@ -157,18 +184,6 @@ export default function AccountRoomRedGiftSection() {
       </div>
 
       <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            checked={multiUseSingleCode}
-            onChange={(e) => setMultiUseSingleCode(e.target.checked)}
-            className="mt-1"
-          />
-          <span>
-            <strong>โหมดพิเศษ:</strong> รหัสเดียว แต่หลายคนแลกได้ (กรอกจำนวนครั้ง) — คนละครั้งให้ใช้ช่อง「จำนวนรหัส」ด้านล่างแทน
-          </span>
-        </label>
-
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-600">หัวใจแดง ที่จะแจกต่อรหัส</label>
@@ -180,35 +195,19 @@ export default function AccountRoomRedGiftSection() {
               className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
             />
           </div>
-          {multiUseSingleCode ? (
-            <div>
-              <label className="block text-xs font-medium text-slate-600">
-                รหัสเดียวนี้แลกได้กี่ครั้ง (หลายคน)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={1000}
-                value={maxUses}
-                onChange={(e) => setMaxUses(e.target.value)}
-                className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-              />
-            </div>
-          ) : (
-            <div>
-              <label className="block text-xs font-medium text-slate-600">
-                จำนวนรหัสที่ต้องการสร้าง (รหัสใช้ได้ครั้งเดียว)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                value={codeCount}
-                onChange={(e) => setCodeCount(e.target.value)}
-                className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-xs font-medium text-slate-600">
+              จำนวนรหัสที่ต้องการสร้าง (รหัสใช้ได้ครั้งเดียว)
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={codeCount}
+              onChange={(e) => setCodeCount(e.target.value)}
+              className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+            />
+          </div>
           <button
             type="submit"
             disabled={createBusy}
@@ -233,10 +232,24 @@ export default function AccountRoomRedGiftSection() {
           <h4 className="text-sm font-semibold text-slate-800">
             รหัสที่คุณสร้าง
             <span className="mt-0.5 block text-xs font-normal text-slate-500">
-              กดลบเพื่อเอารหัสเก่าออกและคืนแดงส่วนที่ยังไม่ถูกแลก
+              รหัสที่ยังไม่ถูกใช้งานสามารถกดยกเลิกได้ (เก็บประวัติรหัสหัวใจด้วย ว่ายูสเซอร์ไหนใช้หรือว่ายกเลิก)
             </span>
           </h4>
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+            >
+              ดาวน์โหลดไฟล์ Excel
+            </button>
+            <button
+              type="button"
+              onClick={printCodes}
+              className="rounded border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-800 hover:bg-slate-100"
+            >
+              พิมพ์รายการรหัส
+            </button>
             {codes.length > 1 ? (
               <button
                 type="button"
@@ -244,7 +257,7 @@ export default function AccountRoomRedGiftSection() {
                 onClick={() => void onDeleteAllCodes()}
                 className="rounded border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
               >
-                {deleteAllBusy ? "กำลังลบทั้งหมด…" : "ลบทั้งหมด"}
+                {deleteAllBusy ? "กำลังยกเลิกทั้งหมด…" : "ยกเลิกทั้งหมด"}
               </button>
             ) : null}
             <button
@@ -280,16 +293,20 @@ export default function AccountRoomRedGiftSection() {
                     {Number(c.maxUses) <= 1
                       ? `ใช้แล้ว ${c.usesCount}/1 (ครั้งเดียวต่อรหัส)`
                       : `ใช้แล้ว ${c.usesCount}/${c.maxUses}`}
+                    {c.cancelled ? " · ยกเลิกแล้ว" : ""}
                     {c.expired ? " · หมดอายุ" : ""}
                     {c.exhausted ? " · เต็ม" : ""}
+                    {Array.isArray(c.redeemedByUsernames) && c.redeemedByUsernames.length > 0
+                      ? ` · ผู้ใช้: ${c.redeemedByUsernames.map((u) => `@${u}`).join(", ")}`
+                      : ""}
                   </span>
                   <button
                     type="button"
-                    disabled={Boolean(deleteBusyId) || deleteAllBusy}
+                    disabled={Boolean(deleteBusyId) || deleteAllBusy || c.cancelled || c.exhausted}
                     onClick={() => void onDeleteCode(c)}
                     className="rounded border border-red-200 bg-white px-2 py-0.5 text-xs font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
                   >
-                    {deleteBusyId === String(c.id) ? "กำลังลบ…" : "ลบ"}
+                    {deleteBusyId === String(c.id) ? "กำลังยกเลิก…" : "ยกเลิก"}
                   </button>
                 </div>
               </li>

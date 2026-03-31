@@ -191,6 +191,7 @@ router.post("/room-red-redeem", authMiddleware, async (req, res) => {
       e.code === "NOT_FOUND" ||
       e.code === "EXPIRED" ||
       e.code === "EXHAUSTED" ||
+      e.code === "CANCELED" ||
       e.code === "VALIDATION"
     ) {
       return res.status(400).json({ ok: false, error: e.message, code: e.code });

@@ -230,6 +230,10 @@ async function deleteCodeByCreator(creatorId, codeId) {
       throw e;
     }
 
+    if (c.canceled_at) {
+      await client.query("ROLLBACK");
+      return { ok: true, refund: 0, deletedCode: c.code };
+    }
     const redAmt = Math.max(1, Math.floor(Number(c.red_amount) || 0));
     const maxU = Math.max(1, Math.floor(Number(c.max_uses) || 1));
     const used = Math.max(0, Math.floor(Number(c.uses_count) || 0));
@@ -251,7 +255,12 @@ async function deleteCodeByCreator(creatorId, codeId) {
       refundP = refund - refundG;
     }
 
-    await client.query(`DELETE FROM room_red_gift_codes WHERE id = $1::uuid`, [id]);
+    await client.query(
+      `UPDATE room_red_gift_codes
+       SET canceled_at = NOW(), uses_count = max_uses, expires_at = COALESCE(expires_at, NOW())
+       WHERE id = $1::uuid`,
+      [id]
+    );
 
     if (refund > 0) {
       const uRes = await client.query(
@@ -324,19 +333,48 @@ async function listCodesForCreator(creatorId) {
   const r = await pool.query(
     `SELECT id, code, creator_id AS "creatorId", red_amount AS "redAmount",
             max_uses AS "maxUses", uses_count AS "usesCount",
-            expires_at AS "expiresAt", created_at AS "createdAt"
+            expires_at AS "expiresAt", created_at AS "createdAt",
+            canceled_at AS "canceledAt"
      FROM room_red_gift_codes
      WHERE creator_id = $1::uuid
      ORDER BY created_at DESC
      LIMIT 100`,
     [creatorId]
   );
-  return r.rows.map((row) => ({
+  const redemptions = await pool.query(
+    `SELECT rr.code_id AS "codeId", rr.redeemed_at AS "redeemedAt",
+            u.username AS "redeemerUsername"
+     FROM room_red_gift_redemptions rr
+     LEFT JOIN users u ON u.id = rr.redeemer_id
+     WHERE rr.creator_id = $1::uuid
+     ORDER BY rr.redeemed_at DESC
+     LIMIT 500`,
+    [creatorId]
+  );
+  const byCode = new Map();
+  for (const row of redemptions.rows) {
+    const key = String(row.codeId);
+    if (!byCode.has(key)) byCode.set(key, []);
+    byCode.get(key).push({
+      redeemedAt: row.redeemedAt,
+      redeemerUsername: row.redeemerUsername
+        ? String(row.redeemerUsername).toLowerCase()
+        : null
+    });
+  }
+
+  return r.rows.map((row) => {
+    const history = byCode.get(String(row.id)) || [];
+    const uniqueUsers = [...new Set(history.map((h) => h.redeemerUsername).filter(Boolean))];
+    return ({
     ...row,
+    redemptions: history,
+    redeemedByUsernames: uniqueUsers,
+    cancelled: Boolean(row.canceledAt),
     expired:
       row.expiresAt != null && new Date(row.expiresAt).getTime() < Date.now(),
     exhausted: Number(row.usesCount) >= Number(row.maxUses)
-  }));
+  })});
 }
 
 /**
@@ -404,6 +442,12 @@ async function redeemCode(redeemerUserId, rawCode) {
       e.code = "EXPIRED";
       throw e;
     }
+    if (c.canceled_at) {
+      await client.query("ROLLBACK");
+      const e = new Error("รหัสนี้ถูกยกเลิกแล้ว");
+      e.code = "CANCELED";
+      throw e;
+    }
     if (Number(c.uses_count) >= Number(c.max_uses)) {
       await client.query("ROLLBACK");
       const e = new Error("รหัสนี้ถูกใช้ครบจำนวนแล้ว");
@@ -430,6 +474,11 @@ async function redeemCode(redeemerUserId, rawCode) {
          balance = user_room_red_balance.balance + EXCLUDED.balance,
          updated_at = NOW()`,
       [redeemerUserId, c.creator_id, amt]
+    );
+    await client.query(
+      `INSERT INTO room_red_gift_redemptions (id, code_id, creator_id, redeemer_id, red_amount)
+       VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, $5)`,
+      [crypto.randomUUID(), c.id, c.creator_id, redeemerUserId, amt]
     );
 
     await client.query("COMMIT");

@@ -568,6 +568,26 @@ async function initDb() {
       ALTER TABLE room_red_gift_codes
       ADD COLUMN IF NOT EXISTS funded_playable INTEGER NOT NULL DEFAULT 0;
     `);
+    await client.query(`
+      ALTER TABLE room_red_gift_codes
+      ADD COLUMN IF NOT EXISTS canceled_at TIMESTAMPTZ;
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS room_red_gift_redemptions (
+        id UUID PRIMARY KEY,
+        code_id UUID NOT NULL REFERENCES room_red_gift_codes(id) ON DELETE CASCADE,
+        creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        redeemer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        red_amount INTEGER NOT NULL CHECK (red_amount > 0),
+        redeemed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_room_red_gift_redemptions_creator ON room_red_gift_redemptions(creator_id, redeemed_at DESC);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_room_red_gift_redemptions_code ON room_red_gift_redemptions(code_id, redeemed_at DESC);`
+    );
     /* รหัสเก่า (ก่อนมีคอลัมน์ทุน) ถือว่าหักจากแดงเล่นได้ทั้งหมด — คืนยอดสอดคล้องเดิม */
     await client.query(`
       UPDATE room_red_gift_codes
