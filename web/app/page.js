@@ -3,7 +3,6 @@ import ApiHealthStrip from "../components/ApiHealthStrip";
 import SectionHeading from "../components/SectionHeading";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
-import UploadForm from "../components/UploadForm";
 import { fetchPublicCentralGameMeta } from "../lib/publicGameMeta";
 
 const btnPrimary =
@@ -164,20 +163,6 @@ export default async function HomePage() {
           </ul>
         </section>
 
-        <section
-          className="mt-14 md:mt-16"
-          aria-labelledby="upload-heading"
-        >
-          <SectionHeading
-            id="upload-heading"
-            eyebrow="เครื่องมือ"
-            title="อัปโหลดรูป"
-            subtitle="บีบอัดอัตโนมัติก่อนส่งขึ้นคลาวด์ — ไม่ต้องล็อกอิน"
-          />
-          <div className="mt-8">
-            <UploadForm showCardHeader={false} />
-          </div>
-        </section>
       </main>
       <SiteFooter />
     </>

@@ -20,6 +20,9 @@ export default function SiteHeader() {
           className="scrollbar-hide -mx-4 flex max-w-full items-center gap-x-1 gap-y-2 overflow-x-auto px-4 pb-0.5 text-sm sm:mx-0 sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0"
           aria-label="เมนูหลัก"
         >
+          <Link href="/" className={navClass}>
+            หน้าแรก
+          </Link>
           <Link href="/game" className={navClass}>
             เกม
           </Link>
