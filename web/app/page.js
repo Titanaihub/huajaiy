@@ -37,18 +37,7 @@ function buildActions(centralMeta) {
         : "border-slate-200/90 bg-white",
       badge: centralMeta ? "เผยแพร่" : null
     },
-    {
-      href: "/contact",
-      title: "ติดต่อ",
-      desc: "ส่งข้อความถึงทีมงาน",
-      accent: "border-slate-200/90 bg-white"
-    },
-    {
-      href: "/auth",
-      title: "LINE",
-      desc: "เข้าด้วยบัญชี LINE (NextAuth) — ยูส/รหัสผ่านที่ล็อกอิน/สมัคร",
-      accent: "border-slate-200/90 bg-white"
-    }
+    
   ];
 }
 
