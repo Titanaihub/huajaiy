@@ -16,10 +16,23 @@ function requirePool() {
 async function countAwardsByRuleForGame(gameId) {
   const pool = requirePool();
   const r = await pool.query(
-    `SELECT rule_id::text AS rid, COUNT(*)::int AS c
-     FROM central_prize_awards
-     WHERE game_id = $1 AND rule_id IS NOT NULL
-     GROUP BY rule_id`,
+    `SELECT r.id::text AS rid, COUNT(a.id)::int AS c
+     FROM central_game_rules r
+     LEFT JOIN central_prize_awards a
+       ON a.game_id = r.game_id
+      AND (
+        a.rule_id = r.id
+        OR (
+          a.rule_id IS NULL
+          AND COALESCE(a.rule_set_index, -1) = COALESCE(r.set_index, -2)
+          AND COALESCE(a.prize_category, '') = COALESCE(r.prize_category, '')
+          AND COALESCE(BTRIM(a.rule_prize_title), '') = COALESCE(BTRIM(r.prize_title), '')
+          AND COALESCE(BTRIM(a.rule_prize_value_text), '') = COALESCE(BTRIM(r.prize_value_text), '')
+          AND COALESCE(BTRIM(a.rule_prize_unit), '') = COALESCE(BTRIM(r.prize_unit), '')
+        )
+      )
+     WHERE r.game_id = $1::uuid
+     GROUP BY r.id`,
     [gameId]
   );
   const out = {};
@@ -64,8 +77,29 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
         ? Number.MAX_SAFE_INTEGER
         : Math.max(1, Math.floor(Number(rule.prize_total_qty)) || 1);
     const cntR = await client.query(
-      `SELECT COUNT(*)::int AS n FROM central_prize_awards WHERE rule_id = $1`,
-      [ruleId]
+      `SELECT COUNT(*)::int AS n
+       FROM central_prize_awards
+       WHERE game_id = $1::uuid
+         AND (
+           rule_id = $2::uuid
+           OR (
+             rule_id IS NULL
+             AND COALESCE(rule_set_index, -1) = COALESCE($3::int, -2)
+             AND COALESCE(prize_category, '') = COALESCE($4::text, '')
+             AND COALESCE(BTRIM(rule_prize_title), '') = COALESCE(BTRIM($5::text), '')
+             AND COALESCE(BTRIM(rule_prize_value_text), '') = COALESCE(BTRIM($6::text), '')
+             AND COALESCE(BTRIM(rule_prize_unit), '') = COALESCE(BTRIM($7::text), '')
+           )
+         )`,
+      [
+        gameId,
+        ruleId,
+        Math.max(0, Math.floor(Number(rule.set_index)) || 0),
+        rule.prize_category != null ? String(rule.prize_category) : "",
+        rule.prize_title != null ? String(rule.prize_title) : "",
+        rule.prize_value_text != null ? String(rule.prize_value_text) : "",
+        rule.prize_unit != null ? String(rule.prize_unit) : ""
+      ]
     );
     const n = cntR.rows[0].n;
     if (n >= cap) {

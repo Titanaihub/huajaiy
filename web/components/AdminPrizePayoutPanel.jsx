@@ -416,6 +416,12 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
               <td className="px-3 py-3">
                 <p className="font-semibold text-slate-900">{w.primary}</p>
                 {w.secondary ? <p className="text-xs text-slate-600">{w.secondary}</p> : null}
+                <p className="mt-0.5 text-[11px] text-red-700">
+                  หัวใจแดงเล่นได้:{" "}
+                  {Math.max(0, Math.floor(Number(group.winnerRedHeartsBalance) || 0)).toLocaleString(
+                    "th-TH"
+                  )}
+                </p>
               </td>
               <td className="px-3 py-3 font-semibold tabular-nums text-red-700">
                 {Math.max(0, Math.floor(Number(group.winnerRedHeartsBalance) || 0)).toLocaleString(
