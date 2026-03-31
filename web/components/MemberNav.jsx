@@ -116,6 +116,13 @@ export default function MemberNav() {
                 สร้างเกม
               </Link>
               <Link
+                href="/account/my-games"
+                className={`${cls} ${isActivePath(p, "/account/my-games") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                role="menuitem"
+              >
+                เกมของฉัน
+              </Link>
+              <Link
                 href="/account/prize-payouts"
                 className={`${cls} ${isActivePath(p, "/account/prize-payouts") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
                 role="menuitem"

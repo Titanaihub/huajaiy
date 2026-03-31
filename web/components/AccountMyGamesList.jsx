@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getMemberToken } from "../lib/memberApi";
-import { apiAdminCentralGamesList } from "../lib/rolesApi";
+import {
+  apiAdminCentralGameActivate,
+  apiAdminCentralGameDeactivate,
+  apiAdminCentralGamesList
+} from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const UUID_RE =
@@ -39,7 +43,27 @@ export default function AccountMyGamesList() {
   const [games, setGames] = useState([]);
   const [listErr, setListErr] = useState("");
   const [listLoading, setListLoading] = useState(true);
+  const [busyId, setBusyId] = useState("");
   const [publishSuccessBanner, setPublishSuccessBanner] = useState(false);
+
+  async function loadGames() {
+    setListLoading(true);
+    setListErr("");
+    const token = getMemberToken();
+    if (!token) {
+      setListLoading(false);
+      return;
+    }
+    try {
+      const data = await apiAdminCentralGamesList(token);
+      setGames(data.games || []);
+    } catch (e) {
+      setListErr(e?.message || "โหลดรายการไม่สำเร็จ");
+      setGames([]);
+    } finally {
+      setListLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (searchParams.get("published") !== "1") return;
@@ -57,29 +81,37 @@ export default function AccountMyGamesList() {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      setListLoading(true);
-      setListErr("");
-      const token = getMemberToken();
-      if (!token) {
-        setListLoading(false);
-        return;
-      }
-      try {
-        const data = await apiAdminCentralGamesList(token);
-        if (!cancelled) setGames(data.games || []);
-      } catch (e) {
-        if (!cancelled) {
-          setListErr(e?.message || "โหลดรายการไม่สำเร็จ");
-          setGames([]);
-        }
-      } finally {
-        if (!cancelled) setListLoading(false);
-      }
+      if (cancelled) return;
+      await loadGames();
     })();
     return () => {
       cancelled = true;
     };
   }, [user]);
+
+  async function togglePublish(game, nextPublish) {
+    const id = String(game?.id || "");
+    if (!id || !UUID_RE.test(id)) return;
+    const token = getMemberToken();
+    if (!token) {
+      setListErr("หมดเซสชัน — กรุณาเข้าสู่ระบบใหม่");
+      return;
+    }
+    setBusyId(id);
+    setListErr("");
+    try {
+      if (nextPublish) {
+        await apiAdminCentralGameActivate(token, id);
+      } else {
+        await apiAdminCentralGameDeactivate(token, id);
+      }
+      await loadGames();
+    } catch (e) {
+      setListErr(e?.message || "อัปเดตสถานะเกมไม่สำเร็จ");
+    } finally {
+      setBusyId("");
+    }
+  }
 
   if (loading || !user) {
     return (
@@ -165,6 +197,29 @@ export default function AccountMyGamesList() {
                       ดูหน้าเล่น
                     </Link>
                   ) : null}
+                  <button
+                    type="button"
+                    disabled={busyId === id || !id || !UUID_RE.test(id)}
+                    onClick={() => togglePublish(g, !Boolean(g.isPublished || g.isActive))}
+                    className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
+                      g.isPublished || g.isActive
+                        ? "border border-slate-400 text-slate-800 hover:bg-slate-50"
+                        : "bg-green-700 text-white hover:bg-green-800"
+                    }`}
+                  >
+                    {busyId === id
+                      ? "กำลังบันทึก…"
+                      : g.isPublished || g.isActive
+                        ? "หยุดเผยแพร่"
+                        : "เผยแพร่"}
+                  </button>
+                  <Link
+                    href={`/account/create-game?game=${encodeURIComponent(id)}#game-studio`}
+                    className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+                    title="เพิ่มรางวัลใหม่ได้ แต่ไม่ควรแก้ไขรางวัลเดิม"
+                  >
+                    เพิ่มรางวัล
+                  </Link>
                   <Link
                     href={`/account/create-game?game=${encodeURIComponent(id)}`}
                     className="rounded-lg bg-brand-800 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-900"
