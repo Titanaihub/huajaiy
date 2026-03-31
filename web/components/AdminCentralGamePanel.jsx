@@ -1179,22 +1179,23 @@ export default function AdminCentralGamePanel({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-slate-600">ชื่อเกม</label>
+                <label className="text-xs text-slate-600">ชื่อเกม (แก้ไขไม่ได้)</label>
                 <input
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border px-3 py-2"
-                  placeholder="ชื่อเกม"
+                  readOnly
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-800"
+                  placeholder="ชื่อเกม (ล็อก)"
+                  title="ชื่อเกมถูกล็อก แก้ไขไม่ได้"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-600">รหัสเกม</label>
+                <label className="text-xs text-slate-600">รหัสเกม (คงเดิม)</label>
                 <input
                   readOnly
                   value={gameCode}
-                  placeholder="จะปรากฏหลังเผยแพร่ (บันทึกหรือกดเผยแพร่บนเว็บ)"
+                  placeholder="รหัสเกมจะเป็นรหัสเดิม ไม่เปลี่ยนแปลง"
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800"
-                  title="รหัสอ้างอิงเกม — สร้างอัตโนมัติ ไม่ต้องกรอก"
+                  title="รหัสเกมคงเดิม ไม่สามารถแก้ไขได้"
                 />
               </div>
               <div className="sm:col-span-2">
