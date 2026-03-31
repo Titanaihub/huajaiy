@@ -124,10 +124,7 @@ async function issueRoomRedGiftCodes(creatorId, options = {}) {
       const needP = perCodeCost - fromG;
       if (needP > remPlay) {
         await client.query("ROLLBACK");
-        const totalHave = curGive + curRed;
-        const e = new Error(
-          `ทุนสร้างรหัสไม่พอ — ต้องการ ${totalRedCost} ดวง (แดงแจก + แดงเล่นได้รวมกัน) · คงเหลือแจก ${curGive} · เล่นได้ ${curRed} · รวม ${totalHave} (ซื้อแพ็กจากแอดมินได้แดงแจก · แดงเล่นได้ใช้สร้างรหัสได้เมื่อแจกไม่พอ)`
-        );
+        const e = new Error("หัวใจแดงไม่พอสร้างรหัส");
         e.code = "INSUFFICIENT_REDS";
         throw e;
       }
