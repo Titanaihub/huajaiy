@@ -145,6 +145,10 @@ function groupAwardsByRecipient(list) {
         winnerUsername: a.winnerUsername,
         winnerFirstName: a.winnerFirstName,
         winnerLastName: a.winnerLastName,
+        winnerRedHeartsBalance: Math.max(
+          0,
+          Math.floor(Number(a.winnerRedHeartsBalance) || 0)
+        ),
         items: []
       });
     }
@@ -399,6 +403,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
               <th className="px-3 py-2.5">ชื่อ–นามสกุล (ผู้ได้รับรางวัล)</th>
+              <th className="px-3 py-2.5">หัวใจแดงเล่นได้</th>
               <th className="px-3 py-2.5">เงินรางวัล (รวมเงินสด)</th>
               <th className="px-3 py-2.5">ชนะกี่ครั้ง</th>
               <th className="px-3 py-2.5">ยอดถอน</th>
@@ -411,6 +416,11 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
               <td className="px-3 py-3">
                 <p className="font-semibold text-slate-900">{w.primary}</p>
                 {w.secondary ? <p className="text-xs text-slate-600">{w.secondary}</p> : null}
+              </td>
+              <td className="px-3 py-3 font-semibold tabular-nums text-red-700">
+                {Math.max(0, Math.floor(Number(group.winnerRedHeartsBalance) || 0)).toLocaleString(
+                  "th-TH"
+                )}
               </td>
               <td className="px-3 py-3 font-bold tabular-nums text-slate-900">
                 {formatBahtTotal(cashTotal)} บาท

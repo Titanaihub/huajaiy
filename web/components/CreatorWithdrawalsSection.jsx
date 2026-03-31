@@ -214,49 +214,57 @@ export default function CreatorWithdrawalsSection() {
         </p>
       ) : null}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-3 py-2">
-          <h3 className="text-sm font-semibold text-slate-900">ประวัติผู้เล่นที่ได้รับรางวัลจากเกมของฉัน</h3>
-          <p className="mt-0.5 text-xs text-slate-500">ใช้ติดตามว่าใครเล่นแล้วได้รับรางวัลอะไรในแต่ละเกม</p>
+      <details className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <summary className="cursor-pointer list-none px-3 py-2 marker:hidden [&::-webkit-details-marker]:hidden">
+          <h3 className="text-sm font-semibold text-slate-900">
+            ประวัติผู้เล่นที่ได้รับรางวัลจากเกมของฉัน
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500">
+            คลิกเพื่อขยายรายการว่าใครเล่นแล้วได้รับรางวัลอะไรในแต่ละเกม
+          </p>
+        </summary>
+        <div className="overflow-x-auto border-t border-slate-100">
+          {awardRows.length === 0 ? (
+            <p className="px-4 py-5 text-sm text-slate-500">ยังไม่มีผู้ได้รับรางวัลจากเกมของคุณ</p>
+          ) : (
+            <table className="min-w-full divide-y divide-slate-200 text-sm">
+              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <tr>
+                  <th className="px-3 py-2.5">เมื่อ</th>
+                  <th className="px-3 py-2.5">เกม</th>
+                  <th className="px-3 py-2.5">ผู้เล่น</th>
+                  <th className="px-3 py-2.5">รางวัล</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {awardRows.map((a) => {
+                  const player = [a.winnerFirstName, a.winnerLastName].filter(Boolean).join(" ").trim();
+                  const prizeBits = [a.prizeTitle, a.prizeValueText, a.prizeUnit].filter(Boolean);
+                  return (
+                    <tr key={a.id}>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">{formatDate(a.wonAt)}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="font-medium text-slate-900">{a.gameTitle || "เกม"}</div>
+                        <div className="text-xs text-slate-500">
+                          ชุดที่ {Math.max(0, Math.floor(Number(a.setIndex)) || 0) + 1}
+                          {a.gameCode ? ` · ${a.gameCode}` : ""}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="font-medium text-slate-900">
+                          @{String(a.winnerUsername || "").replace(/^@+/, "")}
+                        </div>
+                        <div className="text-xs text-slate-500">{player || "—"}</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-slate-700">{prizeBits.join(" ") || "รางวัล"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
-        {awardRows.length === 0 ? (
-          <p className="px-4 py-5 text-sm text-slate-500">ยังไม่มีผู้ได้รับรางวัลจากเกมของคุณ</p>
-        ) : (
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-              <tr>
-                <th className="px-3 py-2.5">เมื่อ</th>
-                <th className="px-3 py-2.5">เกม</th>
-                <th className="px-3 py-2.5">ผู้เล่น</th>
-                <th className="px-3 py-2.5">รางวัล</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {awardRows.map((a) => {
-                const player = [a.winnerFirstName, a.winnerLastName].filter(Boolean).join(" ").trim();
-                const prizeBits = [a.prizeTitle, a.prizeValueText, a.prizeUnit].filter(Boolean);
-                return (
-                  <tr key={a.id}>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">{formatDate(a.wonAt)}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="font-medium text-slate-900">{a.gameTitle || "เกม"}</div>
-                      <div className="text-xs text-slate-500">
-                        ชุดที่ {Math.max(0, Math.floor(Number(a.setIndex)) || 0) + 1}
-                        {a.gameCode ? ` · ${a.gameCode}` : ""}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="font-medium text-slate-900">@{String(a.winnerUsername || "").replace(/^@+/, "")}</div>
-                      <div className="text-xs text-slate-500">{player || "—"}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-700">{prizeBits.join(" ") || "รางวัล"}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+      </details>
 
       {loading && rows.length === 0 ? (
         <p className="text-sm text-slate-500">กำลังโหลดรายการ…</p>

@@ -148,7 +148,20 @@ async function listPublicRecipientsForRule(gameId, ruleId) {
     `SELECT u.username, a.created_at AS "wonAt"
      FROM central_prize_awards a
      JOIN users u ON u.id = a.winner_user_id
-     WHERE a.game_id = $1 AND a.rule_id = $2
+     LEFT JOIN central_game_rules r ON r.id = $2::uuid
+     WHERE a.game_id = $1::uuid
+       AND (
+         a.rule_id = $2::uuid
+         OR (
+           a.rule_id IS NULL
+           AND r.id IS NOT NULL
+           AND COALESCE(a.rule_set_index, -1) = COALESCE(r.set_index, -2)
+           AND COALESCE(a.prize_category, '') = COALESCE(r.prize_category, '')
+           AND COALESCE(BTRIM(a.rule_prize_title), '') = COALESCE(BTRIM(r.prize_title), '')
+           AND COALESCE(BTRIM(a.rule_prize_value_text), '') = COALESCE(BTRIM(r.prize_value_text), '')
+           AND COALESCE(BTRIM(a.rule_prize_unit), '') = COALESCE(BTRIM(r.prize_unit), '')
+         )
+       )
      ORDER BY a.created_at ASC`,
     [gameId, ruleId]
   );
@@ -240,7 +253,8 @@ async function listAllAwardsForAdmin(opts = {}) {
        u.id AS "winnerUserId",
        u.username AS "winnerUsername",
        u.first_name AS "winnerFirstName",
-       u.last_name AS "winnerLastName"
+       u.last_name AS "winnerLastName",
+       COALESCE(u.red_hearts_balance, 0) AS "winnerRedHeartsBalance"
      FROM central_prize_awards a
      JOIN users u ON u.id = a.winner_user_id
      LEFT JOIN central_games g ON g.id = a.game_id
@@ -269,7 +283,8 @@ async function listAllAwardsForAdmin(opts = {}) {
     winnerUserId: String(row.winnerUserId),
     winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
     winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
-    winnerLastName: row.winnerLastName != null ? String(row.winnerLastName).trim() : ""
+    winnerLastName: row.winnerLastName != null ? String(row.winnerLastName).trim() : "",
+    winnerRedHeartsBalance: Math.max(0, Math.floor(Number(row.winnerRedHeartsBalance) || 0))
   }));
 }
 
