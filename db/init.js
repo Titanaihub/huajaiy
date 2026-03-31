@@ -541,6 +541,15 @@ async function initDb() {
       ALTER TABLE central_prize_withdrawal_requests
       ADD COLUMN IF NOT EXISTS transfer_date DATE;
     `);
+    await client.query(`
+      ALTER TABLE central_prize_withdrawal_requests
+      DROP CONSTRAINT IF EXISTS central_prize_withdrawal_requests_status_check;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_withdrawal_requests
+      ADD CONSTRAINT central_prize_withdrawal_requests_status_check
+      CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled'));
+    `);
 
     await client.query(`
       ALTER TABLE central_games

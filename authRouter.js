@@ -465,6 +465,29 @@ router.get("/central-prize-withdrawals/incoming", authMiddleware, async (req, re
   }
 });
 
+/** ผู้ขอถอนยกเลิกคำขอที่ยังรอ (pending) */
+router.post("/central-prize-withdrawals/:id/cancel", authMiddleware, async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!UUID_PARAM_RE.test(id)) {
+      return res.status(400).json({ ok: false, error: "รูปแบบรหัสคำขอไม่ถูกต้อง" });
+    }
+    const rec = await centralPrizeWithdrawalService.cancelByRequester({
+      withdrawalId: id,
+      requesterUserId: req.userId
+    });
+    return res.json({ ok: true, withdrawal: rec });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: "ระบบฐานข้อมูลยังไม่พร้อม" });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** ผู้สร้างเกมอนุมัติ/ปฏิเสธหลังจ่ายเงิน */
 router.post("/central-prize-withdrawals/:id/resolve", authMiddleware, async (req, res) => {
   try {

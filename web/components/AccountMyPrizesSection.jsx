@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  apiCancelPrizeWithdrawalRequest,
   apiGetMyCentralPrizeAwards,
   apiGetMyPrizeWithdrawals,
   getMemberToken
 } from "../lib/memberApi";
+import PrizeWithdrawalHistoryTable from "./PrizeWithdrawalHistoryTable";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const CAT_LABEL = {
@@ -154,8 +156,14 @@ function sumPendingWithdrawalsBaht(withdrawalsForCreator) {
     .reduce((s, w) => s + Math.max(0, Math.floor(Number(w.amountThb) || 0)), 0);
 }
 
-function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
+function CreatorPrizeCard({
+  group,
+  withdrawalsForCreator = [],
+  onRefreshWithdrawals,
+  wdRefreshing
+}) {
   const { creatorUsername, items } = group;
+  const [cancelingId, setCancelingId] = useState(null);
   const creatorDisplay =
     creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
 
@@ -184,6 +192,18 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
       ).length,
     [withdrawalsForCreator]
   );
+
+  async function handleCancelWithdrawal(id) {
+    const token = getMemberToken();
+    if (!token || !onRefreshWithdrawals) return;
+    setCancelingId(id);
+    try {
+      await apiCancelPrizeWithdrawalRequest(token, id);
+      await onRefreshWithdrawals();
+    } finally {
+      setCancelingId(null);
+    }
+  }
 
   let nonCashSummary = null;
   if (nonCashItems.length > 0) {
@@ -353,12 +373,25 @@ function CreatorPrizeCard({ group, withdrawalsForCreator = [] }) {
             <p className="mt-2 text-xs text-amber-800">
               มีคำขอถอนรอดำเนินการรวม{" "}
               <span className="font-semibold tabular-nums">{formatBaht(pendingHoldBaht)} บาท</span>{" "}
-              (หักจากยอดคงเหลือปัจจุบันด้านบน — ยังไม่แสดงเป็นแถวจนกว่าจะอนุมัติ)
+              (หักจากยอดคงเหลือปัจจุบันด้านบน — ดูรายการและยกเลิกได้ในตารางด้านล่าง)
             </p>
           ) : null}
           <p className="mt-2 text-xs text-slate-500">
             ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ
           </p>
+          {onRefreshWithdrawals ? (
+            <PrizeWithdrawalHistoryTable
+              compactTitle
+              withdrawals={withdrawalsForCreator}
+              loading={Boolean(wdRefreshing)}
+              creatorRefLabel={String(creatorUsername || "").replace(/^@+/, "")}
+              onRefresh={onRefreshWithdrawals}
+              allowCancel
+              onCancelRequest={handleCancelWithdrawal}
+              cancelingId={cancelingId}
+              emptyMessage="ยังไม่มีประวัติการขอถอนกับผู้สร้างท่านนี้"
+            />
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -468,7 +501,15 @@ export default function AccountMyPrizesSection() {
             const wds = withdrawals.filter(
               (w) => String(w.creatorUsername || "").trim().toLowerCase() === cu
             );
-            return <CreatorPrizeCard key={g.creatorKey} group={g} withdrawalsForCreator={wds} />;
+            return (
+              <CreatorPrizeCard
+                key={g.creatorKey}
+                group={g}
+                withdrawalsForCreator={wds}
+                onRefreshWithdrawals={refreshWithdrawals}
+                wdRefreshing={wdRefreshing}
+              />
+            );
           })}
         </ul>
       )}

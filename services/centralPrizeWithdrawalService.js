@@ -227,6 +227,27 @@ async function countGamesCreatedBy(userId) {
   return Math.max(0, Math.floor(Number(r.rows[0]?.n) || 0));
 }
 
+/** ผู้ขอถอนยกเลิกคำขอที่ยัง pending */
+async function cancelByRequester({ withdrawalId, requesterUserId }) {
+  const pool = requirePool();
+  const up = await pool.query(
+    `UPDATE central_prize_withdrawal_requests
+     SET status = 'cancelled',
+         resolved_at = NOW()
+     WHERE id = $1::uuid
+       AND requester_user_id = $2::uuid
+       AND status = 'pending'
+     RETURNING *`,
+    [withdrawalId, requesterUserId]
+  );
+  if (up.rows.length === 0) {
+    const e = new Error("ไม่พบคำขอหรือดำเนินการแล้ว");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  return mapRow(up.rows[0]);
+}
+
 async function resolveByCreator({
   withdrawalId,
   creatorUserId,
@@ -424,6 +445,7 @@ module.exports = {
   listForRequester,
   listIncomingForCreator,
   countGamesCreatedBy,
+  cancelByRequester,
   resolveByCreator,
   parseCashBahtFromAward,
   listPendingWithdrawalsForAdmin,

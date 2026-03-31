@@ -256,7 +256,9 @@ export default function CreatorWithdrawalsSection() {
                               ? "rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/80"
                               : r.status === "approved"
                                 ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200/80"
-                                : "rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-800 ring-1 ring-slate-300/80"
+                                : r.status === "cancelled"
+                                  ? "rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-950 ring-1 ring-violet-200/80"
+                                  : "rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-800 ring-1 ring-slate-300/80"
                           }
                         >
                           {r.status === "pending"
@@ -265,7 +267,9 @@ export default function CreatorWithdrawalsSection() {
                               ? "อนุมัติแล้ว"
                               : r.status === "rejected"
                                 ? "ปฏิเสธ"
-                                : r.status}
+                                : r.status === "cancelled"
+                                  ? "ยกเลิกโดยผู้ขอ"
+                                  : r.status}
                         </span>
                         {r.resolvedAt ? (
                           <div className="mt-1 text-xs text-slate-500">

@@ -222,6 +222,24 @@ export async function apiGetMyPrizeWithdrawals(token) {
   return data;
 }
 
+export async function apiCancelPrizeWithdrawalRequest(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-withdrawals/${encodeURIComponent(id)}/cancel`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ยกเลิกคำขอไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiGetCreatorWithdrawalStatus(token) {
   const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/creator-status`, {
     headers: { Authorization: `Bearer ${token}` }
