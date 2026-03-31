@@ -244,7 +244,18 @@ export async function apiGetIncomingPrizeWithdrawals(token) {
   return data;
 }
 
-export async function apiResolvePrizeWithdrawal(token, id, { action, note }) {
+export async function apiResolvePrizeWithdrawal(
+  token,
+  id,
+  { action, note, transferSlipUrl, transferDate }
+) {
+  const body = { action, note: note || "" };
+  if (transferSlipUrl != null && String(transferSlipUrl).trim()) {
+    body.transferSlipUrl = String(transferSlipUrl).trim();
+  }
+  if (transferDate != null && String(transferDate).trim()) {
+    body.transferDate = String(transferDate).trim().slice(0, 10);
+  }
   const r = await fetch(
     `${apiRoot()}/api/auth/central-prize-withdrawals/${encodeURIComponent(id)}/resolve`,
     {
@@ -253,7 +264,7 @@ export async function apiResolvePrizeWithdrawal(token, id, { action, note }) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ action, note: note || "" })
+      body: JSON.stringify(body)
     }
   );
   const data = await r.json().catch(() => ({}));

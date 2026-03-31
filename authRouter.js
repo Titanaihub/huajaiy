@@ -478,7 +478,9 @@ router.post("/central-prize-withdrawals/:id/resolve", authMiddleware, async (req
       withdrawalId: id,
       creatorUserId: req.userId,
       action,
-      note
+      note,
+      transferSlipUrl: req.body?.transferSlipUrl,
+      transferDate: req.body?.transferDate
     });
     return res.json({ ok: true, withdrawal: rec });
   } catch (e) {

@@ -80,6 +80,16 @@ async function getAvailability(requesterUserId, creatorUsernameRaw) {
 }
 
 function mapRow(row) {
+  let transferDateStr = "";
+  if (row.transfer_date != null) {
+    const raw = row.transfer_date;
+    if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
+      transferDateStr = raw.toISOString().slice(0, 10);
+    } else {
+      const s = String(raw).trim();
+      transferDateStr = s.length >= 10 ? s.slice(0, 10) : s;
+    }
+  }
   return {
     id: String(row.id),
     requesterUserId: String(row.requester_user_id),
@@ -92,7 +102,8 @@ function mapRow(row) {
     creatorNote: row.creator_note != null ? String(row.creator_note) : "",
     resolvedAt: row.resolved_at || null,
     createdAt: row.created_at || null,
-    transferSlipUrl: row.transfer_slip_url != null ? String(row.transfer_slip_url).trim() : ""
+    transferSlipUrl: row.transfer_slip_url != null ? String(row.transfer_slip_url).trim() : "",
+    transferDate: transferDateStr || null
   };
 }
 
@@ -216,7 +227,14 @@ async function countGamesCreatedBy(userId) {
   return Math.max(0, Math.floor(Number(r.rows[0]?.n) || 0));
 }
 
-async function resolveByCreator({ withdrawalId, creatorUserId, action, note }) {
+async function resolveByCreator({
+  withdrawalId,
+  creatorUserId,
+  action,
+  note,
+  transferSlipUrl,
+  transferDate
+}) {
   const pool = requirePool();
   const act = String(action || "").toLowerCase();
   if (act !== "approve" && act !== "reject") {
@@ -225,6 +243,25 @@ async function resolveByCreator({ withdrawalId, creatorUserId, action, note }) {
     throw e;
   }
   const nextStatus = act === "approve" ? "approved" : "rejected";
+  let slipTrim = "";
+  if (act === "approve" && transferSlipUrl != null) {
+    slipTrim = String(transferSlipUrl).trim().slice(0, 800);
+    if (slipTrim && !/^https?:\/\//i.test(slipTrim)) {
+      const err = new Error("URL สลิปต้องเป็น https หรือ http");
+      err.code = "VALIDATION";
+      throw err;
+    }
+  }
+  let dateParam = null;
+  if (act === "approve" && transferDate != null && String(transferDate).trim()) {
+    const d = String(transferDate).trim().slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      const err = new Error("รูปแบบวันที่โอนไม่ถูกต้อง (ใช้ ปี-เดือน-วัน)");
+      err.code = "VALIDATION";
+      throw err;
+    }
+    dateParam = d;
+  }
   const r = await pool.query(
     `SELECT * FROM central_prize_withdrawal_requests WHERE id = $1::uuid`,
     [withdrawalId]
@@ -250,10 +287,18 @@ async function resolveByCreator({ withdrawalId, creatorUserId, action, note }) {
     `UPDATE central_prize_withdrawal_requests
      SET status = $2,
          creator_note = CASE WHEN $3 = '' THEN creator_note ELSE $3 END,
-         resolved_at = NOW()
+         resolved_at = NOW(),
+         transfer_slip_url = CASE
+           WHEN $2 = 'approved' AND $5 <> '' THEN $5
+           ELSE transfer_slip_url
+         END,
+         transfer_date = CASE
+           WHEN $2 = 'approved' AND $6 IS NOT NULL THEN $6::date
+           ELSE transfer_date
+         END
      WHERE id = $1::uuid AND creator_user_id = $4::uuid AND status = 'pending'
      RETURNING *`,
-    [withdrawalId, nextStatus, noteTrim, creatorUserId]
+    [withdrawalId, nextStatus, noteTrim, creatorUserId, slipTrim, dateParam]
   );
   if (up.rows.length === 0) {
     const e = new Error("อัปเดตไม่สำเร็จ");

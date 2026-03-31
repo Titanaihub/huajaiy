@@ -537,6 +537,10 @@ async function initDb() {
     await client.query(
       `ALTER TABLE central_prize_withdrawal_requests ADD COLUMN IF NOT EXISTS transfer_slip_url TEXT;`
     );
+    await client.query(`
+      ALTER TABLE central_prize_withdrawal_requests
+      ADD COLUMN IF NOT EXISTS transfer_date DATE;
+    `);
 
     await client.query(`
       ALTER TABLE central_games
