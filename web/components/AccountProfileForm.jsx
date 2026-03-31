@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   apiGetMyNameChangeRequests,
   apiGetMyPhoneHistory,
+  apiPatchPassword,
   apiPostNameChangeRequest,
   getMemberToken
 } from "../lib/memberApi";
@@ -42,6 +43,11 @@ export default function AccountProfileForm() {
   const [reqErr, setReqErr] = useState("");
   const [requests, setRequests] = useState([]);
   const [phoneHistory, setPhoneHistory] = useState([]);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+  const [pwErr, setPwErr] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -53,6 +59,7 @@ export default function AccountProfileForm() {
     if (!user) return;
     setGender(user.gender || "");
     setBirthDate(user.birthDate || "");
+    setPhone(String(user.phone || "").replace(/\s+/g, ""));
     const p = user.shippingAddressParts || {};
     setShippingParts({
       houseNo: p.houseNo || "",
@@ -82,6 +89,24 @@ export default function AccountProfileForm() {
       cancelled = true;
     };
   }, [user, reqMsg]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = getMemberToken();
+        if (!token) return;
+        const data = await apiGetMyPhoneHistory(token);
+        if (!cancelled) setPhoneHistory(data.history || []);
+      } catch {
+        if (!cancelled) setPhoneHistory([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   async function saveProfile(e) {
     e.preventDefault();
@@ -134,6 +159,27 @@ export default function AccountProfileForm() {
     }
   }
 
+  async function submitPasswordChange(e) {
+    e.preventDefault();
+    setPwErr("");
+    setPwMsg("");
+    try {
+      const token = getMemberToken();
+      if (!token) throw new Error("ไม่ได้เข้าสู่ระบบ");
+      await apiPatchPassword(token, {
+        currentPassword: currentPw,
+        newPassword: newPw,
+        newPasswordConfirm: confirmPw
+      });
+      setPwMsg("เปลี่ยนรหัสผ่านแล้ว — กรุณาใช้รหัสใหม่เมื่อเข้าสู่ระบบครั้งถัดไป");
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+    } catch (err) {
+      setPwErr(err.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    }
+  }
+
   if (loading || !user) {
     return (
       <p className="text-sm text-slate-600" aria-live="polite">
@@ -153,6 +199,12 @@ export default function AccountProfileForm() {
 
           <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
             <dl className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <dt className="text-slate-500">ชื่อผู้ใช้ (ล็อกอิน)</dt>
+                <dd className="font-mono font-medium text-slate-900">
+                  {user.username}
+                </dd>
+              </div>
               <div>
                 <dt className="text-slate-500">ชื่อ–นามสกุล (ในระบบ)</dt>
                 <dd className="font-medium text-slate-900">
@@ -376,6 +428,74 @@ export default function AccountProfileForm() {
               className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-900"
             >
               บันทึกข้อมูลส่วนตัว
+            </button>
+          </form>
+
+          <form
+            onSubmit={submitPasswordChange}
+            className="mt-8 space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 shadow-sm"
+          >
+            <h4 className="text-sm font-semibold text-slate-900">
+              เปลี่ยนรหัสผ่าน
+            </h4>
+            <p className="text-xs text-slate-500">
+              กรอกรหัสเดิมและรหัสใหม่ (อย่างน้อย 6 ตัวอักษร)
+            </p>
+            <div>
+              <label
+                htmlFor="currentPassword"
+                className="block text-sm font-medium text-slate-700"
+              >
+                รหัสผ่านปัจจุบัน
+              </label>
+              <input
+                id="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="newPassword"
+                className="block text-sm font-medium text-slate-700"
+              >
+                รหัสผ่านใหม่
+              </label>
+              <input
+                id="newPassword"
+                type="password"
+                autoComplete="new-password"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700"
+              >
+                ยืนยันรหัสผ่านใหม่
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            {pwErr ? <p className="text-sm text-red-600">{pwErr}</p> : null}
+            {pwMsg ? <p className="text-sm text-green-700">{pwMsg}</p> : null}
+            <button
+              type="submit"
+              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              บันทึกรหัสผ่านใหม่
             </button>
           </form>
 

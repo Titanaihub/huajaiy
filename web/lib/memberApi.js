@@ -106,6 +106,22 @@ export async function apiPatchProfile(token, body) {
   return data;
 }
 
+export async function apiPatchPassword(token, body) {
+  const r = await fetch(`${apiRoot()}/api/auth/password`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiPostNameChangeRequest(token, body) {
   const r = await fetch(`${apiRoot()}/api/auth/name-change-request`, {
     method: "POST",

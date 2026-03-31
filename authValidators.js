@@ -180,6 +180,24 @@ function validateLoginBody(body) {
   };
 }
 
+/** สมาชิกเปลี่ยนรหัสผ่านเอง — ต้องส่งรหัสเดิมถูกต้อง */
+function validatePasswordChangeBody(body) {
+  const rawCurrent = String(body?.currentPassword ?? "");
+  if (!rawCurrent) {
+    return { ok: false, error: "กรุณากรอกรหัสผ่านปัจจุบัน" };
+  }
+  const newP = validatePassword(body?.newPassword);
+  if (!newP.ok) return newP;
+  const confirm = String(body?.newPasswordConfirm ?? "");
+  if (confirm !== newP.value) {
+    return { ok: false, error: "รหัสผ่านยืนยันไม่ตรงกัน" };
+  }
+  return {
+    ok: true,
+    data: { currentPassword: rawCurrent, newPassword: newP.value }
+  };
+}
+
 module.exports = {
   validateRegisterBody,
   validateLoginBody,
@@ -187,6 +205,7 @@ module.exports = {
   parseDuplicateAcknowledged,
   validateUsername,
   validatePassword,
+  validatePasswordChangeBody,
   validatePhone,
   COUNTRY_TH,
   COUNTRY_NON_TH

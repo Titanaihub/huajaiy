@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 const {
   validateRegisterBody,
   validateLoginBody,
-  validateRegisterNames
+  validateRegisterNames,
+  validatePasswordChangeBody
 } = require("./authValidators");
 const userService = require("./services/userService");
 const phoneHistoryService = require("./services/phoneHistoryService");
@@ -322,6 +323,46 @@ router.patch("/profile", authMiddleware, async (req, res) => {
         error: "เบอร์โทรนี้เคยใช้สมัครสมาชิกแล้ว"
       });
     }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** สมาชิกเปลี่ยนรหัสผ่าน — ห้ามใช้ขณะแอดมินดูในนามสมาชิก */
+router.patch("/password", authMiddleware, async (req, res) => {
+  try {
+    if (req.impersonation && req.impersonation.adminUserId) {
+      return res.status(403).json({
+        ok: false,
+        error:
+          "ไม่สามารถเปลี่ยนรหัสผ่านขณะดูในนามสมาชิก — ออกจากโหมดดูก่อน"
+      });
+    }
+    const parsed = validatePasswordChangeBody(req.body || {});
+    if (!parsed.ok) {
+      return res.status(400).json({ ok: false, error: parsed.error });
+    }
+    const user = await userService.findById(req.userId);
+    if (!user || !user.passwordHash) {
+      return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    if (!bcrypt.compareSync(parsed.data.currentPassword, user.passwordHash)) {
+      return res.status(400).json({
+        ok: false,
+        error: "รหัสผ่านปัจจุบันไม่ถูกต้อง"
+      });
+    }
+    if (bcrypt.compareSync(parsed.data.newPassword, user.passwordHash)) {
+      return res.status(400).json({
+        ok: false,
+        error: "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม"
+      });
+    }
+    await userService.setPasswordHashOnly(
+      req.userId,
+      bcrypt.hashSync(parsed.data.newPassword, 10)
+    );
+    return res.json({ ok: true });
+  } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

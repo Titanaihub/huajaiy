@@ -2,46 +2,130 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const dropItem =
-  "block px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-900";
+  "block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-900 sm:py-2";
 
 function isActivePath(pathname, href) {
   if (href === "/account") return pathname === "/account";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavDropdown({ label, children }) {
+function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
   const pathname = usePathname();
+  const containerRef = useRef(null);
+  const btnRef = useRef(null);
+  const open = openKey === menuKey;
+  const [fixedBox, setFixedBox] = useState(null);
+
+  const close = useCallback(() => setOpenKey(null), [setOpenKey]);
+
+  useEffect(() => {
+    setOpenKey(null);
+  }, [pathname, setOpenKey]);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setFixedBox(null);
+      return;
+    }
+    function place() {
+      const narrow = window.matchMedia("(max-width: 639px)").matches;
+      if (!narrow) {
+        setFixedBox(null);
+        return;
+      }
+      if (!btnRef.current) return;
+      const r = btnRef.current.getBoundingClientRect();
+      setFixedBox({
+        top: r.bottom + 8,
+        maxHeight: `min(70vh, calc(100vh - ${r.bottom + 20}px))`
+      });
+    }
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        close();
+      }
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open, close]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e) {
+      if (e.key === "Escape") close();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, close]);
 
   return (
-    <div className="group relative inline-block text-left">
+    <div ref={containerRef} className="relative shrink-0">
       <button
+        ref={btnRef}
         type="button"
-        className="flex items-center gap-0.5 rounded-md px-2 py-1 text-sm font-medium text-brand-700 transition hover:bg-brand-50 hover:text-brand-900"
-        aria-expanded="false"
+        onClick={() => setOpenKey((k) => (k === menuKey ? null : menuKey))}
+        aria-expanded={open}
         aria-haspopup="true"
+        className="flex min-w-0 items-center gap-0.5 rounded-md px-2 py-1.5 text-sm font-medium text-brand-700 transition hover:bg-brand-50 hover:text-brand-900 sm:py-1"
       >
         {label}
         <span className="text-[10px] opacity-70" aria-hidden>
           ▾
         </span>
       </button>
-      <div
-        className="pointer-events-none invisible absolute left-0 top-full z-[200] min-w-[13.5rem] pt-1 opacity-0 transition duration-100 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
-        role="menu"
-      >
-        <div className="rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5">
-          {typeof children === "function" ? children({ pathname, dropItem }) : children}
+      {open ? (
+        <div
+          role="menu"
+          className={
+            fixedBox != null
+              ? "fixed left-3 right-3 z-[200] overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5"
+              : "absolute left-0 top-full z-[200] min-w-[13.5rem] pt-1"
+          }
+          style={
+            fixedBox != null
+              ? { top: fixedBox.top, maxHeight: fixedBox.maxHeight }
+              : undefined
+          }
+        >
+          {fixedBox == null ? (
+            <div className="rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5">
+              {typeof children === "function"
+                ? children({ pathname, dropItem })
+                : children}
+            </div>
+          ) : (
+            <div>
+              {typeof children === "function"
+                ? children({ pathname, dropItem })
+                : children}
+            </div>
+          )}
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
 
 export default function MemberNav() {
   const { user, loading, logout } = useMemberAuth();
+  const [openMenu, setOpenMenu] = useState(null);
 
   if (loading) {
     return (
@@ -54,7 +138,12 @@ export default function MemberNav() {
   if (user) {
     return (
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:gap-x-3">
-        <NavDropdown label="ผู้ใช้งาน">
+        <NavDropdown
+          label="ผู้ใช้งาน"
+          menuKey="member"
+          openKey={openMenu}
+          setOpenKey={setOpenMenu}
+        >
           {({ pathname: p, dropItem: cls }) => (
             <>
               <Link
@@ -90,7 +179,12 @@ export default function MemberNav() {
           )}
         </NavDropdown>
 
-        <NavDropdown label="ผู้สร้าง">
+        <NavDropdown
+          label="ผู้สร้าง"
+          menuKey="creator"
+          openKey={openMenu}
+          setOpenKey={setOpenMenu}
+        >
           {({ pathname: p, dropItem: cls }) => (
             <>
               <Link

@@ -154,26 +154,28 @@ export default function CreateGameRoomForm() {
 
   const intakeForm = (
       <form onSubmit={onSubmit} className="space-y-6">
-        <fieldset className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <legend className="px-1 text-sm font-semibold text-slate-800">
-            วัตถุประสงค์ในการเปิดห้องเกม
-          </legend>
-          <p className="mt-2 text-xs text-slate-500">
-            เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
-          </p>
-          <ul className="mt-4 space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 pt-5 shadow-sm">
+          <div className="-mx-1 border-b border-slate-100 pb-3">
+            <h3 className="text-base font-semibold leading-snug text-slate-900">
+              วัตถุประสงค์ในการเปิดห้องเกม
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+              เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
+            </p>
+          </div>
+          <ul className="mt-4 w-full max-w-none space-y-3">
             {PURPOSES.map((p) => (
-              <li key={p.id}>
-                <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-800">
+              <li key={p.id} className="w-full">
+                <label className="flex w-full min-w-0 cursor-pointer items-start gap-3 text-sm leading-snug text-slate-800">
                   <input
                     type="radio"
                     name="purpose"
                     value={p.id}
                     checked={purpose === p.id}
                     onChange={() => setPurpose(p.id)}
-                    className="mt-1"
+                    className="mt-1 shrink-0"
                   />
-                  <span>{p.label}</span>
+                  <span className="min-w-0 flex-1">{p.label}</span>
                 </label>
               </li>
             ))}
@@ -196,7 +198,7 @@ export default function CreateGameRoomForm() {
               />
             </div>
           ) : null}
-        </fieldset>
+        </div>
 
         <div
           className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
