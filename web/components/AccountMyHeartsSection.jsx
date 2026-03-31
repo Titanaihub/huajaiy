@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiListPublishedGames, apiRedeemRoomRedGiftCode, getMemberToken } from "../lib/memberApi";
+import {
+  apiGetMyHeartLedger,
+  apiListPublishedGames,
+  apiRedeemRoomRedGiftCode,
+  getMemberToken
+} from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
 
@@ -12,6 +17,12 @@ function normUser(s) {
     .trim()
     .toLowerCase()
     .replace(/^@+/, "");
+}
+
+function asDateMs(v) {
+  if (!v) return 0;
+  const ms = new Date(v).getTime();
+  return Number.isFinite(ms) ? ms : 0;
 }
 
 export default function AccountMyHeartsSection() {
@@ -23,6 +34,7 @@ export default function AccountMyHeartsSection() {
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemBusy, setRedeemBusy] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
+  const [ledgerEntries, setLedgerEntries] = useState([]);
 
   const loadGames = useCallback(async () => {
     setGamesErr("");
@@ -42,6 +54,26 @@ export default function AccountMyHeartsSection() {
     void loadGames();
   }, [loadGames]);
 
+  const loadLedger = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) {
+      setLedgerEntries([]);
+      return;
+    }
+    try {
+      const data = await apiGetMyHeartLedger(token, { limit: 500 });
+      setLedgerEntries(Array.isArray(data.entries) ? data.entries : []);
+    } catch {
+      setLedgerEntries([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && user) {
+      void loadLedger();
+    }
+  }, [loading, user, loadLedger]);
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login?next=/account/my-hearts");
@@ -59,6 +91,52 @@ export default function AccountMyHeartsSection() {
     return m;
   }, [games]);
 
+  const roomHistoryByCreator = useMemo(() => {
+    const out = new Map();
+    for (const entry of ledgerEntries) {
+      const kind = String(entry?.kind || "");
+      const meta = entry?.meta && typeof entry.meta === "object" ? entry.meta : null;
+      if (!meta) continue;
+      if (kind === "room_red_code_redeem") {
+        const creatorId = meta.creatorId != null ? String(meta.creatorId) : "";
+        if (!creatorId) continue;
+        const amount = Math.max(0, Math.floor(Number(meta.roomRedAdded) || 0));
+        if (amount <= 0) continue;
+        const row = {
+          createdAt: entry.createdAt || null,
+          code: meta.code != null ? String(meta.code).trim().toUpperCase() : "—",
+          item: "รับหัวใจแดงจากรหัส",
+          amount,
+          isPlus: true
+        };
+        if (!out.has(creatorId)) out.set(creatorId, []);
+        out.get(creatorId).push(row);
+      } else if (kind === "game_start") {
+        const byRoom = meta.redFromRoomGifts;
+        if (!byRoom || typeof byRoom !== "object") continue;
+        const gameTitle = meta.gameTitle != null ? String(meta.gameTitle).trim() : "";
+        for (const [creatorIdRaw, usedRaw] of Object.entries(byRoom)) {
+          const creatorId = String(creatorIdRaw || "").trim();
+          const used = Math.max(0, Math.floor(Number(usedRaw) || 0));
+          if (!creatorId || used <= 0) continue;
+          const row = {
+            createdAt: entry.createdAt || null,
+            code: "—",
+            item: gameTitle ? `เล่นเกม: ${gameTitle}` : "เล่นเกม",
+            amount: used,
+            isPlus: false
+          };
+          if (!out.has(creatorId)) out.set(creatorId, []);
+          out.get(creatorId).push(row);
+        }
+      }
+    }
+    for (const rows of out.values()) {
+      rows.sort((a, b) => asDateMs(b.createdAt) - asDateMs(a.createdAt));
+    }
+    return out;
+  }, [ledgerEntries]);
+
   async function onRedeem(e) {
     e.preventDefault();
     const token = getMemberToken();
@@ -68,6 +146,7 @@ export default function AccountMyHeartsSection() {
     try {
       const data = await apiRedeemRoomRedGiftCode(token, redeemCode.trim());
       await refresh();
+      await loadLedger();
       const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
       const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
       setRedeemMsg(`รับหัวใจแดงสำเร็จ ${added.toLocaleString("th-TH")} ดวง จาก ${un}`);
@@ -182,6 +261,14 @@ export default function AccountMyHeartsSection() {
               const un = normUser(g.creatorUsername);
               const label = g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง";
               const creatorGames = un ? gamesByCreator.get(un) || [] : [];
+              const creatorId = g.creatorId != null ? String(g.creatorId) : "";
+              const rows = creatorId ? roomHistoryByCreator.get(creatorId) || [] : [];
+              let rewind = bal;
+              const rowsWithBalance = rows.map((r) => {
+                const after = rewind;
+                rewind = rewind - (r.isPlus ? r.amount : -r.amount);
+                return { ...r, balanceAfter: Math.max(0, Math.floor(Number(after) || 0)) };
+              });
 
               return (
                 <li
@@ -240,6 +327,56 @@ export default function AccountMyHeartsSection() {
                       </p>
                     )}
                   </div>
+
+                  <details className="mt-3 rounded-lg border border-amber-200 bg-white/90 p-3">
+                    <summary className="cursor-pointer text-xs font-semibold text-amber-900">
+                      ดูรายละเอียด
+                    </summary>
+                    <div className="mt-2 overflow-x-auto">
+                      {rowsWithBalance.length === 0 ? (
+                        <p className="text-xs text-amber-900/80">ยังไม่มีประวัติการรับ/ใช้หัวใจของห้องนี้</p>
+                      ) : (
+                        <table className="min-w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-amber-100 text-amber-900/80">
+                              <th className="px-1 py-1">วันที่</th>
+                              <th className="px-1 py-1">รหัส</th>
+                              <th className="px-1 py-1">รายการ</th>
+                              <th className="px-1 py-1 text-right">จำนวน</th>
+                              <th className="px-1 py-1 text-right">คงเหลือ</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rowsWithBalance.map((r, idx) => (
+                              <tr key={`${r.createdAt || "na"}-${idx}`} className="border-b border-amber-50">
+                                <td className="px-1 py-1 whitespace-nowrap text-slate-700">
+                                  {r.createdAt
+                                    ? new Date(r.createdAt).toLocaleString("th-TH", {
+                                        dateStyle: "short",
+                                        timeStyle: "short"
+                                      })
+                                    : "—"}
+                                </td>
+                                <td className="px-1 py-1 font-mono text-slate-700">{r.code || "—"}</td>
+                                <td className="px-1 py-1 text-slate-800">{r.item}</td>
+                                <td
+                                  className={`px-1 py-1 text-right tabular-nums font-semibold ${
+                                    r.isPlus ? "text-emerald-700" : "text-red-700"
+                                  }`}
+                                >
+                                  {r.isPlus ? "+" : "-"}
+                                  {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
+                                </td>
+                                <td className="px-1 py-1 text-right tabular-nums font-semibold text-amber-900">
+                                  {Math.max(0, Math.floor(Number(r.balanceAfter) || 0)).toLocaleString("th-TH")}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </details>
                 </li>
               );
             })}
