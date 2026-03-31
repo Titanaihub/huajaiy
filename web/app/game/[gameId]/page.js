@@ -45,7 +45,7 @@ export default async function GamePlayPage({ params }) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         <div className="rounded-3xl border border-white/80 bg-white/95 p-4 shadow-soft sm:p-6">
           <div className="flex items-center gap-4">
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50 shadow-sm ring-1 ring-slate-100">
