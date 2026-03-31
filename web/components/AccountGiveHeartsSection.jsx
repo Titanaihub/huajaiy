@@ -37,7 +37,7 @@ export default function AccountGiveHeartsSection() {
             href="/account/hearts-shop"
             className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
           >
-            ซื้อหัวใจ
+            ซื้อหัวใจแดง
           </Link>
           <Link
             href="/account/heart-history/purchases"

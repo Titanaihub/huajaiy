@@ -134,7 +134,7 @@ export default function MemberNav() {
                 className={`${cls} ${isActivePath(p, "/account/hearts-shop") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
                 role="menuitem"
               >
-                ซื้อหัวใจ
+                ซื้อหัวใจแดง
               </Link>
               <Link
                 href="/account/give-hearts"
