@@ -403,9 +403,22 @@ export default function AccountMyPrizesSection() {
   const [awards, setAwards] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wdRefreshing, setWdRefreshing] = useState(false);
   const [err, setErr] = useState("");
 
   const groups = useMemo(() => groupAwardsByCreator(awards), [awards]);
+
+  const refreshWithdrawals = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) return;
+    setWdRefreshing(true);
+    try {
+      const wdRes = await apiGetMyPrizeWithdrawals(token);
+      setWithdrawals(Array.isArray(wdRes.withdrawals) ? wdRes.withdrawals : []);
+    } finally {
+      setWdRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
