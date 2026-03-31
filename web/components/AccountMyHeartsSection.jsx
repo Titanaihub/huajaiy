@@ -110,14 +110,11 @@ export default function AccountMyHeartsSection() {
             {pink.toLocaleString("th-TH")}
           </p>
           <p className="mt-3 text-xs font-semibold uppercase text-red-900/80">
-            หัวใจแดงทั่วไป (ไม่รวมแดงจากรหัสห้อง)
+            หัวใจแดง (ใช้เล่นเกมเฉพาะห้องหรือเกมส่วนกลางตามกติกา)
           </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
             <InlineHeart className="text-red-600" />
             {red.toLocaleString("th-TH")}
-          </p>
-          <p className="mt-3 text-xs text-rose-900/70">
-            รวมในบัญชี {(pink + red).toLocaleString("th-TH")} ดวง (ไม่รวมแดงจากรหัสห้องด้านล่าง)
           </p>
           <button
             type="button"
@@ -174,21 +171,8 @@ export default function AccountMyHeartsSection() {
             </p>
           ) : null}
         </div>
-        <p className="mt-1 text-sm text-slate-600">
-          ยอดเหล่านี้ใช้หักค่าเข้าเล่นได้เมื่อเล่นเกมของเจ้าของคนนั้นโดยตรง — กดชื่อเกมด้านล่างเพื่อเข้าเล่น
-        </p>
 
-        {roomGift.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            ยังไม่มียอดแดงจากรหัสห้อง — แลกรหัสที่เจ้าห้องแจกได้ที่{" "}
-            <Link
-              href="/account/my-hearts"
-              className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
-            >
-              ใส่รหัสรับหัวใจแดง
-            </Link>
-          </p>
-        ) : (
+        {roomGift.length > 0 ? (
           <ul className="mt-4 space-y-4">
             {roomGift.map((g) => {
               const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
@@ -257,20 +241,7 @@ export default function AccountMyHeartsSection() {
               );
             })}
           </ul>
-        )}
-      </section>
-
-      <section className="max-w-2xl rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-4 text-sm text-slate-700">
-        <p className="font-semibold text-slate-900">ผู้สร้าง — ออกรหัสแจกผู้เล่น</p>
-        <p className="mt-1">
-          ยอดแดงแจกและช่องสร้างรหัสอยู่ที่{" "}
-          <Link
-            href="/account/give-hearts"
-            className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
-          >
-            เมนูผู้สร้าง → แจกหัวใจแดง
-          </Link>
-        </p>
+        ) : null}
       </section>
     </div>
   );
