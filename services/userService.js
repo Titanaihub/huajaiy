@@ -529,6 +529,7 @@ function adminMemberListItem(u) {
   const p = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
   const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
   const g = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
+  const room = Math.max(0, Math.floor(Number(u.roomGiftRedTotal) || 0));
   return {
     id: u.id,
     username: u.username,
@@ -541,6 +542,8 @@ function adminMemberListItem(u) {
     birthDate: u.birthDate ?? null,
     pinkHeartsBalance: p,
     redHeartsBalance: r,
+    roomGiftRedTotal: room,
+    redHeartsDisplay: r + room,
     redGiveawayBalance: g,
     heartsBalance: p + r + g,
     accountDisabled: Boolean(u.accountDisabled),
@@ -947,8 +950,31 @@ async function listMembers({ q = "", limit = 50, offset = 0 } = {}) {
        LIMIT $2 OFFSET $3`,
       [pattern, lim, off]
     );
+    const usersRaw = r.rows.map((row) => rowToUser(row));
+    const ids = usersRaw.map((u) => String(u.id || "")).filter(Boolean);
+    let roomGiftMap = new Map();
+    if (ids.length > 0) {
+      const rr = await pool.query(
+        `SELECT user_id::text AS uid, COALESCE(SUM(balance), 0)::int AS total
+         FROM user_room_red_balance
+         WHERE user_id = ANY($1::uuid[])
+         GROUP BY user_id`,
+        [ids]
+      );
+      roomGiftMap = new Map(
+        rr.rows.map((row) => [
+          String(row.uid),
+          Math.max(0, Math.floor(Number(row.total) || 0))
+        ])
+      );
+    }
     return {
-      users: r.rows.map((row) => adminMemberListItem(rowToUser(row))),
+      users: usersRaw.map((u) =>
+        adminMemberListItem({
+          ...u,
+          roomGiftRedTotal: roomGiftMap.get(String(u.id)) || 0
+        })
+      ),
       total,
       limit: lim,
       offset: off
@@ -960,8 +986,31 @@ async function listMembers({ q = "", limit = 50, offset = 0 } = {}) {
     `SELECT * FROM users ORDER BY created_at DESC NULLS LAST LIMIT $1 OFFSET $2`,
     [lim, off]
   );
+  const usersRaw = r.rows.map((row) => rowToUser(row));
+  const ids = usersRaw.map((u) => String(u.id || "")).filter(Boolean);
+  let roomGiftMap = new Map();
+  if (ids.length > 0) {
+    const rr = await pool.query(
+      `SELECT user_id::text AS uid, COALESCE(SUM(balance), 0)::int AS total
+       FROM user_room_red_balance
+       WHERE user_id = ANY($1::uuid[])
+       GROUP BY user_id`,
+      [ids]
+    );
+    roomGiftMap = new Map(
+      rr.rows.map((row) => [
+        String(row.uid),
+        Math.max(0, Math.floor(Number(row.total) || 0))
+      ])
+    );
+  }
   return {
-    users: r.rows.map((row) => adminMemberListItem(rowToUser(row))),
+    users: usersRaw.map((u) =>
+      adminMemberListItem({
+        ...u,
+        roomGiftRedTotal: roomGiftMap.get(String(u.id)) || 0
+      })
+    ),
     total,
     limit: lim,
     offset: off

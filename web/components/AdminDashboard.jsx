@@ -639,6 +639,12 @@ export default function AdminDashboard() {
                     list.map((u) => {
                       const rowId =
                         u.id != null && String(u.id).trim() !== "" ? String(u.id).trim() : "";
+                      const redMain = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
+                      const redRoom = Math.max(0, Math.floor(Number(u.roomGiftRedTotal) || 0));
+                      const redDisplay = Math.max(
+                        0,
+                        Math.floor(Number(u.redHeartsDisplay) || redMain + redRoom)
+                      );
                       return (
                       <tr
                         key={rowId || u.username}
@@ -666,7 +672,12 @@ export default function AdminDashboard() {
                           {u.pinkHeartsBalance ?? 0}
                         </td>
                         <td className="px-3 py-2 font-medium text-red-700">
-                          {u.redHeartsBalance ?? 0}
+                          <span className="tabular-nums">{redDisplay.toLocaleString("th-TH")}</span>
+                          {redRoom > 0 ? (
+                            <span className="ml-1 text-[10px] font-semibold text-amber-900/90">
+                              (+ห้อง {redRoom.toLocaleString("th-TH")})
+                            </span>
+                          ) : null}
                         </td>
                         <td className="px-3 py-2 font-medium text-rose-900">
                           {u.redGiveawayBalance ?? 0}
