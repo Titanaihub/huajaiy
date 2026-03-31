@@ -50,7 +50,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="th" className={sarabun.variable}>
       <body
-        className={`${sarabun.className} min-h-screen bg-brand-50 text-slate-900 antialiased`}
+        className={`${sarabun.className} min-h-screen bg-[#E63946] text-slate-900 antialiased`}
       >
         <MemberAuthProvider>
           <ImpersonationBanner />
