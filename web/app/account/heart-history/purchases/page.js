@@ -1,7 +1,7 @@
 import AccountHeartHistorySection from "../../../../components/AccountHeartHistorySection";
 
 export const metadata = {
-  title: "ประวัติหัวใจ (ซื้อหัวใจ) | HUAJAIY"
+  title: "ประวัติหัวใจแดง | HUAJAIY"
 };
 
 export default function AccountHeartHistoryPurchasesPage() {

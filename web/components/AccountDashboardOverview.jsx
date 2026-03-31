@@ -70,7 +70,7 @@ export default function AccountDashboardOverview() {
             ) : null}
             <p className="mt-2 text-xs text-rose-900/70">
               รวมในบัญชี (ชมพู + แดงเล่นได้) {(pink + red).toLocaleString("th-TH")} — แดงแจกสำหรับออกรหัสดูที่เมนู
-              「แจกหัวใจ」— มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
+              「แจกหัวใจแดง」— มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
             </p>
             <button
               type="button"
@@ -96,7 +96,7 @@ export default function AccountDashboardOverview() {
                 href="/account/give-hearts"
                 className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
               >
-                แจกหัวใจ (ทุนรหัสห้อง)
+                แจกหัวใจแดง (ทุนรหัสห้อง)
               </Link>
             </p>
           </div>

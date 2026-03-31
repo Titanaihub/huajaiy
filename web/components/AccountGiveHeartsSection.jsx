@@ -27,7 +27,7 @@ export default function AccountGiveHeartsSection() {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold text-slate-900">แจกหัวใจ</h2>
+        <h2 className="text-lg font-semibold text-slate-900">แจกหัวใจแดง</h2>
         <p className="mt-1 text-sm text-slate-600">
           หัวใจแดงที่ซื้อจากแอดมินเข้ายอด<strong>แดงแจก</strong>ด้านล่าง — ใช้เป็นทุนสร้างรหัสให้ผู้เล่นนำไปแลก
           (ได้แดงห้อง ไม่ใช่แดงทั่วไป) ยอดนี้<strong>ไม่ถูกหักตอนเล่นเกม</strong>
@@ -43,7 +43,7 @@ export default function AccountGiveHeartsSection() {
             href="/account/heart-history/purchases"
             className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
           >
-            ประวัติหัวใจ (ซื้อหัวใจ)
+            ประวัติหัวใจแดง
           </Link>
           <Link
             href="/account/my-hearts"

@@ -139,7 +139,7 @@ export default function AccountMyHeartsSection() {
               href="/account/give-hearts#room-red-redeem"
               className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
             >
-              แจกหัวใจ → แลกรหัส
+              แจกหัวใจแดง → แลกรหัส
             </Link>
           </p>
         ) : (
@@ -222,7 +222,7 @@ export default function AccountMyHeartsSection() {
             href="/account/give-hearts"
             className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
           >
-            เมนูผู้สร้าง → แจกหัวใจ
+            เมนูผู้สร้าง → แจกหัวใจแดง
           </Link>
         </p>
       </section>

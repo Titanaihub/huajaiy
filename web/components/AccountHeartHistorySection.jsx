@@ -152,14 +152,14 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
     variant === "play"
       ? "ประวัติหัวใจ (การเล่นเกม)"
       : variant === "purchase"
-        ? "ประวัติหัวใจ (การซื้อ / ทุนรหัสห้อง)"
+        ? "ประวัติหัวใจแดง"
         : "ประวัติหัวใจ";
 
   const blurb =
     variant === "play"
       ? "เฉพาะรายการที่หักหัวใจตอนเริ่มเล่นเกมส่วนกลาง (และโหมดที่บันทึกแบบเดียวกัน)"
       : variant === "purchase"
-        ? "การซื้อแพ็กหัวใจที่แอดมินอนุมัติ และการหัก/คืนแดงเมื่อสร้างหรือลบรหัสแจกห้อง"
+        ? "รวมการซื้อแพ็กหัวใจแดงแจกที่อนุมัติแล้ว และการหัก/คืนแดงเมื่อสร้างหรือลบรหัสแจกห้อง"
         : "บันทึกเมื่อมีการเพิ่มหรือหักหัวใจชมพู/แดงบนเซิร์ฟเวอร์";
 
   useEffect(() => {
@@ -220,12 +220,12 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
         <p className="mt-2 text-xs text-slate-500">
           {variant === "play" ? (
             <>
-              ดูการซื้อหัวใจได้ที่{" "}
+              ดูประวัติหัวใจแดงได้ที่{" "}
               <Link
                 href="/account/heart-history/purchases"
                 className="font-semibold text-brand-800 underline underline-offset-2 hover:text-brand-950"
               >
-                ประวัติหัวใจ (ซื้อหัวใจ)
+                ประวัติหัวใจแดง
               </Link>
             </>
           ) : (
