@@ -793,12 +793,27 @@ router.get(
       }
       images.sort((a, b) => a.setIndex - b.setIndex || a.imageIndex - b.imageIndex);
       const prizeAwardCount = await centralGameService.getPrizeAwardCountForGame(id);
+      const awardByRule = await centralGameService.getPrizeAwardCountByRule(id);
+      const rules = (snap.rules || []).map((r) => {
+        const rid = r?.id != null ? String(r.id).trim().toLowerCase() : "";
+        const awarded = Math.max(0, Math.floor(Number(awardByRule[rid])) || 0);
+        const total =
+          r?.prizeCategory === "none"
+            ? null
+            : Math.max(1, Math.floor(Number(r?.prizeTotalQty) || 1));
+        const remaining = total == null ? null : Math.max(0, total - awarded);
+        return {
+          ...r,
+          prizeAwardedCount: awarded,
+          prizeRemainingQty: remaining
+        };
+      });
       return res.json({
         ok: true,
         game: snap.game,
         prizeAwardCount,
         images,
-        rules: snap.rules
+        rules
       });
     } catch (e) {
       if (e.code === "DB_REQUIRED") {

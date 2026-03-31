@@ -367,6 +367,25 @@ async function getPrizeAwardCountForGame(gameId) {
   return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
 }
 
+/** จำนวนรับรางวัลแยกรายกติกา */
+async function getPrizeAwardCountByRule(gameId) {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT rule_id::text AS rid, COUNT(*)::int AS c
+     FROM central_prize_awards
+     WHERE game_id = $1::uuid AND rule_id IS NOT NULL
+     GROUP BY rule_id`,
+    [gameId]
+  );
+  const out = {};
+  for (const row of r.rows) {
+    const k = String(row.rid || "").trim().toLowerCase();
+    if (!k) continue;
+    out[k] = Math.max(0, Math.floor(Number(row.c)) || 0);
+  }
+  return out;
+}
+
 function normalizePinkRedCosts(body, fallbackPink = 0, fallbackRed = 0) {
   let pink = Math.max(0, Math.floor(Number(body?.pinkHeartCost) || 0));
   let red = Math.max(0, Math.floor(Number(body?.redHeartCost) || 0));
@@ -1166,6 +1185,7 @@ module.exports = {
   listPublishedGamesForPublic,
   listGamesForAdmin,
   getPrizeAwardCountForGame,
+  getPrizeAwardCountByRule,
   createGame,
   updateGameMeta,
   replaceImages,

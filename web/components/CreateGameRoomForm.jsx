@@ -341,9 +341,6 @@ export default function CreateGameRoomForm() {
           className="scroll-mt-8 border-t border-slate-200 pt-10"
         >
           <h3 className="text-base font-semibold text-slate-900">ตั้งค่าห้องเกม</h3>
-          <p className="mt-1 text-sm text-slate-600">
-            เลือกเกมในตาราง อัปโหลดรูป กำหนดกติกา แล้วเผยแพร่เมื่อพร้อม — ใช้ระบบเดียวกับแผงเกมส่วนกลาง
-          </p>
           <div className="mt-6">
             <AdminCentralGamePanel key={studioGameId} embedded focusGameId={studioGameId} />
           </div>

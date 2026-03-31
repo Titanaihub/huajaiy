@@ -136,9 +136,16 @@ function RuleEditorRow({
   );
   const cap = needCap ?? Math.max(1, parseInt(String(setSizes[si] ?? setSizes[0]), 10) || 1);
   const isNone = r.prizeCategory === "none";
+  const awardedCount = Math.max(0, Math.floor(Number(r.prizeAwardedCount) || 0));
+  const totalQty = isNone ? null : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1));
+  const remainingQty = totalQty == null ? null : Math.max(0, totalQty - awardedCount);
   const prizeQtyMin =
-    gamePrizeQtyLocked && !isNone && r.minPrizeTotalQty != null
-      ? r.minPrizeTotalQty
+    gamePrizeQtyLocked && !isNone
+      ? Math.max(
+          1,
+          Math.floor(Number(r.minPrizeTotalQty) || 1),
+          Math.floor(Number(awardedCount) || 0)
+        )
       : 1;
   return (
     <div className="grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
@@ -217,6 +224,9 @@ function RuleEditorRow({
                 หลังเผยแพร่: เพิ่มได้เท่านั้น (ขั้นต่ำ {prizeQtyMin})
               </p>
             ) : null}
+            <p className="mt-0.5 text-[9px] leading-tight text-slate-500">
+              รับรางวัลแล้ว {awardedCount} · เหลือ {remainingQty} จากทั้งหมด {totalQty}
+            </p>
           </>
         )}
       </div>
@@ -474,7 +484,18 @@ export default function AdminCentralGamePanel({
                 sortOrder,
                 description: r.description || "",
                 prizeTotalQty: q,
-                minPrizeTotalQty: r.prizeCategory === "none" ? null : q
+                minPrizeTotalQty: r.prizeCategory === "none" ? null : q,
+                prizeAwardedCount:
+                  r.prizeCategory === "none"
+                    ? 0
+                    : Math.max(0, Math.floor(Number(r.prizeAwardedCount) || 0)),
+                prizeRemainingQty:
+                  r.prizeCategory === "none"
+                    ? null
+                    : Math.max(
+                        0,
+                        q - Math.max(0, Math.floor(Number(r.prizeAwardedCount) || 0))
+                      )
               };
             })
           : Array.from({ length: sc }, (_, s) => emptyRuleForSet(s))
@@ -869,17 +890,6 @@ export default function AdminCentralGamePanel({
 
   return (
     <section className="space-y-8 text-sm">
-      <details className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
-        <summary className="cursor-pointer font-medium text-slate-800">คำอธิบายสั้น (กดเปิด)</summary>
-        <p className="mt-2 border-t border-slate-100 pt-2">
-          เลือกเกมจากตาราง → แต่ละชุดตั้งป้าย รูป และกติกาในแถวเดียวกัน → กด <strong>บันทึกข้อมูล</strong> แถบล่าง →{" "}
-          <strong>เผยแพร่</strong> เมื่อพร้อม
-        </p>
-        <p className="mt-2 text-slate-600">
-          ฝั่งผู้เล่น: ป้ายที่เปิดแล้วจะมี<strong>กรอบเขียวเฉพาะหน้ารางวัล</strong>ในชุดที่กติกาไม่ใช่「ไม่มีรางวัล」— โดยถือว่า{" "}
-          <strong>ภาพลำดับสุดท้ายในชุด</strong> (หมายเลขสูงสุด) เป็นหน้าไม่ชนะ เช่น หน้าเศร้า — จัดลำดับรูปในชุดให้ตรงกับเกม
-        </p>
-      </details>
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
         <p className={msg.includes("แล้ว") ? "text-green-700" : "text-amber-800"}>{msg}</p>
@@ -1146,9 +1156,7 @@ export default function AdminCentralGamePanel({
 
           {prizeAwardCount > 0 ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
-              <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะชื่อเกม
-              คำอธิบาย รูปหน้าปก/หลังป้าย การแสดงในล็อบบี้ และ<strong>เพิ่มจำนวนรางวัล</strong>ในแถวเดิมเท่านั้น ·
-              โครงจำนวนชุด/ป้าย รูปป้าย การหักหัวใจ และเงื่อนไขกติกาอื่นถูกล็อกเพื่อความเป็นธรรมกับผู้เล่น
+              <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
             </div>
           ) : null}
 
@@ -1209,8 +1217,6 @@ export default function AdminCentralGamePanel({
                 />
                 <label htmlFor="central-game-lobby-visible" className="text-xs leading-relaxed text-slate-700">
                   <span className="font-semibold text-slate-900">แสดงในหน้าเกม (รายการ)</span>
-                  — เกมจะอยู่ในล็อบบี้ <span className="font-mono text-[11px]">/game</span> ให้ผู้เล่นค้นหาและคลิกเข้าเล่น ·
-                  กด「บันทึกข้อมูล」เพื่อยืนยัน · การเปิด「เผยแพร่บนเว็บ」จะเปิดตัวเลือกนี้ให้อัตโนมัติ · ต้องอัปโหลดรูปครบและมีกติกาที่เล่นได้ก่อนจึงจะติ๊กได้สำเร็จ
                 </label>
               </div>
               <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
@@ -1223,8 +1229,6 @@ export default function AdminCentralGamePanel({
                 />
                 <label htmlFor="central-game-allow-gift-red" className="text-xs leading-relaxed text-amber-950">
                   <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
-                  — ถ้าเปิด ผู้เล่นสามารถใช้ยอดแดงที่ได้จากการแลกรหัสจากเจ้าของห้องคนใดก็ได้มาหักเล่นในเกมนี้ได้
-                  (เหมาะกับเกมกลางที่แอดมินตั้ง) · ถ้าปิด ผู้เล่นจะใช้แดงจากรหัสได้เฉพาะในเกมของเจ้าของห้องที่ออกรหัสนั้น
                 </label>
               </div>
               <div>
