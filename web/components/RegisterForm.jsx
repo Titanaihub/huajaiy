@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiCheckDuplicateName } from "../lib/memberApi";
 import {
-  COUNTRY_NON_TH,
   COUNTRY_TH,
   firstNameEnglishHint,
   lastNameEnglishHint,
@@ -24,7 +23,7 @@ const inputWarn = "border-amber-500 bg-amber-50/40 ring-1 ring-amber-400/80";
 export default function RegisterForm() {
   const router = useRouter();
   const { register } = useMemberAuth();
-  const [countryCode, setCountryCode] = useState(COUNTRY_TH);
+  const [countryCode] = useState(COUNTRY_TH);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -147,28 +146,6 @@ export default function RegisterForm() {
         </p>
       </div>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <div>
-          <label
-            htmlFor="countryCode"
-            className="block text-sm font-medium text-slate-700"
-          >
-            ประเทศ / ประเภทเอกสารชื่อ–นามสกุล
-          </label>
-          <select
-            id="countryCode"
-            value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
-            className={`${inputBase} ${inputNormal} bg-white`}
-          >
-            <option value={COUNTRY_TH}>
-              ประเทศไทย — กรอกชื่อ–นามสกุลภาษาไทย (ตามบัตรประชาชน)
-            </option>
-            <option value={COUNTRY_NON_TH}>
-              ต่างประเทศ — กรอกชื่อ–นามสกุลภาษาอังกฤษ (ตามหนังสือเดินทาง)
-            </option>
-          </select>
-        </div>
-
         <div>
           <label
             htmlFor="firstName"
