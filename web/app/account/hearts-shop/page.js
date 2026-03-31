@@ -2,7 +2,7 @@ import HeartShopClient from "../../../components/HeartShopClient";
 
 export const metadata = {
   title: "ซื้อหัวใจแดง | HUAJAIY",
-  description: "แพ็กหัวใจแดงแจก แนบสลิปรอแอดมินอนุมัติ — ยอดไปที่เมนูแจกหัวใจ"
+  description: "แพ็กหัวใจแดง แนบสลิปรออนุมัติ — ยอดไปที่เมนูผู้สร้าง แจกหัวใจแดง"
 };
 
 export default function HeartsShopPage() {

@@ -125,7 +125,7 @@ export default function HeartShopClient() {
       await apiCreateHeartPurchase(selected.id, url);
       setSelected(null);
       setSlipFile(null);
-      setMsg("ส่งคำขอแล้ว — รอแอดมินอนุมัติ · หลังอนุมัติดูยอดที่เมนู「แจกหัวใจ」");
+      setMsg("ส่งคำขอแล้ว — รอระบบอนุมัติ · หลังอนุมัติดูยอดที่เมนูผู้สร้าง → แจกหัวใจแดง");
       await loadAll();
       await refresh();
     } catch (e) {
@@ -142,7 +142,8 @@ export default function HeartShopClient() {
   return (
     <div className="space-y-8">
       <p className="text-sm text-slate-600">
-        เมื่อแอดมินอนุมัติแล้ว หัวใจแดงจะเข้ายอด<strong>แจกหัวใจ</strong> (เมนูผู้ใช้งาน → แจกหัวใจ / ทุนรหัสห้อง)
+        เมื่อระบบอนุมัติการซื้อ จำนวนหัวใจแดงจะเข้าไปในเมนู <strong>แจกหัวใจ</strong> (เมนูผู้สร้าง →
+        แจกหัวใจแดง)
       </p>
       {loadErr ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -166,11 +167,9 @@ export default function HeartShopClient() {
                 }`}
               >
                 <p className="font-semibold text-slate-900">{p.title}</p>
-                {p.description ? (
-                  <p className="mt-1 text-sm text-slate-600">{p.description}</p>
-                ) : null}
-                <p className="mt-3 text-sm text-slate-700">
-                  หัวใจแดงสำหรับเอาไว้แจกเล่นเกม
+                <p className="mt-2 text-sm text-slate-700">
+                  {(p.description || "").trim() ||
+                    "หัวใจแดงสำหรับเอาไว้แจกเล่นเกม"}
                 </p>
                 <p className="mt-1 flex flex-wrap items-baseline gap-x-1 text-base text-slate-800">
                   <span>หัวใจแดง</span>
