@@ -88,33 +88,35 @@ export default function AccountMyHeartsSection() {
   }
 
   const pink = Number(user.pinkHeartsBalance ?? 0);
-  const red = Number(user.redHeartsBalance ?? 0);
+  const playableRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
   const roomGift = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
+  const roomRedFromCodesSum = roomGift.reduce(
+    (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
+    0
+  );
+  const redTotalDisplay = playableRed + roomRedFromCodesSum;
 
   return (
     <div className="space-y-8">
       <header>
         <h2 className="text-lg font-semibold text-slate-900">หัวใจของฉัน</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          ตรวจยอดหัวใจทั่วไปและหัวใจแดงที่ได้จากรหัสห้อง — แต่ละเจ้าของห้องใช้เล่นได้เฉพาะเกมที่เขาเผยแพร่ (หรือเกมส่วนกลางที่เปิดรับแดงจากรหัสห้อง)
-        </p>
       </header>
 
       <section className="max-w-2xl">
         <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-4 shadow-sm">
           <p className="text-xs font-semibold uppercase text-rose-800/80">
-            หัวใจชมพู (ใช้ได้ทั่วไปตามกติกาเกม)
+            หัวใจชมพู (ยอดสรุปหัวใจที่ได้มา)
           </p>
           <p className="mt-2 flex items-center gap-2 text-2xl font-bold text-rose-900">
             <InlineHeart className="text-rose-400" />
             {pink.toLocaleString("th-TH")}
           </p>
           <p className="mt-3 text-xs font-semibold uppercase text-red-900/80">
-            หัวใจแดง (ใช้เล่นเกมเฉพาะห้องหรือเกมส่วนกลางตามกติกา)
+            หัวใจแดง (รวมจากทุกห้อง,เล่นได้เฉพาะห้องหรือเกมส่วนกลางที่กำหนด)
           </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
             <InlineHeart className="text-red-600" />
-            {red.toLocaleString("th-TH")}
+            {redTotalDisplay.toLocaleString("th-TH")}
           </p>
           <button
             type="button"
@@ -170,10 +172,11 @@ export default function AccountMyHeartsSection() {
               {redeemMsg}
             </p>
           ) : null}
-        </div>
 
-        {roomGift.length > 0 ? (
-          <ul className="mt-4 space-y-4">
+          {roomGift.length > 0 ? (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <p className="mb-3 text-xs font-semibold text-slate-700">แยกตามห้อง</p>
+              <ul className="space-y-4">
             {roomGift.map((g) => {
               const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
               const un = normUser(g.creatorUsername);
@@ -240,8 +243,10 @@ export default function AccountMyHeartsSection() {
                 </li>
               );
             })}
-          </ul>
-        ) : null}
+              </ul>
+            </div>
+          ) : null}
+        </div>
       </section>
     </div>
   );
