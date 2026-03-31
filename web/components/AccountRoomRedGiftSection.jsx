@@ -217,8 +217,7 @@ export default function AccountRoomRedGiftSection() {
           </button>
         </div>
         <p className="text-xs text-amber-900/90">
-          คาดว่าจะหักรวม <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong> (แดงแจกก่อน
-          แล้วจึงแดงเล่นได้) — ถ้ารวมไม่พอระบบจะไม่สร้างรหัส
+          คาดว่าจะหักหัวใจแดงรวม <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong>
         </p>
       </form>
       {createMsg ? (
