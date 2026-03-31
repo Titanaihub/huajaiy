@@ -52,16 +52,8 @@ export default function MemberNav() {
   }
 
   if (user) {
-    const label = `${user.firstName} ${user.lastName}`.trim() || user.username;
     return (
       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:gap-x-3">
-        <span
-          className="max-w-[120px] truncate text-sm font-medium text-slate-800 sm:max-w-[160px]"
-          title={label}
-        >
-          {label}
-        </span>
-
         <NavDropdown label="ผู้ใช้งาน">
           {({ pathname: p, dropItem: cls }) => (
             <>
