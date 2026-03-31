@@ -232,7 +232,7 @@ export default function AccountRoomRedGiftSection() {
           <h4 className="text-sm font-semibold text-slate-800">
             รหัสที่คุณสร้าง
             <span className="mt-0.5 block text-xs font-normal text-slate-500">
-              รหัสที่ยังไม่ถูกใช้งานสามารถกดยกเลิกได้ (เก็บประวัติรหัสหัวใจด้วย ว่ายูสเซอร์ไหนใช้หรือว่ายกเลิก)
+              รหัสที่ยังไม่ถูกใช้งานสามารถกดยกเลิกได้
             </span>
           </h4>
           <div className="flex flex-wrap items-center gap-2">
