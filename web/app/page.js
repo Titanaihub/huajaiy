@@ -86,96 +86,96 @@ export default async function HomePage() {
         </section>
 
         <section className="mt-14 md:mt-16" aria-labelledby="game-published-heading">
-          <div className="rounded-3xl border border-white/80 bg-white/95 p-5 shadow-soft sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h2 id="game-published-heading" className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
-                  โซนเกม
-                </h2>
-                <p className="mt-1 text-sm text-slate-600">
-                  เกมที่เผยแพร่แล้วในระบบ — แตะการ์ดเพื่อเข้าเล่นได้ทันที
-                </p>
-              </div>
-              <Link href="/game" className={btnSecondary}>
-                ดูเกมทั้งหมด
-              </Link>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 id="game-published-heading" className="text-lg font-bold tracking-tight text-white sm:text-xl">
+                โซนเกม
+              </h2>
+              <p className="mt-1 text-sm text-rose-50/95">
+                เกมที่เผยแพร่แล้วในระบบ — แตะการ์ดเพื่อเข้าเล่นได้ทันที
+              </p>
             </div>
+            <Link href="/game" className={btnSecondary}>
+              ดูเกมทั้งหมด
+            </Link>
+          </div>
 
-            {centralMeta ? (
-              <div className="mt-5 rounded-2xl border border-brand-200/80 bg-brand-50/60 p-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-brand-200/80 bg-white shadow-sm">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={centralMeta.coverImageUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900">{centralMeta.title}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3">
-                      <Link href="/game" className={btnPrimary}>
-                        เข้าเล่น「{centralMeta.title}」
-                      </Link>
-                      <span className="inline-flex items-center rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-900">
-                        {centralMeta.cardCount} ป้าย
-                      </span>
-                    </div>
+          {centralMeta ? (
+            <div className="mt-5 rounded-2xl border border-rose-200 bg-white p-4 shadow-sm sm:p-5">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={centralMeta.coverImageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xl font-semibold leading-snug tracking-tight text-slate-900">
+                    {centralMeta.title}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <Link href="/game" className={btnPrimary}>
+                      เข้าเล่น「{centralMeta.title}」
+                    </Link>
+                    <span className="inline-flex items-center rounded-full border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-700">
+                      {centralMeta.cardCount} ป้าย
+                    </span>
                   </div>
                 </div>
-                {centralMeta.description ? (
-                  <p className="mt-3 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                    {centralMeta.description}
-                  </p>
-                ) : null}
               </div>
-            ) : null}
+              {centralMeta.description ? (
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                  {centralMeta.description}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
-            {featuredGames.length > 0 ? (
-              <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {featuredGames.map((g) => {
-                  const cover = String(g.gameCoverUrl || "").trim() || DEFAULT_CENTRAL_GAME_COVER_PATH;
-                  return (
-                    <li key={g.id}>
-                      <Link
-                        href={`/game/${encodeURIComponent(g.id)}`}
-                        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md"
-                      >
-                        <div className="flex gap-3 p-4">
-                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={cover} alt="" className="h-full w-full object-cover" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-                              {g.title || "เกม"}
-                            </p>
-                            <p className="mt-1 text-[11px] text-slate-500">
-                              ผู้สร้าง:{" "}
-                              <span className="font-medium text-slate-700">
-                                {g.creatorUsername ? `@${g.creatorUsername}` : "แอดมิน"}
-                              </span>
-                            </p>
-                          </div>
+          {featuredGames.length > 0 ? (
+            <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredGames.map((g) => {
+                const cover = String(g.gameCoverUrl || "").trim() || DEFAULT_CENTRAL_GAME_COVER_PATH;
+                return (
+                  <li key={g.id}>
+                    <Link
+                      href={`/game/${encodeURIComponent(g.id)}`}
+                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md"
+                    >
+                      <div className="flex gap-3 p-4">
+                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={cover} alt="" className="h-full w-full object-cover" />
                         </div>
-                        <p className="line-clamp-3 border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-600">
-                          {String(g.description || "").trim() || "ไม่มีคำอธิบายสั้น"}
-                        </p>
-                        <span className="mt-auto border-t border-slate-100 bg-brand-50/60 px-4 py-2.5 text-center text-xs font-semibold text-brand-900">
-                          เข้าเล่นเกมนี้
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-                ยังไม่มีเกมที่เปิดแสดง
-              </p>
-            )}
-          </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
+                            {g.title || "เกม"}
+                          </p>
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            ผู้สร้าง:{" "}
+                            <span className="font-medium text-slate-700">
+                              {g.creatorUsername ? `@${g.creatorUsername}` : "แอดมิน"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <p className="line-clamp-3 border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-600">
+                        {String(g.description || "").trim() || "ไม่มีคำอธิบายสั้น"}
+                      </p>
+                      <span className="mt-auto border-t border-slate-100 bg-brand-50/60 px-4 py-2.5 text-center text-xs font-semibold text-brand-900">
+                        เข้าเล่นเกมนี้
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+              ยังไม่มีเกมที่เปิดแสดง
+            </p>
+          )}
         </section>
 
         <section className="mt-14 md:mt-16" aria-labelledby="shortcuts-heading">
