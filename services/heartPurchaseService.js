@@ -11,12 +11,27 @@ function rowToPurchase(row) {
     pinkQty: Math.max(0, Math.floor(Number(row.pink_qty) || 0)),
     redQty: Math.max(0, Math.floor(Number(row.red_qty) || 0)),
     priceThbSnapshot: Math.max(0, Math.floor(Number(row.price_thb_snapshot) || 0)),
-    slipUrl: row.slip_url,
+    slipUrl: row.slip_url != null ? String(row.slip_url).trim() || null : null,
     status: row.status,
     adminNote: row.admin_note || null,
     createdAt: row.created_at,
     resolvedAt: row.resolved_at || null,
     resolvedBy: row.resolved_by || null
+  };
+}
+
+function rowToMine(row) {
+  const base = rowToPurchase(row);
+  return {
+    ...base,
+    packageTitle: row.package_title != null ? String(row.package_title).trim() : "",
+    paymentAccountName:
+      row.payment_account_name != null ? String(row.payment_account_name).trim() : "",
+    paymentAccountNumber:
+      row.payment_account_number != null ? String(row.payment_account_number).trim() : "",
+    paymentBankName:
+      row.payment_bank_name != null ? String(row.payment_bank_name).trim() : "",
+    paymentQrUrl: row.payment_qr_url != null ? String(row.payment_qr_url).trim() : ""
   };
 }
 
@@ -30,6 +45,17 @@ async function hasPendingForUser(userId) {
   return r.rows.length > 0;
 }
 
+function normalizeSlipUrl(slipUrl) {
+  const raw = slipUrl != null ? String(slipUrl).trim().slice(0, 2000) : "";
+  if (!raw) return null;
+  if (!raw.startsWith("https://") && !raw.startsWith("http://")) {
+    const e = new Error("ต้องแนบ URL รูปสลิป (https)");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  return raw;
+}
+
 async function createPurchase(userId, packageId, slipUrl) {
   const pool = getPool();
   if (!pool) {
@@ -37,14 +63,11 @@ async function createPurchase(userId, packageId, slipUrl) {
     err.code = "DB_REQUIRED";
     throw err;
   }
-  const url = String(slipUrl || "").trim().slice(0, 2000);
-  if (!url.startsWith("https://") && !url.startsWith("http://")) {
-    const e = new Error("ต้องแนบ URL รูปสลิป (https)");
-    e.code = "VALIDATION";
-    throw e;
-  }
+  const url = normalizeSlipUrl(slipUrl);
   if (await hasPendingForUser(userId)) {
-    const e = new Error("มีคำขอซื้อหัวใจที่รออนุมัติอยู่แล้ว — รอแอดมินก่อนส่งใหม่");
+    const e = new Error(
+      "มีรายการสั่งซื้อหัวใจที่ยังไม่จบอยู่แล้ว — แนบสลิปหรือรอแอดมินอนุมัติก่อนสั่งใหม่"
+    );
     e.code = "PENDING_EXISTS";
     throw e;
   }
@@ -77,6 +100,34 @@ async function createPurchase(userId, packageId, slipUrl) {
   return rowToPurchase(r.rows[0]);
 }
 
+async function attachSlip(userId, purchaseId, slipUrl) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const url = normalizeSlipUrl(slipUrl);
+  if (!url) {
+    const e = new Error("ต้องแนบ URL รูปสลิป (https)");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const r = await pool.query(
+    `UPDATE heart_purchases SET slip_url = $1
+     WHERE id = $2 AND user_id = $3 AND status = 'pending'
+       AND slip_url IS NULL
+     RETURNING *`,
+    [url, purchaseId, userId]
+  );
+  if (r.rows.length === 0) {
+    const e = new Error("ไม่พบรายการ แนบสลิปแล้ว หรือไม่สามารถแก้ไขได้");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  return rowToPurchase(r.rows[0]);
+}
+
 async function listMine(userId, limit = 50) {
   const pool = getPool();
   if (!pool) {
@@ -86,11 +137,20 @@ async function listMine(userId, limit = 50) {
   }
   const lim = Math.min(Math.max(Number(limit) || 50, 1), 100);
   const r = await pool.query(
-    `SELECT * FROM heart_purchases WHERE user_id = $1
-     ORDER BY created_at DESC LIMIT $2`,
+    `SELECT p.*,
+            pk.title AS package_title,
+            pk.payment_account_name,
+            pk.payment_account_number,
+            pk.payment_bank_name,
+            pk.payment_qr_url
+     FROM heart_purchases p
+     JOIN heart_packages pk ON pk.id = p.package_id
+     WHERE p.user_id = $1
+     ORDER BY p.created_at DESC
+     LIMIT $2`,
     [userId, lim]
   );
-  return r.rows.map(rowToPurchase);
+  return r.rows.map(rowToMine);
 }
 
 async function listPendingForAdmin(limit = 100) {
@@ -109,6 +169,8 @@ async function listPendingForAdmin(limit = 100) {
      JOIN users u ON u.id = p.user_id
      JOIN heart_packages pk ON pk.id = p.package_id
      WHERE p.status = 'pending'
+       AND p.slip_url IS NOT NULL
+       AND trim(COALESCE(p.slip_url, '')) <> ''
      ORDER BY p.created_at ASC
      LIMIT $1`,
     [lim]
@@ -154,6 +216,14 @@ async function approve(purchaseId, adminUserId, note) {
     if (row.status !== "pending") {
       await client.query("ROLLBACK");
       const e = new Error("รายการนี้ดำเนินการแล้ว");
+      e.code = "BAD_STATUS";
+      throw e;
+    }
+    const slipOk =
+      row.slip_url != null && String(row.slip_url).trim().length > 0;
+    if (!slipOk) {
+      await client.query("ROLLBACK");
+      const e = new Error("รายการนี้ยังไม่มีสลิป — ไม่อนุมัติได้");
       e.code = "BAD_STATUS";
       throw e;
     }
@@ -255,6 +325,7 @@ async function reject(purchaseId, adminUserId, note) {
 
 module.exports = {
   createPurchase,
+  attachSlip,
   listMine,
   listPendingForAdmin,
   findById,

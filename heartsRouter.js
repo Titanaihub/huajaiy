@@ -54,6 +54,37 @@ router.post("/purchases", authMiddleware, async (req, res) => {
   }
 });
 
+router.patch("/purchases/:id", authMiddleware, async (req, res) => {
+  try {
+    const id = req.params?.id;
+    const slipUrl = req.body?.slipUrl;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ ok: false, error: "ต้องมีรหัสรายการ" });
+    }
+    const purchase = await heartPurchaseService.attachSlip(
+      req.userId,
+      id,
+      slipUrl
+    );
+    return res.json({ ok: true, purchase });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "การซื้อหัวใจชั่วคราวไม่พร้อมใช้งาน — ลองใหม่ภายหลังหรือติดต่อผู้ดูแลเว็บไซต์"
+      });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 router.get("/purchases/mine", authMiddleware, async (req, res) => {
   try {
     const purchases = await heartPurchaseService.listMine(req.userId);

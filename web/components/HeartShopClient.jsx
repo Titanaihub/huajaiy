@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { getApiBase } from "../lib/config";
 import {
+  apiAttachHeartPurchaseSlip,
   apiCreateHeartPurchase,
   apiHeartPackages,
   apiMyHeartPurchases
@@ -12,11 +13,14 @@ import {
 import { getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-function purchaseStatusThai(s) {
-  if (s === "pending") return "รออนุมัติ";
-  if (s === "approved") return "อนุมัติแล้ว";
-  if (s === "rejected") return "ปฏิเสธ";
-  return s;
+function purchaseStatusLabel(p) {
+  if (p.status === "approved") return "อนุมัติแล้ว";
+  if (p.status === "rejected") return "ปฏิเสธ";
+  if (p.status === "pending") {
+    if (!p.slipUrl) return "รอแนบสลิป";
+    return "รอการอนุมัติ";
+  }
+  return p.status;
 }
 
 function loadImage(fileBlob) {
@@ -77,9 +81,10 @@ export default function HeartShopClient() {
   const [packages, setPackages] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [loadErr, setLoadErr] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [slipFile, setSlipFile] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [creatingId, setCreatingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [slipFileByPurchase, setSlipFileByPurchase] = useState({});
+  const [submittingSlipId, setSubmittingSlipId] = useState(null);
   const [msg, setMsg] = useState("");
 
   const loadAll = useCallback(async () => {
@@ -112,26 +117,44 @@ export default function HeartShopClient() {
     loadAll();
   }, [authLoading, user, router, loadAll]);
 
-  async function submitPurchase(e) {
+  async function onSelectPackage(pkg) {
+    setMsg("");
+    setCreatingId(pkg.id);
+    try {
+      await apiCreateHeartPurchase(pkg.id);
+      setMsg("สร้างรายการสั่งซื้อแล้ว — เปิด「ดูรายละเอียดการชำระ」เพื่อโอนและแนบสลิป");
+      await loadAll();
+    } catch (e) {
+      setMsg(e.message || String(e));
+    } finally {
+      setCreatingId(null);
+    }
+  }
+
+  async function submitSlipForPurchase(purchaseId, e) {
     e.preventDefault();
-    if (!selected || !slipFile) {
-      setMsg("เลือกแพ็กเกจและแนบรูปสลิป");
+    const slipFile = slipFileByPurchase[purchaseId];
+    if (!slipFile) {
+      setMsg("เลือกรูปสลิปก่อน");
       return;
     }
-    setSubmitting(true);
+    setSubmittingSlipId(purchaseId);
     setMsg("");
     try {
       const url = await uploadSlipFile(slipFile);
-      await apiCreateHeartPurchase(selected.id, url);
-      setSelected(null);
-      setSlipFile(null);
-      setMsg("ส่งคำขอแล้ว — รอระบบอนุมัติ · หลังอนุมัติดูยอดที่เมนูผู้สร้าง → แจกหัวใจแดง");
+      await apiAttachHeartPurchaseSlip(purchaseId, url);
+      setSlipFileByPurchase((prev) => {
+        const next = { ...prev };
+        delete next[purchaseId];
+        return next;
+      });
+      setMsg("ส่งสลิปแล้ว — รอแอดมินอนุมัติ");
       await loadAll();
       await refresh();
     } catch (e) {
       setMsg(e.message || String(e));
     } finally {
-      setSubmitting(false);
+      setSubmittingSlipId(null);
     }
   }
 
@@ -160,11 +183,7 @@ export default function HeartShopClient() {
             packages.map((p) => (
               <li
                 key={p.id}
-                className={`rounded-xl border p-4 shadow-sm ${
-                  selected?.id === p.id
-                    ? "border-brand-400 bg-brand-50/50"
-                    : "border-slate-200 bg-white"
-                }`}
+                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
               >
                 <p className="font-semibold text-slate-900">{p.title}</p>
                 <p className="mt-2 text-sm text-slate-700">
@@ -183,13 +202,11 @@ export default function HeartShopClient() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelected(p);
-                    setMsg("");
-                  }}
-                  className="mt-3 rounded-lg bg-brand-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-900"
+                  disabled={creatingId === p.id}
+                  onClick={() => onSelectPackage(p)}
+                  className="mt-3 rounded-lg bg-brand-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
                 >
-                  เลือกแพ็กนี้
+                  {creatingId === p.id ? "กำลังสร้างรายการ…" : "เลือกแพ็กนี้"}
                 </button>
               </li>
             ))
@@ -197,109 +214,148 @@ export default function HeartShopClient() {
         </ul>
       </section>
 
-      {selected ? (
-        <section className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-          <h3 className="text-sm font-semibold text-slate-800">
-            ส่งสลิป: {selected.title}
-          </h3>
-          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-800">
-            <p className="text-xs font-semibold uppercase text-slate-500">โอนเงินมาที่</p>
-            <ul className="mt-2 space-y-1 text-slate-700">
-              <li>
-                <span className="font-medium text-slate-600">ชื่อบัญชี:</span>{" "}
-                {selected.paymentAccountName || "—"}
-              </li>
-              <li>
-                <span className="font-medium text-slate-600">เลขบัญชี:</span>{" "}
-                {selected.paymentAccountNumber || "—"}
-              </li>
-              <li>
-                <span className="font-medium text-slate-600">ธนาคาร:</span>{" "}
-                {selected.paymentBankName || "—"}
-              </li>
-            </ul>
-            {selected.paymentQrUrl ? (
-              <div className="mt-3">
-                <p className="text-xs font-medium text-slate-600">สแกน QR จ่าย</p>
-                <img
-                  src={selected.paymentQrUrl}
-                  alt="QR ชำระเงิน"
-                  className="mt-2 max-h-48 w-auto max-w-full rounded-lg border border-slate-200 bg-white object-contain"
-                />
-              </div>
-            ) : null}
-          </div>
-          <form onSubmit={submitPurchase} className="mt-3 space-y-3">
-            <div>
-              <label className="text-xs font-medium text-slate-600">รูปสลิปโอนเงิน</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setSlipFile(e.target.files?.[0] || null)}
-                className="mt-1 block w-full text-sm"
-              />
-            </div>
-            {msg ? (
-              <p
-                className={`text-sm ${
-                  msg.includes("แล้ว") ? "text-green-700" : "text-red-600"
-                }`}
-              >
-                {msg}
-              </p>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-50"
-              >
-                {submitting ? "กำลังส่ง…" : "ส่งคำขออนุมัติ"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelected(null);
-                  setSlipFile(null);
-                  setMsg("");
-                }}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
-              >
-                ยกเลิก
-              </button>
-            </div>
-          </form>
-        </section>
-      ) : null}
-
       <section>
-        <h2 className="text-lg font-semibold text-slate-900">ประวัติการซื้อ</h2>
+        <h2 className="text-lg font-semibold text-slate-900">รายการสั่งซื้อ</h2>
+        {msg ? (
+          <p
+            className={`mt-2 text-sm ${
+              msg.includes("แล้ว") || msg.includes("สร้าง") ? "text-green-700" : "text-red-600"
+            }`}
+          >
+            {msg}
+          </p>
+        ) : null}
         {purchases.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">ยังไม่มี</p>
+          <p className="mt-2 text-sm text-slate-500">ยังไม่มีรายการ — เลือกแพ็กด้านบนเพื่อสั่งซื้อ</p>
         ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {purchases.map((x) => (
-              <li key={x.id} className="rounded-lg border border-slate-100 bg-white px-3 py-2">
-                <span className="font-medium">{purchaseStatusThai(x.status)}</span> · แดงแจก{" "}
-                {x.redQty} · ฿{x.priceThbSnapshot?.toLocaleString("th-TH")} ·{" "}
-                {new Date(x.createdAt).toLocaleString("th-TH")}
-                {x.slipUrl ? (
-                  <>
-                    {" "}
-                    ·{" "}
-                    <a
-                      href={x.slipUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand-800 underline"
-                    >
-                      สลิป
-                    </a>
-                  </>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/90">
+                  <th className="px-3 py-2.5 font-semibold text-slate-800">วันที่</th>
+                  <th className="px-3 py-2.5 font-semibold text-slate-800">รายการสั่งซื้อ</th>
+                  <th className="px-3 py-2.5 font-semibold text-slate-800">สถานะ</th>
+                  <th className="px-3 py-2.5 font-semibold text-slate-800">ดูรายละเอียดการชำระ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchases.map((row) => {
+                  const expanded = expandedId === row.id;
+                  return (
+                    <Fragment key={row.id}>
+                      <tr className="border-b border-slate-100">
+                        <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
+                          {new Date(row.createdAt).toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                        </td>
+                        <td className="px-3 py-2.5 font-medium text-slate-900">
+                          {row.packageTitle || "—"}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2.5 text-slate-800">
+                          {purchaseStatusLabel(row)}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedId(expanded ? null : row.id)
+                            }
+                            className="text-sm font-semibold text-brand-800 underline hover:text-brand-950"
+                          >
+                            {expanded ? "ซ่อน" : "ดูรายละเอียดการชำระ"}
+                          </button>
+                        </td>
+                      </tr>
+                      {expanded ? (
+                        <tr className="border-b border-slate-100 bg-slate-50/80">
+                          <td colSpan={4} className="px-3 py-4">
+                            <div className="max-w-lg rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-800">
+                              <p className="text-xs font-semibold uppercase text-slate-500">
+                                โอนเงินมาที่
+                              </p>
+                              <ul className="mt-2 space-y-1 text-slate-700">
+                                <li>
+                                  <span className="font-medium text-slate-600">ชื่อบัญชี:</span>{" "}
+                                  {row.paymentAccountName || "—"}
+                                </li>
+                                <li>
+                                  <span className="font-medium text-slate-600">เลขบัญชี:</span>{" "}
+                                  {row.paymentAccountNumber || "—"}
+                                </li>
+                                <li>
+                                  <span className="font-medium text-slate-600">ธนาคาร:</span>{" "}
+                                  {row.paymentBankName || "—"}
+                                </li>
+                              </ul>
+                              {row.paymentQrUrl ? (
+                                <div className="mt-3">
+                                  <p className="text-xs font-medium text-slate-600">สแกน QR จ่าย</p>
+                                  <img
+                                    src={row.paymentQrUrl}
+                                    alt="QR ชำระเงิน"
+                                    className="mt-2 max-h-48 w-auto max-w-full rounded-lg border border-slate-200 bg-white object-contain"
+                                  />
+                                </div>
+                              ) : null}
+                            </div>
+                            {row.status === "pending" && !row.slipUrl ? (
+                              <form
+                                className="mt-4 max-w-lg space-y-3"
+                                onSubmit={(e) => submitSlipForPurchase(row.id, e)}
+                              >
+                                <div>
+                                  <label className="text-xs font-medium text-slate-600">
+                                    รูปสลิปโอนเงิน
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                      setSlipFileByPurchase((prev) => ({
+                                        ...prev,
+                                        [row.id]: e.target.files?.[0] || null
+                                      }))
+                                    }
+                                    className="mt-1 block w-full text-sm"
+                                  />
+                                </div>
+                                <button
+                                  type="submit"
+                                  disabled={submittingSlipId === row.id}
+                                  className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-50"
+                                >
+                                  {submittingSlipId === row.id
+                                    ? "กำลังส่ง…"
+                                    : "ส่งคำขออนุมัติ"}
+                                </button>
+                              </form>
+                            ) : null}
+                            {row.slipUrl ? (
+                              <p className="mt-3 text-sm">
+                                <a
+                                  href={row.slipUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-medium text-brand-800 underline"
+                                >
+                                  เปิดดูสลิปที่ส่งแล้ว
+                                </a>
+                              </p>
+                            ) : null}
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 

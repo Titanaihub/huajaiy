@@ -167,6 +167,10 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_heart_purchases_user ON heart_purchases(user_id);`
     );
+    await client.query(`
+      ALTER TABLE heart_purchases
+      ALTER COLUMN slip_url DROP NOT NULL;
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS heart_ledger (

@@ -12,19 +12,43 @@ export async function apiHeartPackages() {
   return data;
 }
 
+/** สร้างรายการสั่งซื้อ — slipUrl ไม่ส่งได้ (แนบทีหลังด้วย apiAttachHeartPurchaseSlip) */
 export async function apiCreateHeartPurchase(packageId, slipUrl) {
   const token = getMemberToken();
   if (!token) throw new Error("กรุณาเข้าสู่ระบบ");
+  const body = { packageId };
+  if (slipUrl != null && String(slipUrl).trim()) {
+    body.slipUrl = slipUrl;
+  }
   const r = await fetch(`${apiRoot()}/api/hearts/purchases`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify({ packageId, slipUrl })
+    body: JSON.stringify(body)
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(data.error || "ส่งคำขอไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAttachHeartPurchaseSlip(purchaseId, slipUrl) {
+  const token = getMemberToken();
+  if (!token) throw new Error("กรุณาเข้าสู่ระบบ");
+  const r = await fetch(
+    `${apiRoot()}/api/hearts/purchases/${encodeURIComponent(purchaseId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ slipUrl })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "แนบสลิปไม่สำเร็จ");
   return data;
 }
 
