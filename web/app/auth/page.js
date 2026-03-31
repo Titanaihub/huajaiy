@@ -25,7 +25,7 @@ export default function AuthPage() {
   return (
     <>
       <SiteHeader />
-    <main className="mx-auto min-h-screen w-full max-w-md px-4 py-8">
+    <main className="mx-auto w-full max-w-md px-4 py-8">
       <Link href="/" className="text-sm text-blue-600 underline">
         ← กลับหน้าแรก
       </Link>

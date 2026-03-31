@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto min-h-screen max-w-2xl px-4 py-8 text-slate-800">
+      <main className="mx-auto max-w-2xl px-4 py-8 text-slate-800">
       <h1 className="text-xl font-semibold text-slate-900">
         นโยบายความเป็นส่วนตัว (Privacy Policy)
       </h1>

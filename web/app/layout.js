@@ -50,11 +50,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="th" className={sarabun.variable}>
       <body
-        className={`${sarabun.className} min-h-screen bg-[#E63946] text-slate-900 antialiased`}
+        className={`${sarabun.className} flex min-h-screen flex-col bg-[#E63946] text-slate-900 antialiased`}
       >
         <MemberAuthProvider>
           <ImpersonationBanner />
-          <HeartsProvider>{children}</HeartsProvider>
+          <HeartsProvider>
+            {/* sticky footer: middle row grows so footer stays at viewport bottom */}
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
+                {children}
+              </div>
+            </div>
+          </HeartsProvider>
         </MemberAuthProvider>
       </body>
     </html>
