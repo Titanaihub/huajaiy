@@ -5,13 +5,12 @@ import {
   apiCreateRoomRedGiftCode,
   apiDeleteRoomRedGiftCode,
   apiListRoomRedGiftCodes,
-  apiRedeemRoomRedGiftCode,
   getMemberToken
 } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountRoomRedGiftSection() {
-  const { user, refresh, applyUser } = useMemberAuth();
+  const { user, refresh } = useMemberAuth();
   const [codes, setCodes] = useState([]);
   const [listErr, setListErr] = useState("");
   const [listLoading, setListLoading] = useState(true);
@@ -21,9 +20,6 @@ export default function AccountRoomRedGiftSection() {
   const [maxUses, setMaxUses] = useState(3);
   const [createBusy, setCreateBusy] = useState(false);
   const [createMsg, setCreateMsg] = useState("");
-  const [redeemCode, setRedeemCode] = useState("");
-  const [redeemBusy, setRedeemBusy] = useState(false);
-  const [redeemMsg, setRedeemMsg] = useState("");
   const [deleteBusyId, setDeleteBusyId] = useState("");
   const [deleteAllBusy, setDeleteAllBusy] = useState(false);
   const [deleteErr, setDeleteErr] = useState("");
@@ -148,59 +144,17 @@ export default function AccountRoomRedGiftSection() {
     }
   }
 
-  async function onRedeem(e) {
-    e.preventDefault();
-    const token = getMemberToken();
-    if (!token) return;
-    setRedeemBusy(true);
-    setRedeemMsg("");
-    try {
-      const data = await apiRedeemRoomRedGiftCode(token, redeemCode.trim());
-      if (data.user) {
-        applyUser(data.user);
-      } else {
-        await refresh();
-      }
-      const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
-      const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
-      setRedeemMsg(
-        `แลกสำเร็จ — ได้หัวใจแดงห้อง ${added.toLocaleString("th-TH")} ดวง ของ ${un} · ดูยอดที่มุมบน「+ห้อง」ข้างแดงทั่วไป หรือเมนู「หัวใจของฉัน」 (ไม่บวกในแดงทั่วไป — ใช้เล่นตามกติกาเกมของเจ้าห้อง)`
-      );
-      setRedeemCode("");
-      await loadCodes();
-    } catch (ex) {
-      setRedeemMsg(ex?.message || "แลกไม่สำเร็จ");
-    } finally {
-      setRedeemBusy(false);
-    }
-  }
-
   const giveawayBal = Math.max(0, Math.floor(Number(user?.redGiveawayBalance) || 0));
-  const playableRedBal = Math.max(0, Math.floor(Number(user?.redHeartsBalance) || 0));
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold text-slate-900">รหัสหัวใจแดงห้องเกม</h3>
       <div className="mt-3 rounded-lg border border-rose-100 bg-rose-50/70 px-3 py-2 text-sm text-rose-950">
-        <p className="font-semibold text-rose-900">ยอดสำหรับออกรหัส (แดงแจก)</p>
+        <p className="font-semibold text-rose-900">หัวใจแดงทั้งหมด (สำหรับแจกเล่นเกม)</p>
         <p className="mt-1 tabular-nums text-lg font-bold text-red-800">
           {giveawayBal.toLocaleString("th-TH")} ดวง
         </p>
-        <p className="mt-1 text-xs text-rose-900/85">
-          ได้จากการที่แอดมินอนุมัติแพ็กหัวใจที่มีแดง — ใช้สร้างรหัสให้ผู้เล่นเท่านั้น ไม่นำไปหักเล่นเกม
-        </p>
-        <p className="mt-2 text-xs text-slate-600">
-          แดงเล่นได้ (ทั่วไป) คงเหลือ{" "}
-          <span className="font-semibold tabular-nums text-slate-800">
-            {playableRedBal.toLocaleString("th-TH")}
-          </span>{" "}
-          — ถ้าแดงแจกไม่พอ ระบบจะใช้ส่วนนี้เติมทุนรหัสได้ (ไม่แนะนำให้ใช้ยอดเล่นเป็นทุนแจก)
-        </p>
       </div>
-      <p className="mt-3 text-sm text-slate-600">
-        <strong>เจ้าของห้อง:</strong> สร้างรหัสแจกผู้เล่น — ระบบจะ<strong>หักจากแดงแจกก่อน</strong> แล้วจึงใช้แดงเล่นได้ถ้าไม่พอ
-        (จำนวนรหัส × แดงต่อครั้ง × ครั้งต่อรหัส) ผู้เล่นแลกแล้วได้แดงห้อง (มุมบน +ห้อง) ไม่ใช่แดงทั่วไป
-      </p>
 
       <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-slate-100 pt-4">
         <label className="flex cursor-pointer items-start gap-2 text-sm text-slate-700">
@@ -217,9 +171,7 @@ export default function AccountRoomRedGiftSection() {
 
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-600">
-              แดงต่อการแลก 1 ครั้ง (ต่อรหัส)
-            </label>
+            <label className="block text-xs font-medium text-slate-600">หัวใจแดง ที่จะแจกต่อรหัส</label>
             <input
               type="number"
               min={1}
@@ -245,7 +197,7 @@ export default function AccountRoomRedGiftSection() {
           ) : (
             <div>
               <label className="block text-xs font-medium text-slate-600">
-                จำนวนรหัส (แยกคนละรหัส · แต่ละรหัสใช้ได้ครั้งเดียว)
+                จำนวนรหัสที่ต้องการสร้าง (รหัสใช้ได้ครั้งเดียว)
               </label>
               <input
                 type="number"
@@ -275,30 +227,6 @@ export default function AccountRoomRedGiftSection() {
           {createMsg}
         </p>
       ) : null}
-
-      <div id="room-red-redeem" className="mt-6 scroll-mt-24 border-t border-slate-100 pt-4">
-        <h4 className="text-sm font-semibold text-slate-800">แลกรหัส (ผู้เล่น)</h4>
-        <form onSubmit={onRedeem} className="mt-2 flex flex-wrap items-end gap-2">
-          <input
-            value={redeemCode}
-            onChange={(e) => setRedeemCode(e.target.value)}
-            placeholder="กรอกรหัส เช่น RABC12DE3"
-            className="min-w-[200px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono uppercase"
-          />
-          <button
-            type="submit"
-            disabled={redeemBusy || !redeemCode.trim()}
-            className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-50"
-          >
-            {redeemBusy ? "กำลังแลก…" : "แลกรหัส"}
-          </button>
-        </form>
-        {redeemMsg ? (
-          <p className="mt-2 text-sm text-slate-700" role="status">
-            {redeemMsg}
-          </p>
-        ) : null}
-      </div>
 
       <div className="mt-6 border-t border-slate-100 pt-4">
         <div className="flex flex-wrap items-center justify-between gap-2">

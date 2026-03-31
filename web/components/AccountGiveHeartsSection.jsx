@@ -28,10 +28,6 @@ export default function AccountGiveHeartsSection() {
     <div className="space-y-6">
       <header>
         <h2 className="text-lg font-semibold text-slate-900">แจกหัวใจแดง</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          หัวใจแดงที่ซื้อจากแอดมินเข้ายอด<strong>แดงแจก</strong>ด้านล่าง — ใช้เป็นทุนสร้างรหัสให้ผู้เล่นนำไปแลก
-          (ได้แดงห้อง ไม่ใช่แดงทั่วไป) ยอดนี้<strong>ไม่ถูกหักตอนเล่นเกม</strong>
-        </p>
         <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
           <Link
             href="/account/hearts-shop"

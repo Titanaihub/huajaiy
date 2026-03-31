@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiListPublishedGames } from "../lib/memberApi";
+import { apiListPublishedGames, apiRedeemRoomRedGiftCode, getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
 
@@ -20,6 +20,9 @@ export default function AccountMyHeartsSection() {
   const [games, setGames] = useState([]);
   const [gamesErr, setGamesErr] = useState("");
   const [gamesLoading, setGamesLoading] = useState(true);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemBusy, setRedeemBusy] = useState(false);
+  const [redeemMsg, setRedeemMsg] = useState("");
 
   const loadGames = useCallback(async () => {
     setGamesErr("");
@@ -55,6 +58,26 @@ export default function AccountMyHeartsSection() {
     }
     return m;
   }, [games]);
+
+  async function onRedeem(e) {
+    e.preventDefault();
+    const token = getMemberToken();
+    if (!token) return;
+    setRedeemBusy(true);
+    setRedeemMsg("");
+    try {
+      const data = await apiRedeemRoomRedGiftCode(token, redeemCode.trim());
+      await refresh();
+      const un = data.creatorUsername ? `@${data.creatorUsername}` : "เจ้าของห้องที่ออกรหัส";
+      const added = Math.max(0, Math.floor(Number(data.redAdded) || 0));
+      setRedeemMsg(`รับหัวใจแดงสำเร็จ ${added.toLocaleString("th-TH")} ดวง จาก ${un}`);
+      setRedeemCode("");
+    } catch (ex) {
+      setRedeemMsg(ex?.message || "รับหัวใจแดงไม่สำเร็จ");
+    } finally {
+      setRedeemBusy(false);
+    }
+  }
 
   if (loading || !user) {
     return (
@@ -128,6 +151,29 @@ export default function AccountMyHeartsSection() {
 
       <section className="max-w-2xl">
         <h3 className="text-base font-semibold text-slate-900">หัวใจแดงจากรหัสห้อง (แยกตามเจ้าของห้อง)</h3>
+        <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h4 className="text-sm font-semibold text-slate-800">ใส่รหัส (ผู้ใช้งานรับหัวใจแดง)</h4>
+          <form onSubmit={onRedeem} className="mt-2 flex flex-wrap items-end gap-2">
+            <input
+              value={redeemCode}
+              onChange={(e) => setRedeemCode(e.target.value)}
+              placeholder="กรอกรหัส เช่น RABC12DE3"
+              className="min-w-[220px] flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono uppercase"
+            />
+            <button
+              type="submit"
+              disabled={redeemBusy || !redeemCode.trim()}
+              className="rounded-lg border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-50"
+            >
+              {redeemBusy ? "กำลังรับ..." : "รับหัวใจแดง"}
+            </button>
+          </form>
+          {redeemMsg ? (
+            <p className="mt-2 text-sm text-slate-700" role="status">
+              {redeemMsg}
+            </p>
+          ) : null}
+        </div>
         <p className="mt-1 text-sm text-slate-600">
           ยอดเหล่านี้ใช้หักค่าเข้าเล่นได้เมื่อเล่นเกมของเจ้าของคนนั้นโดยตรง — กดชื่อเกมด้านล่างเพื่อเข้าเล่น
         </p>
@@ -136,10 +182,10 @@ export default function AccountMyHeartsSection() {
           <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             ยังไม่มียอดแดงจากรหัสห้อง — แลกรหัสที่เจ้าห้องแจกได้ที่{" "}
             <Link
-              href="/account/give-hearts#room-red-redeem"
+              href="/account/my-hearts"
               className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
             >
-              แจกหัวใจแดง → แลกรหัส
+              ใส่รหัสรับหัวใจแดง
             </Link>
           </p>
         ) : (
