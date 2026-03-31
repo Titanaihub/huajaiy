@@ -983,13 +983,24 @@ async function replaceRules(gameId, rules, options = {}) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    await client.query(`DELETE FROM central_game_rules WHERE game_id = $1`, [gameId]);
+    const keepIds = prepared.map((p) => String(p.id));
     for (const p of prepared) {
       await client.query(
         `INSERT INTO central_game_rules (
           id, game_id, sort_order, set_index, need_count, prize_category,
           prize_title, prize_value_text, prize_unit, description, prize_total_qty
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (id) DO UPDATE SET
+          game_id = EXCLUDED.game_id,
+          sort_order = EXCLUDED.sort_order,
+          set_index = EXCLUDED.set_index,
+          need_count = EXCLUDED.need_count,
+          prize_category = EXCLUDED.prize_category,
+          prize_title = EXCLUDED.prize_title,
+          prize_value_text = EXCLUDED.prize_value_text,
+          prize_unit = EXCLUDED.prize_unit,
+          description = EXCLUDED.description,
+          prize_total_qty = EXCLUDED.prize_total_qty`,
         [
           p.id,
           gameId,
@@ -1004,6 +1015,16 @@ async function replaceRules(gameId, rules, options = {}) {
           p.prizeTotalQty
         ]
       );
+    }
+    if (keepIds.length > 0) {
+      await client.query(
+        `DELETE FROM central_game_rules
+         WHERE game_id = $1::uuid
+           AND NOT (id = ANY($2::uuid[]))`,
+        [gameId, keepIds]
+      );
+    } else {
+      await client.query(`DELETE FROM central_game_rules WHERE game_id = $1::uuid`, [gameId]);
     }
     await client.query("COMMIT");
   } catch (e) {

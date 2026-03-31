@@ -262,6 +262,23 @@ export async function apiGetIncomingPrizeWithdrawals(token) {
   return data;
 }
 
+export async function apiGetIncomingPrizeAwards(token, { limit } = {}) {
+  const q = new URLSearchParams();
+  if (limit != null) q.set("limit", String(limit));
+  const qs = q.toString();
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-awards/incoming${qs ? `?${qs}` : ""}`,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดประวัติผู้ได้รับรางวัลไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiResolvePrizeWithdrawal(
   token,
   id,

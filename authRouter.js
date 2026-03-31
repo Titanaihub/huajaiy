@@ -465,6 +465,22 @@ router.get("/central-prize-withdrawals/incoming", authMiddleware, async (req, re
   }
 });
 
+/** ผู้ได้รับรางวัลจากเกมที่ฉันเป็นผู้สร้าง */
+router.get("/central-prize-awards/incoming", authMiddleware, async (req, res) => {
+  try {
+    const limitRaw = req.query.limit != null ? Math.floor(Number(req.query.limit)) : 1000;
+    const awards = await centralPrizeAwardService.listAwardsForCreator(req.userId, {
+      limit: limitRaw
+    });
+    return res.json({ ok: true, awards });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, awards: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** ผู้ขอถอนยกเลิกคำขอที่ยังรอ (pending) */
 router.post("/central-prize-withdrawals/:id/cancel", authMiddleware, async (req, res) => {
   try {
