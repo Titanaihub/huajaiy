@@ -32,9 +32,9 @@ export default function SiteHeader() {
           <Link
             href="/auth"
             className={navClass}
-            title="เข้าด้วย Facebook หรือ LINE (NextAuth)"
+            title="เข้าด้วย LINE (NextAuth)"
           >
-            FB · LINE
+            LINE
           </Link>
           <span className="hidden h-4 w-px bg-slate-200 sm:inline-block" />
           <MemberNav />

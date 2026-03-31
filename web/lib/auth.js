@@ -1,16 +1,5 @@
-import FacebookProvider from "next-auth/providers/facebook";
-
 function buildProviders() {
   const list = [];
-
-  if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
-    list.push(
-      FacebookProvider({
-        clientId: process.env.FACEBOOK_CLIENT_ID,
-        clientSecret: process.env.FACEBOOK_CLIENT_SECRET
-      })
-    );
-  }
 
   if (process.env.LINE_CHANNEL_ID && process.env.LINE_CHANNEL_SECRET) {
     list.push({

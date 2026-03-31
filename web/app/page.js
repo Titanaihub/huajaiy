@@ -45,8 +45,8 @@ function buildActions(centralMeta) {
     },
     {
       href: "/auth",
-      title: "Facebook · LINE",
-      desc: "เข้าด้วยบัญชีโซเชียล (NextAuth) — ยูส/รหัสผ่านที่ล็อกอิน/สมัคร",
+      title: "LINE",
+      desc: "เข้าด้วยบัญชี LINE (NextAuth) — ยูส/รหัสผ่านที่ล็อกอิน/สมัคร",
       accent: "border-slate-200/90 bg-white"
     }
   ];

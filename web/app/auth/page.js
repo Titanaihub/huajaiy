@@ -15,7 +15,7 @@ export default function AuthPage() {
     const result = await signIn(provider, { callbackUrl: "/auth", redirect: false });
     if (result?.error) {
       setAuthError(
-        "เข้าสู่ระบบไม่สำเร็จ ตรวจสอบ Client ID/Secret และ Callback URL ใน Meta/LINE"
+        "เข้าสู่ระบบไม่สำเร็จ ตรวจสอบ LINE Channel ID/Secret และ Callback URL"
       );
     } else if (result?.url) {
       window.location.href = result.url;
@@ -29,7 +29,7 @@ export default function AuthPage() {
       <Link href="/" className="text-sm text-blue-600 underline">
         ← กลับหน้าแรก
       </Link>
-      <h1 className="mt-4 text-lg font-semibold">เข้าด้วย Facebook หรือ LINE</h1>
+      <h1 className="mt-4 text-lg font-semibold">เข้าด้วย LINE</h1>
       <p className="mt-2 text-sm text-slate-600">
         แบบนี้ใช้ <strong>NextAuth</strong> แยกจากสมาชิกแบบยูสเซอร์/รหัสผ่านของเว็บ
       </p>
@@ -45,14 +45,8 @@ export default function AuthPage() {
           </Link>
         </li>
         <li>
-          ตั้งค่า Meta / LINE + env บน Render ตาม{" "}
+          ตั้งค่า LINE + env บน Render ตาม{" "}
           <code className="rounded bg-slate-100 px-1">web/.env.example</code>
-        </li>
-        <li>
-          ใน Meta ใส่ Valid OAuth Redirect URI ให้ตรงกับโดเมนจริง เช่น{" "}
-          <code className="break-all rounded bg-slate-100 px-1 text-xs">
-            https://huajaiy.com/api/auth/callback/facebook
-          </code>
         </li>
       </ol>
 
@@ -82,13 +76,6 @@ export default function AuthPage() {
           </div>
         ) : (
           <div className="grid gap-2">
-            <button
-              type="button"
-              className="rounded-xl bg-[#1877F2] px-3 py-2 text-sm font-semibold text-white"
-              onClick={() => handleSignIn("facebook")}
-            >
-              Facebook
-            </button>
             <button
               type="button"
               className="rounded-xl bg-[#06C755] px-3 py-2 text-sm font-semibold text-white"
