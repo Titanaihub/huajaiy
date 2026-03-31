@@ -1258,7 +1258,7 @@ export default function AdminDashboard() {
 
                   <details className="mt-2 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
                     <summary className="cursor-pointer text-xs font-semibold text-slate-700">
-                      รหัสแจกห้องที่สมาชิกนี้สร้าง
+                      หัวใจแดงที่ได้
                     </summary>
                     <div className="mt-3 max-h-64 overflow-auto text-xs">
                       {(memberFull.roomRedCodes || []).length === 0 ? (
@@ -1276,6 +1276,39 @@ export default function AdminDashboard() {
                                 {c.expired ? " · หมดอายุ" : ""}
                                 {c.exhausted ? " · เต็ม" : ""}
                               </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </details>
+
+                  <details className="mt-2 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                    <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+                      รหัสห้องที่สมาชิกนี้นำไปแลก (ได้รับหัวใจแดง)
+                    </summary>
+                    <div className="mt-3 max-h-64 overflow-auto text-xs">
+                      {(memberFull.roomRedRedemptions || []).length === 0 ? (
+                        <p className="text-slate-500">ไม่มีประวัติการแลกรหัสหรือฐานข้อมูลไม่พร้อม</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {(memberFull.roomRedRedemptions || []).map((x) => (
+                            <li
+                              key={x.id}
+                              className="rounded border border-slate-200 bg-white px-2 py-1.5"
+                            >
+                              <div className="font-mono">
+                                <span className="font-semibold text-slate-900">{x.code || "(ไม่มีรหัส)"}</span>
+                                <span className="ml-2 text-red-700">
+                                  +{Math.max(0, Math.floor(Number(x.redAmount) || 0)).toLocaleString("th-TH")} แดง
+                                </span>
+                              </div>
+                              <div className="mt-0.5 text-[11px] text-slate-600">
+                                จาก @{x.creatorUsername || "ไม่ทราบผู้สร้าง"} ·{" "}
+                                {x.redeemedAt
+                                  ? new Date(x.redeemedAt).toLocaleString("th-TH")
+                                  : "—"}
+                              </div>
                             </li>
                           ))}
                         </ul>

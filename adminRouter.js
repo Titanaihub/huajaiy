@@ -118,6 +118,12 @@ router.get(
       } catch (re) {
         if (re.code !== "DB_REQUIRED") throw re;
       }
+      let roomRedRedemptions = [];
+      try {
+        roomRedRedemptions = await roomRedGiftService.listRedemptionsForUser(id, 300);
+      } catch (re2) {
+        if (re2.code !== "DB_REQUIRED") throw re2;
+      }
       let phoneHistory = [];
       try {
         phoneHistory = await phoneHistoryService.listForUser(id);
@@ -133,6 +139,7 @@ router.get(
         nameChangeRequestPending,
         heartLedger,
         roomRedCodes,
+        roomRedRedemptions,
         phoneHistory,
         heartsNote:
           "ยูสเซอร์ดูได้จากตาราง/รายละเอียด · รหัสผ่านเก็บแบบแฮช (ดูข้อความจริงไม่ได้) — ตั้งรหัสใหม่ได้ด้านล่าง · ระงับบัญชี = ห้ามล็อกอินและห้ามใช้ API ด้วยโทเค็นเดิม · เกมส่วนกลางแก้ได้ที่แท็บ「เกมส่วนกลาง」"

@@ -399,6 +399,41 @@ async function listRoomGiftBalancesForUser(userId) {
 }
 
 /**
+ * ประวัติการแลกรหัสหัวใจแดงของสมาชิก (สำหรับแอดมินตรวจสอบ)
+ */
+async function listRedemptionsForUser(userId, limit = 200) {
+  const pool = getPool();
+  if (!pool) return [];
+  const lim = Math.min(1000, Math.max(1, Math.floor(Number(limit) || 200)));
+  const r = await pool.query(
+    `SELECT rr.id,
+            rr.redeemed_at AS "redeemedAt",
+            rr.red_amount AS "redAmount",
+            rr.code_id AS "codeId",
+            c.code AS code,
+            rr.creator_id AS "creatorId",
+            u.username AS "creatorUsername"
+     FROM room_red_gift_redemptions rr
+     LEFT JOIN room_red_gift_codes c ON c.id = rr.code_id
+     LEFT JOIN users u ON u.id = rr.creator_id
+     WHERE rr.redeemer_id = $1::uuid
+     ORDER BY rr.redeemed_at DESC
+     LIMIT $2`,
+    [userId, lim]
+  );
+  return r.rows.map((row) => ({
+    id: String(row.id),
+    redeemedAt: row.redeemedAt,
+    redAmount: Math.max(0, Math.floor(Number(row.redAmount) || 0)),
+    codeId: row.codeId != null ? String(row.codeId) : null,
+    code: row.code != null ? String(row.code).trim().toUpperCase() : null,
+    creatorId: row.creatorId != null ? String(row.creatorId) : null,
+    creatorUsername:
+      row.creatorUsername != null ? String(row.creatorUsername).trim().toLowerCase() : null
+  }));
+}
+
+/**
  * แลกรหัส — เพิ่มยอดใน user_room_red_balance ภายใต้ creator ของรหัส
  */
 async function redeemCode(redeemerUserId, rawCode) {
@@ -503,5 +538,6 @@ module.exports = {
   deleteCodeByCreator,
   listCodesForCreator,
   listRoomGiftBalancesForUser,
+  listRedemptionsForUser,
   redeemCode
 };
