@@ -38,13 +38,18 @@ export default function AdminHeartPackagesPanel() {
   const [paymentBankName, setPaymentBankName] = useState("");
   const [paymentQrFile, setPaymentQrFile] = useState(null);
   const [createMsg, setCreateMsg] = useState("");
-  const [paymentEditPkg, setPaymentEditPkg] = useState(null);
-  const [paymentEditName, setPaymentEditName] = useState("");
-  const [paymentEditNumber, setPaymentEditNumber] = useState("");
-  const [paymentEditBank, setPaymentEditBank] = useState("");
-  const [paymentEditQrFile, setPaymentEditQrFile] = useState(null);
-  const [paymentEditBusy, setPaymentEditBusy] = useState(false);
-  const [paymentEditMsg, setPaymentEditMsg] = useState("");
+  const [editPkg, setEditPkg] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editRedQty, setEditRedQty] = useState("0");
+  const [editPriceThb, setEditPriceThb] = useState("0");
+  const [editSortOrder, setEditSortOrder] = useState("0");
+  const [editPayName, setEditPayName] = useState("");
+  const [editPayNumber, setEditPayNumber] = useState("");
+  const [editPayBank, setEditPayBank] = useState("");
+  const [editQrFile, setEditQrFile] = useState(null);
+  const [editBusy, setEditBusy] = useState(false);
+  const [editMsg, setEditMsg] = useState("");
 
   const load = useCallback(async () => {
     const token = getMemberToken();
@@ -106,46 +111,67 @@ export default function AdminHeartPackagesPanel() {
     }
   }
 
-  function openPaymentEdit(pkg) {
-    setPaymentEditPkg(pkg);
-    setPaymentEditName(pkg.paymentAccountName || "");
-    setPaymentEditNumber(pkg.paymentAccountNumber || "");
-    setPaymentEditBank(pkg.paymentBankName || "");
-    setPaymentEditQrFile(null);
-    setPaymentEditMsg("");
+  function openEdit(pkg) {
+    setEditPkg(pkg);
+    setEditTitle(pkg.title || "");
+    setEditDescription(pkg.description || "");
+    setEditRedQty(String(pkg.redQty ?? 0));
+    setEditPriceThb(String(pkg.priceThb ?? 0));
+    setEditSortOrder(String(pkg.sortOrder ?? 0));
+    setEditPayName(pkg.paymentAccountName || "");
+    setEditPayNumber(pkg.paymentAccountNumber || "");
+    setEditPayBank(pkg.paymentBankName || "");
+    setEditQrFile(null);
+    setEditMsg("");
   }
 
-  async function savePaymentEdit(e) {
+  async function saveEdit(e) {
     e.preventDefault();
     const token = getMemberToken();
-    if (!token || !paymentEditPkg) return;
-    setPaymentEditBusy(true);
-    setPaymentEditMsg("");
+    if (!token || !editPkg) return;
+    setEditBusy(true);
+    setEditMsg("");
     try {
-      if (!paymentEditName.trim() || !paymentEditNumber.trim() || !paymentEditBank.trim()) {
-        setPaymentEditMsg("กรอกชื่อบัญชี เลขบัญชี และธนาคารให้ครบ");
+      const t = editTitle.trim();
+      if (!t) {
+        setEditMsg("ต้องมีชื่อแพ็กเกจ");
         return;
       }
-      let qrUrl = paymentEditPkg.paymentQrUrl || "";
-      if (paymentEditQrFile) {
-        qrUrl = await uploadImageToApi(paymentEditQrFile);
+      const rq = parseInt(editRedQty, 10) || 0;
+      if (rq < 1) {
+        setEditMsg("จำนวนหัวใจแดง (แจก) อย่างน้อย 1");
+        return;
+      }
+      if (!editPayName.trim() || !editPayNumber.trim() || !editPayBank.trim()) {
+        setEditMsg("กรอกชื่อบัญชี เลขบัญชี และธนาคารให้ครบ");
+        return;
+      }
+      let qrUrl = editPkg.paymentQrUrl || "";
+      if (editQrFile) {
+        qrUrl = await uploadImageToApi(editQrFile);
       }
       if (!/^https?:\/\//i.test(qrUrl)) {
-        setPaymentEditMsg("ต้องมี QR โค้ด — อัปโหลดรูปใหม่หรือคงของเดิม");
+        setEditMsg("ต้องมี QR โค้ด — อัปโหลดรูปใหม่หรือคงของเดิม");
         return;
       }
-      await apiAdminPatchHeartPackage(token, paymentEditPkg.id, {
-        paymentAccountName: paymentEditName.trim(),
-        paymentAccountNumber: paymentEditNumber.trim(),
-        paymentBankName: paymentEditBank.trim(),
+      await apiAdminPatchHeartPackage(token, editPkg.id, {
+        title: t,
+        description: editDescription,
+        pinkQty: 0,
+        redQty: rq,
+        priceThb: parseInt(editPriceThb, 10) || 0,
+        sortOrder: parseInt(editSortOrder, 10) || 0,
+        paymentAccountName: editPayName.trim(),
+        paymentAccountNumber: editPayNumber.trim(),
+        paymentBankName: editPayBank.trim(),
         paymentQrUrl: qrUrl
       });
-      setPaymentEditPkg(null);
+      setEditPkg(null);
       await load();
     } catch (e) {
-      setPaymentEditMsg(e.message || String(e));
+      setEditMsg(e.message || String(e));
     } finally {
-      setPaymentEditBusy(false);
+      setEditBusy(false);
     }
   }
 
@@ -199,6 +225,7 @@ export default function AdminHeartPackagesPanel() {
     <section className="space-y-6">
       <p className="text-sm text-slate-600">
         ขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) สำหรับผู้สร้างเกม — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษที่แอดมินกำหนดเท่านั้น · สมาชิกแนบสลิป แอดมินอนุมัติในแท็บอนุมัติสลิป
+        · กด<strong>แก้ไข</strong>เพื่อเปลี่ยนชื่อ ราคา ยอดแดง บัญชีรับโอน หรือ QR เมื่อต้องการ
         · หลัง<strong>ปิดการขาย</strong> รายการ「เปิดการขาย」จะกดไม่ได้ (ปิดถาวรในหน้านี้)
       </p>
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
@@ -323,7 +350,7 @@ export default function AdminHeartPackagesPanel() {
                 <th className="px-3 py-2">ชื่อ</th>
                 <th className="px-3 py-2">แดงแจก</th>
                 <th className="px-3 py-2">ราคา</th>
-                <th className="px-3 py-2">บัญชีโอน</th>
+                <th className="px-3 py-2">ชำระเงิน</th>
                 <th className="px-3 py-2">ขาย</th>
                 <th className="px-3 py-2 min-w-[10rem]">จัดการ</th>
               </tr>
@@ -356,10 +383,10 @@ export default function AdminHeartPackagesPanel() {
                         <button
                           type="button"
                           disabled={busyId === p.id}
-                          onClick={() => openPaymentEdit(p)}
-                          className="text-xs font-semibold text-slate-700 underline"
+                          onClick={() => openEdit(p)}
+                          className="text-xs font-semibold text-brand-800 underline"
                         >
-                          บัญชีโอน
+                          แก้ไข
                         </button>
                         {p.active ? (
                           <button
@@ -396,36 +423,86 @@ export default function AdminHeartPackagesPanel() {
         </div>
       )}
 
-      {paymentEditPkg ? (
+      {editPkg ? (
         <form
-          onSubmit={savePaymentEdit}
+          onSubmit={saveEdit}
           className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3"
         >
-          <h3 className="text-sm font-semibold text-slate-900">
-            ตั้งค่าบัญชีโอน: {paymentEditPkg.title}
-          </h3>
+          <h3 className="text-sm font-semibold text-slate-900">แก้ไขแพ็กเกจ</h3>
+          <p className="text-xs text-slate-600">
+            แก้ชื่อ ราคา ยอดแดง หรือบัญชีรับโอน / QR ได้ตลอด — ช่อง QR เว้นว่างถ้าใช้รูปเดิม
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium text-slate-600">ชื่อแพ็กเกจ</label>
+              <input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-xs font-medium text-slate-600">รายละเอียด</label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={2}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
+              <input
+                type="number"
+                min={1}
+                value={editRedQty}
+                onChange={(e) => setEditRedQty(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">ราคา (บาท)</label>
+              <input
+                type="number"
+                min={0}
+                value={editPriceThb}
+                onChange={(e) => setEditPriceThb(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-600">ลำดับแสดง</label>
+              <input
+                type="number"
+                value={editSortOrder}
+                onChange={(e) => setEditSortOrder(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="sm:col-span-2 rounded-lg border border-white/60 bg-white/50 px-3 py-2 text-xs text-slate-700">
+              บัญชีรับโอนและ QR (สมาชิกเห็นตอนซื้อ)
+            </div>
             <div>
               <label className="text-xs font-medium text-slate-600">ชื่อบัญชี</label>
               <input
-                value={paymentEditName}
-                onChange={(e) => setPaymentEditName(e.target.value)}
+                value={editPayName}
+                onChange={(e) => setEditPayName(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
             <div>
               <label className="text-xs font-medium text-slate-600">หมายเลขบัญชี</label>
               <input
-                value={paymentEditNumber}
-                onChange={(e) => setPaymentEditNumber(e.target.value)}
+                value={editPayNumber}
+                onChange={(e) => setEditPayNumber(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
             <div className="sm:col-span-2">
               <label className="text-xs font-medium text-slate-600">ชื่อธนาคาร</label>
               <input
-                value={paymentEditBank}
-                onChange={(e) => setPaymentEditBank(e.target.value)}
+                value={editPayBank}
+                onChange={(e) => setEditPayBank(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               />
             </div>
@@ -436,14 +513,14 @@ export default function AdminHeartPackagesPanel() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setPaymentEditQrFile(e.target.files?.[0] || null)}
+                onChange={(e) => setEditQrFile(e.target.files?.[0] || null)}
                 className="mt-1 block w-full text-sm"
               />
-              {paymentEditPkg.paymentQrUrl ? (
+              {editPkg.paymentQrUrl ? (
                 <p className="mt-1 text-xs text-slate-500">
                   รูปปัจจุบัน:{" "}
                   <a
-                    href={paymentEditPkg.paymentQrUrl}
+                    href={editPkg.paymentQrUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-800 underline"
@@ -454,18 +531,18 @@ export default function AdminHeartPackagesPanel() {
               ) : null}
             </div>
           </div>
-          {paymentEditMsg ? <p className="text-sm text-red-600">{paymentEditMsg}</p> : null}
+          {editMsg ? <p className="text-sm text-red-600">{editMsg}</p> : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
-              disabled={paymentEditBusy}
+              disabled={editBusy}
               className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
             >
-              {paymentEditBusy ? "กำลังบันทึก…" : "บันทึก"}
+              {editBusy ? "กำลังบันทึก…" : "บันทึกการแก้ไข"}
             </button>
             <button
               type="button"
-              onClick={() => setPaymentEditPkg(null)}
+              onClick={() => setEditPkg(null)}
               className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
             >
               ยกเลิก
