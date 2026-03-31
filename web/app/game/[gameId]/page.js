@@ -46,87 +46,89 @@ export default async function GamePlayPage({ params }) {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
-        <div className="flex items-center gap-4">
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50 shadow-sm ring-1 ring-slate-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={centralMeta.coverImageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold tracking-tight text-slate-900">{centralMeta.title}</h1>
-            {showHeartCosts ? (
-              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
-                <span className="font-medium text-slate-500">หักต่อรอบ</span>
-                {centralMeta.pinkHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-50 px-2 py-1 text-pink-900 ring-1 ring-pink-200/90">
-                    <InlineHeart size="md" className="text-pink-500" />
-                    <span className="text-sm font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
-                    <span className="text-[11px] font-semibold text-pink-800">หัวใจชมพู</span>
-                  </span>
+        <div className="rounded-3xl border border-white/80 bg-white/95 p-4 shadow-soft sm:p-6">
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-50 shadow-sm ring-1 ring-slate-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={centralMeta.coverImageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900">{centralMeta.title}</h1>
+              {showHeartCosts ? (
+                <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
+                  <span className="font-medium text-slate-500">หักต่อรอบ</span>
+                  {centralMeta.pinkHeartCost > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-50 px-2 py-1 text-pink-900 ring-1 ring-pink-200/90">
+                      <InlineHeart size="md" className="text-pink-500" />
+                      <span className="text-sm font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
+                      <span className="text-[11px] font-semibold text-pink-800">หัวใจชมพู</span>
+                    </span>
+                  ) : null}
+                  {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
+                    <span className="text-slate-300" aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  {centralMeta.redHeartCost > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80">
+                      <InlineHeart size="md" className="text-red-600" />
+                      <span className="text-sm font-bold tabular-nums">{centralMeta.redHeartCost}</span>
+                      <span className="text-[11px] font-semibold text-red-800">หัวใจแดง</span>
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+              <p
+                className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 ${
+                  showHeartCosts ? "mt-2" : "mt-1"
+                }`}
+              >
+                {centralMeta.creatorUsername ? (
+                  <Link
+                    href={`/u/${centralMeta.creatorUsername}`}
+                    className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                  >
+                    @{centralMeta.creatorUsername}
+                  </Link>
                 ) : null}
-                {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
+                {centralMeta.creatorUsername ? (
                   <span className="text-slate-300" aria-hidden>
                     ·
                   </span>
                 ) : null}
-                {centralMeta.redHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80">
-                    <InlineHeart size="md" className="text-red-600" />
-                    <span className="text-sm font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                    <span className="text-[11px] font-semibold text-red-800">หัวใจแดง</span>
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-            <p
-              className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 ${
-                showHeartCosts ? "mt-2" : "mt-1"
-              }`}
-            >
-              {centralMeta.creatorUsername ? (
                 <Link
-                  href={`/u/${centralMeta.creatorUsername}`}
+                  href="/game"
                   className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
                 >
-                  @{centralMeta.creatorUsername}
+                  ← รายการเกม
                 </Link>
-              ) : null}
-              {centralMeta.creatorUsername ? (
-                <span className="text-slate-300" aria-hidden>
-                  ·
-                </span>
-              ) : null}
-              <Link
-                href="/game"
-                className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
-              >
-                ← รายการเกม
-              </Link>
-            </p>
+              </p>
+            </div>
           </div>
-        </div>
-        {centralMeta.description ? (
-          <p className="mt-4 max-w-prose text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
-            {centralMeta.description}
-          </p>
-        ) : null}
-        <FlipGameDemo serverCentralPublished centralGameId={gameId} />
-        <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200/80 pt-6 text-sm">
-          <Link
-            href="/game"
-            className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
-          >
-            ← รายการเกม
-          </Link>
-          <Link
-            href="/"
-            className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
-          >
-            หน้าแรก
-          </Link>
+          {centralMeta.description ? (
+            <p className="mt-4 max-w-prose whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+              {centralMeta.description}
+            </p>
+          ) : null}
+          <FlipGameDemo serverCentralPublished centralGameId={gameId} />
+          <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200/80 pt-6 text-sm">
+            <Link
+              href="/game"
+              className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+            >
+              ← รายการเกม
+            </Link>
+            <Link
+              href="/"
+              className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+            >
+              หน้าแรก
+            </Link>
+          </div>
         </div>
       </main>
       <SiteFooter />

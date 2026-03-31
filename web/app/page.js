@@ -118,17 +118,10 @@ export default async function HomePage() {
         ) : null}
 
         <section className="mt-14 md:mt-16" aria-labelledby="shortcuts-heading">
-          <SectionHeading
-            id="shortcuts-heading"
-            eyebrow="เมนูหลัก"
-            title="ทางลัด"
-            subtitle={
-              centralMeta
-                ? "รวมลิงก์บริการ — การ์ดเกมแสดงชื่อเกมที่เผยแพร่"
-                : "เลือกบริการที่ต้องการ — แตะการ์ดเพื่อไปหน้านั้นทันที"
-            }
-          />
-          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 id="shortcuts-heading" className="sr-only">
+            ทางลัด
+          </h2>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {actions.map((a) => (
               <li key={a.href}>
                 <Link
