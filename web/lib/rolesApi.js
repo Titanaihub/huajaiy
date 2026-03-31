@@ -65,6 +65,22 @@ export async function apiAdminMemberFull(token, id) {
   return data;
 }
 
+/** แอดมิน — ขอโทเค็นชั่วคราวเพื่อดู UI ในนามสมาชิก (ต้องเปิด ADMIN_IMPERSONATION_ENABLED ที่ API) */
+export async function apiAdminImpersonateMember(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/impersonate`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ขอโหมดดูในนามสมาชิกไม่สำเร็จ");
+  }
+  return data;
+}
+
 /** @param body { Record<string, unknown> } โปรไฟล์ — ส่งเฉพาะฟิลด์ที่ต้องการแก้ */
 export async function apiAdminPatchMember(token, id, body) {
   const r = await fetch(`${apiRoot()}/api/admin/members/${encodeURIComponent(id)}`, {

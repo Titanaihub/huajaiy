@@ -2,6 +2,9 @@ import { getApiBase } from "./config";
 
 export const MEMBER_TOKEN_KEY = "huajaiy_member_token";
 
+/** เก็บโทเค็นแอดมินไว้คืนหลังออกจากโหมดดูในนามสมาชิก */
+export const IMPERSONATION_RETURN_TOKEN_KEY = "huajaiy_impersonation_return_token";
+
 function apiRoot() {
   return getApiBase().replace(/\/$/, "");
 }

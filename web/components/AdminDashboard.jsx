@@ -6,11 +6,12 @@ import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import AdminPrizePayoutPanel from "./AdminPrizePayoutPanel";
-import { getMemberToken } from "../lib/memberApi";
+import { getMemberToken, IMPERSONATION_RETURN_TOKEN_KEY, setMemberToken } from "../lib/memberApi";
 import { formatHeartCostSummary } from "../lib/formatHeartCostLabel";
 import {
   apiAdminAdjustMemberHearts,
   apiAdminApproveNameChange,
+  apiAdminImpersonateMember,
   apiAdminListMembers,
   apiAdminMemberFull,
   apiAdminNameChangeRequests,
@@ -71,6 +72,8 @@ export default function AdminDashboard() {
   const [showNewPasswordPlain, setShowNewPasswordPlain] = useState(false);
   const [passBusy, setPassBusy] = useState(false);
   const [panelMsg, setPanelMsg] = useState("");
+  const [impersonateBusy, setImpersonateBusy] = useState(false);
+  const [impersonateErr, setImpersonateErr] = useState("");
 
   const memberDetailRef = useRef(null);
 
@@ -234,6 +237,7 @@ export default function AdminDashboard() {
       heartsNote: data.heartsNote,
       heartLedger: data.heartLedger || [],
       roomRedCodes: data.roomRedCodes || [],
+      roomRedRedemptions: data.roomRedRedemptions || [],
       phoneHistory: data.phoneHistory || []
     });
   }
@@ -243,6 +247,7 @@ export default function AdminDashboard() {
     setMemberFull(null);
     setDetailErr("");
     setPanelMsg("");
+    setImpersonateErr("");
     setHeartPinkDelta("");
     setHeartRedDelta("");
     setNewPassword("");
@@ -265,6 +270,38 @@ export default function AdminDashboard() {
       setMemberFull(null);
     } finally {
       setDetailLoading(false);
+    }
+  }
+
+  async function startImpersonationForMember() {
+    const id = selectedId;
+    if (!id) return;
+    const token = getMemberToken();
+    if (!token) {
+      setImpersonateErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+      return;
+    }
+    setImpersonateBusy(true);
+    setImpersonateErr("");
+    try {
+      try {
+        window.sessionStorage.setItem(IMPERSONATION_RETURN_TOKEN_KEY, token);
+      } catch {
+        setImpersonateErr("เบราว์เซอร์ไม่ให้สำรองโทเค็นแอดมิน — ลองอนุญาตการเก็บข้อมูลชั่วคราว");
+        return;
+      }
+      const data = await apiAdminImpersonateMember(token, id);
+      setMemberToken(data.token);
+      window.location.assign("/account");
+    } catch (e) {
+      try {
+        window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+      setImpersonateErr(e.message || String(e));
+    } finally {
+      setImpersonateBusy(false);
     }
   }
 
@@ -764,6 +801,31 @@ export default function AdminDashboard() {
                     <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                       {memberFull.heartsNote}
                     </p>
+                  ) : null}
+
+                  {detail.role !== "admin" && !detail.accountDisabled ? (
+                    <div className="rounded-lg border border-violet-200 bg-violet-50/90 p-3 text-sm text-violet-950">
+                      <p className="font-semibold">ตรวจเมนูฝั่งสมาชิก (ก่อนปล่อยใช้งานจริง)</p>
+                      <p className="mt-1 text-xs leading-relaxed text-violet-900/95">
+                        ต้องตั้งค่า{" "}
+                        <code className="rounded bg-white/90 px-1 py-0.5 font-mono text-[11px]">
+                          ADMIN_IMPERSONATION_ENABLED=true
+                        </code>{" "}
+                        ที่บริการ API — ระบบจะสลับเป็นโทเค็นของสมาชิกคนนี้ชั่วคราว (ประมาณ 4 ชั่วโมง)
+                        มีแถบสีเหลืองด้านบน — กดออกเพื่อกลับแอดมิน
+                      </p>
+                      {impersonateErr ? (
+                        <p className="mt-2 text-xs font-medium text-red-700">{impersonateErr}</p>
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={impersonateBusy || detailLoading}
+                        onClick={() => void startImpersonationForMember()}
+                        className="mt-2 rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-semibold text-violet-950 hover:bg-violet-100 disabled:opacity-50"
+                      >
+                        {impersonateBusy ? "กำลังสลับ…" : "ดูหน้าสมาชิก (โหมดตรวจสอบ)"}
+                      </button>
+                    </div>
                   ) : null}
 
                   <dl className="grid gap-2 text-sm sm:grid-cols-2">

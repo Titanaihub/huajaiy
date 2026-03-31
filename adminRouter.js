@@ -1,6 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { authMiddleware, requireRole } = require("./authRouter");
+const {
+  authMiddleware,
+  requireRole,
+  signImpersonationToken,
+  publicUserWithRoomGiftRed
+} = require("./authRouter");
+const { ADMIN } = require("./constants/roles");
 const { validatePassword } = require("./authValidators");
 const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
@@ -22,6 +28,11 @@ const {
 } = require("./services/oneoffUserCleanupMarch2026");
 
 const router = express.Router();
+
+function isAdminImpersonationEnabled() {
+  const v = process.env.ADMIN_IMPERSONATION_ENABLED;
+  return v === "true" || v === "1";
+}
 
 function isUuidParam(id) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -143,6 +154,59 @@ router.get(
         phoneHistory,
         heartsNote:
           "ยูสเซอร์ดูได้จากตาราง/รายละเอียด · รหัสผ่านเก็บแบบแฮช (ดูข้อความจริงไม่ได้) — ตั้งรหัสใหม่ได้ด้านล่าง · ระงับบัญชี = ห้ามล็อกอินและห้ามใช้ API ด้วยโทเค็นเดิม · เกมส่วนกลางแก้ได้ที่แท็บ「เกมส่วนกลาง」"
+      });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/**
+ * แอดมินขอโทเค็นชั่วคราวเพื่อดูหน้าสมาชิกเหมือนผู้ใช้จริง (ต้องเปิด ADMIN_IMPERSONATION_ENABLED ที่ API)
+ */
+router.post(
+  "/members/:id/impersonate",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      if (!isAdminImpersonationEnabled()) {
+        return res.status(403).json({
+          ok: false,
+          error:
+            "ฟีเจอร์ดูในนามสมาชิกยังไม่เปิด — ตั้ง ADMIN_IMPERSONATION_ENABLED=true ที่บริการ API (หลังเปิดใช้งานจริงควรปิด)"
+        });
+      }
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const target = await userService.findById(id);
+      if (!target) {
+        return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+      }
+      if (target.accountDisabled) {
+        return res.status(403).json({
+          ok: false,
+          error: "บัญชีนี้ถูกระงับ — ไม่สามารถดูในนามได้"
+        });
+      }
+      const r = target.role || "member";
+      if (r === ADMIN) {
+        return res.status(403).json({
+          ok: false,
+          error: "ไม่อนุญาตให้ดูในนามบัญชีแอดมิน"
+        });
+      }
+      const token = signImpersonationToken(target, req.userId);
+      return res.json({
+        ok: true,
+        token,
+        user: await publicUserWithRoomGiftRed(target),
+        impersonation: {
+          active: true,
+          adminUsername: req.username || null
+        }
       });
     } catch (e) {
       return res.status(500).json({ ok: false, error: e.message });

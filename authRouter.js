@@ -40,6 +40,22 @@ function signToken(user) {
   );
 }
 
+/** โทเค็นชั่วคราวสำหรับแอดมินตรวจ UI ในนามสมาชิก — อายุสั้น ห้ามใช้แทนรหัสผ่านทั่วไป */
+function signImpersonationToken(targetUser, adminUserId) {
+  const role = targetUser.role || MEMBER;
+  return jwt.sign(
+    {
+      sub: targetUser.id,
+      username: targetUser.username,
+      role,
+      imp: true,
+      adm: adminUserId
+    },
+    getJwtSecret(),
+    { expiresIn: "4h" }
+  );
+}
+
 /** รวมยอดหัวใจแดงจากรหัสของห้อง (scoped) ให้สอดคล้องกับ GET /me */
 async function publicUserWithRoomGiftRed(user) {
   const base = userService.publicUser(user);
@@ -67,6 +83,10 @@ async function authMiddleware(req, res, next) {
       .status(401)
       .json({ ok: false, error: "โทเค็นไม่ถูกต้องหรือหมดอายุ" });
   }
+  req.impersonation =
+    payload && payload.imp === true && payload.adm
+      ? { adminUserId: String(payload.adm) }
+      : null;
   req.userId = payload.sub;
   try {
     const user = await userService.findById(req.userId);
@@ -101,6 +121,7 @@ function requireRole(...allowed) {
 /** มี Bearer ที่ถูกต้อง → ตั้ง req.userId · ไม่มีหัวหรือไม่ส่ง → ผู้เล่นทั่วไป (ไม่บังคับล็อกอิน) */
 async function optionalAuthMiddleware(req, res, next) {
   req.userId = null;
+  req.impersonation = null;
   const h = req.headers.authorization;
   if (!h || !h.startsWith("Bearer ")) return next();
   const token = h.slice("Bearer ".length).trim();
@@ -113,6 +134,10 @@ async function optionalAuthMiddleware(req, res, next) {
       .status(401)
       .json({ ok: false, error: "โทเค็นไม่ถูกต้องหรือหมดอายุ" });
   }
+  req.impersonation =
+    payload && payload.imp === true && payload.adm
+      ? { adminUserId: String(payload.adm) }
+      : null;
   try {
     const user = await userService.findById(payload.sub);
     if (!user) {
@@ -259,9 +284,18 @@ router.get("/me", authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
+    let impersonation = null;
+    if (req.impersonation && req.impersonation.adminUserId) {
+      const adm = await userService.findById(req.impersonation.adminUserId);
+      impersonation = {
+        active: true,
+        adminUsername: adm ? adm.username : null
+      };
+    }
     return res.json({
       ok: true,
-      user: await publicUserWithRoomGiftRed(user)
+      user: await publicUserWithRoomGiftRed(user),
+      impersonation
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
@@ -550,4 +584,11 @@ router.post("/central-prize-withdrawals/:id/resolve", authMiddleware, async (req
   }
 });
 
-module.exports = { router, authMiddleware, requireRole, optionalAuthMiddleware };
+module.exports = {
+  router,
+  authMiddleware,
+  requireRole,
+  optionalAuthMiddleware,
+  signImpersonationToken,
+  publicUserWithRoomGiftRed
+};

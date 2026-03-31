@@ -15,6 +15,7 @@ import {
   apiRegister,
   clearMemberToken,
   getMemberToken,
+  IMPERSONATION_RETURN_TOKEN_KEY,
   setMemberToken
 } from "../lib/memberApi";
 
@@ -31,20 +32,27 @@ export function useMemberAuth() {
 export default function MemberAuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [impersonation, setImpersonation] = useState(null);
 
   const refresh = useCallback(async () => {
     const token = getMemberToken();
     if (!token) {
       setUser(null);
+      setImpersonation(null);
       setLoading(false);
       return;
     }
     try {
       const data = await apiMe(token);
       setUser(data.user);
+      const imp = data.impersonation;
+      setImpersonation(
+        imp && imp.active ? { adminUsername: imp.adminUsername || null } : null
+      );
     } catch {
       clearMemberToken();
       setUser(null);
+      setImpersonation(null);
     } finally {
       setLoading(false);
     }
@@ -55,22 +63,71 @@ export default function MemberAuthProvider({ children }) {
   }, [refresh]);
 
   const login = useCallback(async (username, password) => {
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
     const data = await apiLogin({ username, password });
     setMemberToken(data.token);
     setUser(data.user);
+    setImpersonation(null);
     return data;
   }, []);
 
   const register = useCallback(async (payload) => {
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
     const data = await apiRegister(payload);
     setMemberToken(data.token);
     setUser(data.user);
+    setImpersonation(null);
     return data;
   }, []);
 
   const logout = useCallback(() => {
     clearMemberToken();
     setUser(null);
+    setImpersonation(null);
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  const exitImpersonation = useCallback(() => {
+    if (typeof window === "undefined") return;
+    let back = null;
+    try {
+      back = window.sessionStorage.getItem(IMPERSONATION_RETURN_TOKEN_KEY);
+    } catch {
+      back = null;
+    }
+    if (back) {
+      try {
+        window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
+      } catch {
+        /* ignore */
+      }
+      setMemberToken(back);
+      setImpersonation(null);
+      window.location.assign("/admin");
+      return;
+    }
+    clearMemberToken();
+    setUser(null);
+    setImpersonation(null);
+    window.location.assign("/login?next=/admin");
   }, []);
 
   const patchProfile = useCallback(async (payload) => {
@@ -92,14 +149,27 @@ export default function MemberAuthProvider({ children }) {
     () => ({
       user,
       loading,
+      impersonation,
       login,
       register,
       logout,
+      exitImpersonation,
       refresh,
       patchProfile,
       applyUser
     }),
-    [user, loading, login, register, logout, refresh, patchProfile, applyUser]
+    [
+      user,
+      loading,
+      impersonation,
+      login,
+      register,
+      logout,
+      exitImpersonation,
+      refresh,
+      patchProfile,
+      applyUser
+    ]
   );
 
   return (

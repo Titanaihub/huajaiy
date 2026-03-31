@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Sarabun } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
+import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
 import { getSiteUrl } from "../lib/siteUrl";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
         className={`${sarabun.className} min-h-screen bg-brand-50 text-slate-900 antialiased`}
       >
         <MemberAuthProvider>
+          <ImpersonationBanner />
           <HeartsProvider>{children}</HeartsProvider>
         </MemberAuthProvider>
       </body>
