@@ -123,13 +123,6 @@ export default function MemberNav() {
                 เกมของฉัน
               </Link>
               <Link
-                href="/account/prize-payouts"
-                className={`${cls} ${isActivePath(p, "/account/prize-payouts") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
-                role="menuitem"
-              >
-                จ่ายรางวัล
-              </Link>
-              <Link
                 href="/account/creator-withdrawals"
                 className={`${cls} ${isActivePath(p, "/account/creator-withdrawals") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
                 role="menuitem"
