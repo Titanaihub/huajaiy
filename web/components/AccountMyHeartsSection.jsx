@@ -186,13 +186,12 @@ export default function AccountMyHeartsSection() {
   }
 
   const pink = Number(user.pinkHeartsBalance ?? 0);
-  const playableRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
   const roomGift = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
   const roomRedFromCodesSum = roomGift.reduce(
     (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
     0
   );
-  const redTotalDisplay = playableRed + roomRedFromCodesSum;
+  const redTotalDisplay = roomRedFromCodesSum;
 
   return (
     <div className="space-y-8">
@@ -210,7 +209,7 @@ export default function AccountMyHeartsSection() {
             {pink.toLocaleString("th-TH")}
           </p>
           <p className="mt-3 text-xs font-semibold uppercase text-red-900/80">
-            หัวใจแดง (รวมจากทุกห้อง,เล่นได้เฉพาะห้องหรือเกมส่วนกลางที่กำหนด)
+            หัวใจแดงจากรหัสห้อง (ใช้งานจริง)
           </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
             <InlineHeart className="text-red-600" />

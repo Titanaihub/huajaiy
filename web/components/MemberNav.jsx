@@ -88,13 +88,6 @@ export default function MemberNav() {
                 หัวใจของฉัน
               </Link>
               <Link
-                href="/account/heart-history/play"
-                className={`${cls} ${p.startsWith("/account/heart-history/play") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
-                role="menuitem"
-              >
-                ประวัติหัวใจ (เล่นเกม)
-              </Link>
-              <Link
                 href="/account/profile"
                 className={`${cls} ${isActivePath(p, "/account/profile") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
                 role="menuitem"
@@ -143,14 +136,6 @@ export default function MemberNav() {
                 title="แดงแจกผู้เล่น · สร้างรหัสห้อง / แลกรหัส"
               >
                 แจกหัวใจแดง
-              </Link>
-              <Link
-                href="/account/heart-history/purchases"
-                className={`${cls} ${p.startsWith("/account/heart-history/purchases") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
-                role="menuitem"
-                title="การซื้อแพ็กแดงแจก และการสร้าง/ลบรหัสแจกห้อง"
-              >
-                ประวัติหัวใจแดง
               </Link>
             </>
           )}

@@ -25,7 +25,6 @@ export default function AccountDashboardOverview() {
   }
 
   const pink = Number(user.pinkHeartsBalance ?? 0);
-  const red = Number(user.redHeartsBalance ?? 0);
   const roomGift = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
   const roomGiftTotal = roomGift.reduce(
     (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
@@ -48,13 +47,6 @@ export default function AccountDashboardOverview() {
               <InlineHeart className="text-rose-400" />
               {pink.toLocaleString("th-TH")}
             </p>
-            <p className="mt-2 text-xs font-semibold uppercase text-red-900/80">
-              หัวใจแดงทั่วไป (ไม่รวมแดงจากรหัสห้อง)
-            </p>
-            <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
-              <InlineHeart className="text-red-600" />
-              {red.toLocaleString("th-TH")}
-            </p>
             {roomGiftTotal > 0 ? (
               <div className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
                 <p className="font-semibold">หัวใจแดงจากรหัสห้อง (รวม {roomGiftTotal.toLocaleString("th-TH")})</p>
@@ -69,8 +61,8 @@ export default function AccountDashboardOverview() {
               </div>
             ) : null}
             <p className="mt-2 text-xs text-rose-900/70">
-              รวมในบัญชี (ชมพู + แดงเล่นได้) {(pink + red).toLocaleString("th-TH")} — แดงแจกสำหรับออกรหัสดูที่เมนู
-              「แจกหัวใจแดง」— มุมจออาจมีหัวใจสาธิตในเครื่องแยกต่างหาก
+              แสดงเฉพาะยอดที่ใช้งานจริง: ชมพู และแดงจากรหัสห้อง — แดงแจกสำหรับออกรหัสดูที่เมนู
+              「แจกหัวใจแดง」
             </p>
             <button
               type="button"

@@ -48,8 +48,6 @@ export default function AdminDashboard() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
   const [heartPinkDelta, setHeartPinkDelta] = useState("");
-  const [heartRedDelta, setHeartRedDelta] = useState("");
-  const [heartGiveawayDelta, setHeartGiveawayDelta] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
   const [admUsername, setAdmUsername] = useState("");
   const [admFirstName, setAdmFirstName] = useState("");
@@ -249,7 +247,6 @@ export default function AdminDashboard() {
     setPanelMsg("");
     setImpersonateErr("");
     setHeartPinkDelta("");
-    setHeartRedDelta("");
     setNewPassword("");
     if (!id) {
       setSelectedId(null);
@@ -355,9 +352,9 @@ export default function AdminDashboard() {
     }
   }
 
-  async function applyHeartDeltasAndRefresh(pd, rd, gd, successMsg) {
+  async function applyHeartDeltasAndRefresh(pd, successMsg) {
     if (!selectedId) return;
-    if (pd === 0 && rd === 0 && gd === 0) {
+    if (pd === 0) {
       setPanelMsg("ไม่มีการเปลี่ยนแปลง");
       return;
     }
@@ -367,13 +364,9 @@ export default function AdminDashboard() {
     setPanelMsg("");
     try {
       const data = await apiAdminAdjustMemberHearts(token, selectedId, {
-        pinkDelta: pd,
-        redDelta: rd,
-        redGiveawayDelta: gd
+        pinkDelta: pd
       });
       setHeartPinkDelta("");
-      setHeartRedDelta("");
-      setHeartGiveawayDelta("");
       if (data?.user) {
         setMemberFull((prev) =>
           prev && prev.user ? { ...prev, user: data.user } : prev
@@ -398,66 +391,14 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!selectedId) return;
     const pd = parseInt(heartPinkDelta, 10);
-    const rd = parseInt(heartRedDelta, 10);
-    const gd = parseInt(heartGiveawayDelta, 10);
     const pinkDelta = Number.isFinite(pd) ? pd : 0;
-    const redDelta = Number.isFinite(rd) ? rd : 0;
-    const redGiveawayDelta = Number.isFinite(gd) ? gd : 0;
-    if (pinkDelta === 0 && redDelta === 0 && redGiveawayDelta === 0) {
-      setPanelMsg(
-        "ใส่ตัวเลขเต็มอย่างน้อยหนึ่งช่อง (ชมพู / แดงเล่นได้ / แดงแจก) — บวกเพิ่ม ลบลด"
-      );
+    if (pinkDelta === 0) {
+      setPanelMsg("ใส่ตัวเลขเต็มในช่องชมพูอย่างน้อย 1 ค่า — บวกเพิ่ม ลบลด");
       return;
     }
     await applyHeartDeltasAndRefresh(
       pinkDelta,
-      redDelta,
-      redGiveawayDelta,
       "ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป) — สมาชิกกด「รีเฟรชยอด」ที่บัญชี"
-    );
-  }
-
-  async function quickZeroPlayableRed() {
-    const u = memberFull?.user;
-    if (!u || !selectedId) return;
-    const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
-    if (r === 0) {
-      setPanelMsg("แดงเล่นได้คงเหลือ 0 อยู่แล้ว");
-      return;
-    }
-    if (!window.confirm(`หักแดงเล่นได้ทั้งหมด ${r.toLocaleString("th-TH")} ดวง ให้เหลือ 0?`)) {
-      return;
-    }
-    await applyHeartDeltasAndRefresh(
-      0,
-      -r,
-      0,
-      "หักแดงเล่นได้หมดแล้ว — ให้สมาชิกกด「รีเฟรชยอด」"
-    );
-  }
-
-  async function quickZeroAllHearts() {
-    const u = memberFull?.user;
-    if (!u || !selectedId) return;
-    const p = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0));
-    const r = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0));
-    const g = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0));
-    if (p === 0 && r === 0 && g === 0) {
-      setPanelMsg("หัวใจทุกประเภทเป็น 0 อยู่แล้ว");
-      return;
-    }
-    if (
-      !window.confirm(
-        `เคลียร์หัวใจเป็น 0 ทั้งหมด?\nชมพู ${p.toLocaleString("th-TH")} · แดงเล่น ${r.toLocaleString("th-TH")} · แดงแจก ${g.toLocaleString("th-TH")}`
-      )
-    ) {
-      return;
-    }
-    await applyHeartDeltasAndRefresh(
-      -p,
-      -r,
-      -g,
-      "เคลียร์หัวใจเป็น 0 แล้ว — ให้สมาชิกกด「รีเฟรชยอด」"
     );
   }
 
@@ -1118,26 +1059,8 @@ export default function AdminDashboard() {
                       เติมหัวใจให้สมาชิก (ฟรี — ไม่ผ่านสลิป)
                     </h4>
                     <p className="mt-1 text-[11px] text-slate-600">
-                      ชมพู / แดงเล่นได้ / แดงแจกผู้เล่น — ใส่ตัวเลขเต็ม บวกเพิ่ม ลบลด (ห้ามติดลบเกินยอดคงเหลือ)
+                      ปรับได้เฉพาะหัวใจชมพู — หัวใจแดงเป็นส่วนการแจกของผู้สร้างห้อง/เกม
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        disabled={heartBusy || !memberFull?.user}
-                        onClick={() => void quickZeroPlayableRed()}
-                        className="rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-900 hover:bg-red-100 disabled:opacity-50"
-                      >
-                        หักแดงเล่นหมด (ครั้งเดียว)
-                      </button>
-                      <button
-                        type="button"
-                        disabled={heartBusy || !memberFull?.user}
-                        onClick={() => void quickZeroAllHearts()}
-                        className="rounded-lg border border-slate-400 bg-white px-2 py-1 text-[11px] font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        เคลียร์หัวใจเป็น 0 ทั้งหมด
-                      </button>
-                    </div>
                     <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
                       <div>
                         <label className="block text-[10px] font-medium text-rose-600">ชมพู Δ</label>
@@ -1145,26 +1068,6 @@ export default function AdminDashboard() {
                           type="number"
                           value={heartPinkDelta}
                           onChange={(e) => setHeartPinkDelta(e.target.value)}
-                          placeholder="0"
-                          className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-medium text-red-700">แดงเล่น Δ</label>
-                        <input
-                          type="number"
-                          value={heartRedDelta}
-                          onChange={(e) => setHeartRedDelta(e.target.value)}
-                          placeholder="0"
-                          className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-medium text-rose-900">แดงแจก Δ</label>
-                        <input
-                          type="number"
-                          value={heartGiveawayDelta}
-                          onChange={(e) => setHeartGiveawayDelta(e.target.value)}
                           placeholder="0"
                           className="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
                         />
