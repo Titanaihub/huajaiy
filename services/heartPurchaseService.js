@@ -228,7 +228,8 @@ async function approve(purchaseId, adminUserId, note) {
       throw e;
     }
     const buyerId = row.user_id;
-    const pink = Math.max(0, Math.floor(Number(row.pink_qty) || 0));
+    // นโยบายใหม่: อนุมัติแพ็กซื้อหัวใจเพิ่มเฉพาะ "แดงแจก" เท่านั้น
+    const pink = 0;
     const red = Math.max(0, Math.floor(Number(row.red_qty) || 0));
     const pkgR = await client.query(`SELECT title FROM heart_packages WHERE id = $1`, [
       row.package_id

@@ -11,9 +11,6 @@ export default function BrandLogo({
   const titleClass = compact
     ? "text-base font-bold tracking-tight text-white transition group-hover:text-brand-300"
     : "text-lg font-bold tracking-tight text-slate-900 transition group-hover:text-brand-800 sm:text-xl";
-  const subClass = compact
-    ? "block text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400"
-    : "hidden text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 sm:block";
 
   const heartClass = compact
     ? "h-7 w-7 text-rose-200 sm:h-8 sm:w-8"
@@ -29,7 +26,6 @@ export default function BrandLogo({
       </span>
       <span className="flex min-w-0 flex-col leading-tight">
         <span className={titleClass}>HUAJAIY</span>
-        <span className={subClass}>Commerce · Game · Media</span>
       </span>
     </Link>
   );
