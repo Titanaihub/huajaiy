@@ -30,6 +30,9 @@ services:
       # ไม่บังคับ: หักหัวใจต่อรอบเกม (ต้องตรงกับที่เว็บคาดไว้)
       - key: GAME_HEART_COST
         sync: false
+      # ไม่บังคับ: แอดมินกด「ดูหน้าสมาชิก (โหมดตรวจสอบ)」ได้ — ค่า true หรือ 1 · ปิดก่อน production ได้
+      - key: ADMIN_IMPERSONATION_ENABLED
+        sync: false
 
   # --- เว็บ: Next.js (รากโฟลเดอร์ web/) ---
   - type: web
