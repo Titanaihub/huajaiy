@@ -672,7 +672,9 @@ export default function AdminCentralGamePanel({
       parts.push("กติกา");
       await loadList();
       await loadDetail(selectedId);
-      setMsg(`บันทึกข้อมูลแล้ว — ${parts.join(" · ")}`);
+      setMsg(
+        `บันทึกข้อมูลแล้ว — ${parts.join(" · ")} · กรุณาตรวจสอบเกมให้ถูกต้อง ก่อนเผยแพร่`
+      );
     } catch (e) {
       setMsg(e.message || String(e));
     } finally {
