@@ -18,7 +18,7 @@ function cssUrlQuoted(url) {
 }
 
 /**
- * สไตล์พื้นหลังให้ใส่ที่ `<body class="hui-root">`
+ * สไตล์พื้นหลังให้ใส่ที่ `<html>` (layout ราก) — `<body>` โปร่งเพื่อให้ทุกหน้าเห็นชุดเดียวกัน
  * @param {{ backgroundImageUrl?: string, bgGradientTop?: string, bgGradientMid?: string, bgGradientBottom?: string, imageOverlayPercent?: number }} theme
  */
 export function buildSiteRootBackgroundStyle(theme) {

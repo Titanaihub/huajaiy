@@ -1650,7 +1650,7 @@ export default function AdminDashboard() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-hui-section">พื้นหลังเว็บไซต์</h2>
           <p className="text-sm text-hui-body">
-            ตั้งไล่สีพื้นหลังทั้งเว็บ หรือใส่รูป (URL https) พร้อมปรับความทึบของเลเยอร์สีทับรูป — หลังบันทึกให้รีเฟรชหน้าเพื่อดูผล
+            ใช้กับ<strong>ทุกหน้า</strong>รวมหน้าแรก ล็อกอิน ร้าน เกม แอดมิน และหลังบ้านสมาชิก — ตั้งไล่สีหรือรูป (https) ปรับความทึบทับรูปและฟุตเตอร์ — หลังบันทึกให้รีเฟรชหรือรอสักครู่
           </p>
           <AdminSiteThemePanel />
         </section>

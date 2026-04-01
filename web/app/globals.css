@@ -5,6 +5,8 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    /* พื้นหลังธีมใส่ที่ layout (inline) — ไม่ใส่สีทึบที่นี่เพื่อไม่บังรูป/ไล่สี */
+    background-color: transparent;
   }
 }
 

@@ -54,11 +54,15 @@ export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }) {
   const siteTheme = await fetchSiteThemeForLayout();
-  const bodyBgStyle = buildSiteRootBackgroundStyle(siteTheme);
+  /** วางที่ <html> เพื่อให้ทุกหน้า (รวมแอดมิน/ล็อกอิน) เห็นพื้นหลังชุดเดียวกัน — body โปร่งไม่ทับเลเยอร์ */
+  const htmlBgStyle = {
+    ...buildSiteRootBackgroundStyle(siteTheme),
+    minHeight: "100dvh"
+  };
 
   return (
-    <html lang="th" className={prompt.variable}>
-      <body className={`${prompt.className} hui-root flex flex-col`} style={bodyBgStyle}>
+    <html lang="th" className={prompt.variable} style={htmlBgStyle}>
+      <body className={`${prompt.className} hui-root flex flex-col bg-transparent`}>
         <SiteThemeProvider value={siteTheme}>
           <MemberAuthProvider>
             <ImpersonationBanner />
