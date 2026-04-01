@@ -75,16 +75,16 @@ export default async function HomePage() {
                       href={`/game/${encodeURIComponent(g.id)}`}
                       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white shadow-sm transition hover:border-hui-cta/30 hover:shadow-md"
                     >
-                      <div className="flex gap-3 p-4">
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop">
+                      <div className="flex gap-3 p-4 sm:p-5">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop sm:h-[4.5rem] sm:w-[4.5rem]">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={cover} alt="" className="h-full w-full object-cover" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="line-clamp-2 text-sm font-semibold leading-snug text-hui-section">
+                          <p className="line-clamp-2 text-base font-semibold leading-snug text-hui-section sm:text-[1.0625rem]">
                             {g.title || "เกม"}
                           </p>
-                          <p className="mt-1 text-[11px] text-hui-muted">
+                          <p className="mt-1.5 text-sm text-hui-muted">
                             ผู้สร้าง:{" "}
                             <span className="font-medium text-hui-body">
                               {g.creatorUsername ? `@${g.creatorUsername}` : "แอดมิน"}
@@ -92,10 +92,10 @@ export default async function HomePage() {
                           </p>
                         </div>
                       </div>
-                      <p className="line-clamp-3 border-t border-hui-border/70 px-4 py-3 text-xs leading-relaxed text-hui-body">
+                      <p className="line-clamp-3 border-t border-hui-border/70 px-4 py-3 text-sm leading-relaxed text-hui-body sm:px-5 sm:py-3.5">
                         {String(g.description || "").trim() || "ไม่มีคำอธิบายสั้น"}
                       </p>
-                      <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/80 px-4 py-2.5 text-center text-xs font-semibold text-hui-section">
+                      <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/80 px-4 py-3 text-center text-sm font-semibold text-hui-section sm:px-5">
                         เข้าเล่นเกมนี้
                       </span>
                     </Link>
@@ -119,22 +119,22 @@ export default async function HomePage() {
               <li key={a.href}>
                 <Link
                   href={a.href}
-                  className={`group flex h-full min-h-[8.5rem] flex-col rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-hui-cta/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/35 focus-visible:ring-offset-2 ${a.accent}`}
+                  className={`group flex h-full min-h-[9.5rem] flex-col rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-hui-cta/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/35 focus-visible:ring-offset-2 sm:min-h-[10rem] sm:p-6 ${a.accent}`}
                 >
                   <span className="flex items-start justify-between gap-2">
-                    <span className="font-semibold text-hui-section group-hover:text-hui-burgundy">
+                    <span className="text-base font-semibold text-hui-section group-hover:text-hui-burgundy sm:text-[1.0625rem]">
                       {a.title}
                     </span>
                     {a.badge ? (
-                      <span className="shrink-0 rounded-full bg-hui-cta px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                      <span className="shrink-0 rounded-full bg-hui-cta px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
                         {a.badge}
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-2 flex-1 text-sm leading-relaxed text-hui-body">
+                  <span className="mt-3 flex-1 text-base leading-relaxed text-hui-body">
                     {a.desc}
                   </span>
-                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-hui-cta">
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-hui-cta">
                     ไปที่หน้า
                     <span
                       className="transition group-hover:translate-x-0.5"

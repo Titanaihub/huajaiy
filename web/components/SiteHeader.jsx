@@ -1,10 +1,8 @@
 import Link from "next/link";
+import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import BrandLogo from "./BrandLogo";
 import HeartsBadge from "./HeartsBadge";
 import MemberNav from "./MemberNav";
-
-const navClass =
-  "shrink-0 whitespace-nowrap rounded-xl px-2 py-1 text-sm font-medium text-hui-section transition hover:bg-hui-border/40 hover:text-hui-burgundy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/40 focus-visible:ring-offset-2";
 
 export default function SiteHeader() {
   return (
@@ -20,10 +18,10 @@ export default function SiteHeader() {
           className="scrollbar-hide -mx-4 flex max-w-full items-center gap-x-1 gap-y-2 overflow-x-auto px-4 pb-0.5 text-sm sm:mx-0 sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0"
           aria-label="เมนูหลัก"
         >
-          <Link href="/" className={navClass}>
+          <Link href="/" className={siteNavLinkClass}>
             หน้าแรก
           </Link>
-          <Link href="/game" className={navClass}>
+          <Link href="/game" className={siteNavLinkClass}>
             เกม
           </Link>
           <span className="hidden h-4 w-px bg-hui-border/35 sm:inline-block" />

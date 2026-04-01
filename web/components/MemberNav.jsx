@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import {
   useCallback,
   useEffect,
@@ -83,7 +84,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
         onClick={() => setOpenKey((k) => (k === menuKey ? null : menuKey))}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex min-w-0 items-center gap-0.5 rounded-lg px-2 py-1.5 text-sm font-medium text-hui-body transition hover:bg-white/80 hover:text-hui-section sm:py-1"
+        className={`flex min-w-0 items-center gap-0.5 sm:py-1 ${siteNavLinkClass}`}
       >
         {label}
         <span className="text-[10px] opacity-70" aria-hidden>
@@ -228,18 +229,12 @@ export default function MemberNav() {
         </NavDropdown>
 
         {user.role === "admin" ? (
-          <Link
-            href="/admin"
-            className="font-medium text-hui-body transition hover:text-hui-section"
-          >
+          <Link href="/admin" className={siteNavLinkClass}>
             แอดมิน
           </Link>
         ) : null}
         {user.role === "owner" || user.role === "admin" ? (
-          <Link
-            href="/owner"
-            className="font-medium text-hui-body transition hover:text-hui-section"
-          >
+          <Link href="/owner" className={siteNavLinkClass}>
             เจ้าของร้าน
           </Link>
         ) : null}
@@ -256,18 +251,14 @@ export default function MemberNav() {
   }
 
   return (
-    <span className="flex flex-wrap items-center gap-2 text-sm">
-      <Link
-        href="/register"
-        className="font-medium text-hui-body transition hover:text-hui-section"
-      >
+    <span className="flex flex-wrap items-center gap-x-1 gap-y-1">
+      <Link href="/register" className={siteNavLinkClass}>
         สมัครสมาชิก
       </Link>
-      <span className="text-hui-border">|</span>
-      <Link
-        href="/login"
-        className="font-medium text-hui-body transition hover:text-hui-section"
-      >
+      <span className="self-center text-hui-border" aria-hidden>
+        |
+      </span>
+      <Link href="/login" className={siteNavLinkClass}>
         เข้าสู่ระบบ
       </Link>
     </span>
