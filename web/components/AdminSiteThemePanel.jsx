@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
@@ -70,6 +71,7 @@ async function uploadImageFile(file) {
 }
 
 export default function AdminSiteThemePanel() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
@@ -109,9 +111,10 @@ export default function AdminSiteThemePanel() {
       setBgGradientTop(String(t.bgGradientTop || "#FFF5F8"));
       setBgGradientMid(String(t.bgGradientMid || "#FFEEF3"));
       setBgGradientBottom(String(t.bgGradientBottom || "#FFD6E2"));
-      setImageOverlayPercent(
-        typeof t.imageOverlayPercent === "number" ? t.imageOverlayPercent : 78
-      );
+      {
+        const n = Number(t.imageOverlayPercent);
+        setImageOverlayPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 78);
+      }
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -138,7 +141,8 @@ export default function AdminSiteThemePanel() {
         bgGradientBottom,
         imageOverlayPercent
       });
-      setMsg("บันทึกแล้ว — รีเฟรชหน้าเว็บเพื่อดูพื้นหลังใหม่");
+      router.refresh();
+      setMsg("บันทึกแล้ว — หน้าเว็บโหลดธีมใหม่แล้ว (ถ้ายังไม่เห็นรูป ลองลดความทึบทับรูปลง)");
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -270,7 +274,7 @@ export default function AdminSiteThemePanel() {
           className="mt-1 w-full max-w-md"
         />
         <p className="hui-note mt-1">
-          ใช้เมื่อมีรูปพื้นหลัง — ยิ่งสูง ตัวหนังสืออ่านง่ายขึ้น
+          ใช้เมื่อมีรูปพื้นหลัง — ยิ่งสูง ตัวหนังสืออ่านง่ายขึ้น · รูปโทนอ่อน/ชมพูให้ลดค่านี้ลงจะเห็นลายชัดขึ้น
         </p>
       </div>
 

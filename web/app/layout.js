@@ -48,6 +48,9 @@ export const viewport = {
   viewportFit: "cover"
 };
 
+/** ห้าม static-generate layout — ไม่งั้นพื้นหลังจาก API จะติดค่าตอน build แล้วไม่อัปเดต */
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({ children }) {
   const siteTheme = await fetchSiteThemeForLayout();
   const bodyBgStyle = buildSiteRootBackgroundStyle(siteTheme);

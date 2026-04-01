@@ -30,7 +30,8 @@ export function buildSiteRootBackgroundStyle(theme) {
     100,
     Math.max(0, Math.floor(Number.isFinite(opRaw) ? opRaw : 78))
   );
-  const a = overlay / 100;
+  /** สเกลความทึบ: ค่าเต็ม 100% เคยทำให้รูปโทนอ่อน (เช่น ชมพูพาสเทล) แทบมองไม่เห็น */
+  const a = (overlay / 100) * 0.62;
   const img = String(theme?.backgroundImageUrl || "").trim();
 
   const gradOnly = `linear-gradient(180deg, ${top} 0%, ${mid} 52%, ${bot} 100%)`;
