@@ -334,23 +334,12 @@ export default function CreateGameRoomForm() {
         </h2>
         <p className="mt-1 text-sm text-white/85">
           {managingExisting
-            ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ — แบบฟอร์มเปิดห้องใหม่อยู่ในกล่องที่พับไว้"
+            ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
             : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
         </p>
       </div>
 
-      {managingExisting ? (
-        <details className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm open:pb-4">
-          <summary className="cursor-pointer list-none px-2 py-2 text-sm font-medium text-slate-800 marker:hidden [&::-webkit-details-marker]:hidden">
-            <span className="underline decoration-slate-300 underline-offset-2">
-              เปิดห้องเกมใหม่ — แบบฟอร์มวัตถุประสงค์ (คลิกเพื่อขยาย)
-            </span>
-          </summary>
-          <div className="mt-2 border-t border-slate-100 px-2 pt-4">{intakeForm}</div>
-        </details>
-      ) : (
-        intakeForm
-      )}
+      {!managingExisting ? intakeForm : null}
 
       {studioGameId ? (
         <div
