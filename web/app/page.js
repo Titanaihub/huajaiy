@@ -1,15 +1,8 @@
 import Link from "next/link";
-import ApiHealthStrip from "../components/ApiHealthStrip";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { fetchPublicCentralGameMeta, fetchPublicGameList } from "../lib/publicGameMeta";
-
-const btnPrimary =
-  "inline-flex items-center justify-center rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2";
-
-const btnSecondary =
-  "inline-flex items-center justify-center rounded-xl border border-brand-300 bg-white px-5 py-2.5 text-sm font-semibold text-brand-900 shadow-sm transition hover:border-brand-400 hover:bg-brand-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2";
 
 function buildActions(centralMeta) {
   return [
@@ -59,29 +52,10 @@ export default async function HomePage() {
             className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-brand-50/80 blur-2xl"
             aria-hidden
           />
-          <div className="relative max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-800">
-              ยินดีต้อนรับ
+          <div className="relative max-w-4xl">
+            <p className="text-base leading-relaxed text-slate-700 md:text-lg">
+              แพลตฟอร์มหัวใจ ช่วยยกระดับกิจกรรมและการโปรโมทให้โดดเด่นยิ่งขึ้น ด้วยเกมเปิดป้ายแจกรางวัลที่คุณออกแบบได้ตามต้องการ เพื่อสร้างความสนุก กระตุ้นการมีส่วนร่วม เพิ่มโอกาสในการขาย และขยายฐานผู้ติดตาม
             </p>
-            <h1 className="mt-3 text-3xl font-bold leading-[1.15] tracking-tight text-slate-900 md:text-4xl">
-              แพลตฟอร์มเบา โหลดไว
-            </h1>
-            <p className="mt-2 text-lg font-semibold text-slate-600 md:text-xl">
-              อัปโหลดรูปได้ทันที ไม่ต้องล็อกอิน
-            </p>
-            <p className="mt-5 text-sm leading-relaxed text-slate-600 md:text-base">
-              ใช้งานผ่านเบราว์เซอร์ — ร้านค้า เกม และเครื่องมืออัปโหลดในที่เดียว
-              พร้อมขยายต่อยอดเมื่อคุณพร้อมเปิดให้บริการจริง
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/shop" className={btnPrimary}>
-                เข้าร้านค้า
-              </Link>
-              <Link href="#upload" className={btnSecondary}>
-                เลื่อนไปอัปโหลดรูป
-              </Link>
-            </div>
-            <ApiHealthStrip />
           </div>
         </section>
 
