@@ -16,7 +16,7 @@ const NEXT_AUTH_ERROR_TH = {
   Verification: "ลิงก์หมดอายุหรือถูกใช้แล้ว",
   OAuthSignin: "เริ่มล็อกอิน OAuth ไม่สำเร็จ",
   OAuthCallback:
-    "LINE ตอบกลับไม่สำเร็จ — ตรวจสอบ Callback URL ใน LINE ให้เป็น …/api/auth/callback/line",
+    "แลกรหัสกับ LINE ไม่สำเร็จ — เช็ก Callback URL ใน LINE = …/api/auth/callback/line, NEXTAUTH_URL มี www ตรงกัน, และ LINE_CHANNEL_ID/SECRET เป็นของ channel เดียวกับที่ตั้ง Callback",
   OAuthCreateAccount: "สร้างบัญชีไม่สำเร็จ",
   Callback: "Callback ผิดพลาด",
   OAuthAccountNotLinked: "บัญชี LINE ยังไม่ได้ผูกกับระบบ",
