@@ -10,19 +10,19 @@ export default function DataDeletionPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8 text-slate-800">
-      <h1 className="text-xl font-semibold text-slate-900">
+      <main className="mx-auto max-w-2xl px-4 py-8 text-hui-body">
+      <h1 className="hui-h2">
         คำแนะนำการลบข้อมูลผู้ใช้ (User Data Deletion)
       </h1>
-      <p className="mt-2 text-sm text-slate-500">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
+      <p className="hui-note mt-2">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
 
-      <section className="mt-6 space-y-4 text-sm leading-relaxed">
+      <section className="mt-6 space-y-4 text-base leading-relaxed">
         <p>
           หากคุณต้องการขอให้ลบข้อมูลส่วนบุคคลที่เกี่ยวข้องกับการใช้บริการ HUAJAIY
           หรือถอนความยินยอมในการประมวลผล คุณสามารถดำเนินการได้ดังนี้
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           1. การออกจากระบบและยกเลิกการเชื่อมบัญชี
         </h2>
         <p>
@@ -30,7 +30,7 @@ export default function DataDeletionPage() {
           และยกเลิกการเชื่อมต่อบัญชีผ่านการตั้งค่าของ Facebook หรือ LINE ตามที่ผู้ให้บริการนั้นกำหนด
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           2. การขอลบข้อมูลโดยตรง
         </h2>
         <p>
@@ -38,11 +38,11 @@ export default function DataDeletionPage() {
           โปรดติดต่อผ่านช่องทางที่ประกาศในระบบ พร้อมระบุข้อมูลเพื่อยืนยันตัวตน
           (เช่น ชื่อผู้ใช้ หรือรหัสอ้างอิงที่เกี่ยวข้อง)
         </p>
-        <p className="text-slate-600">
+        <p className="text-hui-body">
           เราจะดำเนินการตามคำขอภายในระยะเวลาที่สมเหตุสมผลและตามที่กฎหมายคุ้มครองข้อมูลส่วนบุคคลกำหนด
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           3. ข้อมูลที่จัดเก็บโดยบุคคลที่สาม
         </h2>
         <p>
@@ -50,7 +50,7 @@ export default function DataDeletionPage() {
           การลบข้อมูลบางประเภทอาจต้องดำเนินการผ่านผู้ให้บริการนั้นตามนโยบายของผู้ให้บริการ
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           4. การร้องเรียน
         </h2>
         <p>
@@ -58,7 +58,7 @@ export default function DataDeletionPage() {
         </p>
       </section>
 
-      <p className="mt-8 text-xs text-slate-500">
+      <p className="hui-note mt-8">
         หน้านี้เป็นข้อความตัวอย่างเพื่อใช้งานเบื้องต้น ควรให้ที่ปรึกษากฎหมายตรวจทานก่อนใช้งานเชิงพาณิชย์
       </p>
     </main>

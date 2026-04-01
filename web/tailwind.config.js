@@ -43,7 +43,8 @@ module.exports = {
       fontSize: {
         "hui-hero": ["2.5rem", { lineHeight: "1.15" }],
         "hui-h2": ["1.625rem", { lineHeight: "1.3" }],
-        "hui-h3": ["1.125rem", { lineHeight: "1.35" }],
+        /** หัวข้อการ์ด/แพ็ก 18–20px — ใช้ 20px กลางช่วงตามสเปก */
+        "hui-h3": ["1.25rem", { lineHeight: "1.35" }],
         "hui-price": ["1.5rem", { lineHeight: "1.2" }]
       },
       boxShadow: {

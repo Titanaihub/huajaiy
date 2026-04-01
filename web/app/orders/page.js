@@ -13,10 +13,13 @@ export default function OrdersPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-xl font-semibold text-slate-900">ประวัติออเดอร์</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="hui-h2">ประวัติออเดอร์</h1>
+        <p className="mt-2 text-base text-hui-body">
           มีทั้งประวัติในคอมพิวเตอร์ (สาธิต) และออเดอร์บนเซิร์ฟเวอร์เมื่อล็อกอิน — สมาชิกใช้{" "}
-          <Link href="/account/orders" className="font-medium text-brand-800 underline hover:text-brand-950">
+          <Link
+            href="/account/orders"
+            className="font-medium text-hui-cta underline decoration-hui-cta/40"
+          >
             ออเดอร์ของฉัน
           </Link>{" "}
           ในหลังบ้านได้
@@ -25,10 +28,10 @@ export default function OrdersPage() {
           <OrdersList />
         </div>
         <div className="mt-8 flex flex-wrap gap-4 text-sm">
-          <Link href="/cart" className="text-blue-600 underline hover:text-blue-800">
+          <Link href="/cart" className="font-medium text-hui-cta underline decoration-hui-cta/40">
             ไปตะกร้า
           </Link>
-          <Link href="/shop" className="text-blue-600 underline hover:text-blue-800">
+          <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
             ไปร้านค้า
           </Link>
         </div>

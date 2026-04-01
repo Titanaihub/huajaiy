@@ -33,7 +33,7 @@ export default function ProductDetailClient({ productId }) {
   if (loading) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-sm text-slate-600">กำลังโหลดสินค้า…</p>
+        <p className="text-sm text-hui-muted">กำลังโหลดสินค้า…</p>
       </main>
     );
   }
@@ -42,7 +42,10 @@ export default function ProductDetailClient({ productId }) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-sm text-red-600">{err || "ไม่พบสินค้า"}</p>
-        <Link href="/shop" className="mt-4 inline-block text-sm text-blue-600 underline">
+        <Link
+          href="/shop"
+          className="mt-4 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
+        >
           ← กลับร้านค้า
         </Link>
       </main>
@@ -53,22 +56,22 @@ export default function ProductDetailClient({ productId }) {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <p className="text-xs text-slate-500">
-        <Link href="/shop" className="text-blue-600 underline hover:text-blue-800">
+      <p className="text-xs text-hui-muted">
+        <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
           ร้านค้า
         </Link>
-        <span className="mx-1 text-slate-400">/</span>
+        <span className="mx-1 text-hui-border">/</span>
         <Link
           href={`/shop?shopId=${encodeURIComponent(p.shopId)}`}
-          className="text-blue-600 underline hover:text-blue-800"
+          className="font-medium text-hui-cta underline decoration-hui-cta/40"
         >
           {p.shopName}
         </Link>
-        <span className="mx-1 text-slate-400">/</span>
-        <span className="text-slate-700">{p.title}</span>
+        <span className="mx-1 text-hui-border">/</span>
+        <span className="text-hui-body">{p.title}</span>
       </p>
       <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div className="flex aspect-square w-full max-w-[220px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-7xl text-slate-600">
+        <div className="flex aspect-square w-full max-w-[220px] shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-hui-pageTop text-7xl text-hui-muted">
           {p.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -107,10 +110,10 @@ export default function ProductDetailClient({ productId }) {
         </div>
       </div>
       <div className="mt-10 flex flex-wrap gap-4 text-sm">
-        <Link href="/shop" className="text-blue-600 underline hover:text-blue-800">
+        <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
           ← กลับร้านค้า
         </Link>
-        <Link href="/cart" className="text-blue-600 underline hover:text-blue-800">
+        <Link href="/cart" className="font-medium text-hui-cta underline decoration-hui-cta/40">
           ไปตะกร้า
         </Link>
       </div>

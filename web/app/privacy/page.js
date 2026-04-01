@@ -10,19 +10,19 @@ export default function PrivacyPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8 text-slate-800">
-      <h1 className="text-xl font-semibold text-slate-900">
+      <main className="mx-auto max-w-2xl px-4 py-8 text-hui-body">
+      <h1 className="hui-h2">
         นโยบายความเป็นส่วนตัว (Privacy Policy)
       </h1>
-      <p className="mt-2 text-sm text-slate-500">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
+      <p className="hui-note mt-2">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
 
-      <section className="mt-6 space-y-4 text-sm leading-relaxed">
+      <section className="mt-6 space-y-4 text-base leading-relaxed">
         <p>
           เว็บไซต์และบริการ HUAJAIY (&quot;เรา&quot;) ให้ความสำคัญกับการคุ้มครองข้อมูลส่วนบุคคลของผู้ใช้
           ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA) และหลักเกณฑ์ที่เกี่ยวข้อง
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           1. ข้อมูลที่เราอาจได้รับ
         </h2>
         <ul className="list-inside list-disc space-y-1">
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
           </li>
         </ul>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           2. วัตถุประสงค์ในการใช้ข้อมูล
         </h2>
         <ul className="list-inside list-disc space-y-1">
@@ -47,7 +47,7 @@ export default function PrivacyPage() {
           <li>เพื่อพัฒนา รักษาความปลอดภัย และป้องกันการใช้งานที่ผิดกฎหมาย</li>
         </ul>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           3. การเปิดเผยข้อมูลแก่บุคคลที่สาม
         </h2>
         <p>
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
           และเฉพาะเท่าที่จำเป็นต่อการให้บริการ
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           4. ระยะเวลาเก็บรักษา
         </h2>
         <p>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
           คุณสามารถขอให้ลบหรือแก้ไขข้อมูลได้ตามสิทธิ์ของเจ้าของข้อมูล
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           5. สิทธิ์ของเจ้าของข้อมูล
         </h2>
         <p>
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
           ตามเงื่อนไขของกฎหมายที่ใช้บังคับ โดยติดต่อเราตามช่องทางด้านล่าง
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           6. การติดต่อ
         </h2>
         <p>
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
         </p>
       </section>
 
-      <p className="mt-8 text-xs text-slate-500">
+      <p className="hui-note mt-8">
         หน้านี้เป็นข้อความตัวอย่างเพื่อใช้งานเบื้องต้น ควรให้ที่ปรึกษากฎหมายตรวจทานก่อนใช้งานเชิงพาณิชย์
       </p>
     </main>

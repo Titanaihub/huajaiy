@@ -22,18 +22,21 @@ export default function AdminPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8">
-        <h1 className="text-xl font-bold text-slate-900">แอดมิน</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="hui-h2 font-bold">แอดมิน</h1>
+        <p className="mt-2 text-base text-hui-body">
           ดูรายชื่อสมาชิก ค้นหา และจัดการคำขอเปลี่ยนชื่อ–นามสกุล (ต้องล็อกอินด้วยบัญชีที่มีบทบาท{" "}
-          <strong>admin</strong>)
+          <strong className="text-hui-section">admin</strong>)
         </p>
 
         {loading ? (
-          <p className="mt-6 text-sm text-slate-500">กำลังโหลด...</p>
+          <p className="mt-6 text-sm text-hui-muted">กำลังโหลด...</p>
         ) : !user ? (
-          <p className="mt-6 text-sm text-slate-600">
+          <p className="mt-6 text-base text-hui-body">
             กำลังพาไปหน้าเข้าสู่ระบบ… หรือ{" "}
-            <Link href="/login?next=/admin" className="font-medium text-brand-800 underline">
+            <Link
+              href="/login?next=/admin"
+              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+            >
               กดที่นี่
             </Link>
           </p>
@@ -62,8 +65,8 @@ export default function AdminPage() {
           </div>
         ) : (
           <div className="mt-8">
-            <p className="mb-6 text-sm text-slate-700">
-              สวัสดี <strong>{user.username}</strong>
+            <p className="mb-6 text-base text-hui-body">
+              สวัสดี <strong className="text-hui-section">{user.username}</strong>
             </p>
             <AdminDashboard />
           </div>

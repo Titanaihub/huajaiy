@@ -1,23 +1,20 @@
-/** หัวข้อมูลหน้า — เส้นเน้นโทนแบรนด์ */
+/** หัวข้อมูลหน้า — ระดับ section ตามสเกล hui (≈26px) */
 export default function SectionHeading({ id, eyebrow, title, subtitle }) {
   return (
     <div className="flex flex-col gap-1">
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-800">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-hui-muted">
           {eyebrow}
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
-        <span className="h-1 w-10 shrink-0 rounded-full bg-brand-400" aria-hidden />
-        <h2
-          id={id}
-          className="text-lg font-bold tracking-tight text-slate-900 md:text-xl"
-        >
+        <span className="h-1 w-10 shrink-0 rounded-full bg-hui-cta/80" aria-hidden />
+        <h2 id={id} className="hui-h2 tracking-tight">
           {title}
         </h2>
       </div>
       {subtitle ? (
-        <p className="mt-1 max-w-2xl text-sm text-slate-600 md:pl-[3.25rem]">
+        <p className="mt-1 max-w-2xl text-base text-hui-body md:pl-[3.25rem]">
           {subtitle}
         </p>
       ) : null}

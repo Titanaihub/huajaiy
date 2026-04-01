@@ -12,7 +12,7 @@ import {
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const dropItem =
-  "block w-full px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-900 sm:py-2";
+  "block w-full px-3 py-2.5 text-left text-sm text-hui-body transition hover:bg-hui-pageTop hover:text-hui-section sm:py-2";
 
 function isActivePath(pathname, href) {
   if (href === "/account") return pathname === "/account";
@@ -83,7 +83,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
         onClick={() => setOpenKey((k) => (k === menuKey ? null : menuKey))}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex min-w-0 items-center gap-0.5 rounded-md px-2 py-1.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100 hover:text-neutral-950 sm:py-1"
+        className="flex min-w-0 items-center gap-0.5 rounded-lg px-2 py-1.5 text-sm font-medium text-hui-body transition hover:bg-white/80 hover:text-hui-section sm:py-1"
       >
         {label}
         <span className="text-[10px] opacity-70" aria-hidden>
@@ -95,7 +95,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
           role="menu"
           className={
             fixedBox != null
-              ? "fixed left-3 right-3 z-[200] overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5"
+              ? "fixed left-3 right-3 z-[200] overflow-y-auto rounded-xl border border-hui-border bg-hui-surface py-1 shadow-lg ring-1 ring-hui-border/40"
               : "absolute left-0 top-full z-[200] min-w-[13.5rem] pt-1"
           }
           style={
@@ -105,7 +105,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
           }
         >
           {fixedBox == null ? (
-            <div className="rounded-lg border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5">
+            <div className="rounded-xl border border-hui-border bg-hui-surface py-1 shadow-lg ring-1 ring-hui-border/40">
               {typeof children === "function"
                 ? children({ pathname, dropItem })
                 : children}
@@ -129,7 +129,7 @@ export default function MemberNav() {
 
   if (loading) {
     return (
-      <span className="text-xs font-medium text-neutral-500" aria-live="polite">
+      <span className="text-xs font-medium text-hui-muted" aria-live="polite">
         …
       </span>
     );
@@ -148,21 +148,21 @@ export default function MemberNav() {
             <>
               <Link
                 href="/account"
-                className={`${cls} ${isActivePath(p, "/account") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ภาพรวม
               </Link>
               <Link
                 href="/account/prizes"
-                className={`${cls} ${isActivePath(p, "/account/prizes") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/prizes") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 รางวัลของฉัน
               </Link>
               <Link
                 href="/account/my-hearts"
-                className={`${cls} ${isActivePath(p, "/account/my-hearts") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/my-hearts") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
                 title="หัวใจจากรหัสห้อง แยกตามเจ้าของเกม"
               >
@@ -170,7 +170,7 @@ export default function MemberNav() {
               </Link>
               <Link
                 href="/account/profile"
-                className={`${cls} ${isActivePath(p, "/account/profile") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/profile") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ข้อมูลส่วนตัว
@@ -189,35 +189,35 @@ export default function MemberNav() {
             <>
               <Link
                 href="/account/create-game"
-                className={`${cls} ${isActivePath(p, "/account/create-game") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/create-game") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 สร้างเกม
               </Link>
               <Link
                 href="/account/my-games"
-                className={`${cls} ${isActivePath(p, "/account/my-games") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/my-games") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 เกมของฉัน
               </Link>
               <Link
                 href="/account/creator-withdrawals"
-                className={`${cls} ${isActivePath(p, "/account/creator-withdrawals") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/creator-withdrawals") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 คำขอรางวัล
               </Link>
               <Link
                 href="/account/hearts-shop"
-                className={`${cls} ${isActivePath(p, "/account/hearts-shop") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/hearts-shop") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ซื้อหัวใจแดง
               </Link>
               <Link
                 href="/account/give-hearts"
-                className={`${cls} ${isActivePath(p, "/account/give-hearts") ? "bg-brand-50 font-semibold text-brand-900" : ""}`}
+                className={`${cls} ${isActivePath(p, "/account/give-hearts") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
                 title="แดงแจกผู้เล่น · สร้างรหัสห้อง / แลกรหัส"
               >
@@ -230,7 +230,7 @@ export default function MemberNav() {
         {user.role === "admin" ? (
           <Link
             href="/admin"
-            className="font-medium text-neutral-900 transition hover:text-neutral-950"
+            className="font-medium text-hui-body transition hover:text-hui-section"
           >
             แอดมิน
           </Link>
@@ -238,7 +238,7 @@ export default function MemberNav() {
         {user.role === "owner" || user.role === "admin" ? (
           <Link
             href="/owner"
-            className="font-medium text-neutral-900 transition hover:text-neutral-950"
+            className="font-medium text-hui-body transition hover:text-hui-section"
           >
             เจ้าของร้าน
           </Link>
@@ -247,7 +247,7 @@ export default function MemberNav() {
         <button
           type="button"
           onClick={() => logout()}
-          className="text-sm font-medium text-neutral-900 underline decoration-neutral-400 underline-offset-2 hover:text-neutral-950"
+          className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
         >
           ออกจากระบบ
         </button>
@@ -259,14 +259,14 @@ export default function MemberNav() {
     <span className="flex flex-wrap items-center gap-2 text-sm">
       <Link
         href="/register"
-        className="font-medium text-neutral-900 transition hover:text-neutral-950"
+        className="font-medium text-hui-body transition hover:text-hui-section"
       >
         สมัครสมาชิก
       </Link>
-      <span className="text-slate-400">|</span>
+      <span className="text-hui-border">|</span>
       <Link
         href="/login"
-        className="font-medium text-neutral-900 transition hover:text-neutral-950"
+        className="font-medium text-hui-body transition hover:text-hui-section"
       >
         เข้าสู่ระบบ
       </Link>

@@ -10,19 +10,19 @@ export default function TermsPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-2xl px-4 py-8 text-slate-800">
-      <h1 className="text-xl font-semibold text-slate-900">
+      <main className="mx-auto max-w-2xl px-4 py-8 text-hui-body">
+      <h1 className="hui-h2">
         ข้อกำหนดการให้บริการ (Terms of Service)
       </h1>
-      <p className="mt-2 text-sm text-slate-500">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
+      <p className="hui-note mt-2">อัปเดตล่าสุด: 28 มีนาคม 2026</p>
 
-      <section className="mt-6 space-y-4 text-sm leading-relaxed">
+      <section className="mt-6 space-y-4 text-base leading-relaxed">
         <p>
           โปรดอ่านข้อกำหนดการให้บริการนี้ก่อนใช้งานเว็บไซต์และบริการ HUAJAIY
           (&quot;บริการ&quot;) การเข้าใช้บริการถือว่าคุณยอมรับข้อกำหนดเหล่านี้
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           1. การให้บริการ
         </h2>
         <p>
@@ -30,7 +30,7 @@ export default function TermsPage() {
           โดยไม่ต้องแจ้งล่วงหน้า เว้นแต่กฎหมายกำหนดให้ต้องแจ้ง
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           2. บัญชีและการเข้าสู่ระบบ
         </h2>
         <p>
@@ -38,7 +38,7 @@ export default function TermsPage() {
           คุณรับผิดชอบต่อการกระทำภายใต้บัญชีของคุณ
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           3. การใช้งานที่อนุญาตและไม่อนุญาต
         </h2>
         <ul className="list-inside list-disc space-y-1">
@@ -47,21 +47,21 @@ export default function TermsPage() {
           <li>ห้ามอัปโหลดเนื้อหาที่ละเมิดลิขสิทธิ์ ลามก หรือเป็นอันตรายต่อผู้อื่น</li>
         </ul>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           4. เนื้อหาและผลงานของผู้ใช้
         </h2>
         <p>
           คุณเป็นผู้รับผิดชอบต่อเนื้อหา (รวมถึงรูปภาพ) ที่คุณอัปโหลด คุณยืนยันว่ามีสิทธิ์ในการให้เราใช้ประมวลผลผ่านบริการเพื่อวัตถุประสงค์ตามที่ปรากฏบนเว็บไซต์
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           5. สิทธิ์ของเรา
         </h2>
         <p>
           เราอาจจำกัดหรือยุติการเข้าถึงบริการหากพบการใช้งานที่ผิดข้อกำหนดหรือมีความเสี่ยงต่อความปลอดภัย
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           6. การปฏิเสธความรับผิด
         </h2>
         <p>
@@ -69,21 +69,21 @@ export default function TermsPage() {
           เราไม่รับผิดชอบต่อความเสียหายโดยตรงหรือโดยอ้อมที่เกิดจากการใช้บริการ เว้นแต่กฎหมายไม่อนุญาตให้ปฏิเสธความรับผิดนั้น
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           7. การเปลี่ยนแปลงข้อกำหนด
         </h2>
         <p>
           เราอาจแก้ไขข้อกำหนดนี้ได้ การใช้งานต่อหลังมีการประกาศถือว่าคุณยอมรับข้อกำหนดฉบับล่าสุด
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           8. กฎหมายที่ใช้บังคับ
         </h2>
         <p>
           ข้อกำหนดนี้อยู่ภายใต้กฎหมายไทย ข้อพิพาทใดๆ ให้พิจารณาตามที่กฎหมายกำหนด
         </p>
 
-        <h2 className="pt-2 text-base font-semibold text-slate-900">
+        <h2 className="hui-h3 pt-2">
           9. ติดต่อ
         </h2>
         <p>
@@ -91,7 +91,7 @@ export default function TermsPage() {
         </p>
       </section>
 
-      <p className="mt-8 text-xs text-slate-500">
+      <p className="hui-note mt-8">
         หน้านี้เป็นข้อความตัวอย่างเพื่อใช้งานเบื้องต้น ควรให้ที่ปรึกษากฎหมายตรวจทานก่อนใช้งานเชิงพาณิชย์
       </p>
     </main>

@@ -10,7 +10,7 @@
 
 /** พื้นหลัง + สีตัวหนังสือหลักทั้งเว็บ (ธีมชมพู–burgundy) */
 .hui-root {
-  @apply min-h-screen bg-gradient-to-b from-hui-pageTop via-hui-pageMid to-hui-pageBot text-hui-body antialiased;
+  @apply min-h-screen bg-gradient-to-b from-hui-pageTop via-hui-pageMid to-hui-pageBot text-base text-hui-body antialiased;
   line-height: 1.5;
 }
 

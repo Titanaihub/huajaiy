@@ -26,49 +26,49 @@ export default function AuthPage() {
     <>
       <SiteHeader />
     <main className="mx-auto w-full max-w-md px-4 py-8">
-      <Link href="/" className="text-sm text-blue-600 underline">
+      <Link href="/" className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40">
         ← กลับหน้าแรก
       </Link>
-      <h1 className="mt-4 text-lg font-semibold">เข้าด้วย LINE</h1>
-      <p className="mt-2 text-sm text-slate-600">
-        แบบนี้ใช้ <strong>NextAuth</strong> แยกจากสมาชิกแบบยูสเซอร์/รหัสผ่านของเว็บ
+      <h1 className="hui-h2 mt-4">เข้าด้วย LINE</h1>
+      <p className="mt-2 text-base text-hui-body">
+        แบบนี้ใช้ <strong className="text-hui-section">NextAuth</strong> แยกจากสมาชิกแบบยูสเซอร์/รหัสผ่านของเว็บ
       </p>
-      <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+      <ol className="mt-3 list-decimal space-y-1 pl-5 text-base text-hui-body">
         <li>
           สมาชิกแบบยูส/รหัสผ่าน →{" "}
-          <Link href="/register" className="text-brand-800 underline">
+          <Link href="/register" className="font-medium text-hui-cta underline decoration-hui-cta/40">
             สมัคร
           </Link>{" "}
           /{" "}
-          <Link href="/login" className="text-brand-800 underline">
+          <Link href="/login" className="font-medium text-hui-cta underline decoration-hui-cta/40">
             เข้าสู่ระบบ
           </Link>
         </li>
         <li>
           ตั้งค่า LINE + env บน Render ตาม{" "}
-          <code className="rounded bg-slate-100 px-1">web/.env.example</code>
+          <code className="rounded border border-hui-border bg-hui-pageTop px-1 text-sm">web/.env.example</code>
         </li>
       </ol>
 
-      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-6 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
         {status === "loading" ? (
-          <p className="text-sm text-slate-500">กำลังตรวจสอบเซสชัน...</p>
+          <p className="text-sm text-hui-muted">กำลังตรวจสอบเซสชัน...</p>
         ) : status === "authenticated" && session?.user ? (
           <div className="flex items-center gap-3">
             {session.user.image ? (
               <img
                 src={session.user.image}
                 alt=""
-                className="h-10 w-10 rounded-full border border-slate-200"
+                className="h-10 w-10 rounded-full border border-hui-border"
               />
             ) : null}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{session.user.name}</p>
-              <p className="truncate text-xs text-slate-500">{session.provider}</p>
+              <p className="truncate text-xs text-hui-muted">{session.provider}</p>
             </div>
             <button
               type="button"
-              className="rounded-lg border border-slate-300 px-2 py-1 text-xs"
+              className="rounded-xl border border-hui-border bg-white px-2 py-1 text-xs text-hui-body"
               onClick={() => signOut()}
             >
               ออก
@@ -83,7 +83,7 @@ export default function AuthPage() {
             >
               LINE
             </button>
-            <p className="text-xs text-slate-500">TikTok — รอตั้งค่าในรอบถัดไป</p>
+            <p className="text-xs text-hui-muted">TikTok — รอตั้งค่าในรอบถัดไป</p>
           </div>
         )}
         {authError ? <p className="mt-2 text-xs text-red-600">{authError}</p> : null}

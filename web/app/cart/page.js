@@ -13,10 +13,13 @@ export default function CartPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-xl font-semibold text-slate-900">ตะกร้า</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="hui-h2">ตะกร้า</h1>
+        <p className="mt-2 text-base text-hui-body">
           ยืนยันออเดอร์จะบันทึกที่บัญชี ตัดสต็อก และสถานะ「รอชำระเงิน» ·{" "}
-          <Link href="/account/orders" className="text-blue-600 underline hover:text-blue-800">
+          <Link
+            href="/account/orders"
+            className="font-medium text-hui-cta underline decoration-hui-cta/40"
+          >
             ออเดอร์ของฉัน
           </Link>
         </p>
@@ -25,7 +28,7 @@ export default function CartPage() {
         </div>
         <Link
           href="/shop"
-          className="mt-8 inline-block text-sm text-blue-600 underline"
+          className="mt-8 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
         >
           ← กลับร้านค้า
         </Link>
