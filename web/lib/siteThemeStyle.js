@@ -39,9 +39,10 @@ export function buildSiteRootBackgroundStyle(theme) {
   if (!img || !/^https:\/\//i.test(img)) {
     return {
       backgroundImage: gradOnly,
-      backgroundAttachment: "fixed",
+      /** scroll = พื้นหลังเลื่อนตามหน้า (fixed ทำให้แยกจากเนื้อหา) */
+      backgroundAttachment: "scroll",
       backgroundSize: "cover",
-      backgroundPosition: "center center",
+      backgroundPosition: "center top",
       backgroundRepeat: "no-repeat"
     };
   }
@@ -50,9 +51,9 @@ export function buildSiteRootBackgroundStyle(theme) {
   if (a < 0.001) {
     return {
       backgroundImage: cssUrlQuoted(img),
-      backgroundAttachment: "fixed",
+      backgroundAttachment: "scroll",
       backgroundSize: "cover",
-      backgroundPosition: "center center",
+      backgroundPosition: "center top",
       backgroundRepeat: "no-repeat"
     };
   }
@@ -61,9 +62,9 @@ export function buildSiteRootBackgroundStyle(theme) {
 
   return {
     backgroundImage: `${overlayLayer}, ${cssUrlQuoted(img)}`,
-    backgroundAttachment: "fixed, fixed",
+    backgroundAttachment: "scroll, scroll",
     backgroundSize: "cover, cover",
-    backgroundPosition: "center center, center center",
+    backgroundPosition: "center top, center top",
     backgroundRepeat: "no-repeat, no-repeat"
   };
 }
