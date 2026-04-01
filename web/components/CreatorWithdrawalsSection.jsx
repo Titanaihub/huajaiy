@@ -299,6 +299,11 @@ export default function CreatorWithdrawalsSection() {
                             <p className="text-xs font-medium text-slate-700">
                               {itemStatusLabel(a.itemFulfillmentStatus)}
                             </p>
+                            {a.prizeFulfillmentMode === "pickup" && a.winnerPickupAckAt ? (
+                              <p className="text-xs font-semibold text-emerald-800">
+                                ผู้เล่นกดรับรางวัล (มารับเอง): {formatDate(a.winnerPickupAckAt)}
+                              </p>
+                            ) : null}
                             <div className="flex flex-wrap gap-1.5">
                               <button
                                 type="button"

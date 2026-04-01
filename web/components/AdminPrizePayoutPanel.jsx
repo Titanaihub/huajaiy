@@ -71,6 +71,14 @@ function displayGameCode(a) {
   return a.gameId ? String(a.gameId).slice(0, 8) + "…" : "—";
 }
 
+/** แสดงในแดชบอร์ดแอดมิน — ผู้เล่นกดรับรางวัลแบบมารับเอง */
+function adminPickupAckLabel(award) {
+  if (!award || String(award.prizeCategory) !== "item") return "—";
+  if (String(award.prizeFulfillmentMode) !== "pickup") return "—";
+  if (award.winnerPickupAckAt) return formatWonAt(award.winnerPickupAckAt);
+  return "ยังไม่กดรับ";
+}
+
 function eventTimeMs(iso) {
   if (!iso) return 0;
   const t = new Date(iso).getTime();
@@ -463,7 +471,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       {open ? (
         <div className="border-t border-slate-100 p-3">
           <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="min-w-[720px] w-full border-collapse text-left text-xs sm:text-sm">
+            <table className="min-w-[860px] w-full border-collapse text-left text-xs sm:text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 font-semibold text-slate-600">
                   <th className="whitespace-nowrap px-2 py-2">วันที่</th>
@@ -471,6 +479,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                   <th className="whitespace-nowrap px-2 py-2">รหัสเกม</th>
                   <th className="px-2 py-2">ชื่อเกม</th>
                   <th className="whitespace-nowrap px-2 py-2">เงินรางวัล</th>
+                  <th className="min-w-[120px] px-2 py-2">แจ้งรับ (มารับเอง)</th>
                   <th className="whitespace-nowrap px-2 py-2">ยอดคงเหลือ</th>
                 </tr>
               </thead>
@@ -499,6 +508,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                           <span className="text-slate-600">{prizeLine(row.award)}</span>
                         )}
                       </td>
+                      <td className="px-2 py-2 text-slate-700">{adminPickupAckLabel(row.award)}</td>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
                       </td>
@@ -521,6 +531,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                       <td className="whitespace-nowrap px-2 py-2 font-medium tabular-nums text-rose-800">
                         −{formatBahtTotal(Math.abs(row.cashAmt))} บาท
                       </td>
+                      <td className="px-2 py-2 text-slate-400">—</td>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
                       </td>

@@ -597,6 +597,35 @@ router.get("/central-prize-awards/incoming", authMiddleware, async (req, res) =>
   }
 });
 
+/** ผู้ชนะกดยืนยันรับรางวัลแบบมารับเอง — บันทึกเวลาให้ผู้สร้างเกมเห็น */
+router.post("/central-prize-awards/:id/winner-pickup-ack", authMiddleware, async (req, res) => {
+  try {
+    const id = String(req.params.id || "").trim();
+    if (!UUID_PARAM_RE.test(id)) {
+      return res.status(400).json({ ok: false, error: "รูปแบบรหัสรางวัลไม่ถูกต้อง" });
+    }
+    const result = await centralPrizeAwardService.acknowledgeWinnerPickupByWinner({
+      awardId: id,
+      winnerUserId: req.userId
+    });
+    return res.json({ ok: true, ...result });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    if (e.code === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: "ระบบฐานข้อมูลยังไม่พร้อม" });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** ผู้สร้างเกมอัปเดตสถานะการส่งมอบรางวัลสิ่งของ */
 router.post("/central-prize-awards/:id/item-resolve", authMiddleware, async (req, res) => {
   try {

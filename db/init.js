@@ -540,6 +540,10 @@ async function initDb() {
       WHERE a.prize_fulfillment_mode IS NULL;
     `);
     await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS winner_pickup_ack_at TIMESTAMPTZ;
+    `);
+    await client.query(`
       UPDATE central_prize_awards a
       SET
         rule_set_index = r.set_index,

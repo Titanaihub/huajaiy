@@ -271,7 +271,8 @@ async function listAwardsForUser(userId) {
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
        a.item_shipping_address_snapshot AS "itemShippingAddressSnapshot",
-       a.item_resolved_at AS "itemResolvedAt"
+       a.item_resolved_at AS "itemResolvedAt",
+       a.winner_pickup_ack_at AS "winnerPickupAckAt"
      FROM central_prize_awards a
      LEFT JOIN central_games g ON g.id = a.game_id
      LEFT JOIN users cu ON cu.id = g.created_by
@@ -310,8 +311,101 @@ async function listAwardsForUser(userId) {
       row.itemShippingAddressSnapshot && typeof row.itemShippingAddressSnapshot === "object"
         ? row.itemShippingAddressSnapshot
         : null,
-    itemResolvedAt: row.itemResolvedAt || null
+    itemResolvedAt: row.itemResolvedAt || null,
+    winnerPickupAckAt: row.winnerPickupAckAt || null
   }));
+}
+
+function itemEffectiveModeFromDbRow(row) {
+  const im = normalizeItemMode(row.item_fulfillment_mode);
+  if (im) return im;
+  const raw =
+    row.prize_fulfillment_mode != null && String(row.prize_fulfillment_mode).trim()
+      ? String(row.prize_fulfillment_mode).trim().toLowerCase()
+      : row.rule_fulfillment_mode != null && String(row.rule_fulfillment_mode).trim()
+        ? String(row.rule_fulfillment_mode).trim().toLowerCase()
+        : "";
+  return fulfillmentFromRuleRow({
+    prize_category: "item",
+    prize_fulfillment_mode: raw
+  });
+}
+
+/**
+ * ผู้ชนะกดยืนยันรับรางวัล (โหมดมารับเอง) — บันทึกเวลาให้ผู้สร้างเห็น
+ */
+async function acknowledgeWinnerPickupByWinner({ awardId, winnerUserId }) {
+  if (!awardId || !winnerUserId) {
+    const e = new Error("ข้อมูลไม่ครบ");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const pool = requirePool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const r = await client.query(
+      `SELECT
+         a.id,
+         a.winner_user_id,
+         a.prize_category,
+         a.item_fulfillment_mode,
+         a.prize_fulfillment_mode,
+         r.prize_fulfillment_mode AS rule_fulfillment_mode,
+         a.winner_pickup_ack_at
+       FROM central_prize_awards a
+       LEFT JOIN central_game_rules r ON r.id = a.rule_id
+       WHERE a.id = $1::uuid
+       FOR UPDATE`,
+      [awardId]
+    );
+    if (r.rows.length === 0) {
+      const e = new Error("ไม่พบรายการรางวัล");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const row = r.rows[0];
+    if (String(row.winner_user_id) !== String(winnerUserId)) {
+      const e = new Error("ไม่มีสิทธิ์ดำเนินการรายการนี้");
+      e.code = "FORBIDDEN";
+      throw e;
+    }
+    if (String(row.prize_category) !== "item") {
+      const e = new Error("รายการนี้ไม่ใช่รางวัลสิ่งของ");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    if (itemEffectiveModeFromDbRow(row) !== "pickup") {
+      const e = new Error("รายการนี้ไม่ได้ตั้งเป็นมารับเอง");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    if (row.winner_pickup_ack_at) {
+      await client.query("COMMIT");
+      return { winnerPickupAckAt: row.winner_pickup_ack_at, alreadyAcknowledged: true };
+    }
+    const u = await client.query(
+      `UPDATE central_prize_awards
+       SET winner_pickup_ack_at = NOW(), updated_at = NOW()
+       WHERE id = $1::uuid
+       RETURNING winner_pickup_ack_at AS "winnerPickupAckAt"`,
+      [awardId]
+    );
+    await client.query("COMMIT");
+    return {
+      winnerPickupAckAt: u.rows[0]?.winnerPickupAckAt || null,
+      alreadyAcknowledged: false
+    };
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 /**
@@ -353,6 +447,7 @@ async function listAllAwardsForAdmin(opts = {}) {
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
        a.item_resolved_at AS "itemResolvedAt",
+       a.winner_pickup_ack_at AS "winnerPickupAckAt",
        u.id AS "winnerUserId",
        u.username AS "winnerUsername",
        u.first_name AS "winnerFirstName",
@@ -397,6 +492,7 @@ async function listAllAwardsForAdmin(opts = {}) {
       row.itemFulfillmentNote != null ? String(row.itemFulfillmentNote).trim() : "",
     itemTrackingCode: row.itemTrackingCode != null ? String(row.itemTrackingCode).trim() : "",
     itemResolvedAt: row.itemResolvedAt || null,
+    winnerPickupAckAt: row.winnerPickupAckAt || null,
     winnerUserId: String(row.winnerUserId),
     winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
     winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
@@ -438,6 +534,7 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
        a.item_tracking_code AS "itemTrackingCode",
        a.item_shipping_address_snapshot AS "itemShippingAddressSnapshot",
        a.item_resolved_at AS "itemResolvedAt",
+       a.winner_pickup_ack_at AS "winnerPickupAckAt",
        u.id AS "winnerUserId",
        u.username AS "winnerUsername",
        u.first_name AS "winnerFirstName",
@@ -492,6 +589,7 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
         ? row.itemShippingAddressSnapshot
         : null,
     itemResolvedAt: row.itemResolvedAt || null,
+    winnerPickupAckAt: row.winnerPickupAckAt || null,
     winnerUserId: String(row.winnerUserId),
     winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
     winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
@@ -635,5 +733,6 @@ module.exports = {
   listAwardsForUser,
   listAllAwardsForAdmin,
   listAwardsForCreator,
-  resolveItemAwardByCreator
+  resolveItemAwardByCreator,
+  acknowledgeWinnerPickupByWinner
 };

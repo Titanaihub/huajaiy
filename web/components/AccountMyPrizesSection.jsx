@@ -7,6 +7,7 @@ import {
   apiCancelPrizeWithdrawalRequest,
   apiGetMyCentralPrizeAwards,
   apiGetMyPrizeWithdrawals,
+  apiPostWinnerPickupAck,
   getMemberToken
 } from "../lib/memberApi";
 import PrizeWithdrawalHistoryTable from "./PrizeWithdrawalHistoryTable";
@@ -81,6 +82,13 @@ function itemEffectiveFulfillmentMode(a) {
   const p = String(a.prizeFulfillmentMode || "").toLowerCase();
   if (p === "pickup" || p === "ship") return p;
   return "";
+}
+
+function itemReceiptMethodLabelThai(a) {
+  const eff = itemEffectiveFulfillmentMode(a);
+  if (eff === "pickup") return "มารับเอง";
+  if (eff === "ship") return "จัดส่งตามที่อยู่";
+  return "รอผู้สร้างกำหนดวิธีรับ";
 }
 
 /** มีที่อยู่จัดส่งในโปรไฟล์พอให้จัดส่งสิ่งของ (บ้านเลขที่ + จังหวัด + รหัสไปรษณีย์ 5 หลัก) */
@@ -499,10 +507,12 @@ function CreatorPrizeCard({
   );
 }
 
-function ItemPrizeGroupCard({ group }) {
+function ItemPrizeGroupCard({ group, onRefreshAwards }) {
   const router = useRouter();
   const { user } = useMemberAuth();
   const [open, setOpen] = useState(false);
+  const [pickupBusyId, setPickupBusyId] = useState(null);
+  const [pickupAckErr, setPickupAckErr] = useState("");
   const { creatorUsername, items } = group;
   const creatorDisplay =
     creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
@@ -527,6 +537,26 @@ function ItemPrizeGroupCard({ group }) {
     if (v === "profile") goProfile();
     if (v === "receive-item") goReceiveItem();
   }
+
+  async function handleWinnerPickupAck(awardId) {
+    const token = getMemberToken();
+    if (!token || !onRefreshAwards) return;
+    setPickupBusyId(String(awardId));
+    setPickupAckErr("");
+    try {
+      await apiPostWinnerPickupAck(token, awardId);
+      await onRefreshAwards();
+    } catch (e) {
+      setPickupAckErr(e.message || String(e));
+    } finally {
+      setPickupBusyId(null);
+    }
+  }
+
+  const receiptModes = items.map((a) => itemEffectiveFulfillmentMode(a));
+  const allPickup =
+    receiptModes.length > 0 && receiptModes.every((m) => m === "pickup");
+  const allShip = receiptModes.length > 0 && receiptModes.every((m) => m === "ship");
 
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -586,21 +616,33 @@ function ItemPrizeGroupCard({ group }) {
         <div className="mt-4 border-t border-slate-100 pt-4">
           <div className="mb-3 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-700">
-              จัดส่งตามที่อยู่ที่บันทึกในโปรไฟล์ — ใช้ได้ทั้งรายการเดียวหรือหลายรายการในกลุ่มนี้เมื่อผู้สร้างเลือกส่งของ
+              {allPickup
+                ? "ผู้สร้างตั้งค่าให้มารับเอง — กด「กดรับรางวัล」ในแต่ละแถวเพื่อแจ้งผู้สร้างว่าคุณรับทราบและจะมารับตามที่นัดหมาย"
+                : allShip
+                  ? "จัดส่งตามที่อยู่ที่บันทึกในโปรไฟล์ — ใช้ได้ทั้งรายการเดียวหรือหลายรายการในกลุ่มนี้เมื่อผู้สร้างเลือกส่งของ"
+                  : "ในกลุ่มนี้อาจมีทั้งแบบมารับเองและจัดส่ง — ดูคอลัมน์「วิธีรับรางวัล」ของแต่ละแถว"}
             </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={goProfile}
-                className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900"
-              >
-                ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
-              </button>
-            </div>
+            {!allPickup ? (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={goProfile}
+                  className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900"
+                >
+                  ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
+                </button>
+              </div>
+            ) : null}
           </div>
 
+          {pickupAckErr ? (
+            <p className="mb-2 text-xs text-red-700" role="alert">
+              {pickupAckErr}
+            </p>
+          ) : null}
+
           <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="min-w-[720px] w-full border-collapse text-left text-sm">
+            <table className="min-w-[880px] w-full border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
                   <th className="whitespace-nowrap px-3 py-2.5">วันเวลาที่ชนะ</th>
@@ -608,7 +650,8 @@ function ItemPrizeGroupCard({ group }) {
                   <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
                   <th className="whitespace-nowrap px-3 py-2.5">หน่วย/ครั้ง</th>
                   <th className="min-w-[140px] px-3 py-2.5">สถานะการส่งมอบ</th>
-                  <th className="min-w-[200px] px-3 py-2.5">เมนู</th>
+                  <th className="min-w-[140px] px-3 py-2.5">วิธีรับรางวัล</th>
+                  <th className="min-w-[200px] px-3 py-2.5">กดรับรางวัล</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -618,6 +661,7 @@ function ItemPrizeGroupCard({ group }) {
                       ? String(a.itemShippingAddressSnapshot.address || "").trim()
                       : "";
                   const effMode = itemEffectiveFulfillmentMode(a);
+                  const ackAt = a.winnerPickupAckAt || null;
                   return (
                     <tr key={a.id} className="bg-white">
                       <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
@@ -650,21 +694,43 @@ function ItemPrizeGroupCard({ group }) {
                           <span className="mt-1 block text-slate-500">รอผู้สร้างกำหนดวิธีรับ</span>
                         )}
                       </td>
+                      <td className="px-3 py-2.5 align-top text-xs text-slate-800">
+                        {itemReceiptMethodLabelThai(a)}
+                      </td>
                       <td className="px-3 py-2.5 align-top">
-                        <select
-                          aria-label="เมนูรายการรางวัล"
-                          className="w-full min-w-[180px] max-w-[260px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
-                          defaultValue=""
-                          onChange={handleMenuChange}
-                        >
-                          <option value="" disabled>
-                            เลือกเมนู…
-                          </option>
-                          <option value="profile">ตั้งค่าที่อยู่จัดส่ง (โปรไฟล์)</option>
-                          {showReceiveItemInMenu ? (
-                            <option value="receive-item">รับสิ่งของ</option>
-                          ) : null}
-                        </select>
+                        {effMode === "pickup" ? (
+                          <div className="space-y-1.5">
+                            {ackAt ? (
+                              <p className="text-xs font-medium text-emerald-800">
+                                แจ้งผู้สร้างแล้ว · {formatWonAt(ackAt)}
+                              </p>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={pickupBusyId === String(a.id) || !onRefreshAwards}
+                                onClick={() => void handleWinnerPickupAck(a.id)}
+                                className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                              >
+                                {pickupBusyId === String(a.id) ? "กำลังบันทึก…" : "กดรับรางวัล"}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <select
+                            aria-label="กดรับรางวัล — เมนูช่วยจัดการที่อยู่และรับของ"
+                            className="w-full min-w-[180px] max-w-[260px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
+                            defaultValue=""
+                            onChange={handleMenuChange}
+                          >
+                            <option value="" disabled>
+                              เลือกเมนู…
+                            </option>
+                            <option value="profile">ตั้งค่าที่อยู่จัดส่ง (โปรไฟล์)</option>
+                            {showReceiveItemInMenu ? (
+                              <option value="receive-item">รับสิ่งของ</option>
+                            ) : null}
+                          </select>
+                        )}
                       </td>
                     </tr>
                   );
@@ -674,6 +740,9 @@ function ItemPrizeGroupCard({ group }) {
           </div>
           <p className="mt-3 text-xs text-slate-500">
             การอัปเดตสถานะจัดส่งเป็นหน้าที่ผู้สร้างเกม — ฝั่งคุณสามารถตรวจสอบที่อยู่ในโปรไฟล์ให้ถูกต้องก่อนผู้สร้างจัดส่ง
+            {allPickup || receiptModes.some((m) => m === "pickup")
+              ? " · ถ้าเป็นมารับเอง การกด「กดรับรางวัล」จะส่งเวลาแจ้งไปยังผู้สร้างเกม"
+              : ""}
           </p>
         </div>
       ) : null}
@@ -831,7 +900,7 @@ export default function AccountMyPrizesSection() {
             ) : (
               <ul className="mt-3 space-y-3">
                 {itemGroups.map((g) => (
-                  <ItemPrizeGroupCard key={g.groupKey} group={g} />
+                  <ItemPrizeGroupCard key={g.groupKey} group={g} onRefreshAwards={refreshAwards} />
                 ))}
               </ul>
             )}

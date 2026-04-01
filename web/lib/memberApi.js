@@ -182,6 +182,25 @@ export async function apiGetMyCentralPrizeAwards(token) {
   return data;
 }
 
+/** ผู้ชนะยืนยันรับรางวัลสิ่งของแบบมารับเอง — แจ้งผู้สร้างเกม */
+export async function apiPostWinnerPickupAck(token, awardId) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-awards/${encodeURIComponent(awardId)}/winner-pickup-ack`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "บันทึกการรับรางวัลไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiGetMyHeartLedger(token, { limit = 80, offset = 0 } = {}) {
   const qs = new URLSearchParams({
     limit: String(limit),
