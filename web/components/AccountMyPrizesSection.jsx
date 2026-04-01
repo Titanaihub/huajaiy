@@ -58,6 +58,19 @@ function formatBaht(n) {
   return n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
 }
 
+/** มีที่อยู่จัดส่งในโปรไฟล์พอให้จัดส่งสิ่งของ (บ้านเลขที่ + จังหวัด + รหัสไปรษณีย์ 5 หลัก) */
+function hasProfileShippingFilled(user) {
+  if (!user) return false;
+  const p =
+    user.shippingAddressParts && typeof user.shippingAddressParts === "object"
+      ? user.shippingAddressParts
+      : {};
+  const house = String(p.houseNo || "").trim();
+  const prov = String(p.province || "").trim();
+  const postal = String(p.postalCode || "").replace(/\D/g, "");
+  return Boolean(house && prov && postal.length >= 5);
+}
+
 function displayGameCode(a) {
   const c = a.gameCode != null ? String(a.gameCode).trim() : "";
   if (c) return c;
@@ -444,8 +457,13 @@ function CreatorPrizeCard({
   );
 }
 
-function ItemPrizeGroupCard({ group }) {
+function ItemPrizeGroupCard({
+  group,
+  withdrawalsForCreator = [],
+  cashAwardsForCreator = []
+}) {
   const router = useRouter();
+  const { user } = useMemberAuth();
   const [open, setOpen] = useState(false);
   const { creatorUsername, items } = group;
   const creatorDisplay =
@@ -455,8 +473,35 @@ function ItemPrizeGroupCard({ group }) {
   const winCount = items.length;
   const totalUnits = items.reduce((s, a) => s + itemUnitsPerWin(a), 0);
 
+  const finalCashBalance = useMemo(() => {
+    const detailRows = buildMergedLedgerRows(
+      cashAwardsForCreator,
+      withdrawalsForCreator
+    );
+    const pendingHoldBaht = sumPendingWithdrawalsBaht(withdrawalsForCreator);
+    const ledgerEndCash =
+      detailRows.length > 0 ? detailRows[detailRows.length - 1].runningCash : 0;
+    return Math.max(0, ledgerEndCash - pendingHoldBaht);
+  }, [cashAwardsForCreator, withdrawalsForCreator]);
+
+  const showWithdrawInMenu =
+    hasProfileShippingFilled(user) && finalCashBalance >= MIN_WITHDRAW_BAHT;
+
   function goProfile() {
     router.push("/account/profile");
+  }
+
+  function goWithdraw() {
+    router.push(
+      `/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`
+    );
+  }
+
+  function handleMenuChange(e) {
+    const v = e.target.value;
+    e.target.value = "";
+    if (v === "profile") goProfile();
+    if (v === "withdraw") goWithdraw();
   }
 
   return (
@@ -535,11 +580,11 @@ function ItemPrizeGroupCard({ group }) {
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
                   <th className="whitespace-nowrap px-3 py-2.5">วันเวลาที่ชนะ</th>
-                  <th className="min-w-[120px] px-3 py-2.5">เกม</th>
+                  <th className="min-w-[120px] px-3 py-2.5">รางวัล</th>
                   <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
                   <th className="whitespace-nowrap px-3 py-2.5">หน่วย/ครั้ง</th>
                   <th className="min-w-[140px] px-3 py-2.5">สถานะการส่งมอบ</th>
-                  <th className="min-w-[160px] px-3 py-2.5">เมนู</th>
+                  <th className="min-w-[200px] px-3 py-2.5">เมนู</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -553,7 +598,9 @@ function ItemPrizeGroupCard({ group }) {
                       <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
                         {formatWonAt(a.wonAt)}
                       </td>
-                      <td className="px-3 py-2.5 text-xs">{a.gameTitle || "เกม"}</td>
+                      <td className="max-w-[220px] px-3 py-2.5 text-xs text-slate-800">
+                        {prizeLine(a)}
+                      </td>
                       <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-600">
                         {displayGameCode(a)}
                       </td>
@@ -579,18 +626,17 @@ function ItemPrizeGroupCard({ group }) {
                       <td className="px-3 py-2.5 align-top">
                         <select
                           aria-label="เมนูรายการรางวัล"
-                          className="max-w-[200px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
+                          className="w-full min-w-[180px] max-w-[260px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
                           defaultValue=""
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            e.target.value = "";
-                            if (v === "profile") goProfile();
-                          }}
+                          onChange={handleMenuChange}
                         >
                           <option value="" disabled>
                             เลือกเมนู…
                           </option>
                           <option value="profile">ตั้งค่าที่อยู่จัดส่ง (โปรไฟล์)</option>
+                          {showReceiveItemInMenu ? (
+                            <option value="receive-item">รับสิ่งของ</option>
+                          ) : null}
                         </select>
                       </td>
                     </tr>

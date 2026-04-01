@@ -187,7 +187,7 @@ export default function AccountProfileForm() {
 
   if (loading || !user) {
     return (
-      <p className="text-sm text-slate-600" aria-live="polite">
+      <p className="text-sm text-white/90" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -196,13 +196,13 @@ export default function AccountProfileForm() {
   const isThai = (user.countryCode || "TH") === "TH";
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-white">
         <section>
-          <h3 className="text-base font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-white">
             ข้อมูลในระบบ
           </h3>
 
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-900 shadow-sm">
             <dl className="grid gap-2 sm:grid-cols-2">
               <div>
                 <dt className="text-slate-500">ชื่อผู้ใช้ (ล็อกอิน)</dt>
@@ -231,14 +231,14 @@ export default function AccountProfileForm() {
 
           <form onSubmit={saveProfile} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="gender" className="block text-sm font-medium text-white/95">
                 เพศ
               </label>
               <select
                 id="gender"
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="">ไม่ระบุ</option>
                 <option value="male">ชาย</option>
@@ -249,7 +249,7 @@ export default function AccountProfileForm() {
             <div>
               <label
                 htmlFor="profilePhone"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-white/95"
               >
                 เบอร์โทร
               </label>
@@ -263,14 +263,14 @@ export default function AccountProfileForm() {
                   setPhone(String(e.target.value).replace(/\s+/g, ""))
                 }
                 placeholder="0812345678"
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-white/80">
                 เปลี่ยนเบอร์ได้ที่นี่ — ระบบจะเก็บประวัติเบอร์เก่าไว้ด้านล่าง
               </p>
             </div>
             <div>
-              <label htmlFor="birthDate" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="birthDate" className="block text-sm font-medium text-white/95">
                 วันเดือนปีเกิด
               </label>
               <input
@@ -278,21 +278,21 @@ export default function AccountProfileForm() {
                 type="date"
                 value={birthDate}
                 onChange={(e) => setBirthDate(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </div>
-            <fieldset className="space-y-3">
-              <legend className="text-sm font-medium text-slate-700">
+            <fieldset id="shipping-address" className="scroll-mt-24 space-y-3">
+              <legend className="text-sm font-medium text-white/95">
                 ที่อยู่จัดส่งสินค้า
               </legend>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-white/80">
                 กรอกภายหลังได้ — แยกช่องตามที่อยู่จริงเพื่อจัดส่งถูกต้อง
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-1">
                   <label
                     htmlFor="shipHouseNo"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     บ้านเลขที่
                   </label>
@@ -306,13 +306,13 @@ export default function AccountProfileForm() {
                       }))
                     }
                     autoComplete="street-address"
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="shipMoo"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     หมู่
                   </label>
@@ -322,13 +322,13 @@ export default function AccountProfileForm() {
                     onChange={(e) =>
                       setShippingParts((s) => ({ ...s, moo: e.target.value }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="shipRoad"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     ถนน
                   </label>
@@ -338,13 +338,13 @@ export default function AccountProfileForm() {
                     onChange={(e) =>
                       setShippingParts((s) => ({ ...s, road: e.target.value }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="shipSubdistrict"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     ตำบล / แขวง
                   </label>
@@ -357,13 +357,13 @@ export default function AccountProfileForm() {
                         subdistrict: e.target.value
                       }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="shipDistrict"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     อำเภอ / เขต
                   </label>
@@ -376,13 +376,13 @@ export default function AccountProfileForm() {
                         district: e.target.value
                       }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="shipProvince"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     จังหวัด
                   </label>
@@ -395,13 +395,13 @@ export default function AccountProfileForm() {
                         province: e.target.value
                       }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="shipPostal"
-                    className="block text-xs font-medium text-slate-600"
+                    className="block text-xs font-medium text-white/90"
                   >
                     รหัสไปรษณีย์
                   </label>
@@ -417,7 +417,7 @@ export default function AccountProfileForm() {
                         postalCode: e.target.value.replace(/\D/g, "").slice(0, 10)
                       }))
                     }
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                   />
                 </div>
               </div>
@@ -447,7 +447,7 @@ export default function AccountProfileForm() {
 
           <form
             onSubmit={submitPasswordChange}
-            className="mt-8 space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 shadow-sm"
+            className="mt-8 space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-slate-900 shadow-sm"
           >
             <h4 className="text-sm font-semibold text-slate-900">
               เปลี่ยนรหัสผ่าน
@@ -468,7 +468,7 @@ export default function AccountProfileForm() {
                 autoComplete="current-password"
                 value={currentPw}
                 onChange={(e) => setCurrentPw(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </div>
             <div>
@@ -484,7 +484,7 @@ export default function AccountProfileForm() {
                 autoComplete="new-password"
                 value={newPw}
                 onChange={(e) => setNewPw(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </div>
             <div>
@@ -500,11 +500,19 @@ export default function AccountProfileForm() {
                 autoComplete="new-password"
                 value={confirmPw}
                 onChange={(e) => setConfirmPw(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </div>
-            {pwErr ? <p className="text-sm text-red-600">{pwErr}</p> : null}
-            {pwMsg ? <p className="text-sm text-green-700">{pwMsg}</p> : null}
+            {pwErr ? (
+              <p className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-800 shadow-sm">
+                {pwErr}
+              </p>
+            ) : null}
+            {pwMsg ? (
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-900 shadow-sm">
+                {pwMsg}
+              </p>
+            ) : null}
             <button
               type="submit"
               className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
@@ -515,14 +523,14 @@ export default function AccountProfileForm() {
 
           {phoneHistory.length > 0 ? (
             <div className="mt-8">
-              <h4 className="text-sm font-semibold text-slate-800">
+              <h4 className="text-sm font-semibold text-white">
                 ประวัติการเปลี่ยนเบอร์โทร
               </h4>
               <ul className="mt-3 space-y-3 text-sm">
                 {phoneHistory.map((h) => (
                   <li
                     key={h.id}
-                    className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2"
+                    className="rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-slate-800"
                   >
                     <p className="font-medium text-slate-800">
                       {h.oldPhone} → {h.newPhone}
@@ -538,39 +546,39 @@ export default function AccountProfileForm() {
         </section>
 
         <section>
-          <h3 className="text-base font-semibold text-slate-900">
+          <h3 className="text-base font-semibold text-white">
             ขอเปลี่ยนชื่อ–นามสกุล (ผ่านแอดมิน)
           </h3>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-white/85">
             {isThai
               ? "กรอกชื่อ–นามสกุลใหม่เป็นภาษาไทยให้ถูกต้องตามบัตรประชาชน"
               : "กรอกชื่อ–นามสกุลใหม่เป็นภาษาอังกฤษตามเอกสาร"}
           </p>
           <form onSubmit={submitNameChange} className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-white/95">
                 ต้องการเปลี่ยนชื่อเป็น
               </label>
               <input
                 value={reqFirst}
                 onChange={(e) => setReqFirst(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-white/95">
                 ต้องการเปลี่ยนนามสกุลเป็น
               </label>
               <input
                 value={reqLast}
                 onChange={(e) => setReqLast(e.target.value)}
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-white/95">
                 เหตุผลที่ขอเปลี่ยน (อย่างน้อย 10 ตัวอักษร)
               </label>
               <textarea
@@ -579,11 +587,19 @@ export default function AccountProfileForm() {
                 rows={4}
                 required
                 minLength={10}
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
               />
             </div>
-            {reqErr ? <p className="text-sm text-red-600">{reqErr}</p> : null}
-            {reqMsg ? <p className="text-sm text-green-700">{reqMsg}</p> : null}
+            {reqErr ? (
+              <p className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-800 shadow-sm">
+                {reqErr}
+              </p>
+            ) : null}
+            {reqMsg ? (
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-900 shadow-sm">
+                {reqMsg}
+              </p>
+            ) : null}
             <button
               type="submit"
               className="rounded-xl border border-brand-300 bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-900 hover:bg-brand-100"
@@ -594,14 +610,14 @@ export default function AccountProfileForm() {
 
           {requests.length > 0 ? (
             <div className="mt-8">
-              <h3 className="text-sm font-semibold text-slate-800">
+              <h3 className="text-sm font-semibold text-white">
                 ประวัติคำขอเปลี่ยนชื่อ
               </h3>
               <ul className="mt-3 space-y-3 text-sm">
                 {requests.map((r) => (
                   <li
                     key={r.id}
-                    className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2"
+                    className="rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-slate-800"
                   >
                     <p className="font-medium text-slate-800">
                       {statusLabel(r.status)} — ขอเป็น {r.requestedFirstName}{" "}
@@ -622,8 +638,8 @@ export default function AccountProfileForm() {
           ) : null}
         </section>
 
-        <p className="text-sm text-slate-600">
-          <Link href="/account" className="text-brand-800 underline">
+        <p className="text-sm text-white/90">
+          <Link href="/account" className="font-semibold text-white underline decoration-white/70 underline-offset-2 hover:text-white">
             ← ภาพรวมบัญชี
           </Link>
         </p>
