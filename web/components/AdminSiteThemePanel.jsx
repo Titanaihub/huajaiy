@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
-import { buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
+import { buildSiteFooterBackgroundStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
@@ -82,6 +82,8 @@ export default function AdminSiteThemePanel() {
   const [bgGradientMid, setBgGradientMid] = useState("#FFEEF3");
   const [bgGradientBottom, setBgGradientBottom] = useState("#FFD6E2");
   const [imageOverlayPercent, setImageOverlayPercent] = useState(78);
+  const [footerScrimHex, setFooterScrimHex] = useState("#2B121C");
+  const [footerScrimPercent, setFooterScrimPercent] = useState(48);
 
   const previewStyle = useMemo(
     () =>
@@ -93,6 +95,26 @@ export default function AdminSiteThemePanel() {
         imageOverlayPercent
       }),
     [backgroundImageUrl, bgGradientTop, bgGradientMid, bgGradientBottom, imageOverlayPercent]
+  );
+
+  const previewFooterStyle = useMemo(
+    () =>
+      buildSiteFooterBackgroundStyle({
+        backgroundImageUrl,
+        bgGradientTop,
+        bgGradientMid,
+        bgGradientBottom,
+        footerScrimHex,
+        footerScrimPercent
+      }),
+    [
+      backgroundImageUrl,
+      bgGradientTop,
+      bgGradientMid,
+      bgGradientBottom,
+      footerScrimHex,
+      footerScrimPercent
+    ]
   );
 
   const load = useCallback(async () => {
@@ -114,6 +136,15 @@ export default function AdminSiteThemePanel() {
       {
         const n = Number(t.imageOverlayPercent);
         setImageOverlayPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 78);
+      }
+      setFooterScrimHex(
+        /^#[0-9A-Fa-f]{6}$/.test(String(t.footerScrimHex || "").trim())
+          ? String(t.footerScrimHex).trim()
+          : "#2B121C"
+      );
+      {
+        const n = Number(t.footerScrimPercent);
+        setFooterScrimPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 48);
       }
     } catch (e) {
       setErr(e.message || String(e));
@@ -139,7 +170,9 @@ export default function AdminSiteThemePanel() {
         bgGradientTop,
         bgGradientMid,
         bgGradientBottom,
-        imageOverlayPercent
+        imageOverlayPercent,
+        footerScrimHex,
+        footerScrimPercent
       });
       router.refresh();
       setMsg("บันทึกแล้ว — หน้าเว็บโหลดธีมใหม่แล้ว (ถ้ายังไม่เห็นรูป ลองลดความทึบทับรูปลง)");
@@ -276,6 +309,48 @@ export default function AdminSiteThemePanel() {
         <p className="hui-note mt-1">
           ใช้เมื่อมีรูปพื้นหลัง — ยิ่งสูง ตัวหนังสืออ่านง่ายขึ้น · รูปโทนอ่อน/ชมพูให้ลดค่านี้ลงจะเห็นลายชัดขึ้น
         </p>
+      </div>
+
+      <div className="rounded-xl border border-hui-border bg-white/60 p-4">
+        <p className="hui-label">ฟุตเตอร์ (ด้านล่างเว็บ)</p>
+        <p className="hui-note mt-1 mb-3">
+          ใช้<strong>รูปพื้นหลังชุดเดียวกับด้านบน</strong> แล้วทับด้วยสีทึบแยกต่างหาก — แนะนำโทนเข้มให้อ่านลิงก์ชัด:{" "}
+          <code className="rounded bg-hui-surface px-1">#2B121C</code> burgundy เข้ม (ค่าเริ่ม),{" "}
+          <code className="rounded bg-hui-surface px-1">#1a1a1a</code> เทาเข้ม, หรือ{" "}
+          <code className="rounded bg-hui-surface px-1">#3d1a24</code> ชมพูเข้ม
+        </p>
+        <div
+          className="mb-4 h-16 w-full max-w-md rounded-xl border border-hui-border"
+          style={previewFooterStyle}
+          aria-hidden
+        />
+        <div>
+          <label htmlFor="footer-scrim-hex" className="hui-label">
+            สีทึบทับรูปในฟุตเตอร์ (#RRGGBB)
+          </label>
+          <input
+            id="footer-scrim-hex"
+            type="text"
+            value={footerScrimHex}
+            onChange={(e) => setFooterScrimHex(e.target.value)}
+            className="hui-input max-w-xs font-mono text-sm"
+            maxLength={7}
+          />
+        </div>
+        <div className="mt-3">
+          <label htmlFor="footer-scrim-pct" className="hui-label">
+            ความทึบทับรูปในฟุตเตอร์: {footerScrimPercent}%
+          </label>
+          <input
+            id="footer-scrim-pct"
+            type="range"
+            min={0}
+            max={100}
+            value={footerScrimPercent}
+            onChange={(e) => setFooterScrimPercent(Number(e.target.value))}
+            className="mt-1 w-full max-w-md"
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">

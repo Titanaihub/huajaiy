@@ -1,12 +1,32 @@
+"use client";
+
 import Link from "next/link";
+import { buildSiteFooterBackgroundStyle } from "../lib/siteThemeStyle";
 import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import BrandLogo from "./BrandLogo";
+import { useSiteTheme } from "./SiteThemeProvider";
+
+const THEME_FALLBACK = {
+  backgroundImageUrl: "",
+  bgGradientTop: "#FFF5F8",
+  bgGradientMid: "#FFEEF3",
+  bgGradientBottom: "#FFD6E2",
+  footerScrimHex: "#2B121C",
+  footerScrimPercent: 48
+};
 
 export default function SiteFooter() {
+  const ctx = useSiteTheme();
+  const theme = ctx && typeof ctx === "object" ? { ...THEME_FALLBACK, ...ctx } : THEME_FALLBACK;
+  const footerBg = buildSiteFooterBackgroundStyle(theme);
+
   return (
-    <footer className="mt-16 border-t border-hui-border bg-gradient-to-b from-hui-surface via-hui-pageMid to-hui-pageBot">
-      <div className="mx-auto max-w-5xl px-4 py-7">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <footer
+      className="mt-12 border-t border-black/10"
+      style={footerBg}
+    >
+      <div className="mx-auto max-w-5xl px-4 py-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <BrandLogo variant="footer" />
           <div className="flex flex-wrap items-center gap-x-1 gap-y-1 sm:gap-x-2">
             <span className="px-2 py-1 text-sm font-semibold text-hui-section">
@@ -26,9 +46,6 @@ export default function SiteFooter() {
             </Link>
           </div>
         </div>
-        <p className="mt-5 border-t border-hui-border pt-4 text-center text-sm text-hui-body">
-          © {new Date().getFullYear()} HUAJAIY — สงวนลิขสิทธิ์
-        </p>
       </div>
     </footer>
   );

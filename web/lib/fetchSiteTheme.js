@@ -6,11 +6,14 @@ const FALLBACK_THEME = {
   bgGradientTop: "#FFF5F8",
   bgGradientMid: "#FFEEF3",
   bgGradientBottom: "#FFD6E2",
-  imageOverlayPercent: 78
+  imageOverlayPercent: 78,
+  footerScrimHex: "#2B121C",
+  footerScrimPercent: 48
 };
 
 function normalizeTheme(t) {
   const opNum = Number(t.imageOverlayPercent);
+  const fpNum = Number(t.footerScrimPercent);
   return {
     backgroundImageUrl: String(t.backgroundImageUrl ?? ""),
     bgGradientTop: String(t.bgGradientTop ?? FALLBACK_THEME.bgGradientTop),
@@ -18,7 +21,13 @@ function normalizeTheme(t) {
     bgGradientBottom: String(t.bgGradientBottom ?? FALLBACK_THEME.bgGradientBottom),
     imageOverlayPercent: Number.isFinite(opNum)
       ? Math.min(100, Math.max(0, Math.floor(opNum)))
-      : FALLBACK_THEME.imageOverlayPercent
+      : FALLBACK_THEME.imageOverlayPercent,
+    footerScrimHex: /^#[0-9A-Fa-f]{6}$/.test(String(t.footerScrimHex ?? "").trim())
+      ? String(t.footerScrimHex).trim()
+      : FALLBACK_THEME.footerScrimHex,
+    footerScrimPercent: Number.isFinite(fpNum)
+      ? Math.min(100, Math.max(0, Math.floor(fpNum)))
+      : FALLBACK_THEME.footerScrimPercent
   };
 }
 

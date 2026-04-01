@@ -692,12 +692,24 @@ async function initDb() {
         bg_gradient_bottom VARCHAR(7) NOT NULL DEFAULT '#FFD6E2',
         image_overlay_percent SMALLINT NOT NULL DEFAULT 78
           CHECK (image_overlay_percent >= 0 AND image_overlay_percent <= 100),
+        footer_scrim_hex VARCHAR(7) NOT NULL DEFAULT '#2B121C',
+        footer_scrim_percent SMALLINT NOT NULL DEFAULT 48
+          CHECK (footer_scrim_percent >= 0 AND footer_scrim_percent <= 100),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
     await client.query(`
       INSERT INTO site_theme (id) VALUES (1)
       ON CONFLICT (id) DO NOTHING;
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS footer_scrim_hex VARCHAR(7) NOT NULL DEFAULT '#2B121C';
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS footer_scrim_percent SMALLINT NOT NULL DEFAULT 48
+        CHECK (footer_scrim_percent >= 0 AND footer_scrim_percent <= 100);
     `);
 
     /* รหัสเก่า (ก่อนมีคอลัมน์ทุน) ถือว่าหักจากแดงเล่นได้ทั้งหมด — คืนยอดสอดคล้องเดิม */

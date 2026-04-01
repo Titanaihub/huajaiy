@@ -3,6 +3,7 @@ import { Prompt } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
+import { SiteThemeProvider } from "../components/SiteThemeProvider";
 import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
 import { buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
@@ -58,17 +59,19 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="th" className={prompt.variable}>
       <body className={`${prompt.className} hui-root flex flex-col`} style={bodyBgStyle}>
-        <MemberAuthProvider>
-          <ImpersonationBanner />
-          <HeartsProvider>
-            {/* sticky footer: middle row grows so footer stays at viewport bottom */}
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
-                {children}
+        <SiteThemeProvider value={siteTheme}>
+          <MemberAuthProvider>
+            <ImpersonationBanner />
+            <HeartsProvider>
+              {/* sticky footer: middle row grows so footer stays at viewport bottom */}
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
+                  {children}
+                </div>
               </div>
-            </div>
-          </HeartsProvider>
-        </MemberAuthProvider>
+            </HeartsProvider>
+          </MemberAuthProvider>
+        </SiteThemeProvider>
       </body>
     </html>
   );

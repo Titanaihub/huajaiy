@@ -68,3 +68,54 @@ export function buildSiteRootBackgroundStyle(theme) {
     backgroundRepeat: "no-repeat, no-repeat"
   };
 }
+
+/**
+ * พื้นหลังฟุตเตอร์ — ใช้รูปเดียวกับธีมเว็บ + เลเยอร์สีทึบปรับได้ (อ่านลิงก์ง่าย)
+ * @param {{ backgroundImageUrl?: string, bgGradientTop?: string, bgGradientMid?: string, bgGradientBottom?: string, footerScrimHex?: string, footerScrimPercent?: number }} theme
+ */
+export function buildSiteFooterBackgroundStyle(theme) {
+  const top = theme?.bgGradientTop || "#FFF5F8";
+  const mid = theme?.bgGradientMid || "#FFEEF3";
+  const bot = theme?.bgGradientBottom || "#FFD6E2";
+  const gradOnly = `linear-gradient(180deg, ${top} 0%, ${mid} 52%, ${bot} 100%)`;
+  const img = String(theme?.backgroundImageUrl || "").trim();
+
+  const scrimHex = theme?.footerScrimHex || "#2B121C";
+  const pRaw = Number(theme?.footerScrimPercent);
+  const p = Math.min(
+    100,
+    Math.max(0, Math.floor(Number.isFinite(pRaw) ? pRaw : 48))
+  );
+  const scrimA = p / 100;
+
+  if (!img || !/^https:\/\//i.test(img)) {
+    return {
+      backgroundImage: gradOnly,
+      backgroundAttachment: "scroll",
+      backgroundSize: "cover",
+      backgroundPosition: "center top",
+      backgroundRepeat: "no-repeat"
+    };
+  }
+
+  if (scrimA < 0.001) {
+    return {
+      backgroundImage: cssUrlQuoted(img),
+      backgroundAttachment: "scroll",
+      backgroundSize: "cover",
+      backgroundPosition: "center top",
+      backgroundRepeat: "no-repeat"
+    };
+  }
+
+  const { r, g, b } = hexToRgb(scrimHex);
+  const scrim = `linear-gradient(180deg, rgba(${r},${g},${b},${scrimA}) 0%, rgba(${r},${g},${b},${scrimA}) 100%)`;
+
+  return {
+    backgroundImage: `${scrim}, ${cssUrlQuoted(img)}`,
+    backgroundAttachment: "scroll, scroll",
+    backgroundSize: "cover, cover",
+    backgroundPosition: "center top, center top",
+    backgroundRepeat: "no-repeat, no-repeat"
+  };
+}
