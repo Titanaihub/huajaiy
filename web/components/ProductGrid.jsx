@@ -93,20 +93,20 @@ export default function ProductGrid() {
         className="flex flex-col gap-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft sm:flex-row sm:flex-wrap sm:items-end"
       >
         <div className="min-w-0 flex-1">
-          <label className="text-xs font-medium text-hui-section">ค้นหา</label>
+          <label className="hui-label">ค้นหา</label>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2 text-sm text-hui-body"
+            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2.5 text-base text-hui-body sm:text-sm"
             placeholder="ชื่อหรือรายละเอียด"
           />
         </div>
         <div className="w-full sm:w-40">
-          <label className="text-xs font-medium text-hui-section">หมวด</label>
+          <label className="hui-label">หมวด</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2 text-sm text-hui-body"
+            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2.5 text-base text-hui-body sm:text-sm"
           >
             <option value="">ทั้งหมด</option>
             {categories.map((c) => (
@@ -117,11 +117,11 @@ export default function ProductGrid() {
           </select>
         </div>
         <div className="w-full sm:w-48">
-          <label className="text-xs font-medium text-hui-section">ร้าน</label>
+          <label className="hui-label">ร้าน</label>
           <select
             value={shopId}
             onChange={(e) => setShopId(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2 text-sm text-hui-body"
+            className="mt-1 w-full rounded-xl border border-hui-border px-3 py-2.5 text-base text-hui-body sm:text-sm"
           >
             <option value="">ทุกร้าน</option>
             {shops.map((s) => (
@@ -176,7 +176,7 @@ export default function ProductGrid() {
       ) : null}
       {loading ? <p className="text-sm text-hui-muted">กำลังโหลดสินค้า…</p> : null}
       {!loading && products.length > 0 ? (
-        <p className="text-xs text-hui-muted">พบ {total} รายการ</p>
+        <p className="text-sm text-hui-muted">พบ {total} รายการ</p>
       ) : null}
 
       <ul className="grid gap-4 sm:grid-cols-2">
@@ -196,18 +196,18 @@ export default function ProductGrid() {
                 <span aria-hidden>🛒</span>
               )}
             </Link>
-            <h2 className="mt-3 text-sm font-semibold text-hui-section">
+            <h2 className="hui-card-title mt-3">
               <Link href={`/shop/${p.id}`} className="hover:text-hui-cta hover:underline">
                 {p.title}
               </Link>
             </h2>
-            <p className="mt-0.5 text-xs text-hui-muted">{p.shopName}</p>
+            <p className="hui-card-meta mt-0.5">{p.shopName}</p>
             <p className="hui-price mt-1">
               ฿{Number(p.priceThb).toLocaleString("th-TH")}
             </p>
-            <p className="text-xs text-hui-muted">เหลือ {p.stockQty} ชิ้น</p>
+            <p className="hui-card-meta">เหลือ {p.stockQty} ชิ้น</p>
             {p.heartsBonus > 0 ? (
-              <p className="mt-1 text-xs font-medium text-hui-pink">แถมหัวใจ {p.heartsBonus}/ชิ้น</p>
+              <p className="mt-1 text-sm font-medium text-hui-pink">แถมหัวใจ {p.heartsBonus}/ชิ้น</p>
             ) : null}
             <button
               type="button"

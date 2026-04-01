@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CartContents from "../../components/CartContents";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 
@@ -26,10 +27,7 @@ export default function CartPage() {
         <div className="mt-6">
           <CartContents />
         </div>
-        <Link
-          href="/shop"
-          className="mt-8 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
-        >
+        <Link href="/shop" className={`${siteNavLinkClass} mt-8 inline-flex`}>
           ← กลับร้านค้า
         </Link>
       </main>

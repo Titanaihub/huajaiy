@@ -50,7 +50,23 @@
     @apply text-sm font-medium text-hui-section;
   }
   .hui-input {
-    @apply mt-1 w-full rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm text-hui-body placeholder:text-hui-placeholder;
+    @apply mt-1 w-full rounded-2xl border border-hui-border bg-white px-3 py-2.5 text-base text-hui-body placeholder:text-hui-placeholder sm:text-sm;
+  }
+  /** การ์ด / รายการ — ให้สอดคล้องหน้าแรก */
+  .hui-card-title {
+    @apply text-base font-semibold leading-snug text-hui-section sm:text-[1.0625rem];
+  }
+  .hui-card-meta {
+    @apply text-sm text-hui-muted;
+  }
+  .hui-card-body {
+    @apply text-sm leading-relaxed text-hui-body;
+  }
+  .hui-card-label {
+    @apply text-sm font-semibold text-hui-section;
+  }
+  .hui-section-subtitle {
+    @apply text-sm text-hui-muted;
   }
 }
 

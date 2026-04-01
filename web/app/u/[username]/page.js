@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { getApiBase } from "../../../lib/config";
+import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -55,23 +56,20 @@ export default async function PublicMemberPage({ params }) {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-lg px-4 py-8 sm:py-10">
-        <p className="text-sm text-hui-muted">
-          <Link
-            href="/"
-            className="font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
-          >
+        <nav
+          className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm"
+          aria-label="ทางลัด"
+        >
+          <Link href="/" className={siteNavLinkClass}>
             ← หน้าแรก
           </Link>
-          <span className="mx-2 text-hui-border" aria-hidden>
+          <span className="text-hui-border" aria-hidden>
             ·
           </span>
-          <Link
-            href="/game"
-            className="font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
-          >
+          <Link href="/game" className={siteNavLinkClass}>
             รายการเกม
           </Link>
-        </p>
+        </nav>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight text-hui-section">
           {displayName}
         </h1>

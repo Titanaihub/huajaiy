@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ProductGrid from "../../components/ProductGrid";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 
@@ -48,10 +49,7 @@ export default function ShopPage() {
           </Link>
           · เจ้าของลงสินค้าที่บัญชี → ร้านของฉัน
         </p>
-        <Link
-          href="/"
-          className="mt-4 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
-        >
+        <Link href="/" className={`${siteNavLinkClass} mt-4 inline-flex`}>
           ← หน้าแรก
         </Link>
       </main>

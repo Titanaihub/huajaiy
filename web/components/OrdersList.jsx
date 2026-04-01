@@ -65,7 +65,7 @@ export default function OrdersList() {
           ยังไม่มีออเดอร์ — ไปที่ตะกร้าแล้วยืนยันออเดอร์เพื่อบันทึกในประวัติ
         </p>
         {serverNote ? (
-          <p className="text-center text-xs text-amber-700">{serverNote}</p>
+          <p className="text-center text-sm text-amber-800">{serverNote}</p>
         ) : null}
       </div>
     );
@@ -75,8 +75,8 @@ export default function OrdersList() {
     <div className="space-y-8">
       {hasServer ? (
         <div>
-          <h2 className="text-sm font-semibold text-hui-section">ออเดอร์ที่บันทึกในระบบ</h2>
-          <p className="mt-1 text-xs text-hui-muted">ยืนยันแล้วจากตะกร้าขณะล็อกอิน</p>
+          <h2 className="hui-card-label text-base">ออเดอร์ที่บันทึกในระบบ</h2>
+          <p className="hui-section-subtitle mt-1">ยืนยันแล้วจากตะกร้าขณะล็อกอิน</p>
           <ul className="mt-3 space-y-4">
             {serverOrders.map((o) => (
               <li
@@ -84,9 +84,9 @@ export default function OrdersList() {
                 className="rounded-2xl border border-hui-border bg-hui-pageTop/50 p-4 text-sm shadow-soft"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hui-border/70 pb-2">
-                  <span className="font-mono text-xs text-hui-body">{o.id}</span>
+                  <span className="font-mono text-sm text-hui-body">{o.id}</span>
                   <time
-                    className="text-xs text-hui-muted"
+                    className="text-sm text-hui-muted"
                     dateTime={new Date(o.createdAt).toISOString()}
                   >
                     {formatThaiDate(o.createdAt)}
@@ -109,7 +109,7 @@ export default function OrdersList() {
                   ) : null}
                 </p>
                 {o.shippingSnapshot ? (
-                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white/60 p-2 text-xs text-hui-body">
+                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white/60 p-2 text-sm text-hui-body">
                     <span className="font-semibold text-hui-body">จัดส่ง: </span>
                     {o.shippingSnapshot}
                   </p>
@@ -150,9 +150,9 @@ export default function OrdersList() {
                 className="rounded-2xl border border-hui-border bg-white p-4 text-sm shadow-sm"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hui-border/70 pb-2">
-                  <span className="font-mono text-xs text-hui-muted">{o.id}</span>
+                  <span className="font-mono text-sm text-hui-muted">{o.id}</span>
                   <time
-                    className="text-xs text-hui-muted"
+                    className="text-sm text-hui-muted"
                     dateTime={new Date(o.at).toISOString()}
                   >
                     {formatThaiDate(o.at)}

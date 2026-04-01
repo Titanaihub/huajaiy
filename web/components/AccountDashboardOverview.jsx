@@ -40,7 +40,7 @@ export default function AccountDashboardOverview() {
         </p>
         <div className="mt-4 max-w-md">
           <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
-            <p className="text-xs font-semibold uppercase tracking-wide text-hui-section">
+            <p className="text-sm font-semibold uppercase tracking-wide text-hui-section">
               หัวใจชมพู (เซิร์ฟเวอร์)
             </p>
             <p className="mt-2 flex items-center gap-2 text-2xl font-bold text-hui-burgundy md:text-[1.75rem]">
@@ -48,7 +48,7 @@ export default function AccountDashboardOverview() {
               {pink.toLocaleString("th-TH")}
             </p>
             {roomGiftTotal > 0 ? (
-              <div className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+              <div className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/80 px-3 py-2 text-sm text-amber-950">
                 <p className="font-semibold">หัวใจแดงจากรหัสห้อง (รวม {roomGiftTotal.toLocaleString("th-TH")})</p>
                 <ul className="mt-1 space-y-0.5 text-amber-900/90">
                   {roomGift.map((g) => (
@@ -60,33 +60,33 @@ export default function AccountDashboardOverview() {
                 </ul>
               </div>
             ) : null}
-            <p className="mt-2 text-xs text-hui-muted">
+            <p className="mt-2 text-sm text-hui-muted">
               แสดงเฉพาะยอดที่ใช้งานจริง: ชมพู และแดงจากรหัสห้อง — แดงแจกสำหรับออกรหัสดูที่เมนู
               「แจกหัวใจแดง」
             </p>
             <button
               type="button"
               onClick={() => refresh()}
-              className="mt-3 text-xs font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+              className="mt-3 text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
             >
               รีเฟรชยอด
             </button>
             <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
               <Link
                 href="/account/my-hearts"
-                className="text-xs font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
               >
                 หัวใจของฉัน (แยกตามเจ้าห้อง · เข้าเล่นเกม)
               </Link>
               <Link
                 href="/account/heart-history/play"
-                className="text-xs font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
               >
                 ประวัติหัวใจ (เล่นเกม)
               </Link>
               <Link
                 href="/account/give-hearts"
-                className="text-xs font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
               >
                 แจกหัวใจแดง (ทุนรหัสห้อง)
               </Link>

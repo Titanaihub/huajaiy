@@ -185,7 +185,7 @@ export default function HeartShopClient() {
                 key={p.id}
                 className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft"
               >
-                <p className="font-semibold text-hui-section">{p.title}</p>
+                <p className="hui-card-title">{p.title}</p>
                 <p className="mt-2 text-sm text-hui-body">
                   {(p.description || "").trim() ||
                     "หัวใจแดงสำหรับเอาไว้แจกเล่นเกม"}
@@ -275,7 +275,7 @@ export default function HeartShopClient() {
                         <tr className="border-b border-hui-border/80 bg-hui-pageTop/60">
                           <td colSpan={4} className="px-3 py-4">
                             <div className="max-w-lg rounded-xl border border-hui-border bg-white p-3 text-sm text-hui-body">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-hui-muted">
+                              <p className="text-sm font-semibold uppercase tracking-wide text-hui-section">
                                 โอนเงินมาที่
                               </p>
                               <ul className="mt-2 space-y-1 text-hui-body">
@@ -294,7 +294,7 @@ export default function HeartShopClient() {
                               </ul>
                               {row.paymentQrUrl ? (
                                 <div className="mt-3">
-                                  <p className="text-xs font-medium text-hui-muted">สแกน QR จ่าย</p>
+                                  <p className="text-sm font-medium text-hui-muted">สแกน QR จ่าย</p>
                                   <img
                                     src={row.paymentQrUrl}
                                     alt="QR ชำระเงิน"
@@ -309,7 +309,7 @@ export default function HeartShopClient() {
                                 onSubmit={(e) => submitSlipForPurchase(row.id, e)}
                               >
                                 <div>
-                                  <label className="text-xs font-medium text-hui-section">
+                                  <label className="hui-label">
                                     รูปสลิปโอนเงิน
                                   </label>
                                   <input

@@ -17,14 +17,14 @@ const UUID_RE =
 function gameStatusBadge(g) {
   if (g.isPublished) {
     return (
-      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-900">
+      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-sm font-medium text-emerald-900 ring-1 ring-emerald-200/80">
         เผยแพร่แล้ว
       </span>
     );
   }
   if (g.isActive) {
     return (
-      <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-900">
+      <span className="rounded-full bg-hui-pageTop px-2.5 py-0.5 text-sm font-medium text-hui-section ring-1 ring-hui-border">
         กำลังเปิดใช้
       </span>
     );
@@ -124,7 +124,7 @@ export default function AccountMyGamesList() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-hui-section">เกมของฉัน</h2>
+        <h2 className="text-xl font-semibold text-hui-section sm:text-2xl">เกมของฉัน</h2>
         <p className="mt-1 text-sm text-hui-body">
           เกมที่คุณสร้างจะเก็บไว้ในบัญชีนี้ — ล็อกเอาต์แล้วล็อกอินใหม่เกมยังอยู่ที่นี่
         </p>
@@ -183,11 +183,11 @@ export default function AccountMyGamesList() {
                 className="flex flex-col gap-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-hui-body">{g.title || "ไม่มีชื่อ"}</p>
+                  <p className="hui-card-title">{g.title || "ไม่มีชื่อ"}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     {gameStatusBadge(g)}
                     {g.gameCode ? (
-                      <span className="text-xs text-hui-muted">รหัส {g.gameCode}</span>
+                      <span className="hui-card-meta">รหัส {g.gameCode}</span>
                     ) : null}
                   </div>
                 </div>

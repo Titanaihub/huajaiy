@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchMarketplaceProduct } from "../lib/marketplaceApi";
+import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import ProductDetailActions from "./ProductDetailActions";
 
 export default function ProductDetailClient({ productId }) {
@@ -56,14 +57,17 @@ export default function ProductDetailClient({ productId }) {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <p className="text-xs text-hui-muted">
-        <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+      <p className="text-sm text-hui-muted">
+        <Link
+          href="/shop"
+          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+        >
           ร้านค้า
         </Link>
         <span className="mx-1 text-hui-border">/</span>
         <Link
           href={`/shop?shopId=${encodeURIComponent(p.shopId)}`}
-          className="font-medium text-hui-cta underline decoration-hui-cta/40"
+          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           {p.shopName}
         </Link>
@@ -85,7 +89,7 @@ export default function ProductDetailClient({ productId }) {
         </div>
         <div className="min-w-0 flex-1">
           {p.category ? (
-            <span className="inline-block rounded-full bg-hui-pageTop px-2 py-0.5 text-xs text-hui-body">
+            <span className="inline-block rounded-full bg-hui-pageTop px-2.5 py-0.5 text-sm text-hui-body">
               {p.category}
             </span>
           ) : null}
@@ -109,14 +113,17 @@ export default function ProductDetailClient({ productId }) {
           <ProductDetailActions product={p} />
         </div>
       </div>
-      <div className="mt-10 flex flex-wrap gap-4 text-sm">
-        <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+      <nav
+        className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2"
+        aria-label="ทางลัดจากหน้าสินค้า"
+      >
+        <Link href="/shop" className={siteNavLinkClass}>
           ← กลับร้านค้า
         </Link>
-        <Link href="/cart" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+        <Link href="/cart" className={siteNavLinkClass}>
           ไปตะกร้า
         </Link>
-      </div>
+      </nav>
     </main>
   );
 }

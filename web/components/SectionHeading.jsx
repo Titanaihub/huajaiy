@@ -3,7 +3,7 @@ export default function SectionHeading({ id, eyebrow, title, subtitle }) {
   return (
     <div className="flex flex-col gap-1">
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-hui-muted">
+        <p className="text-sm font-semibold uppercase tracking-[0.12em] text-hui-muted">
           {eyebrow}
         </p>
       ) : null}

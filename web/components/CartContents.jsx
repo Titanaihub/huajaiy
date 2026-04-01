@@ -195,8 +195,8 @@ export default function CartContents() {
               className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <p className="font-medium text-hui-body">{product.title}</p>
-                <p className="text-xs text-hui-muted">{product.shopName}</p>
+                <p className="hui-card-title">{product.title}</p>
+                <p className="hui-card-meta">{product.shopName}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-1 text-sm text-hui-body">
                   <span className="font-semibold text-hui-cta">
                     ฿{Number(product.priceThb).toLocaleString("th-TH")}
@@ -243,7 +243,7 @@ export default function CartContents() {
       {!doneMsg && rows.length > 0 ? (
         <div className="rounded-2xl border border-hui-border bg-hui-surface/95 p-4 text-sm space-y-3 shadow-soft">
           <div>
-            <label className="block text-xs font-medium text-hui-section">ที่อยู่จัดส่ง</label>
+            <label className="hui-label block">ที่อยู่จัดส่ง</label>
             <textarea
               value={shipping}
               onChange={(e) => setShipping(e.target.value)}
@@ -251,7 +251,7 @@ export default function CartContents() {
               className="hui-input mt-1"
               placeholder="ชื่อ โทร ที่อยู่เต็ม"
             />
-            <p className="mt-1 text-xs text-hui-muted">
+            <p className="mt-1 text-sm text-hui-muted">
               บันทึกถาวรในออเดอร์ — แก้ค่าเริ่มต้นได้ที่{" "}
               <Link
                 href="/account/profile"

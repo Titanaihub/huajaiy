@@ -1743,7 +1743,7 @@ export default function FlipGameDemo({
               </span>
             )}
             {mode === "api" && apiGameMode === "central" && (pinkHeartCost > 0 || redHeartCost > 0) ? (
-              <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+              <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
                 <span>
                   {user
                     ? "หักต่อรอบจากบัญชีเมื่อเริ่มรอบ (ชมพู/แดงแยกตามที่เกมกำหนด):"
@@ -1956,7 +1956,7 @@ export default function FlipGameDemo({
             </button>
           </div>
           {!compactPlayLayout ? (
-            <p className="text-center text-[11px] leading-relaxed text-hui-muted sm:text-left">
+            <p className="text-center text-sm leading-relaxed text-hui-muted sm:text-left">
               「เริ่มเล่นเกม」หักหัวใจตามที่เกมกำหนด แล้วเริ่มเปิดป้าย · 「เฉลยเกม」หลังจบรอบ
               แสดงภาพใต้ป้ายที่ยังไม่ได้เปิด
             </p>
