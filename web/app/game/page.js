@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GameLobby from "../../components/GameLobby";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import { fetchPublicGameList } from "../../lib/publicGameMeta";
@@ -30,26 +31,20 @@ export default async function GamePage() {
 
         <GameLobby initialGames={games} onBrand />
 
-        <div className="mt-10 flex flex-wrap gap-4 border-t border-hui-border pt-8 text-sm">
-          <Link
-            href="/"
-            className="font-medium text-hui-section underline decoration-hui-border underline-offset-2 hover:text-hui-cta"
-          >
+        <nav
+          className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-hui-border pt-8"
+          aria-label="ทางลัดจากหน้าเกม"
+        >
+          <Link href="/" className={siteNavLinkClass}>
             ← หน้าแรก
           </Link>
-          <Link
-            href="/shop"
-            className="font-medium text-hui-section underline decoration-hui-border underline-offset-2 hover:text-hui-cta"
-          >
+          <Link href="/shop" className={siteNavLinkClass}>
             ร้านค้า
           </Link>
-          <Link
-            href="/cart"
-            className="font-medium text-hui-section underline decoration-hui-border underline-offset-2 hover:text-hui-cta"
-          >
+          <Link href="/cart" className={siteNavLinkClass}>
             ตะกร้า
           </Link>
-        </div>
+        </nav>
       </main>
       <SiteFooter />
     </>

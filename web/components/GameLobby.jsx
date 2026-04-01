@@ -34,11 +34,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
       <div>
         <label
           htmlFor="game-search"
-          className={
-            onBrand
-              ? "hui-label text-xs"
-              : "text-xs font-medium text-hui-body"
-          }
+          className={onBrand ? "hui-label" : "text-sm font-medium text-hui-body"}
         >
           ค้นหาชื่อเกมหรือยูสเซอร์ผู้สร้าง
         </label>
@@ -48,7 +44,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="พิมพ์คำค้น…"
-          className="mt-1 w-full rounded-2xl border border-hui-border bg-white px-4 py-2.5 text-sm text-hui-body shadow-sm outline-none ring-hui-border placeholder:text-hui-placeholder focus:border-hui-cta/50 focus:ring-2 focus:ring-hui-cta/15"
+          className="mt-1.5 w-full rounded-2xl border border-hui-border bg-white px-4 py-3 text-base text-hui-body shadow-sm outline-none ring-hui-border placeholder:text-hui-placeholder focus:border-hui-cta/50 focus:ring-2 focus:ring-hui-cta/15 sm:text-sm"
           autoComplete="off"
         />
       </div>
@@ -56,7 +52,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
       {initialGames.length === 0 ? (
         <div className="rounded-2xl border border-hui-border bg-white p-8 text-center text-sm text-hui-body shadow-sm">
           <p className="font-medium text-hui-body">ยังไม่มีเกมที่เปิดแสดง</p>
-          <p className="mt-2 text-xs leading-relaxed text-hui-muted">
+          <p className="mt-2 text-sm leading-relaxed text-hui-muted">
             เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ถ้าใช้ฐานข้อมูล PostgreSQL
             ตรวจว่า API เชื่อมต่อและมีเกมที่พร้อมเล่น
           </p>
@@ -81,10 +77,10 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
               <li key={g.id}>
                 <Link
                   href={href}
-                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-hui-border bg-hui-surface shadow-sm transition hover:border-hui-cta/45 hover:shadow-md"
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white shadow-sm transition hover:border-hui-cta/30 hover:shadow-md"
                 >
-                  <div className="flex gap-3 p-4">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop">
+                  <div className="flex gap-3 p-4 sm:p-5">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop sm:h-[4.5rem] sm:w-[4.5rem]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
@@ -93,30 +89,32 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-sm font-semibold leading-snug text-hui-cardTitle line-clamp-2">
+                      <h2 className="line-clamp-2 text-base font-semibold leading-snug text-hui-section sm:text-[1.0625rem]">
                         {g.title || "เกม"}
                       </h2>
-                      <p className="mt-1 text-[11px] text-hui-muted">
+                      <p className="mt-1.5 text-sm text-hui-muted">
                         ผู้สร้าง:{" "}
                         <span className="font-medium text-hui-body">
                           {g.creatorUsername ? `@${g.creatorUsername}` : "—"}
                         </span>
                       </p>
                       {heartLine ? (
-                        <p className="mt-0.5 text-[10px] text-rose-600/90">{heartLine}</p>
+                        <p className="mt-1 text-xs font-medium text-rose-600/90">
+                          {heartLine}
+                        </p>
                       ) : null}
                     </div>
                   </div>
                   {g.description ? (
-                    <p className="border-t border-hui-border/70 px-4 py-3 text-xs leading-relaxed text-hui-body line-clamp-4">
+                    <p className="line-clamp-4 border-t border-hui-border/70 px-4 py-3 text-sm leading-relaxed text-hui-body sm:px-5 sm:py-3.5">
                       {clipDescription(g.description)}
                     </p>
                   ) : (
-                    <p className="border-t border-hui-border/70 px-4 py-3 text-xs italic text-hui-muted">
+                    <p className="border-t border-hui-border/70 px-4 py-3 text-sm italic text-hui-muted sm:px-5">
                       ไม่มีคำอธิบายสั้น
                     </p>
                   )}
-                  <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/70 px-4 py-2.5 text-center text-xs font-semibold text-hui-burgundy">
+                  <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/80 px-4 py-3 text-center text-sm font-semibold text-hui-section sm:px-5">
                     เข้าเล่นเกมนี้
                   </span>
                 </Link>
