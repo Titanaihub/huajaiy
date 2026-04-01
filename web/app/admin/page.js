@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import AdminDashboard from "../../components/AdminDashboard";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
@@ -65,10 +65,23 @@ export default function AdminPage() {
           </div>
         ) : (
           <div className="mt-8">
-            <p className="mb-6 text-base text-hui-body">
+            <p className="mb-2 text-base text-hui-body">
               สวัสดี <strong className="text-hui-section">{user.username}</strong>
             </p>
-            <AdminDashboard />
+            <p className="mb-6 text-sm text-hui-body">
+              <Link
+                href="/admin?tab=siteTheme"
+                className="font-semibold text-hui-cta underline decoration-hui-border/70 underline-offset-2 hover:text-hui-burgundy"
+              >
+                ตั้งค่าพื้นหลังเว็บไซต์
+              </Link>
+              <span className="text-hui-muted"> — ไล่สีหรือรูปภาพทั้งเว็บ</span>
+            </p>
+            <Suspense
+              fallback={<p className="text-sm text-hui-muted">กำลังโหลดแผงแอดมิน…</p>}
+            >
+              <AdminDashboard />
+            </Suspense>
           </div>
         )}
       </main>

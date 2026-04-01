@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
@@ -26,6 +27,18 @@ import {
 
 const PAGE_SIZE = 25;
 
+const ADMIN_TAB_KEYS = [
+  "members",
+  "siteTheme",
+  "shops",
+  "game",
+  "centralGame",
+  "prizePayouts",
+  "heartPackages",
+  "heartPurchases",
+  "nameChanges"
+];
+
 function roleLabel(role) {
   if (role === "admin") return "แอดมิน";
   if (role === "owner") return "เจ้าของร้าน";
@@ -33,6 +46,7 @@ function roleLabel(role) {
 }
 
 export default function AdminDashboard() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState("members");
 
   const [q, setQ] = useState("");
@@ -92,12 +106,11 @@ export default function AdminDashboard() {
   const [shopCreateMsg, setShopCreateMsg] = useState("");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const tabParam = new URLSearchParams(window.location.search).get("tab");
-    if (tabParam === "shops") setTab("shops");
-    if (tabParam === "centralGame") setTab("centralGame");
-    if (tabParam === "siteTheme") setTab("siteTheme");
-  }, []);
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ADMIN_TAB_KEYS.includes(tabParam)) {
+      setTab(tabParam);
+    }
+  }, [searchParams]);
 
   /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
   const [gameInfo, setGameInfo] = useState(null);
@@ -464,11 +477,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap gap-2 border-b border-hui-border pb-3">
+      <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto border-b border-hui-border px-1 pb-3 [scrollbar-width:thin]">
         <button
           type="button"
           onClick={() => setTab("members")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "members"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -478,8 +491,19 @@ export default function AdminDashboard() {
         </button>
         <button
           type="button"
+          onClick={() => setTab("siteTheme")}
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "siteTheme"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
+          }`}
+        >
+          พื้นหลังเว็บ
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("shops")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "shops"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -490,7 +514,7 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("game")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "game"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -501,7 +525,7 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("centralGame")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "centralGame"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -512,7 +536,7 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("prizePayouts")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "prizePayouts"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -523,7 +547,7 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("heartPackages")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "heartPackages"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -534,7 +558,7 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("heartPurchases")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "heartPurchases"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
@@ -545,24 +569,13 @@ export default function AdminDashboard() {
         <button
           type="button"
           onClick={() => setTab("nameChanges")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "nameChanges"
               ? "bg-hui-cta text-white shadow-soft"
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           คำขอเปลี่ยนชื่อ
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("siteTheme")}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "siteTheme"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          พื้นหลังเว็บ
         </button>
       </div>
 
