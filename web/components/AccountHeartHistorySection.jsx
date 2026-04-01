@@ -49,7 +49,7 @@ function giveawayLedgerNote(entry) {
           ? Number(m.redGiveawayBalanceAfter)
           : null;
       return (
-        <p className="mt-1 text-xs text-red-900/90">
+        <p className="mt-1 text-sm text-red-900/90">
           แดงแจกผู้เล่น +{toGive.toLocaleString("th-TH")}
           {after != null && Number.isFinite(after)
             ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
@@ -67,7 +67,7 @@ function giveawayLedgerNote(entry) {
           ? Number(m.redGiveawayBalanceAfter)
           : null;
       return (
-        <p className="mt-1 text-xs text-red-900/90">
+        <p className="mt-1 text-sm text-red-900/90">
           หักแดงแจก {gd.toLocaleString("th-TH")} · หักแดงเล่นได้ {pd.toLocaleString("th-TH")}
           {after != null && Number.isFinite(after)
             ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
@@ -85,7 +85,7 @@ function giveawayLedgerNote(entry) {
           ? Number(m.redGiveawayBalanceAfter)
           : null;
       return (
-        <p className="mt-1 text-xs text-emerald-900/90">
+        <p className="mt-1 text-sm text-emerald-900/90">
           คืนแดงแจก {gr.toLocaleString("th-TH")} · คืนแดงเล่นได้ {pr.toLocaleString("th-TH")}
           {after != null && Number.isFinite(after)
             ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
@@ -102,7 +102,7 @@ function giveawayLedgerNote(entry) {
       m.creatorUsername != null ? String(m.creatorUsername).trim().replace(/^@+/, "") : "";
     if (add > 0) {
       return (
-        <p className="mt-1 text-xs text-emerald-900/90">
+        <p className="mt-1 text-sm text-emerald-900/90">
           แลกรหัส {code || "—"} · ได้แดง {add.toLocaleString("th-TH")}
           {creator ? ` · จาก @${creator}` : ""}
           {after != null && Number.isFinite(after)
@@ -123,7 +123,7 @@ function deltaLine(pinkDelta, redDelta) {
         {pinkDelta > 0 ? "+" : ""}
         {pinkDelta.toLocaleString("th-TH")}
         <InlineHeart className="text-rose-400" size="sm" />
-        <span className="text-xs font-medium text-rose-800">ชมพู</span>
+        <span className="text-sm font-medium text-rose-800">ชมพู</span>
       </span>
     );
   }
@@ -133,7 +133,7 @@ function deltaLine(pinkDelta, redDelta) {
         {redDelta > 0 ? "+" : ""}
         {redDelta.toLocaleString("th-TH")}
         <InlineHeart className="text-red-600" size="sm" />
-        <span className="text-xs font-medium text-red-900">แดง</span>
+        <span className="text-sm font-medium text-red-900">แดง</span>
       </span>
     );
   }
@@ -224,7 +224,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
         <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
         <Link
           href={`/login?next=${encodeURIComponent(loginNext)}`}
-          className="mt-3 inline-block font-semibold text-hui-cta underline hover:brightness-95"
+          className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           เข้าสู่ระบบ
         </Link>
@@ -237,13 +237,13 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
       <h2 className="text-lg font-semibold text-hui-section">{heading}</h2>
       <p className="mt-1 text-sm text-hui-body">{blurb}</p>
       {variant !== "all" ? (
-        <p className="mt-2 text-xs text-hui-muted">
+        <p className="mt-2 text-sm text-hui-muted">
           {variant === "play" ? (
             <>
               ดูประวัติหัวใจแดงได้ที่{" "}
               <Link
                 href="/account/heart-history/purchases"
-                className="font-semibold text-hui-cta underline underline-offset-2 hover:brightness-95"
+                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 ประวัติหัวใจแดง
               </Link>
@@ -253,7 +253,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
               ดูการหักตอนเล่นเกมได้ที่{" "}
               <Link
                 href="/account/heart-history/play"
-                className="font-semibold text-hui-cta underline underline-offset-2 hover:brightness-95"
+                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 ประวัติหัวใจ (เล่นเกม)
               </Link>
@@ -285,7 +285,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
                 ? "ยังไม่มีประวัติการซื้อหัวใจหรือทุนรหัสแจกห้องในช่วงที่แสดง"
                 : "ยังไม่มีรายการในประวัติ"}
           </p>
-          <p className="mt-2 text-xs text-hui-muted">
+          <p className="mt-2 text-sm text-hui-muted">
             รายการจะปรากฏหลังมีการหัก/เพิ่มหัวใจ — ข้อมูลก่อนอัปเดตระบบนี้อาจไม่ย้อนหลัง
           </p>
         </div>
@@ -297,11 +297,11 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
               className="rounded-xl border border-hui-border bg-white p-4 text-sm shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-[11px] font-semibold text-hui-body">
+                <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-sm font-semibold text-hui-body">
                   {KIND_HINT[e.kind] || e.kind || "รายการ"}
                 </span>
                 <time
-                  className="text-xs text-hui-muted tabular-nums"
+                  className="text-sm text-hui-muted tabular-nums"
                   dateTime={e.createdAt ? new Date(e.createdAt).toISOString() : undefined}
                 >
                   {formatWhen(e.createdAt)}
@@ -312,7 +312,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
               </p>
               <div className="mt-2">{deltaLine(e.pinkDelta, e.redDelta)}</div>
               {giveawayLedgerNote(e)}
-              <p className="mt-2 text-xs text-hui-muted">
+              <p className="mt-2 text-sm text-hui-muted">
                 คงเหลือหลังรายการนี้: ชมพู{" "}
                 <span className="font-semibold tabular-nums text-hui-body">
                   {e.pinkBalanceAfter.toLocaleString("th-TH")}
@@ -327,7 +327,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
                 <p className="mt-2">
                   <Link
                     href={`/game/${encodeURIComponent(String(e.meta.gameId))}`}
-                    className="text-xs font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+                    className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   >
                     เปิดหน้าเกมนี้
                   </Link>

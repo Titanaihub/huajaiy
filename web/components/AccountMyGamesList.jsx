@@ -30,7 +30,7 @@ function gameStatusBadge(g) {
     );
   }
   return (
-    <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-xs font-medium text-hui-body">
+    <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-sm font-medium text-hui-body">
       ร่าง
     </span>
   );
@@ -133,7 +133,7 @@ export default function AccountMyGamesList() {
       <p className="text-sm">
         <Link
           href="/account/create-game"
-          className="font-semibold text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+          className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
           + เปิดห้องเกมใหม่
         </Link>
@@ -166,7 +166,7 @@ export default function AccountMyGamesList() {
           <p className="mt-2">
             <Link
               href="/account/create-game"
-              className="font-semibold text-hui-cta underline decoration-hui-cta/40"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               ไปหน้าเปิดห้องเกม
             </Link>
@@ -239,7 +239,7 @@ export default function AccountMyGamesList() {
       <p className="text-sm text-hui-body">
         <Link
           href="/account"
-          className="text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+          className="text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
           ← ภาพรวมบัญชี
         </Link>

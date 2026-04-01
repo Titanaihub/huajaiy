@@ -67,26 +67,26 @@ export default function AccountDashboardOverview() {
             <button
               type="button"
               onClick={() => refresh()}
-              className="mt-3 text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+              className="mt-3 text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               รีเฟรชยอด
             </button>
             <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
               <Link
                 href="/account/my-hearts"
-                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 หัวใจของฉัน (แยกตามเจ้าห้อง · เข้าเล่นเกม)
               </Link>
               <Link
                 href="/account/heart-history/play"
-                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 ประวัติหัวใจ (เล่นเกม)
               </Link>
               <Link
                 href="/account/give-hearts"
-                className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+                className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 แจกหัวใจแดง (ทุนรหัสห้อง)
               </Link>

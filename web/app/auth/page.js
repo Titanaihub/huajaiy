@@ -4,6 +4,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
 import SiteFooter from "../../components/SiteFooter";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteHeader from "../../components/SiteHeader";
 
 export default function AuthPage() {
@@ -26,7 +27,7 @@ export default function AuthPage() {
     <>
       <SiteHeader />
     <main className="mx-auto w-full max-w-md px-4 py-8">
-      <Link href="/" className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40">
+      <Link href="/" className={siteNavLinkClass}>
         ← กลับหน้าแรก
       </Link>
       <h1 className="hui-h2 mt-4">เข้าด้วย LINE</h1>
@@ -36,11 +37,11 @@ export default function AuthPage() {
       <ol className="mt-3 list-decimal space-y-1 pl-5 text-base text-hui-body">
         <li>
           สมาชิกแบบยูส/รหัสผ่าน →{" "}
-          <Link href="/register" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+          <Link href="/register" className={siteNavLinkClass}>
             สมัคร
           </Link>{" "}
           /{" "}
-          <Link href="/login" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+          <Link href="/login" className={siteNavLinkClass}>
             เข้าสู่ระบบ
           </Link>
         </li>
@@ -64,11 +65,11 @@ export default function AuthPage() {
             ) : null}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{session.user.name}</p>
-              <p className="truncate text-xs text-hui-muted">{session.provider}</p>
+              <p className="truncate text-sm text-hui-muted">{session.provider}</p>
             </div>
             <button
               type="button"
-              className="rounded-xl border border-hui-border bg-white px-2 py-1 text-xs text-hui-body"
+              className="rounded-xl border border-hui-border bg-white px-2 py-1 text-sm text-hui-body"
               onClick={() => signOut()}
             >
               ออก
@@ -83,10 +84,10 @@ export default function AuthPage() {
             >
               LINE
             </button>
-            <p className="text-xs text-hui-muted">TikTok — รอตั้งค่าในรอบถัดไป</p>
+            <p className="text-sm text-hui-muted">TikTok — รอตั้งค่าในรอบถัดไป</p>
           </div>
         )}
-        {authError ? <p className="mt-2 text-xs text-red-600">{authError}</p> : null}
+        {authError ? <p className="mt-2 text-sm text-red-600">{authError}</p> : null}
       </div>
     </main>
       <SiteFooter />

@@ -159,7 +159,7 @@ export default function ContactForm() {
             placeholder="พิมพ์ข้อความที่นี่"
             maxLength={2000}
           />
-          <p className="mt-1 text-xs text-hui-muted">{message.length}/2000 ตัวอักษร</p>
+          <p className="mt-1 text-sm text-hui-muted">{message.length}/2000 ตัวอักษร</p>
         </div>
         {error ? (
           <p className="text-sm font-medium text-red-600" role="alert">

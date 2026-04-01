@@ -28,22 +28,22 @@ export default function AccountGiveHeartsSection() {
     <div className="space-y-6">
       <header>
         <h2 className="text-lg font-semibold text-hui-section">แจกหัวใจแดง</h2>
-        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
           <Link
             href="/account/hearts-shop"
-            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ซื้อหัวใจแดง
           </Link>
           <Link
             href="/account/heart-history/purchases"
-            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ประวัติหัวใจแดง
           </Link>
           <Link
             href="/account/my-hearts"
-            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             หัวใจของฉัน (มุมมองผู้เล่น)
           </Link>

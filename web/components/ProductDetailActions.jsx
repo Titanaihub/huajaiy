@@ -25,7 +25,7 @@ export default function ProductDetailActions({ product }) {
         {canBuy ? "ใส่ตะกร้า" : "สินค้าหมด"}
       </button>
       {hint === "cart" ? (
-        <p className="text-center text-xs font-medium text-hui-section">ใส่ตะกร้าแล้ว</p>
+        <p className="text-center text-sm font-medium text-hui-section">ใส่ตะกร้าแล้ว</p>
       ) : null}
     </div>
   );

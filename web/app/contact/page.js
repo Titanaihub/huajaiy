@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import ContactForm from "../../components/ContactForm";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 
@@ -34,10 +35,7 @@ export default function ContactPage() {
         <Suspense fallback={<ContactFormFallback />}>
           <ContactForm />
         </Suspense>
-        <Link
-          href="/"
-          className="mt-8 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
-        >
+        <Link href="/" className={`${siteNavLinkClass} mt-8 inline-flex`}>
           ← หน้าแรก
         </Link>
       </main>

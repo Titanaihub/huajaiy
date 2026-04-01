@@ -323,19 +323,19 @@ function CreatorPrizeCard({
         <table className="w-full min-w-[560px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-hui-border bg-hui-pageTop">
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 รางวัลเงินสดจาก
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 เงินรางวัลที่ได้
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 ชนะกี่ครั้ง
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-center text-sm font-semibold text-hui-body">
                 ยอดคงเหลือ
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 รายละเอียด
               </th>
             </tr>
@@ -347,7 +347,7 @@ function CreatorPrizeCard({
               <td className="px-3 py-3 align-middle tabular-nums text-hui-body">
                 {winCount} ครั้ง
                 {approvedWithdrawCount > 0 ? (
-                  <span className="block text-xs font-normal text-hui-body">
+                  <span className="block text-sm font-normal text-hui-body">
                     ถอน {approvedWithdrawCount} ครั้ง
                   </span>
                 ) : null}
@@ -361,7 +361,7 @@ function CreatorPrizeCard({
                 <button
                   type="button"
                   onClick={() => setOpen((v) => !v)}
-                  className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+                  className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   aria-expanded={open}
                 >
                   {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
@@ -373,7 +373,7 @@ function CreatorPrizeCard({
       </div>
 
       {cashItems.length === 0 && winCount > 0 ? (
-        <p className="mt-2 text-xs text-hui-body">
+        <p className="mt-2 text-sm text-hui-body">
           ยังไม่มีรางวัลเงินสดจากผู้สร้างรายนี้ (มีเฉพาะรางวัลประเภทอื่น)
         </p>
       ) : null}
@@ -387,7 +387,7 @@ function CreatorPrizeCard({
           <div className="overflow-x-auto rounded-lg border border-hui-border">
             <table className="min-w-[720px] w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase tracking-wide text-hui-body">
+                <tr className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold uppercase tracking-wide text-hui-body">
                   <th className="whitespace-nowrap px-3 py-2.5">ชื่อผู้สร้างเกม</th>
                   <th className="whitespace-nowrap px-3 py-2.5">วันเวลา</th>
                   <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
@@ -407,11 +407,11 @@ function CreatorPrizeCard({
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-hui-body">
                         {formatWonAt(row.award.wonAt)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-hui-body">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-sm text-hui-body">
                         {displayGameCode(row.award)}
                       </td>
                       <td className="px-3 py-2.5 text-hui-body">{row.award.gameTitle}</td>
-                      <td className="whitespace-nowrap px-3 py-2.5 text-xs text-hui-body">
+                      <td className="whitespace-nowrap px-3 py-2.5 text-sm text-hui-body">
                         {cashDeliveryLabelThai(row.award)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
@@ -433,11 +433,11 @@ function CreatorPrizeCard({
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-hui-body">
                         {formatWonAt(row.atLabel)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-hui-muted">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-sm text-hui-muted">
                         —
                       </td>
                       <td className="px-3 py-2.5 font-medium text-rose-900">ถอนเงิน</td>
-                      <td className="px-3 py-2.5 text-xs text-hui-body">โอนรางวัลให้</td>
+                      <td className="px-3 py-2.5 text-sm text-hui-body">โอนรางวัลให้</td>
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium text-rose-800">
                         −{formatBaht(Math.abs(row.cashAmt))} บาท
                       </td>
@@ -473,14 +473,14 @@ function CreatorPrizeCard({
             ) : null}
           </div>
           {pendingHoldBaht > 0 ? (
-            <p className="mt-2 text-xs text-amber-800">
+            <p className="mt-2 text-sm text-amber-800">
               มีคำขอถอนรอดำเนินการรวม{" "}
               <span className="font-semibold tabular-nums">{formatBaht(pendingHoldBaht)} บาท</span>{" "}
               (หักจากยอดคงเหลือปัจจุบันด้านบน — ดูรายการและยกเลิกได้ในตารางด้านล่าง)
             </p>
           ) : null}
           {cashItems.length > 0 ? (
-            <p className="mt-2 text-xs text-hui-muted">
+            <p className="mt-2 text-sm text-hui-muted">
               {cashAllowsTransfer
                 ? "ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ (เฉพาะรางวัลที่กติกากำหนดเป็นโอนรางวัลให้)"
                 : "รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง"}
@@ -549,19 +549,19 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-hui-border bg-hui-pageTop">
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 รางวัลสิ่งของจาก
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 รางวัลที่ได้
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 ชนะกี่ครั้ง
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-center text-sm font-semibold text-hui-body">
                 รวมรางวัลที่ได้
               </th>
-              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-hui-body">
+              <th className="whitespace-nowrap px-3 py-2.5 text-sm font-semibold text-hui-body">
                 รายละเอียด
               </th>
             </tr>
@@ -578,7 +578,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                     : totalUnits.toLocaleString("th-TH", { maximumFractionDigits: 2 })}{" "}
                   หน่วย
                 </span>
-                <span className="mt-0.5 block text-[11px] font-normal text-hui-muted">
+                <span className="mt-0.5 block text-sm font-normal text-hui-muted">
                   (ผลรวมจากทุกครั้งที่ชนะในกลุ่มนี้)
                 </span>
               </td>
@@ -586,7 +586,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                 <button
                   type="button"
                   onClick={() => setOpen((v) => !v)}
-                  className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+                  className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   aria-expanded={open}
                 >
                   {open ? "ซ่อนรายละเอียด" : "ดูรายการที่ได้"}
@@ -600,7 +600,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
       {open ? (
         <div className="mt-4 border-t border-hui-border/70 pt-4">
           <div className="mb-3 flex flex-col gap-2 rounded-lg border border-hui-border bg-hui-pageTop/90 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-hui-body">
+            <p className="text-sm text-hui-body">
               {allPickup
                 ? "ผู้สร้างตั้งค่าให้มารับเอง — กด「กดรับรางวัล」ในแต่ละแถวเพื่อแจ้งผู้สร้างว่าคุณรับทราบและจะมารับตามที่นัดหมาย"
                 : allShip
@@ -612,7 +612,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                 <button
                   type="button"
                   onClick={goProfile}
-                  className="hui-btn-primary px-3 py-2 text-xs"
+                  className="hui-btn-primary px-3 py-2 text-sm"
                 >
                   ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
                 </button>
@@ -621,7 +621,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
           </div>
 
           {pickupAckErr ? (
-            <p className="mb-2 text-xs text-red-700" role="alert">
+            <p className="mb-2 text-sm text-red-700" role="alert">
               {pickupAckErr}
             </p>
           ) : null}
@@ -629,7 +629,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
           <div className="overflow-x-auto rounded-lg border border-hui-border">
             <table className="min-w-[880px] w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
+                <tr className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold text-hui-body">
                   <th className="whitespace-nowrap px-3 py-2.5">วันเวลาที่ชนะ</th>
                   <th className="min-w-[120px] px-3 py-2.5">รางวัล</th>
                   <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
@@ -653,19 +653,19 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                   const rowKey = a.id != null ? String(a.id) : `row-${a.wonAt}-${prizeLine(a)}`;
                   return (
                     <tr key={rowKey} className="bg-white">
-                      <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-hui-body">
+                      <td className="whitespace-nowrap px-3 py-2.5 text-sm tabular-nums text-hui-body">
                         {formatWonAt(a.wonAt)}
                       </td>
-                      <td className="max-w-[220px] px-3 py-2.5 text-xs text-hui-body">
+                      <td className="max-w-[220px] px-3 py-2.5 text-sm text-hui-body">
                         {prizeLine(a)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-hui-body">
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-sm text-hui-body">
                         {displayGameCode(a)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-xs">
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-sm">
                         {itemUnitsPerWin(a).toLocaleString("th-TH")}
                       </td>
-                      <td className="px-3 py-2.5 text-xs">
+                      <td className="px-3 py-2.5 text-sm">
                         <span className="inline-block rounded-full bg-hui-pageTop px-2 py-0.5 font-semibold text-hui-burgundy">
                           {itemStatusLabel(a.itemFulfillmentStatus)}
                         </span>
@@ -683,7 +683,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                           <span className="mt-1 block text-hui-muted">รอผู้สร้างกำหนดวิธีรับ</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 align-top text-xs text-hui-body">
+                      <td className="px-3 py-2.5 align-top text-sm text-hui-body">
                         {itemReceiptMethodLabelThai(a)}
                       </td>
                       <td className="px-3 py-2.5 align-top">
@@ -693,12 +693,12 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                               href={lineHref}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex rounded-lg bg-[#06C755] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-95"
+                              className="inline-flex rounded-lg bg-[#06C755] px-3 py-1.5 text-sm font-semibold text-white hover:opacity-95"
                             >
                               เปิดแชท LINE ผู้สร้าง
                             </a>
                           ) : (
-                            <p className="text-xs text-hui-body">
+                            <p className="text-sm text-hui-body">
                               ผู้สร้างยังไม่ได้ใส่ LINE ในโปรไฟล์
                               {creatorUsername ? (
                                 <>
@@ -709,12 +709,12 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                             </p>
                           )}
                           {lineRaw && !/^https?:\/\//i.test(lineRaw) ? (
-                            <p className="font-mono text-[11px] text-hui-muted">{lineRaw}</p>
+                            <p className="font-mono text-sm text-hui-muted">{lineRaw}</p>
                           ) : null}
                           {effMode === "pickup" ? (
                             <div className="border-t border-hui-border/70 pt-2">
                               {ackAt ? (
-                                <p className="text-xs font-medium text-emerald-800">
+                                <p className="text-sm font-medium text-emerald-800">
                                   แจ้งรับทราบแล้ว · {formatWonAt(ackAt)}
                                 </p>
                               ) : (
@@ -722,7 +722,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                                   type="button"
                                   disabled={pickupBusyId === String(a.id) || !onRefreshAwards}
                                   onClick={() => void handleWinnerPickupAck(a.id)}
-                                  className="rounded-lg border border-hui-cta/50 bg-white px-2.5 py-1 text-[11px] font-semibold text-hui-burgundy hover:bg-hui-pageTop disabled:opacity-50"
+                                  className="rounded-lg border border-hui-cta/50 bg-white px-2.5 py-1 text-sm font-semibold text-hui-burgundy hover:bg-hui-pageTop disabled:opacity-50"
                                 >
                                   {pickupBusyId === String(a.id)
                                     ? "กำลังบันทึก…"
@@ -735,7 +735,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                               <button
                                 type="button"
                                 onClick={goProfile}
-                                className="text-left text-[11px] font-semibold text-hui-cta underline"
+                                className="text-left text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                               >
                                 ตั้งค่าที่อยู่จัดส่งในโปรไฟล์
                               </button>
@@ -749,7 +749,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-hui-muted">
+          <p className="mt-3 text-sm text-hui-muted">
             การอัปเดตสถานะจัดส่งเป็นหน้าที่ผู้สร้างเกม — ฝั่งคุณสามารถตรวจสอบที่อยู่ในโปรไฟล์ให้ถูกต้องก่อนผู้สร้างจัดส่ง
             {allPickup || receiptModes.some((m) => m === "pickup")
               ? " · มารับเอง: กด「แจ้งผู้สร้างว่าจะมารับ」เพื่อบันทึกเวลาให้ผู้สร้างเห็น — ติดต่อนัดรับผ่าน LINE ด้านขวา"
@@ -852,7 +852,7 @@ export default function AccountMyPrizesSection() {
         </p>
         <Link
           href="/login"
-          className="mt-3 inline-block font-semibold text-hui-cta underline hover:brightness-95"
+          className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           เข้าสู่ระบบ
         </Link>
@@ -875,16 +875,16 @@ export default function AccountMyPrizesSection() {
       ) : awards.length === 0 ? (
         <div className="mt-6 rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
           <p>ยังไม่มีรางวัลที่บันทึกในบัญชีนี้</p>
-          <p className="mt-2 text-xs text-hui-muted">
+          <p className="mt-2 text-sm text-hui-muted">
             เล่นเกมจากเมนู「เกม」แล้วชนะตามกติกา — ต้องล็อกอินขณะเล่น
           </p>
-          <p className="mt-3 text-xs text-hui-muted">
+          <p className="mt-3 text-sm text-hui-muted">
             หมายเหตุ: ถ้าเคยมีรางวัลแล้วหายไปหลังแก้/บันทึกกติกาเกมในแอดมิน
             ระบบเดิมอาจล้างประวัติที่ผูกกับกติกาเก่า — เวอร์ชันเซิร์ฟเวอร์ล่าสุดเก็บสำเนาไว้แล้วเพื่อกันเหตุการณ์นี้ในอนาคต
           </p>
           <Link
             href="/game"
-            className="mt-4 inline-block font-semibold text-hui-cta underline hover:brightness-95"
+            className="mt-4 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ไปหน้ารายการเกม
           </Link>

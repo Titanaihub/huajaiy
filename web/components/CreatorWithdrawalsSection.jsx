@@ -215,7 +215,7 @@ export default function CreatorWithdrawalsSection() {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบ</p>
-        <Link href="/login" className="mt-2 inline-block font-semibold text-hui-cta underline">
+        <Link href="/login" className="mt-2 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           เข้าสู่ระบบ
         </Link>
       </div>
@@ -252,7 +252,7 @@ export default function CreatorWithdrawalsSection() {
           <h3 className="text-sm font-semibold text-hui-section">
             ประวัติผู้เล่นที่ได้รับรางวัลจากเกมของฉัน
           </h3>
-          <p className="mt-0.5 text-xs text-hui-muted">
+          <p className="mt-0.5 text-sm text-hui-muted">
             คลิกเพื่อขยายรายการว่าใครเล่นแล้วได้รับรางวัลอะไรในแต่ละเกม
           </p>
         </summary>
@@ -261,7 +261,7 @@ export default function CreatorWithdrawalsSection() {
             <p className="px-4 py-5 text-sm text-hui-muted">ยังไม่มีผู้ได้รับรางวัลจากเกมของคุณ</p>
           ) : (
             <table className="min-w-full divide-y divide-hui-border text-sm">
-              <thead className="bg-hui-pageTop text-left text-xs font-semibold uppercase tracking-wide text-hui-body">
+              <thead className="bg-hui-pageTop text-left text-sm font-semibold uppercase tracking-wide text-hui-body">
                 <tr>
                   <th className="px-3 py-2.5">เมื่อ</th>
                   <th className="px-3 py-2.5">เกม</th>
@@ -279,7 +279,7 @@ export default function CreatorWithdrawalsSection() {
                       <td className="whitespace-nowrap px-3 py-2.5 text-hui-body">{formatDate(a.wonAt)}</td>
                       <td className="px-3 py-2.5">
                         <div className="font-medium text-hui-section">{a.gameTitle || "เกม"}</div>
-                        <div className="text-xs text-hui-muted">
+                        <div className="text-sm text-hui-muted">
                           ชุดที่ {Math.max(0, Math.floor(Number(a.setIndex)) || 0) + 1}
                           {a.gameCode ? ` · ${a.gameCode}` : ""}
                         </div>
@@ -288,19 +288,19 @@ export default function CreatorWithdrawalsSection() {
                         <div className="font-medium text-hui-section">
                           @{String(a.winnerUsername || "").replace(/^@+/, "")}
                         </div>
-                        <div className="text-xs text-hui-muted">{player || "—"}</div>
+                        <div className="text-sm text-hui-muted">{player || "—"}</div>
                       </td>
                       <td className="px-3 py-2.5 text-hui-body">{prizeBits.join(" ") || "รางวัล"}</td>
                       <td className="px-3 py-2.5">
                         {a.prizeCategory !== "item" ? (
-                          <span className="text-xs text-hui-muted">—</span>
+                          <span className="text-sm text-hui-muted">—</span>
                         ) : (
                           <div className="space-y-2">
-                            <p className="text-xs font-medium text-hui-body">
+                            <p className="text-sm font-medium text-hui-body">
                               {itemStatusLabel(a.itemFulfillmentStatus)}
                             </p>
                             {a.prizeFulfillmentMode === "pickup" && a.winnerPickupAckAt ? (
-                              <p className="text-xs font-semibold text-emerald-800">
+                              <p className="text-sm font-semibold text-emerald-800">
                                 ผู้เล่นกดรับรางวัล (มารับเอง): {formatDate(a.winnerPickupAckAt)}
                               </p>
                             ) : null}
@@ -309,7 +309,7 @@ export default function CreatorWithdrawalsSection() {
                                 type="button"
                                 disabled={itemBusyId === a.id}
                                 onClick={() => void resolveItemAward(a, "pickup", "ready_pickup")}
-                                className="rounded border border-hui-border px-2 py-1 text-xs font-semibold text-hui-body hover:bg-hui-pageTop disabled:opacity-50"
+                                className="rounded border border-hui-border px-2 py-1 text-sm font-semibold text-hui-body hover:bg-hui-pageTop disabled:opacity-50"
                               >
                                 นัดรับเอง
                               </button>
@@ -317,7 +317,7 @@ export default function CreatorWithdrawalsSection() {
                                 type="button"
                                 disabled={itemBusyId === a.id}
                                 onClick={() => void resolveItemAward(a, "ship", "shipped")}
-                                className="rounded border border-hui-cta/45 px-2 py-1 text-xs font-semibold text-hui-cta hover:bg-hui-pageTop disabled:opacity-50"
+                                className="rounded border border-hui-cta/45 px-2 py-1 text-sm font-semibold text-hui-cta hover:bg-hui-pageTop disabled:opacity-50"
                               >
                                 ส่งตามที่อยู่
                               </button>
@@ -331,7 +331,7 @@ export default function CreatorWithdrawalsSection() {
                                     "completed"
                                   )
                                 }
-                                className="rounded border border-emerald-300 px-2 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                                className="rounded border border-emerald-300 px-2 py-1 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
                               >
                                 รับของแล้ว
                               </button>
@@ -357,7 +357,7 @@ export default function CreatorWithdrawalsSection() {
       ) : (
         <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
           <table className="min-w-full divide-y divide-hui-border text-sm">
-            <thead className="bg-hui-pageTop text-left text-xs font-semibold uppercase tracking-wide text-hui-body">
+            <thead className="bg-hui-pageTop text-left text-sm font-semibold uppercase tracking-wide text-hui-body">
               <tr>
                 <th className="px-3 py-2.5">เมื่อ</th>
                 <th className="px-3 py-2.5">สมาชิก</th>
@@ -385,22 +385,22 @@ export default function CreatorWithdrawalsSection() {
                         {formatBaht(r.amountThb)} ฿
                       </td>
                       <td className="max-w-[220px] px-3 py-3 text-hui-body">
-                        <div className="text-xs text-hui-muted">ชื่อบัญชี</div>
+                        <div className="text-sm text-hui-muted">ชื่อบัญชี</div>
                         <div className="font-medium">{r.accountHolderName || "—"}</div>
-                        <div className="mt-1 text-xs text-hui-muted">เลขบัญชี / ธนาคาร</div>
-                        <div className="font-mono text-xs">{r.accountNumber || "—"}</div>
+                        <div className="mt-1 text-sm text-hui-muted">เลขบัญชี / ธนาคาร</div>
+                        <div className="font-mono text-sm">{r.accountNumber || "—"}</div>
                         <div>{r.bankName || "—"}</div>
                       </td>
                       <td className="px-3 py-3">
                         <span
                           className={
                             r.status === "pending"
-                              ? "rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/80"
+                              ? "rounded-full bg-amber-100 px-2 py-0.5 text-sm font-semibold text-amber-900 ring-1 ring-amber-200/80"
                               : r.status === "approved"
-                                ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-200/80"
+                                ? "rounded-full bg-emerald-100 px-2 py-0.5 text-sm font-semibold text-emerald-900 ring-1 ring-emerald-200/80"
                                 : r.status === "cancelled"
-                                  ? "rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-950 ring-1 ring-violet-200/80"
-                                  : "rounded-full bg-hui-border/35 px-2 py-0.5 text-xs font-semibold text-hui-body ring-1 ring-hui-border/80"
+                                  ? "rounded-full bg-violet-100 px-2 py-0.5 text-sm font-semibold text-violet-950 ring-1 ring-violet-200/80"
+                                  : "rounded-full bg-hui-border/35 px-2 py-0.5 text-sm font-semibold text-hui-body ring-1 ring-hui-border/80"
                           }
                         >
                           {r.status === "pending"
@@ -414,16 +414,16 @@ export default function CreatorWithdrawalsSection() {
                                   : r.status}
                         </span>
                         {r.resolvedAt ? (
-                          <div className="mt-1 text-xs text-hui-muted">
+                          <div className="mt-1 text-sm text-hui-muted">
                             {formatDate(r.resolvedAt)}
                           </div>
                         ) : null}
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-hui-body">
                         {pending ? (
-                          <span className="text-xs text-hui-muted">ดูด้านล่าง</span>
+                          <span className="text-sm text-hui-muted">ดูด้านล่าง</span>
                         ) : (
-                          <span className="text-xs text-hui-muted">—</span>
+                          <span className="text-sm text-hui-muted">—</span>
                         )}
                       </td>
                     </tr>
@@ -431,16 +431,16 @@ export default function CreatorWithdrawalsSection() {
                       <tr className="bg-hui-pageTop/95">
                         <td colSpan={6} className="px-3 py-4">
                           <div className="mx-auto max-w-3xl rounded-xl border border-hui-border bg-white p-4 shadow-sm">
-                            <p className="text-xs font-semibold text-hui-body">
+                            <p className="text-sm font-semibold text-hui-body">
                               ยืนยันการโอนให้สมาชิก (อย่างใดอย่างหนึ่งหรือทั้งคู่)
                             </p>
-                            <p className="mt-0.5 text-[11px] text-hui-muted">
+                            <p className="mt-0.5 text-sm text-hui-muted">
                               ระบุวันที่โอน หรืออัปโหลดสลิป — ผู้ขอถอนจะเห็นในหน้ารายละเอียด
                             </p>
                             <div className="mt-4 grid gap-4 sm:grid-cols-2">
                               <div>
                                 <label
-                                  className="block text-xs font-medium text-hui-body"
+                                  className="block text-sm font-medium text-hui-body"
                                   htmlFor={`wd-date-${r.id}`}
                                 >
                                   วันที่โอนเงิน
@@ -460,7 +460,7 @@ export default function CreatorWithdrawalsSection() {
                               </div>
                               <div>
                                 <label
-                                  className="block text-xs font-medium text-hui-body"
+                                  className="block text-sm font-medium text-hui-body"
                                   htmlFor={`wd-slip-${r.id}`}
                                 >
                                   แนบสลิปโอน
@@ -475,7 +475,7 @@ export default function CreatorWithdrawalsSection() {
                                       [r.id]: e.target.files?.[0] || undefined
                                     }))
                                   }
-                                  className="mt-1 block w-full text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-hui-pageTop file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-hui-body"
+                                  className="mt-1 block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-hui-pageTop file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-hui-body"
                                 />
                               </div>
                             </div>

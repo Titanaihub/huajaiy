@@ -25,20 +25,20 @@ export default function ApiHealthStrip() {
 
   if (state === "checking") {
     return (
-      <p className="mt-3 text-xs text-hui-muted" role="status">
+      <p className="mt-3 text-sm text-hui-muted" role="status">
         กำลังเช็กการเชื่อมต่อ API…
       </p>
     );
   }
   if (state === "up") {
     return (
-      <p className="mt-3 text-xs text-hui-cta" role="status">
+      <p className="mt-3 text-sm text-hui-cta" role="status">
         เชื่อมต่อ API ได้ปกติ
       </p>
     );
   }
   return (
-    <p className="mt-3 text-xs text-amber-800" role="alert">
+    <p className="mt-3 text-sm text-amber-800" role="alert">
       ยังเชื่อมต่อเซิร์ฟเวอร์ไม่ได้ — ลองรีเฟรชหรือกลับมาใหม่ภายหลัง หากยังไม่หายกรุณาติดต่อผู้ดูแลเว็บไซต์
     </p>
   );

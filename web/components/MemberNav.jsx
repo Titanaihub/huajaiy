@@ -87,7 +87,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
         className={`flex min-w-0 items-center gap-0.5 sm:py-1 ${siteNavLinkClass}`}
       >
         {label}
-        <span className="text-[10px] opacity-70" aria-hidden>
+        <span className="text-sm opacity-70" aria-hidden>
           ▾
         </span>
       </button>
@@ -130,7 +130,7 @@ export default function MemberNav() {
 
   if (loading) {
     return (
-      <span className="text-xs font-medium text-hui-muted" aria-live="polite">
+      <span className="text-sm font-medium text-hui-muted" aria-live="polite">
         …
       </span>
     );

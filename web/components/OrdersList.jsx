@@ -102,7 +102,7 @@ export default function OrdersList() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs text-hui-body">
+                <p className="mt-2 text-sm text-hui-body">
                   สถานะ: <strong>{orderStatusLabel(o)}</strong>
                   {o.orderKind === "marketplace" ? (
                     <span className="ml-2 text-hui-muted">(มาร์เก็ตเพลส)</span>
@@ -137,10 +137,10 @@ export default function OrdersList() {
 
       {hasLocal ? (
         <div>
-          <h2 className="text-sm font-semibold text-hui-section">
+          <h2 className="hui-card-label text-base">
             ประวัติในเครื่อง (สาธิต)
           </h2>
-          <p className="mt-1 text-xs text-hui-muted">
+          <p className="mt-1 text-sm text-hui-muted">
             เก็บในเบราว์เซอร์ — ไม่ต้องล็อกอิน
           </p>
           <ul className="mt-3 space-y-4">

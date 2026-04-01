@@ -59,7 +59,7 @@ export default function AccountShopsSection() {
       <h2 className="text-lg font-semibold text-hui-section">ร้านของฉัน</h2>
       <p className="text-sm text-hui-body">
         ที่นี่คือจุด<strong>ลงสินค้าเพื่อขาย</strong>: เลือกร้านแล้วกด <strong>จัดการสินค้า</strong> (ต้องมีร้านในชื่อคุณแล้ว
-        — แอดมินสร้างที่ <Link href="/admin?tab=shops" className="font-medium text-hui-cta underline">แอดมิน → ร้านทั้งหมด</Link>)
+        — แอดมินสร้างที่ <Link href="/admin?tab=shops" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">แอดมิน → ร้านทั้งหมด</Link>)
       </p>
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
       {busy ? (
@@ -88,7 +88,7 @@ export default function AccountShopsSection() {
             </ul>
           ) : (
             <p className="mt-3 text-hui-muted">
-              ติดต่อแอดมินให้ตั้งบทบาท <span className="font-mono text-xs">owner</span> และสร้างร้านผูกยูสเซอร์คุณ
+              ติดต่อแอดมินให้ตั้งบทบาท <span className="font-mono text-sm">owner</span> และสร้างร้านผูกยูสเซอร์คุณ
             </p>
           )}
         </div>
@@ -100,8 +100,8 @@ export default function AccountShopsSection() {
               className="rounded-xl border border-hui-border bg-white p-4 shadow-sm"
             >
               <p className="font-semibold text-hui-section">{s.name}</p>
-              <p className="mt-1 font-mono text-xs text-hui-body">{s.slug}</p>
-              <p className="mt-2 text-xs text-hui-muted">
+              <p className="mt-1 font-mono text-sm text-hui-body">{s.slug}</p>
+              <p className="mt-2 text-sm text-hui-muted">
                 สร้าง{" "}
                 {s.createdAt
                   ? new Date(s.createdAt).toLocaleString("th-TH")

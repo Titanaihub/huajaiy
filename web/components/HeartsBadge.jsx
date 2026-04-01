@@ -6,7 +6,7 @@ import { useHearts } from "./HeartsProvider";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const badgeClass =
-  "inline-flex items-center gap-2 overflow-visible rounded-full border border-hui-border bg-white px-2 py-1 text-xs font-semibold text-hui-body shadow-none transition hover:border-hui-border hover:bg-hui-pageTop";
+  "inline-flex items-center gap-2 overflow-visible rounded-full border border-hui-border bg-white px-2 py-1 text-sm font-semibold text-hui-body shadow-none transition hover:border-hui-border hover:bg-hui-pageTop";
 
 export default function HeartsBadge() {
   const { user, loading: authLoading } = useMemberAuth();
@@ -41,7 +41,7 @@ export default function HeartsBadge() {
           {roomRed.toLocaleString("th-TH")}
           {giveaway > 0 ? (
             <span
-              className="text-[10px] font-semibold leading-tight text-rose-900/95"
+              className="text-sm font-semibold leading-tight text-rose-900/95"
               title="แดงแจก — ใช้สร้างรหัสให้ผู้เล่น (เมนูแจกหัวใจแดง)"
             >
               +แจก {giveaway.toLocaleString("th-TH")}
@@ -49,7 +49,7 @@ export default function HeartsBadge() {
           ) : null}
           {roomRed > 0 ? (
             <span
-              className="text-[10px] font-semibold leading-tight text-amber-900/90"
+              className="text-sm font-semibold leading-tight text-amber-900/90"
               title="แดงจากรหัสห้อง — ใช้เล่นเกมของเจ้าของรหัสหรือเกมที่เปิดรับ"
             >
               +ห้อง {roomRed.toLocaleString("th-TH")}

@@ -270,7 +270,7 @@ export default function AccountProfileForm() {
                 placeholder="0812345678"
                 className="hui-input max-w-md"
               />
-              <p className="mt-1 text-xs text-hui-muted">
+              <p className="mt-1 text-sm text-hui-muted">
                 เปลี่ยนเบอร์ได้ที่นี่ — ระบบจะเก็บประวัติเบอร์เก่าไว้ด้านล่าง
               </p>
             </div>
@@ -290,14 +290,14 @@ export default function AccountProfileForm() {
               <legend className="hui-label">
                 ที่อยู่จัดส่งสินค้า
               </legend>
-              <p className="text-xs text-hui-muted">
+              <p className="text-sm text-hui-muted">
                 กรอกภายหลังได้ — แยกช่องตามที่อยู่จริงเพื่อจัดส่งถูกต้อง
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-1">
                   <label
                     htmlFor="shipHouseNo"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     บ้านเลขที่
                   </label>
@@ -317,7 +317,7 @@ export default function AccountProfileForm() {
                 <div>
                   <label
                     htmlFor="shipMoo"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     หมู่
                   </label>
@@ -333,7 +333,7 @@ export default function AccountProfileForm() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="shipRoad"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     ถนน
                   </label>
@@ -349,7 +349,7 @@ export default function AccountProfileForm() {
                 <div>
                   <label
                     htmlFor="shipSubdistrict"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     ตำบล / แขวง
                   </label>
@@ -368,7 +368,7 @@ export default function AccountProfileForm() {
                 <div>
                   <label
                     htmlFor="shipDistrict"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     อำเภอ / เขต
                   </label>
@@ -387,7 +387,7 @@ export default function AccountProfileForm() {
                 <div>
                   <label
                     htmlFor="shipProvince"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     จังหวัด
                   </label>
@@ -406,7 +406,7 @@ export default function AccountProfileForm() {
                 <div>
                   <label
                     htmlFor="shipPostal"
-                    className="block text-xs font-medium text-hui-section"
+                    className="block text-sm font-medium text-hui-section"
                   >
                     รหัสไปรษณีย์
                   </label>
@@ -432,14 +432,14 @@ export default function AccountProfileForm() {
               <legend className="text-sm font-semibold text-hui-section">
                 ติดต่อรับรางวัล (สำหรับผู้สร้างเกม)
               </legend>
-              <p className="text-xs text-hui-muted">
+              <p className="text-sm text-hui-muted">
                 ผู้ชนะรางวัลสิ่งของจะเห็นปุ่มเปิด LINE จากค่าที่ตั้งไว้ที่นี่ — ใส่ลิงก์เต็ม (https://…) หรือไอดีไลน์
                 เช่น <span className="font-mono">@myshop</span>
               </p>
               <div>
                 <label
                   htmlFor="prizeContactLineInput"
-                  className="block text-xs font-medium text-hui-section"
+                  className="block text-sm font-medium text-hui-section"
                 >
                   LINE / ลิงก์ติดต่อ
                 </label>
@@ -485,7 +485,7 @@ export default function AccountProfileForm() {
             <h4 className="text-sm font-semibold text-hui-section">
               เปลี่ยนรหัสผ่าน
             </h4>
-            <p className="text-xs text-hui-muted">
+            <p className="text-sm text-hui-muted">
               กรอกรหัสเดิมและรหัสใหม่ (อย่างน้อย 6 ตัวอักษร)
             </p>
             <div>
@@ -568,7 +568,7 @@ export default function AccountProfileForm() {
                     <p className="font-medium text-hui-body">
                       {h.oldPhone} → {h.newPhone}
                     </p>
-                    <p className="mt-1 text-xs text-hui-muted">
+                    <p className="mt-1 text-sm text-hui-muted">
                       {new Date(h.changedAt).toLocaleString("th-TH")}
                     </p>
                   </li>
@@ -656,11 +656,11 @@ export default function AccountProfileForm() {
                       {statusLabel(r.status)} — ขอเป็น {r.requestedFirstName}{" "}
                       {r.requestedLastName}
                     </p>
-                    <p className="mt-1 text-xs text-hui-muted">
+                    <p className="mt-1 text-sm text-hui-muted">
                       {new Date(r.createdAt).toLocaleString("th-TH")}
                     </p>
                     {r.resolverNote ? (
-                      <p className="mt-1 text-xs text-hui-muted">
+                      <p className="mt-1 text-sm text-hui-muted">
                         หมายเหตุ: {r.resolverNote}
                       </p>
                     ) : null}
@@ -674,7 +674,7 @@ export default function AccountProfileForm() {
         <p className="text-sm text-hui-body">
           <Link
             href="/account"
-            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ← ภาพรวมบัญชี
           </Link>

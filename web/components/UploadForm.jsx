@@ -123,11 +123,11 @@ export default function UploadForm({ showCardHeader = true }) {
           <span className="mt-4 text-center text-sm font-medium text-hui-body">
             แตะเพื่อเลือกไฟล์ หรือถ่ายรูป
           </span>
-          <span className="mt-1 text-center text-xs text-hui-muted">
+          <span className="mt-1 text-center text-sm text-hui-muted">
             รองรับ JPG, PNG, HEIC ผ่านเบราว์เซอร์
           </span>
           {file ? (
-            <span className="mt-3 max-w-full truncate text-xs font-medium text-hui-cta">
+            <span className="mt-3 max-w-full truncate text-sm font-medium text-hui-cta">
               {file.name}
             </span>
           ) : null}
@@ -158,7 +158,7 @@ export default function UploadForm({ showCardHeader = true }) {
 
         {resultUrl ? (
           <div className="mt-6 space-y-3 rounded-2xl border border-hui-border bg-hui-pageTop/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-hui-muted">
+            <p className="text-sm font-semibold uppercase tracking-wide text-hui-muted">
               อัปโหลดสำเร็จ
             </p>
             <img
@@ -170,7 +170,7 @@ export default function UploadForm({ showCardHeader = true }) {
               href={resultUrl}
               target="_blank"
               rel="noreferrer"
-              className="block break-all text-sm font-medium text-hui-cta underline-offset-2 hover:underline"
+              className="block break-all text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               {resultUrl}
             </a>

@@ -32,7 +32,7 @@ export default function AccountOrdersSection() {
       </p>
       <OrdersList />
       <p className="text-sm text-hui-body">
-        <Link href="/cart" className="text-hui-cta underline hover:brightness-95">
+        <Link href="/cart" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           ไปตะกร้า
         </Link>
       </p>

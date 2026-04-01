@@ -19,7 +19,7 @@ export default function CartPage() {
           ยืนยันออเดอร์จะบันทึกที่บัญชี ตัดสต็อก และสถานะ「รอชำระเงิน» ·{" "}
           <Link
             href="/account/orders"
-            className="font-medium text-hui-cta underline decoration-hui-cta/40"
+            className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ออเดอร์ของฉัน
           </Link>

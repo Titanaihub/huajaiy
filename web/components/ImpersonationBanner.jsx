@@ -19,11 +19,11 @@ export default function ImpersonationBanner() {
       <span className="font-semibold">โหมดตรวจสอบ:</span> คุณกำลังดูระบบในนาม{" "}
       <span className="font-mono font-semibold">@{user.username}</span>
       <span className="mx-1 text-amber-900/80">·</span>
-      <span className="text-xs text-amber-900/90">เปิดโดย {adminLabel}</span>
+      <span className="text-sm text-amber-900/90">เปิดโดย {adminLabel}</span>
       <button
         type="button"
         onClick={() => exitImpersonation()}
-        className="ml-3 rounded-md border border-amber-700 bg-white px-2 py-0.5 text-xs font-semibold text-amber-950 hover:bg-amber-50"
+        className="ml-3 rounded-md border border-amber-700 bg-white px-2 py-0.5 text-sm font-semibold text-amber-950 hover:bg-amber-50"
       >
         ออกจากโหมดนี้ (กลับแอดมิน)
       </button>

@@ -74,7 +74,7 @@ export default function LoginForm({ redirectAfterLogin = null }) {
         ยังไม่มีบัญชี?{" "}
         <Link
           href="/register"
-          className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+          className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           สมัครสมาชิก
         </Link>

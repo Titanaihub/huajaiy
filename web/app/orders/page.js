@@ -1,5 +1,6 @@
 import Link from "next/link";
 import OrdersList from "../../components/OrdersList";
+import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 
@@ -18,7 +19,7 @@ export default function OrdersPage() {
           มีทั้งประวัติในคอมพิวเตอร์ (สาธิต) และออเดอร์บนเซิร์ฟเวอร์เมื่อล็อกอิน — สมาชิกใช้{" "}
           <Link
             href="/account/orders"
-            className="font-medium text-hui-cta underline decoration-hui-cta/40"
+            className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ออเดอร์ของฉัน
           </Link>{" "}
@@ -27,14 +28,17 @@ export default function OrdersPage() {
         <div className="mt-6">
           <OrdersList />
         </div>
-        <div className="mt-8 flex flex-wrap gap-4 text-sm">
-          <Link href="/cart" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+        <nav
+          className="mt-8 flex flex-wrap items-center gap-x-1 gap-y-2"
+          aria-label="ทางลัดจากประวัติออเดอร์"
+        >
+          <Link href="/cart" className={siteNavLinkClass}>
             ไปตะกร้า
           </Link>
-          <Link href="/shop" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+          <Link href="/shop" className={siteNavLinkClass}>
             ไปร้านค้า
           </Link>
-        </div>
+        </nav>
       </main>
       <SiteFooter />
     </>

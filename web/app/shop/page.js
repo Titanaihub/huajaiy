@@ -24,19 +24,19 @@ export default function ShopPage() {
             เจ้าของร้านลงสินค้าได้ที่{" "}
             <Link
               href="/account/shops"
-              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+              className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               บัญชี → ร้านของฉัน → จัดการสินค้า
             </Link>
             · แอดมินสร้างร้านและผูกบัญชีคุณที่{" "}
             <Link
               href="/admin?tab=shops"
-              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+              className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               แอดมิน → ร้านทั้งหมด
             </Link>
             · สรุปขั้นตอน:{" "}
-            <Link href="/owner" className="font-medium text-hui-cta underline decoration-hui-cta/40">
+            <Link href="/owner" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
               หน้าขายสินค้า (เจ้าของร้าน)
             </Link>
           </p>
@@ -44,7 +44,7 @@ export default function ShopPage() {
         <ProductGrid />
         <p className="hui-note mt-6">
           แอดมินสร้างร้านได้ที่{" "}
-          <Link href="/admin?tab=shops" className="text-hui-cta underline decoration-hui-cta/40">
+          <Link href="/admin?tab=shops" className="text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
             /admin?tab=shops
           </Link>
           · เจ้าของลงสินค้าที่บัญชี → ร้านของฉัน

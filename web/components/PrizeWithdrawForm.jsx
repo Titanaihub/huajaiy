@@ -187,7 +187,7 @@ export default function PrizeWithdrawForm() {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบก่อนขอถอนเงินรางวัล</p>
-        <Link href="/login" className="mt-2 inline-block font-semibold text-hui-cta underline">
+        <Link href="/login" className="mt-2 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           เข้าสู่ระบบ
         </Link>
       </div>
@@ -200,7 +200,7 @@ export default function PrizeWithdrawForm() {
         <p className="font-medium text-hui-section">ไม่พบข้อมูลผู้สร้างเกม</p>
         <p className="mt-2">
           เปิดหน้านี้จากปุ่ม「ถอนเงินรางวัล」ในหน้า{" "}
-          <Link href="/account/prizes" className="font-semibold text-hui-cta underline">
+          <Link href="/account/prizes" className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
             รางวัลของฉัน
           </Link>
         </p>
@@ -232,7 +232,7 @@ export default function PrizeWithdrawForm() {
               {formatBaht(avail.availableBaht)}
             </span>{" "}
             บาท
-            <span className="block pt-1 text-xs text-hui-muted">
+            <span className="block pt-1 text-sm text-hui-muted">
               รวมจากรางวัลเงินสด {formatBaht(avail.earnedBaht)} บาท · หักคำขอที่รอ/อนุมัติแล้ว{" "}
               {formatBaht(avail.reservedBaht)} บาท
             </span>
@@ -252,7 +252,7 @@ export default function PrizeWithdrawForm() {
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
               href="/account/prizes"
-              className="font-semibold text-hui-cta underline hover:brightness-95"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               กลับหน้ารางวัลของฉัน
             </Link>
@@ -288,7 +288,7 @@ export default function PrizeWithdrawForm() {
             placeholder="กรอกตัวเลขเท่านั้น"
             className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 font-mono text-base tabular-nums shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
           />
-          <p className="mt-1 text-xs text-hui-muted">
+          <p className="mt-1 text-sm text-hui-muted">
             ขั้นต่ำ {MIN_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
           </p>
         </div>
@@ -300,9 +300,9 @@ export default function PrizeWithdrawForm() {
           <p className="mt-1.5 rounded-xl border border-hui-border bg-hui-pageTop px-3 py-2.5 text-sm font-medium text-hui-section">
             {accountHolderName || "— (ไม่พบชื่อในระบบ)"}
           </p>
-          <p className="mt-1 text-xs text-hui-muted">
+          <p className="mt-1 text-sm text-hui-muted">
             ดึงจากชื่อ–นามสกุลในโปรไฟล์ — แก้ได้ที่{" "}
-            <Link href="/account/profile" className="font-medium text-hui-cta underline">
+            <Link href="/account/profile" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
               ข้อมูลส่วนตัว
             </Link>
           </p>
@@ -369,7 +369,7 @@ export default function PrizeWithdrawForm() {
         emptyMessage="ยังไม่มีรายการ — ส่งคำขอด้านบนเมื่อพร้อม"
       />
 
-      <p className="text-xs text-hui-muted">
+      <p className="text-sm text-hui-muted">
         การถอนเป็นการประสานงานกับผู้สร้างเกม — ยังไม่มีการโอนอัตโนมัติจากเว็บ
       </p>
     </section>

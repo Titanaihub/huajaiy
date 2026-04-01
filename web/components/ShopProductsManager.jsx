@@ -133,11 +133,11 @@ export default function ShopProductsManager({ shopId }) {
           {shop ? (
             <p className="text-sm text-hui-body">
               ร้าน <strong>{shop.name}</strong>{" "}
-              <span className="font-mono text-xs text-hui-muted">{shop.slug}</span>
+              <span className="font-mono text-sm text-hui-muted">{shop.slug}</span>
             </p>
           ) : null}
         </div>
-        <Link href="/account/shops" className="text-sm text-hui-cta underline">
+        <Link href="/account/shops" className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           ← ร้านของฉัน
         </Link>
       </div>
@@ -151,7 +151,7 @@ export default function ShopProductsManager({ shopId }) {
         <h3 className="text-sm font-semibold text-hui-body">เพิ่มสินค้า</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs text-hui-body">ชื่อ</label>
+            <label className="text-sm text-hui-body">ชื่อ</label>
             <input
               required
               value={draft.title}
@@ -160,7 +160,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs text-hui-body">รายละเอียด</label>
+            <label className="text-sm text-hui-body">รายละเอียด</label>
             <textarea
               value={draft.description}
               onChange={(e) =>
@@ -171,7 +171,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-hui-body">ราคา (บาท)</label>
+            <label className="text-sm text-hui-body">ราคา (บาท)</label>
             <input
               type="number"
               min={0}
@@ -186,7 +186,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-hui-body">สต็อก</label>
+            <label className="text-sm text-hui-body">สต็อก</label>
             <input
               type="number"
               min={0}
@@ -201,7 +201,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-hui-body">หมวด (ไม่บังคับ)</label>
+            <label className="text-sm text-hui-body">หมวด (ไม่บังคับ)</label>
             <input
               value={draft.category}
               onChange={(e) =>
@@ -211,7 +211,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-hui-body">URL รูป (ไม่บังคับ)</label>
+            <label className="text-sm text-hui-body">URL รูป (ไม่บังคับ)</label>
             <input
               value={draft.imageUrl}
               onChange={(e) =>
@@ -222,7 +222,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-hui-body">แถมหัวใจชมพู/ชิ้น</label>
+            <label className="text-sm text-hui-body">แถมหัวใจชมพู/ชิ้น</label>
             <input
               type="number"
               min={0}
@@ -261,7 +261,7 @@ export default function ShopProductsManager({ shopId }) {
                 <p className="font-medium text-hui-section">
                   {p.title}{" "}
                   {!p.active ? (
-                    <span className="text-xs font-normal text-amber-700">(ปิดขาย)</span>
+                    <span className="text-sm font-normal text-amber-700">(ปิดขาย)</span>
                   ) : null}
                 </p>
                 <p className="text-sm text-hui-body">
@@ -273,14 +273,14 @@ export default function ShopProductsManager({ shopId }) {
                 <button
                   type="button"
                   onClick={() => toggleActive(p)}
-                  className="rounded-lg border border-hui-border px-3 py-1 text-xs font-medium hover:bg-hui-pageTop"
+                  className="rounded-lg border border-hui-border px-3 py-1 text-sm font-medium hover:bg-hui-pageTop"
                 >
                   {p.active ? "ปิดการขาย" : "เปิดการขาย"}
                 </button>
                 <button
                   type="button"
                   onClick={() => removeProduct(p)}
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-800"
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-sm font-medium text-red-800"
                 >
                   ลบ
                 </button>

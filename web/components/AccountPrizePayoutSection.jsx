@@ -18,7 +18,7 @@ export default function AccountPrizePayoutSection() {
         <p className="mt-2 text-amber-900">
           หน้านี้ใช้ดูรายการผู้ได้รับรางวัลและคำขอถอน — สมาชิกทั่วไปเห็นเมนูเพื่อทดสอบระบบ แต่ใช้งานแผงจ่ายรางวัลได้เมื่อเป็นแอดมินเท่านั้น
         </p>
-        <Link href="/account" className="mt-3 inline-block text-sm font-semibold text-hui-cta underline">
+        <Link href="/account" className="mt-3 inline-block text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           กลับภาพรวมบัญชี
         </Link>
       </div>

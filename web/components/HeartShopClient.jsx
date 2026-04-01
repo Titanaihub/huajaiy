@@ -265,7 +265,7 @@ export default function HeartShopClient() {
                             onClick={() =>
                               setExpandedId(expanded ? null : row.id)
                             }
-                            className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+                            className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
                           >
                             {expanded ? "ซ่อน" : "ดูรายละเอียดการชำระ"}
                           </button>
@@ -341,7 +341,7 @@ export default function HeartShopClient() {
                                   href={row.slipUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+                                  className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
                                 >
                                   เปิดดูสลิปที่ส่งแล้ว
                                 </a>
@@ -362,7 +362,7 @@ export default function HeartShopClient() {
       <p className="text-sm">
         <Link
           href="/account"
-          className="font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
           ← ภาพรวมบัญชี
         </Link>

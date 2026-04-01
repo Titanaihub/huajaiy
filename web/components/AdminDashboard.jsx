@@ -562,7 +562,7 @@ export default function AdminDashboard() {
           </p>
           <form onSubmit={submitSearch} className="flex flex-wrap items-end gap-3">
             <div className="min-w-[200px] flex-1">
-              <label htmlFor="admin-q" className="block text-xs font-medium text-hui-body">
+              <label htmlFor="admin-q" className="block text-sm font-medium text-hui-body">
                 ค้นหา (ยูสเซอร์ ชื่อ เบอร์ หรือ id)
               </label>
               <input
@@ -581,7 +581,7 @@ export default function AdminDashboard() {
             </button>
           </form>
 
-          <p className="text-xs text-hui-muted">
+          <p className="text-sm text-hui-muted">
             พบ {total} รายการ · หน้าละ {PAGE_SIZE} รายการ · ชมพู / แดงเล่นได้ / แดงแจก = ยอดบนเซิร์ฟเวอร์
           </p>
 
@@ -591,7 +591,7 @@ export default function AdminDashboard() {
           ) : (
             <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase text-hui-body">
+                <thead className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold uppercase text-hui-body">
                   <tr>
                     <th className="px-3 py-2">ยูสเซอร์</th>
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
@@ -630,7 +630,7 @@ export default function AdminDashboard() {
                           selectedId && rowId && selectedId === rowId ? "bg-hui-pageTop/60" : ""
                         }`}
                       >
-                        <td className="px-3 py-2 font-mono text-xs">{u.username}</td>
+                        <td className="px-3 py-2 font-mono text-sm">{u.username}</td>
                         <td className="px-3 py-2">
                           {u.firstName} {u.lastName}
                         </td>
@@ -639,10 +639,10 @@ export default function AdminDashboard() {
                           className="px-3 py-2"
                           title="ระบบเก็บรหัสแบบแฮชเท่านั้น — ไม่มีข้อความจริงให้แสดง · ตั้งรหัสใหม่ได้ที่「ดูทั้งหมด」"
                         >
-                          <span className="inline-block font-mono text-xs tracking-widest text-hui-muted">
+                          <span className="inline-block font-mono text-sm tracking-widest text-hui-muted">
                             ••••••••
                           </span>
-                          <span className="ml-1 text-[10px] font-normal text-hui-muted">
+                          <span className="ml-1 text-sm font-normal text-hui-muted">
                             (แฮช)
                           </span>
                         </td>
@@ -652,7 +652,7 @@ export default function AdminDashboard() {
                         <td className="px-3 py-2 font-medium text-red-700">
                           <span className="tabular-nums">{redDisplay.toLocaleString("th-TH")}</span>
                           {redRoom > 0 ? (
-                            <span className="ml-1 text-[10px] font-semibold text-amber-900/90">
+                            <span className="ml-1 text-sm font-semibold text-amber-900/90">
                               (+ห้อง {redRoom.toLocaleString("th-TH")})
                             </span>
                           ) : null}
@@ -662,7 +662,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           {u.accountDisabled ? (
-                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800">
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-800">
                               ระงับ
                             </span>
                           ) : (
@@ -670,7 +670,7 @@ export default function AdminDashboard() {
                           )}
                         </td>
                         <td className="px-3 py-2">{roleLabel(u.role)}</td>
-                        <td className="px-3 py-2 text-xs text-hui-body">
+                        <td className="px-3 py-2 text-sm text-hui-body">
                           {u.createdAt
                             ? new Date(u.createdAt).toLocaleString("th-TH")
                             : "—"}
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                               e.stopPropagation();
                               if (rowId) openDetail(rowId);
                             }}
-                            className="cursor-pointer text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                            className="cursor-pointer text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
                           >
                             ดูทั้งหมด
                           </button>
@@ -739,7 +739,7 @@ export default function AdminDashboard() {
                     </p>
                   ) : null}
                   {memberFull.heartsNote ? (
-                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                       {memberFull.heartsNote}
                     </p>
                   ) : null}
@@ -747,22 +747,22 @@ export default function AdminDashboard() {
                   {detail.role !== "admin" && !detail.accountDisabled ? (
                     <div className="rounded-lg border border-violet-200 bg-violet-50/90 p-3 text-sm text-violet-950">
                       <p className="font-semibold">ตรวจเมนูฝั่งสมาชิก (ก่อนปล่อยใช้งานจริง)</p>
-                      <p className="mt-1 text-xs leading-relaxed text-violet-900/95">
+                      <p className="mt-1 text-sm leading-relaxed text-violet-900/95">
                         ต้องตั้งค่า{" "}
-                        <code className="rounded bg-white/90 px-1 py-0.5 font-mono text-[11px]">
+                        <code className="rounded bg-white/90 px-1 py-0.5 font-mono text-sm">
                           ADMIN_IMPERSONATION_ENABLED=true
                         </code>{" "}
                         ที่บริการ API — ระบบจะสลับเป็นโทเค็นของสมาชิกคนนี้ชั่วคราว (ประมาณ 4 ชั่วโมง)
                         มีแถบสีเหลืองด้านบน — กดออกเพื่อกลับแอดมิน
                       </p>
                       {impersonateErr ? (
-                        <p className="mt-2 text-xs font-medium text-red-700">{impersonateErr}</p>
+                        <p className="mt-2 text-sm font-medium text-red-700">{impersonateErr}</p>
                       ) : null}
                       <button
                         type="button"
                         disabled={impersonateBusy || detailLoading}
                         onClick={() => void startImpersonationForMember()}
-                        className="mt-2 rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-semibold text-violet-950 hover:bg-violet-100 disabled:opacity-50"
+                        className="mt-2 rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-sm font-semibold text-violet-950 hover:bg-violet-100 disabled:opacity-50"
                       >
                         {impersonateBusy ? "กำลังสลับ…" : "ดูหน้าสมาชิก (โหมดตรวจสอบ)"}
                       </button>
@@ -772,7 +772,7 @@ export default function AdminDashboard() {
                   <dl className="grid gap-2 text-sm sm:grid-cols-2">
                     <div>
                       <dt className="text-hui-muted">id</dt>
-                      <dd className="font-mono text-xs break-all">{detail.id}</dd>
+                      <dd className="font-mono text-sm break-all">{detail.id}</dd>
                     </div>
                     <div>
                       <dt className="text-hui-muted">ยูสเซอร์ (ล็อกอิน)</dt>
@@ -847,7 +847,7 @@ export default function AdminDashboard() {
                       <dt className="text-hui-muted">รหัสผ่าน</dt>
                       <dd className="text-hui-body">
                         <p>{detail.passwordNote}</p>
-                        <p className="mt-1 text-xs text-amber-900/90">
+                        <p className="mt-1 text-sm text-amber-900/90">
                           ระบบไม่เก็บและไม่แสดงรหัสผ่านตัวจริงของผู้ใช้ — แอดมิน<strong>ตั้งรหัสใหม่</strong>
                           ให้ได้ด้านล่างเท่านั้น (สมาชิกใช้รหัสใหม่ล็อกอิน)
                         </p>
@@ -861,7 +861,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <dt className="text-hui-muted">IP ตอนสมัคร</dt>
-                      <dd className="font-mono text-xs">{detail.registrationIp || "—"}</dd>
+                      <dd className="font-mono text-sm">{detail.registrationIp || "—"}</dd>
                     </div>
                     <div>
                       <dt className="text-hui-muted">สมัครเมื่อ</dt>
@@ -880,17 +880,17 @@ export default function AdminDashboard() {
                   </dl>
 
                   <div className="rounded-lg border border-hui-border bg-hui-pageTop/50 p-4">
-                    <h4 className="text-xs font-semibold uppercase text-hui-burgundy">
+                    <h4 className="text-sm font-semibold uppercase text-hui-burgundy">
                       แก้ไขโปรไฟล์สมาชิก (บันทึกตรงฐานข้อมูล)
                     </h4>
-                    <p className="mt-2 rounded-md border border-sky-200 bg-sky-50/90 px-2 py-1.5 text-[11px] text-sky-950">
+                    <p className="mt-2 rounded-md border border-hui-border bg-hui-pageTop/95 px-2 py-1.5 text-sm text-hui-burgundy">
                       <strong>รหัสผ่าน:</strong> ของเดิมไม่มีแบบตัวอักษรในระบบ (แฮชเท่านั้น) —{" "}
                       <strong>ดูตัวที่พิมพ์ได้</strong>เฉพาะตอนตั้งรหัสใหม่ด้านล่าง (กด「แสดง」) · แก้
                       <strong>ยูสเซอร์</strong>ได้ในช่องแรก (a–z ตัวเลข _ 3–32 ตัว) — ล็อกอินหลังเปลี่ยนต้องใช้ยูสใหม่
                     </p>
                     <form onSubmit={submitAdminProfile} className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
                       <div className="sm:col-span-2">
-                        <label className="text-[10px] font-medium text-hui-body">
+                        <label className="text-sm font-medium text-hui-body">
                           ยูสเซอร์ (ล็อกอิน) — a–z ตัวเลข _ ความยาว 3–32
                         </label>
                         <input
@@ -904,7 +904,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">ชื่อ</label>
+                        <label className="text-sm font-medium text-hui-body">ชื่อ</label>
                         <input
                           required
                           value={admFirstName}
@@ -913,7 +913,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">นามสกุล</label>
+                        <label className="text-sm font-medium text-hui-body">นามสกุล</label>
                         <input
                           required
                           value={admLastName}
@@ -922,7 +922,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">เบอร์โทร</label>
+                        <label className="text-sm font-medium text-hui-body">เบอร์โทร</label>
                         <input
                           required
                           value={admPhone}
@@ -931,16 +931,16 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">รหัสประเทศ</label>
+                        <label className="text-sm font-medium text-hui-body">รหัสประเทศ</label>
                         <input
                           value={admCountryCode}
                           onChange={(e) => setAdmCountryCode(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 font-mono text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 font-mono text-sm"
                           placeholder="TH"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">เพศ</label>
+                        <label className="text-sm font-medium text-hui-body">เพศ</label>
                         <input
                           value={admGender}
                           onChange={(e) => setAdmGender(e.target.value)}
@@ -949,7 +949,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-medium text-hui-body">วันเกิด (YYYY-MM-DD)</label>
+                        <label className="text-sm font-medium text-hui-body">วันเกิด (YYYY-MM-DD)</label>
                         <input
                           type="date"
                           value={admBirthDate}
@@ -958,7 +958,7 @@ export default function AdminDashboard() {
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="text-[10px] font-medium text-hui-body">บทบาท</label>
+                        <label className="text-sm font-medium text-hui-body">บทบาท</label>
                         <select
                           value={admRole}
                           onChange={(e) => setAdmRole(e.target.value)}
@@ -983,63 +983,63 @@ export default function AdminDashboard() {
                           </span>
                         </label>
                       </div>
-                      <div className="sm:col-span-2 border-t border-hui-border pt-2 text-[10px] font-semibold uppercase text-hui-muted">
+                      <div className="sm:col-span-2 border-t border-hui-border pt-2 text-sm font-semibold uppercase text-hui-muted">
                         ที่อยู่จัดส่ง (แยกช่อง)
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">บ้านเลขที่</label>
+                        <label className="text-sm text-hui-body">บ้านเลขที่</label>
                         <input
                           value={admHouseNo}
                           onChange={(e) => setAdmHouseNo(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">หมู่</label>
+                        <label className="text-sm text-hui-body">หมู่</label>
                         <input
                           value={admMoo}
                           onChange={(e) => setAdmMoo(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="text-[10px] text-hui-body">ถนน</label>
+                        <label className="text-sm text-hui-body">ถนน</label>
                         <input
                           value={admRoad}
                           onChange={(e) => setAdmRoad(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">ตำบล/แขวง</label>
+                        <label className="text-sm text-hui-body">ตำบล/แขวง</label>
                         <input
                           value={admSubdistrict}
                           onChange={(e) => setAdmSubdistrict(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">อำเภอ/เขต</label>
+                        <label className="text-sm text-hui-body">อำเภอ/เขต</label>
                         <input
                           value={admDistrict}
                           onChange={(e) => setAdmDistrict(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">จังหวัด</label>
+                        <label className="text-sm text-hui-body">จังหวัด</label>
                         <input
                           value={admProvince}
                           onChange={(e) => setAdmProvince(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-hui-body">รหัสไปรษณีย์</label>
+                        <label className="text-sm text-hui-body">รหัสไปรษณีย์</label>
                         <input
                           value={admPostalCode}
                           onChange={(e) => setAdmPostalCode(e.target.value)}
-                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-xs"
+                          className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -1055,15 +1055,15 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="rounded-lg border border-hui-border bg-hui-pageTop/90 p-4">
-                    <h4 className="text-xs font-semibold uppercase text-hui-body">
+                    <h4 className="text-sm font-semibold uppercase text-hui-body">
                       เติมหัวใจให้สมาชิก (ฟรี — ไม่ผ่านสลิป)
                     </h4>
-                    <p className="mt-1 text-[11px] text-hui-body">
+                    <p className="mt-1 text-sm text-hui-body">
                       ปรับได้เฉพาะหัวใจชมพู — หัวใจแดงเป็นส่วนการแจกของผู้สร้างห้อง/เกม
                     </p>
                     <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
                       <div>
-                        <label className="block text-[10px] font-medium text-rose-600">ชมพู Δ</label>
+                        <label className="block text-sm font-medium text-rose-600">ชมพู Δ</label>
                         <input
                           type="number"
                           value={heartPinkDelta}
@@ -1083,7 +1083,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="rounded-lg border border-hui-border bg-hui-pageTop/90 p-4">
-                    <h4 className="text-xs font-semibold uppercase text-hui-body">
+                    <h4 className="text-sm font-semibold uppercase text-hui-body">
                       ตั้งรหัสผ่านใหม่ให้สมาชิก
                     </h4>
                     <form onSubmit={submitNewPassword} className="mt-2 flex flex-wrap items-end gap-2">
@@ -1099,7 +1099,7 @@ export default function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setShowNewPasswordPlain((v) => !v)}
-                          className="shrink-0 rounded-r-lg border-l border-hui-border bg-hui-pageTop px-2.5 text-xs font-semibold text-hui-body hover:bg-hui-pageTop"
+                          className="shrink-0 rounded-r-lg border-l border-hui-border bg-hui-pageTop px-2.5 text-sm font-semibold text-hui-body hover:bg-hui-pageTop"
                           title={showNewPasswordPlain ? "ซ่อนรหัส" : "แสดงรหัสที่พิมพ์"}
                         >
                           {showNewPasswordPlain ? "ซ่อน" : "แสดง"}
@@ -1113,13 +1113,13 @@ export default function AdminDashboard() {
                         {passBusy ? "…" : "ตั้งรหัส"}
                       </button>
                     </form>
-                    <p className="mt-1 text-[11px] text-hui-muted">
+                    <p className="mt-1 text-sm text-hui-muted">
                       กด「แสดง」เพื่อเห็นตัวอักษรขณะพิมพ์รหัสใหม่ — รหัสเดิมของสมาชิกดูไม่ได้เพราะเก็บแฮชใน DB
                     </p>
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-semibold uppercase text-hui-body">
+                    <h4 className="text-sm font-semibold uppercase text-hui-body">
                       ร้านที่เป็นของสมาชิกนี้
                     </h4>
                     {memberFull.shops.length === 0 ? (
@@ -1129,7 +1129,7 @@ export default function AdminDashboard() {
                         {memberFull.shops.map((s) => (
                           <li key={s.id} className="rounded border border-hui-border/70 px-2 py-1">
                             <span className="font-medium">{s.name}</span>{" "}
-                            <code className="text-xs text-hui-body">{s.slug}</code>
+                            <code className="text-sm text-hui-body">{s.slug}</code>
                           </li>
                         ))}
                       </ul>
@@ -1137,14 +1137,14 @@ export default function AdminDashboard() {
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-semibold uppercase text-hui-body">
+                    <h4 className="text-sm font-semibold uppercase text-hui-body">
                       ออเดอร์ล่าสุด (สูงสุด 100 รายการ)
                     </h4>
                     {memberFull.orders.length === 0 ? (
                       <p className="mt-1 text-sm text-hui-muted">ไม่มีออเดอร์ในฐานข้อมูล</p>
                     ) : (
                       <div className="mt-2 overflow-x-auto">
-                        <table className="min-w-full text-left text-xs">
+                        <table className="min-w-full text-left text-sm">
                           <thead>
                             <tr className="border-b border-hui-border text-hui-muted">
                               <th className="py-1 pr-2">เมื่อ</th>
@@ -1173,10 +1173,10 @@ export default function AdminDashboard() {
                   </div>
 
                   <details className="mt-4 rounded-lg border border-hui-border bg-hui-pageTop/70 p-4">
-                    <summary className="cursor-pointer text-xs font-semibold text-hui-body">
+                    <summary className="cursor-pointer text-sm font-semibold text-hui-body">
                       ประวัติหัวใจ (ledger) ล่าสุด
                     </summary>
-                    <div className="mt-3 max-h-80 overflow-auto text-xs">
+                    <div className="mt-3 max-h-80 overflow-auto text-sm">
                       {(memberFull.heartLedger || []).length === 0 ? (
                         <p className="text-hui-muted">ไม่มีรายการหรือฐานข้อมูลไม่พร้อม</p>
                       ) : (
@@ -1207,7 +1207,7 @@ export default function AdminDashboard() {
                                   typeof row.meta === "object" &&
                                   row.meta.redGiveawayDelta != null &&
                                   Number(row.meta.redGiveawayDelta) !== 0 ? (
-                                    <span className="mt-0.5 block text-[10px] text-rose-900">
+                                    <span className="mt-0.5 block text-sm text-rose-900">
                                       แดงแจก Δ {String(row.meta.redGiveawayDelta)} · คงเหลือแจก{" "}
                                       {row.meta.redGiveawayBalanceAfter ?? "—"}
                                     </span>
@@ -1222,10 +1222,10 @@ export default function AdminDashboard() {
                   </details>
 
                   <details className="mt-2 rounded-lg border border-hui-border bg-hui-pageTop/70 p-4">
-                    <summary className="cursor-pointer text-xs font-semibold text-hui-body">
+                    <summary className="cursor-pointer text-sm font-semibold text-hui-body">
                       หัวใจแดงที่ได้
                     </summary>
-                    <div className="mt-3 max-h-64 overflow-auto text-xs">
+                    <div className="mt-3 max-h-64 overflow-auto text-sm">
                       {(memberFull.roomRedRedemptions || []).length === 0 ? (
                         <p className="text-hui-muted">ไม่มีประวัติการแลกรหัสหรือฐานข้อมูลไม่พร้อม</p>
                       ) : (
@@ -1248,7 +1248,7 @@ export default function AdminDashboard() {
                                   แดง
                                 </span>
                               </div>
-                              <div className="mt-0.5 text-[11px] text-hui-body">
+                              <div className="mt-0.5 text-sm text-hui-body">
                                 จาก @{x.creatorUsername || "ไม่ทราบผู้สร้าง"} ·{" "}
                                 {x.redeemedAt
                                   ? new Date(x.redeemedAt).toLocaleString("th-TH")
@@ -1262,10 +1262,10 @@ export default function AdminDashboard() {
                   </details>
 
                   <details className="mt-2 rounded-lg border border-hui-border bg-hui-pageTop/70 p-4">
-                    <summary className="cursor-pointer text-xs font-semibold text-hui-body">
+                    <summary className="cursor-pointer text-sm font-semibold text-hui-body">
                       ประวัติเปลี่ยนเบอร์โทร
                     </summary>
-                    <div className="mt-3 max-h-48 overflow-auto text-xs">
+                    <div className="mt-3 max-h-48 overflow-auto text-sm">
                       {(memberFull.phoneHistory || []).length === 0 ? (
                         <p className="text-hui-muted">ไม่มีประวัติหรือฐานข้อมูลไม่พร้อม</p>
                       ) : (
@@ -1305,7 +1305,7 @@ export default function AdminDashboard() {
             ร้านที่ลงทะเบียนในฐานข้อมูล — สร้างร้านด้านล่างได้เลย จากนั้นให้เจ้าของร้านไป{" "}
             <Link
               href="/account/shops"
-              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+              className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               ร้านของฉัน → จัดการสินค้า
             </Link>
@@ -1342,7 +1342,7 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-semibold text-hui-section">สร้างร้านใหม่</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="text-xs text-hui-body">ชื่อร้าน (แสดงบนเว็บ)</label>
+                <label className="text-sm text-hui-body">ชื่อร้าน (แสดงบนเว็บ)</label>
                 <input
                   required
                   value={newShopName}
@@ -1352,7 +1352,7 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="text-xs text-hui-body">
+                <label className="text-sm text-hui-body">
                   slug (ไม่บังคับ — เว้นว่างระบบสร้างให้อัตโนมัติ)
                 </label>
                 <input
@@ -1363,7 +1363,7 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="text-xs text-hui-body">
+                <label className="text-sm text-hui-body">
                   ยูสเซอร์เจ้าของร้าน (ไม่บังคับ)
                 </label>
                 <input
@@ -1402,7 +1402,7 @@ export default function AdminDashboard() {
           ) : (
             <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase text-hui-body">
+                <thead className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold uppercase text-hui-body">
                   <tr>
                     <th className="px-3 py-2">ชื่อร้าน</th>
                     <th className="px-3 py-2">slug</th>
@@ -1415,20 +1415,20 @@ export default function AdminDashboard() {
                   {shopsAll.map((s) => (
                     <tr key={s.id} className="border-b border-hui-border/70">
                       <td className="px-3 py-2 font-medium">{s.name}</td>
-                      <td className="px-3 py-2 font-mono text-xs">{s.slug}</td>
+                      <td className="px-3 py-2 font-mono text-sm">{s.slug}</td>
                       <td className="px-3 py-2">{s.ownerUsername || "—"}</td>
                       <td className="px-3 py-2">
                         <Link
                           href={`/account/shops/${s.id}/products`}
-                          className="text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+                          className="text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
                         >
                           จัดการสินค้า
                         </Link>
-                        <p className="mt-0.5 text-[10px] text-hui-muted">
+                        <p className="mt-0.5 text-sm text-hui-muted">
                           (เจ้าของร้านต้องล็อกอิน)
                         </p>
                       </td>
-                      <td className="px-3 py-2 text-xs text-hui-body">
+                      <td className="px-3 py-2 text-sm text-hui-body">
                         {s.createdAt
                           ? new Date(s.createdAt).toLocaleString("th-TH")
                           : "—"}
@@ -1477,9 +1477,9 @@ export default function AdminDashboard() {
                 {gameInfo.persistenceNote}
               </div>
               <div className="rounded-xl border border-hui-border bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase text-hui-muted">หัวใจต่อรอบ (กติกาเริ่มต้น / สำรอง)</p>
+                <p className="text-sm font-semibold uppercase text-hui-muted">หัวใจต่อรอบ (กติกาเริ่มต้น / สำรอง)</p>
                 <p className="mt-1 text-lg font-semibold text-hui-section">{gameInfo.heartCost}</p>
-                <p className="mt-2 text-xs text-hui-muted">
+                <p className="mt-2 text-sm text-hui-muted">
                   เกมส่วนกลางตั้งค่าหักหัวใจต่อรอบในแต่ละเกม (ไม่ใช่ค่านี้)
                 </p>
               </div>
@@ -1491,30 +1491,30 @@ export default function AdminDashboard() {
                     <p className="font-medium text-hui-section">{gameInfo.central.game?.title || "—"}</p>
                     <dl className="grid gap-2 sm:grid-cols-2">
                       <div>
-                        <dt className="text-xs text-hui-body">ป้าย / ชุด / ภาพต่อชุด</dt>
+                        <dt className="text-sm text-hui-body">ป้าย / ชุด / ภาพต่อชุด</dt>
                         <dd className="font-semibold">
                           {gameInfo.central.tileCount} = {gameInfo.central.setCount}×{gameInfo.central.imagesPerSet}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-hui-body">อัปโหลดภาพ</dt>
+                        <dt className="text-sm text-hui-body">อัปโหลดภาพ</dt>
                         <dd className="font-semibold">
                           {gameInfo.central.imagesFilled}/{gameInfo.central.expectedImages}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-hui-body">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ</dt>
+                        <dt className="text-sm text-hui-body">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ</dt>
                         <dd className="font-semibold">
                           ทั้งหมด {gameInfo.central.activeSessions} · เล่นอยู่ {gameInfo.central.sessionsPlaying} · จบแล้ว{" "}
                           {gameInfo.central.sessionsFinished}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-hui-body">กติกา (แถว)</dt>
+                        <dt className="text-sm text-hui-body">กติกา (แถว)</dt>
                         <dd className="font-semibold">{gameInfo.central.rulesCount}</dd>
                       </div>
                       <div className="sm:col-span-2">
-                        <dt className="text-xs text-hui-body">หักหัวใจต่อรอบ (ชมพู / แดง)</dt>
+                        <dt className="text-sm text-hui-body">หักหัวใจต่อรอบ (ชมพู / แดง)</dt>
                         <dd className="font-semibold text-hui-section">
                           {formatHeartCostSummary(
                             gameInfo.central.game?.pinkHeartCost,
@@ -1539,18 +1539,18 @@ export default function AdminDashboard() {
                 <h3 className="text-base font-semibold text-hui-section sr-only">กติกาเริ่มต้น</h3>
                 <dl className="grid gap-2 text-sm sm:grid-cols-2">
                   <div className="rounded-xl border border-hui-border bg-white px-4 py-3 shadow-sm">
-                    <dt className="text-xs font-semibold uppercase text-hui-muted">จำนวนการ์ดบนกระดาน</dt>
+                    <dt className="text-sm font-semibold uppercase text-hui-muted">จำนวนการ์ดบนกระดาน</dt>
                     <dd className="mt-1 text-lg font-semibold text-hui-section">{gameInfo.legacy?.cardCount ?? "—"}</dd>
                   </div>
                   <div className="rounded-xl border border-hui-border bg-white px-4 py-3 shadow-sm">
-                    <dt className="text-xs font-semibold uppercase text-hui-muted">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ (กติกาเริ่มต้น)</dt>
+                    <dt className="text-sm font-semibold uppercase text-hui-muted">รอบเกมที่เซิร์ฟเวอร์กำลังจดจำ (กติกาเริ่มต้น)</dt>
                     <dd className="mt-1 font-semibold text-hui-section">
                       ทั้งหมด {gameInfo.legacy?.activeSessions ?? 0} · กำลังเล่น {gameInfo.legacy?.sessionsPlaying ?? 0} · จบแล้วยังไม่หมดอายุ{" "}
                       {gameInfo.legacy?.sessionsFinished ?? 0}
                     </dd>
                   </div>
                   <div className="rounded-xl border border-hui-border bg-white px-4 py-3 shadow-sm sm:col-span-2">
-                    <dt className="text-xs font-semibold uppercase text-hui-muted">ล้างรอบที่จบแล้วหลังครบกำหนด</dt>
+                    <dt className="text-sm font-semibold uppercase text-hui-muted">ล้างรอบที่จบแล้วหลังครบกำหนด</dt>
                     <dd className="mt-1 text-hui-body">
                       {Math.round((gameInfo.legacy?.pruneAfterMs || 0) / 60000)} นาที (ไม่ได้ใช้งาน)
                     </dd>
@@ -1560,7 +1560,7 @@ export default function AdminDashboard() {
                   <h4 className="text-sm font-semibold text-hui-body">รางวัล (กติกาเริ่มต้น — โค้ดเดิม)</h4>
                   <div className="mt-2 overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
                     <table className="min-w-full text-left text-sm">
-                      <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase text-hui-body">
+                      <thead className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold uppercase text-hui-body">
                         <tr>
                           <th className="px-3 py-2">รหัส</th>
                           <th className="px-3 py-2">รางวัล</th>
@@ -1570,7 +1570,7 @@ export default function AdminDashboard() {
                       <tbody>
                         {(gameInfo.legacy?.prizes || []).map((p) => (
                           <tr key={p.key} className="border-b border-hui-border/70">
-                            <td className="px-3 py-2 font-mono text-xs">{p.key}</td>
+                            <td className="px-3 py-2 font-mono text-sm">{p.key}</td>
                             <td className="px-3 py-2">
                               <span className="mr-1" aria-hidden>
                                 {p.emoji}
@@ -1626,7 +1626,7 @@ export default function AdminDashboard() {
             คำขอที่รอแอดมิน — อนุมัติแล้วระบบจะอัปเดตชื่อ–นามสกุลในบัญชีทันที
           </p>
           <div>
-            <label htmlFor="req-note" className="text-xs font-medium text-hui-body">
+            <label htmlFor="req-note" className="text-sm font-medium text-hui-body">
               หมายเหตุถึงสมาชิก (ไม่บังคับ — ใช้ร่วมกับปุ่มด้านล่าง)
             </label>
             <textarea
@@ -1657,7 +1657,7 @@ export default function AdminDashboard() {
                       {r.requestedFirstName} {r.requestedLastName}
                     </span>
                   </p>
-                  <p className="mt-2 text-xs text-hui-muted">
+                  <p className="mt-2 text-sm text-hui-muted">
                     {new Date(r.createdAt).toLocaleString("th-TH")} · ประเทศชื่อ{" "}
                     {r.countryCode === "TH" ? "ไทย" : r.countryCode}
                   </p>

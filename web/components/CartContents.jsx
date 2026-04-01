@@ -140,7 +140,7 @@ export default function CartContents() {
         <p>ตะกร้าว่าง</p>
         <Link
           href="/shop"
-          className="mt-3 inline-block font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+          className="mt-3 inline-block font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
           ไปเลือกสินค้า
         </Link>
@@ -210,7 +210,7 @@ export default function CartContents() {
                     </>
                   ) : null}
                 </p>
-                <p className="text-xs text-hui-muted">สต็อก {product.stockQty} ชิ้น</p>
+                <p className="text-sm text-hui-muted">สต็อก {product.stockQty} ชิ้น</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <label className="sr-only" htmlFor={`qty-${line.productId}`}>
@@ -255,7 +255,7 @@ export default function CartContents() {
               บันทึกถาวรในออเดอร์ — แก้ค่าเริ่มต้นได้ที่{" "}
               <Link
                 href="/account/profile"
-                className="font-medium text-hui-cta underline decoration-hui-cta/40"
+                className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 โปรไฟล์
               </Link>
@@ -283,7 +283,7 @@ export default function CartContents() {
             <p className="text-sm text-hui-body">
               <Link
                 href="/login?next=/cart"
-                className="font-semibold text-hui-cta underline decoration-hui-cta/40"
+                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 เข้าสู่ระบบ
               </Link>{" "}
@@ -299,7 +299,7 @@ export default function CartContents() {
               {busy ? "กำลังดำเนินการ…" : "ยืนยันออเดอร์ (รอชำระเงิน)"}
             </button>
           )}
-          <p className="text-xs text-hui-muted">
+          <p className="text-sm text-hui-muted">
             ระบบตัดสต็อกทันที · ชำระเงินหลายช่องทางตามที่วางแผนในขั้นถัดไป
           </p>
         </div>

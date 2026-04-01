@@ -186,7 +186,7 @@ export default function AccountRoomRedGiftSection() {
       <form onSubmit={onCreate} className="mt-4 flex flex-col gap-4 border-t border-hui-border/70 pt-4">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-xs font-medium text-hui-body">หัวใจแดง ที่จะแจกต่อรหัส</label>
+            <label className="block text-sm font-medium text-hui-body">หัวใจแดง ที่จะแจกต่อรหัส</label>
             <input
               type="number"
               min={1}
@@ -196,7 +196,7 @@ export default function AccountRoomRedGiftSection() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-hui-body">
+            <label className="block text-sm font-medium text-hui-body">
               จำนวนรหัสที่ต้องการสร้าง (รหัสใช้ได้ครั้งเดียว)
             </label>
             <input
@@ -216,7 +216,7 @@ export default function AccountRoomRedGiftSection() {
             {createBusy ? "กำลังสร้าง…" : "สร้างรหัส"}
           </button>
         </div>
-        <p className="text-xs text-amber-900/90">
+        <p className="text-sm text-amber-900/90">
           คาดว่าจะหักหัวใจแดงรวม <strong>{estimatedRedDeduction.toLocaleString("th-TH")} ดวง</strong>
         </p>
       </form>
@@ -230,7 +230,7 @@ export default function AccountRoomRedGiftSection() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="text-sm font-semibold text-hui-body">
             รหัสที่คุณสร้าง
-            <span className="mt-0.5 block text-xs font-normal text-hui-muted">
+            <span className="mt-0.5 block text-sm font-normal text-hui-muted">
               รหัสที่ยังไม่ถูกใช้งานสามารถกดยกเลิกได้
             </span>
           </h4>
@@ -238,14 +238,14 @@ export default function AccountRoomRedGiftSection() {
             <button
               type="button"
               onClick={exportCsv}
-              className="rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900 hover:bg-emerald-100"
+              className="rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-sm font-medium text-emerald-900 hover:bg-emerald-100"
             >
               ดาวน์โหลดไฟล์ Excel
             </button>
             <button
               type="button"
               onClick={printCodes}
-              className="rounded border border-hui-border bg-hui-pageTop px-2 py-0.5 text-xs font-medium text-hui-body hover:bg-hui-pageTop"
+              className="rounded border border-hui-border bg-hui-pageTop px-2 py-0.5 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
             >
               พิมพ์รายการรหัส
             </button>
@@ -254,7 +254,7 @@ export default function AccountRoomRedGiftSection() {
                 type="button"
                 disabled={deleteAllBusy || listLoading}
                 onClick={() => void onDeleteAllCodes()}
-                className="rounded border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
+                className="rounded border border-red-300 bg-red-50 px-2 py-0.5 text-sm font-medium text-red-900 hover:bg-red-100 disabled:opacity-50"
               >
                 {deleteAllBusy ? "กำลังยกเลิกทั้งหมด…" : "ยกเลิกทั้งหมด"}
               </button>
@@ -262,7 +262,7 @@ export default function AccountRoomRedGiftSection() {
             <button
               type="button"
               onClick={() => loadCodes()}
-              className="text-xs font-medium text-hui-cta underline"
+              className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               รีเฟรช
             </button>
@@ -287,7 +287,7 @@ export default function AccountRoomRedGiftSection() {
               >
                 <code className="font-mono font-semibold text-hui-section">{c.code}</code>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-hui-body">
+                  <span className="text-sm text-hui-body">
                     แดง {c.redAmount} ·{" "}
                     {Number(c.maxUses) <= 1
                       ? `ใช้แล้ว ${c.usesCount}/1 (ครั้งเดียวต่อรหัส)`
@@ -303,7 +303,7 @@ export default function AccountRoomRedGiftSection() {
                     type="button"
                     disabled={Boolean(deleteBusyId) || deleteAllBusy || c.cancelled || c.exhausted}
                     onClick={() => void onDeleteCode(c)}
-                    className="rounded border border-red-200 bg-white px-2 py-0.5 text-xs font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
+                    className="rounded border border-red-200 bg-white px-2 py-0.5 text-sm font-medium text-red-800 hover:bg-red-50 disabled:opacity-50"
                   >
                     {deleteBusyId === String(c.id) ? "กำลังยกเลิก…" : "ยกเลิก"}
                   </button>

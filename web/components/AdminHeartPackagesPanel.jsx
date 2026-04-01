@@ -237,7 +237,7 @@ export default function AdminHeartPackagesPanel() {
         <h3 className="text-sm font-semibold text-hui-body">สร้างแพ็กเกจใหม่</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-hui-body">ชื่อแพ็กเกจ</label>
+            <label className="text-sm font-medium text-hui-body">ชื่อแพ็กเกจ</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -246,7 +246,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-hui-body">รายละเอียด</label>
+            <label className="text-sm font-medium text-hui-body">รายละเอียด</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -254,11 +254,11 @@ export default function AdminHeartPackagesPanel() {
               className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
-          <div className="sm:col-span-2 rounded-lg border border-sky-200 bg-sky-50/80 px-3 py-2 text-xs text-sky-950">
+          <div className="sm:col-span-2 rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 text-sm text-hui-burgundy">
             ไม่มีช่องชมพู — ระบบบังคับแดงแจกอย่างเดียว
           </div>
           <div>
-            <label className="text-xs font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
+            <label className="text-sm font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
             <input
               type="number"
               min={1}
@@ -268,7 +268,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-hui-body">ราคา (บาท)</label>
+            <label className="text-sm font-medium text-hui-body">ราคา (บาท)</label>
             <input
               type="number"
               min={0}
@@ -278,7 +278,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-hui-body">ลำดับแสดง</label>
+            <label className="text-sm font-medium text-hui-body">ลำดับแสดง</label>
             <input
               type="number"
               value={sortOrder}
@@ -286,11 +286,11 @@ export default function AdminHeartPackagesPanel() {
               className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
-          <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+          <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-950">
             ข้อมูลรับโอน — สมาชิกจะเห็นตอนเลือกแพ็กเพื่อโอนและแนบสลิป
           </div>
           <div>
-            <label className="text-xs font-medium text-hui-body">ชื่อบัญชี (รับโอน)</label>
+            <label className="text-sm font-medium text-hui-body">ชื่อบัญชี (รับโอน)</label>
             <input
               value={paymentAccountName}
               onChange={(e) => setPaymentAccountName(e.target.value)}
@@ -299,7 +299,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-hui-body">หมายเลขบัญชี</label>
+            <label className="text-sm font-medium text-hui-body">หมายเลขบัญชี</label>
             <input
               value={paymentAccountNumber}
               onChange={(e) => setPaymentAccountNumber(e.target.value)}
@@ -308,7 +308,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-hui-body">ชื่อธนาคาร</label>
+            <label className="text-sm font-medium text-hui-body">ชื่อธนาคาร</label>
             <input
               value={paymentBankName}
               onChange={(e) => setPaymentBankName(e.target.value)}
@@ -317,7 +317,7 @@ export default function AdminHeartPackagesPanel() {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-hui-body">อัปโหลด QR โค้ด (สแกนจ่าย)</label>
+            <label className="text-sm font-medium text-hui-body">อัปโหลด QR โค้ด (สแกนจ่าย)</label>
             <input
               type="file"
               accept="image/*"
@@ -345,7 +345,7 @@ export default function AdminHeartPackagesPanel() {
       ) : (
         <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase text-hui-body">
+            <thead className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold uppercase text-hui-body">
               <tr>
                 <th className="px-3 py-2">ชื่อ</th>
                 <th className="px-3 py-2">แดงแจก</th>
@@ -368,7 +368,7 @@ export default function AdminHeartPackagesPanel() {
                     <td className="px-3 py-2 font-medium">{p.title}</td>
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
-                    <td className="px-3 py-2 text-xs text-hui-body">
+                    <td className="px-3 py-2 text-sm text-hui-body">
                       {p.paymentAccountName && p.paymentQrUrl ? (
                         <span className="text-emerald-800">ครบ</span>
                       ) : (
@@ -384,7 +384,7 @@ export default function AdminHeartPackagesPanel() {
                           type="button"
                           disabled={busyId === p.id}
                           onClick={() => openEdit(p)}
-                          className="text-xs font-semibold text-hui-cta underline"
+                          className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                         >
                           แก้ไข
                         </button>
@@ -393,13 +393,13 @@ export default function AdminHeartPackagesPanel() {
                             type="button"
                             disabled={busyId === p.id}
                             onClick={() => void closeSale(p)}
-                            className="text-xs font-semibold text-hui-cta underline"
+                            className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                           >
                             ปิดการขาย
                           </button>
                         ) : (
                           <span
-                            className="cursor-not-allowed select-none text-xs font-semibold text-hui-muted underline decoration-hui-border"
+                            className="cursor-not-allowed select-none text-sm font-semibold text-hui-muted underline decoration-hui-border"
                             title="ปิดการขายแล้ว — เปิดผ่านหน้านี้ไม่ได้ (ถือว่าปิดถาวร)"
                           >
                             เปิดการขาย
@@ -409,7 +409,7 @@ export default function AdminHeartPackagesPanel() {
                           type="button"
                           disabled={busyId === p.id}
                           onClick={() => void deletePkg(p)}
-                          className="text-xs font-semibold text-red-700 underline"
+                          className="text-sm font-semibold text-red-700 underline"
                         >
                           ลบ
                         </button>
@@ -429,12 +429,12 @@ export default function AdminHeartPackagesPanel() {
           className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3"
         >
           <h3 className="text-sm font-semibold text-hui-section">แก้ไขแพ็กเกจ</h3>
-          <p className="text-xs text-hui-body">
+          <p className="text-sm text-hui-body">
             แก้ชื่อ ราคา ยอดแดง หรือบัญชีรับโอน / QR ได้ตลอด — ช่อง QR เว้นว่างถ้าใช้รูปเดิม
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-hui-body">ชื่อแพ็กเกจ</label>
+              <label className="text-sm font-medium text-hui-body">ชื่อแพ็กเกจ</label>
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
@@ -442,7 +442,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-hui-body">รายละเอียด</label>
+              <label className="text-sm font-medium text-hui-body">รายละเอียด</label>
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
@@ -451,7 +451,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
+              <label className="text-sm font-medium text-red-700">หัวใจแดง (แจก) จำนวนดวง</label>
               <input
                 type="number"
                 min={1}
@@ -461,7 +461,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-hui-body">ราคา (บาท)</label>
+              <label className="text-sm font-medium text-hui-body">ราคา (บาท)</label>
               <input
                 type="number"
                 min={0}
@@ -471,7 +471,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-hui-body">ลำดับแสดง</label>
+              <label className="text-sm font-medium text-hui-body">ลำดับแสดง</label>
               <input
                 type="number"
                 value={editSortOrder}
@@ -479,11 +479,11 @@ export default function AdminHeartPackagesPanel() {
                 className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
-            <div className="sm:col-span-2 rounded-lg border border-white/60 bg-white/50 px-3 py-2 text-xs text-hui-body">
+            <div className="sm:col-span-2 rounded-lg border border-white/60 bg-white/50 px-3 py-2 text-sm text-hui-body">
               บัญชีรับโอนและ QR (สมาชิกเห็นตอนซื้อ)
             </div>
             <div>
-              <label className="text-xs font-medium text-hui-body">ชื่อบัญชี</label>
+              <label className="text-sm font-medium text-hui-body">ชื่อบัญชี</label>
               <input
                 value={editPayName}
                 onChange={(e) => setEditPayName(e.target.value)}
@@ -491,7 +491,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-hui-body">หมายเลขบัญชี</label>
+              <label className="text-sm font-medium text-hui-body">หมายเลขบัญชี</label>
               <input
                 value={editPayNumber}
                 onChange={(e) => setEditPayNumber(e.target.value)}
@@ -499,7 +499,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-hui-body">ชื่อธนาคาร</label>
+              <label className="text-sm font-medium text-hui-body">ชื่อธนาคาร</label>
               <input
                 value={editPayBank}
                 onChange={(e) => setEditPayBank(e.target.value)}
@@ -507,7 +507,7 @@ export default function AdminHeartPackagesPanel() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-hui-body">
+              <label className="text-sm font-medium text-hui-body">
                 อัปโหลด QR ใหม่ (เว้นว่างถ้าคงรูปเดิม)
               </label>
               <input
@@ -517,13 +517,13 @@ export default function AdminHeartPackagesPanel() {
                 className="mt-1 block w-full text-sm"
               />
               {editPkg.paymentQrUrl ? (
-                <p className="mt-1 text-xs text-hui-muted">
+                <p className="mt-1 text-sm text-hui-muted">
                   รูปปัจจุบัน:{" "}
                   <a
                     href={editPkg.paymentQrUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-hui-cta underline"
+                    className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   >
                     เปิดดู
                   </a>

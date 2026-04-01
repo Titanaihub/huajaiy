@@ -201,14 +201,14 @@ export default function AccountMyHeartsSection() {
 
       <section className="max-w-2xl">
         <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
-          <p className="text-xs font-semibold uppercase tracking-wide text-hui-section">
+          <p className="text-sm font-semibold uppercase tracking-wide text-hui-section">
             หัวใจชมพู (ยอดสรุปหัวใจที่ได้มา)
           </p>
           <p className="mt-2 flex items-center gap-2 text-2xl font-bold text-hui-burgundy md:text-[1.75rem]">
             <InlineHeart className="text-hui-pink" />
             {pink.toLocaleString("th-TH")}
           </p>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-hui-section">
+          <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-hui-section">
             หัวใจแดงจากรหัสห้อง (ใช้งานจริง)
           </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-hui-cta">
@@ -218,26 +218,26 @@ export default function AccountMyHeartsSection() {
           <button
             type="button"
             onClick={() => refresh()}
-            className="mt-3 text-xs font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+            className="mt-3 text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             รีเฟรชยอด
           </button>
-          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <Link
               href="/account/heart-history/play"
-              className="font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               ประวัติหัวใจ (เล่นเกม)
             </Link>
             <Link
               href="/account/hearts-shop"
-              className="font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               ซื้อหัวใจแดง
             </Link>
             <Link
               href="/game"
-              className="font-semibold text-hui-cta underline decoration-hui-cta/35 underline-offset-2 hover:brightness-95"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               รายการเกมทั้งหมด
             </Link>
@@ -272,7 +272,7 @@ export default function AccountMyHeartsSection() {
 
           {roomGift.length > 0 ? (
             <div className="mt-4 border-t border-hui-border/80 pt-4">
-              <p className="mb-3 text-xs font-semibold text-hui-section">แยกตามห้อง</p>
+              <p className="mb-3 text-sm font-semibold text-hui-section">แยกตามห้อง</p>
               <ul className="space-y-4">
             {roomGift.map((g) => {
               const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
@@ -304,10 +304,10 @@ export default function AccountMyHeartsSection() {
                     </p>
                   </div>
                   {g.creatorUsername ? (
-                    <p className="mt-1 text-xs text-amber-900/80">
+                    <p className="mt-1 text-sm text-amber-900/80">
                       <Link
                         href={`/u/${encodeURIComponent(normUser(g.creatorUsername))}`}
-                        className="font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+                        className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                       >
                         หน้าโปรไฟล์ @{g.creatorUsername}
                       </Link>
@@ -316,9 +316,9 @@ export default function AccountMyHeartsSection() {
 
                   <div className="mt-3">
                     {gamesLoading ? (
-                      <p className="text-xs text-amber-900/70">กำลังโหลดรายการเกม…</p>
+                      <p className="text-sm text-amber-900/70">กำลังโหลดรายการเกม…</p>
                     ) : gamesErr ? (
-                      <p className="text-xs text-red-700">{gamesErr}</p>
+                      <p className="text-sm text-red-700">{gamesErr}</p>
                     ) : creatorGames.length > 0 ? (
                       <ul className="space-y-2">
                         {creatorGames.map((game) => (
@@ -333,11 +333,11 @@ export default function AccountMyHeartsSection() {
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-xs text-amber-900/85">
+                      <p className="text-sm text-amber-900/85">
                         ยังไม่พบเกมที่เผยแพร่ของ {label} ในรายการตอนนี้ — ลอง{" "}
                         <Link
                           href="/game"
-                          className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2"
+                          className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                         >
                           ดูรายการเกมทั้งหมด
                         </Link>{" "}
@@ -347,14 +347,14 @@ export default function AccountMyHeartsSection() {
                   </div>
 
                   <details className="mt-3 rounded-lg border border-amber-200 bg-white/90 p-3">
-                    <summary className="cursor-pointer text-xs font-semibold text-amber-900">
+                    <summary className="cursor-pointer text-sm font-semibold text-amber-900">
                       ดูรายละเอียด
                     </summary>
                     <div className="mt-2 overflow-x-auto">
                       {rowsWithBalance.length === 0 ? (
-                        <p className="text-xs text-amber-900/80">ยังไม่มีประวัติการรับ/ใช้หัวใจของห้องนี้</p>
+                        <p className="text-sm text-amber-900/80">ยังไม่มีประวัติการรับ/ใช้หัวใจของห้องนี้</p>
                       ) : (
-                        <table className="min-w-full text-left text-xs">
+                        <table className="min-w-full text-left text-sm">
                           <thead>
                             <tr className="border-b border-amber-100 text-amber-900/80">
                               <th className="px-1 py-1">วันที่</th>

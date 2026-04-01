@@ -35,7 +35,7 @@ export default function AdminPage() {
             กำลังพาไปหน้าเข้าสู่ระบบ… หรือ{" "}
             <Link
               href="/login?next=/admin"
-              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+              className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               กดที่นี่
             </Link>

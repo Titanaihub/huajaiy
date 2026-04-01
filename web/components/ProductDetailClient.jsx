@@ -45,7 +45,7 @@ export default function ProductDetailClient({ productId }) {
         <p className="text-sm text-red-600">{err || "ไม่พบสินค้า"}</p>
         <Link
           href="/shop"
-          className="mt-4 inline-block text-sm font-medium text-hui-cta underline decoration-hui-cta/40"
+          className="mt-4 inline-block text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           ← กลับร้านค้า
         </Link>

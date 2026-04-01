@@ -65,7 +65,7 @@ export default function GameApiLiveStatus({ gameId = null } = {}) {
 
   return (
     <p
-      className={`mt-3 rounded-lg border px-3 py-2 text-xs leading-snug ${border}`}
+      className={`mt-3 rounded-lg border px-3 py-2 text-sm leading-snug ${border}`}
       role="status"
       aria-live="polite"
     >

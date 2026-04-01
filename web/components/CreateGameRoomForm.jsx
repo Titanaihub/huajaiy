@@ -152,7 +152,7 @@ export default function CreateGameRoomForm() {
         <p className="mt-2">
           <Link
             href="/login?next=/account/create-game"
-            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             เข้าสู่ระบบ
           </Link>
@@ -168,7 +168,7 @@ export default function CreateGameRoomForm() {
             <h3 className="hui-h3 leading-snug">
               วัตถุประสงค์ในการเปิดห้องเกม
             </h3>
-            <p className="mt-2 text-xs leading-relaxed text-hui-muted">
+            <p className="mt-2 text-sm leading-relaxed text-hui-muted">
               เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
             </p>
           </div>
@@ -193,7 +193,7 @@ export default function CreateGameRoomForm() {
             <div className="mt-4">
               <label
                 htmlFor="otherReason"
-                className="block text-xs font-medium text-hui-section"
+                className="block text-sm font-medium text-hui-section"
               >
                 เหตุผล (อื่นๆ) <span className="text-red-600">*</span>
               </label>
@@ -256,7 +256,7 @@ export default function CreateGameRoomForm() {
           <label htmlFor="prizeConditions" className="hui-label">
             เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
           </label>
-          <p className="mt-1 text-xs text-hui-muted">
+          <p className="mt-1 text-sm text-hui-muted">
             ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
           </p>
           <textarea
@@ -283,7 +283,7 @@ export default function CreateGameRoomForm() {
           </span>
         </label>
 
-        <p className="text-xs leading-relaxed text-hui-muted">
+        <p className="text-sm leading-relaxed text-hui-muted">
           หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
           <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
           <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
@@ -309,13 +309,13 @@ export default function CreateGameRoomForm() {
           </button>
           <Link
             href="/account"
-            className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ← กลับหลังบ้าน
           </Link>
           <Link
             href="/account/my-games"
-            className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+            className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             เกมของฉัน
           </Link>

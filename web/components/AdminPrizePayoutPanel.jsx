@@ -288,20 +288,20 @@ function PendingWithdrawalRow({ row, token, onDone }) {
       <td className="whitespace-nowrap px-2 py-2.5 text-hui-body">{formatWonAt(row.createdAt)}</td>
       <td className="px-2 py-2.5">
         <span className="font-medium text-hui-section">{row.requesterDisplayName || "—"}</span>
-        <span className="mt-0.5 block text-xs text-hui-muted">
+        <span className="mt-0.5 block text-sm text-hui-muted">
           ถอนจาก {creator} · บัญชี {row.accountHolderName}
         </span>
       </td>
       <td className="whitespace-nowrap px-2 py-2.5 font-semibold tabular-nums text-emerald-900">
         {formatBahtTotal(row.amountThb)} ฿
       </td>
-      <td className="px-2 py-2.5 font-mono text-xs">{row.accountNumber}</td>
+      <td className="px-2 py-2.5 font-mono text-sm">{row.accountNumber}</td>
       <td className="px-2 py-2.5">{row.bankName}</td>
       <td className="px-2 py-2.5">
         <input
           type="file"
           accept="image/*"
-          className="max-w-[140px] text-xs"
+          className="max-w-[140px] text-sm"
           disabled={busy}
           onChange={(e) => {
             setSlipFile(e.target.files?.[0] || null);
@@ -313,7 +313,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
             href={slipUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 block text-xs font-medium text-hui-cta underline"
+            className="mt-1 block text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             ดูสลิปที่แนบแล้ว
           </a>
@@ -325,7 +325,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
             type="button"
             disabled={busy}
             onClick={() => void handleApprove()}
-            className="hui-btn-primary px-2 py-1.5 text-xs disabled:opacity-50"
+            className="hui-btn-primary px-2 py-1.5 text-sm disabled:opacity-50"
           >
             {busy ? "…" : "อนุมัติ"}
           </button>
@@ -334,7 +334,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
               type="button"
               disabled={busy}
               onClick={() => setRejectOpen(true)}
-              className="rounded-lg border border-hui-border bg-white px-2 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-pageTop disabled:opacity-50"
+              className="rounded-lg border border-hui-border bg-white px-2 py-1.5 text-sm font-semibold text-hui-body hover:bg-hui-pageTop disabled:opacity-50"
             >
               ยกเลิกการถอน
             </button>
@@ -345,14 +345,14 @@ function PendingWithdrawalRow({ row, token, onDone }) {
                 onChange={(e) => setRejectNote(e.target.value.slice(0, 500))}
                 placeholder="หมายเหตุ (บังคับ) เช่น ชื่อไม่ตรงบัญชี"
                 rows={2}
-                className="w-full min-w-[160px] rounded border border-hui-border px-2 py-1 text-xs"
+                className="w-full min-w-[160px] rounded border border-hui-border px-2 py-1 text-sm"
               />
               <div className="flex gap-1">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => void handleReject()}
-                  className="rounded bg-rose-700 px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-50"
+                  className="rounded bg-rose-700 px-2 py-1 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   ยืนยันยกเลิก
                 </button>
@@ -363,14 +363,14 @@ function PendingWithdrawalRow({ row, token, onDone }) {
                     setRejectOpen(false);
                     setRejectNote("");
                   }}
-                  className="text-[11px] text-hui-body underline"
+                  className="text-sm text-hui-body underline"
                 >
                   ปิด
                 </button>
               </div>
             </div>
           )}
-          {err ? <p className="text-[11px] text-red-600">{err}</p> : null}
+          {err ? <p className="text-sm text-red-600">{err}</p> : null}
         </div>
       </td>
     </tr>
@@ -409,7 +409,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
+            <tr className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold text-hui-body">
               <th className="px-3 py-2.5">ชื่อ–นามสกุล (ผู้ได้รับรางวัล)</th>
               <th className="px-3 py-2.5">หัวใจแดงเล่นได้</th>
               <th className="px-3 py-2.5">เงินรางวัล (รวมเงินสด)</th>
@@ -423,8 +423,8 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
             <tr>
               <td className="px-3 py-3">
                 <p className="font-semibold text-hui-section">{w.primary}</p>
-                {w.secondary ? <p className="text-xs text-hui-body">{w.secondary}</p> : null}
-                <p className="mt-0.5 text-[11px] text-red-700">
+                {w.secondary ? <p className="text-sm text-hui-body">{w.secondary}</p> : null}
+                <p className="mt-0.5 text-sm text-red-700">
                   หัวใจแดงเล่นได้:{" "}
                   {Math.max(0, Math.floor(Number(group.winnerRedHeartsBalance) || 0)).toLocaleString(
                     "th-TH"
@@ -450,7 +450,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                 <button
                   type="button"
                   onClick={() => setOpen((v) => !v)}
-                  className="text-sm font-semibold text-hui-cta underline"
+                  className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   aria-expanded={open}
                 >
                   {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
@@ -462,7 +462,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       </div>
 
       {pendingHold > 0 ? (
-        <p className="border-t border-amber-100 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+        <p className="border-t border-amber-100 bg-amber-50/80 px-3 py-2 text-sm text-amber-950">
           มีคำขอถอนรอดำเนินการ{" "}
           <span className="font-semibold tabular-nums">{formatBahtTotal(pendingHold)} บาท</span>
         </p>
@@ -471,7 +471,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       {open ? (
         <div className="border-t border-hui-border/70 p-3">
           <div className="overflow-x-auto rounded-lg border border-hui-border">
-            <table className="min-w-[860px] w-full border-collapse text-left text-xs sm:text-sm">
+            <table className="min-w-[860px] w-full border-collapse text-left text-sm sm:text-sm">
               <thead>
                 <tr className="border-b border-hui-border bg-hui-pageTop font-semibold text-hui-body">
                   <th className="whitespace-nowrap px-2 py-2">วันที่</th>
@@ -497,7 +497,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                           "—"
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2 font-mono text-[11px] text-hui-body">
+                      <td className="whitespace-nowrap px-2 py-2 font-mono text-sm text-hui-body">
                         {displayGameCode(row.award)}
                       </td>
                       <td className="px-2 py-2 text-hui-body">{row.award.gameTitle}</td>
@@ -524,7 +524,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                       <td className="px-2 py-2 text-hui-muted">—</td>
                       <td className="px-2 py-2">
                         <span className="font-medium text-rose-900">ถอนเงิน</span>
-                        <span className="mt-0.5 block text-[11px] text-hui-body">
+                        <span className="mt-0.5 block text-sm text-hui-body">
                           {row.withdrawal.accountNumber} · {row.withdrawal.bankName}
                         </span>
                       </td>
@@ -667,7 +667,7 @@ export default function AdminPrizePayoutPanel() {
       {tab === "rewards" ? (
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[180px] flex-1">
-            <label className="block text-xs font-medium text-hui-body">กรองตามเกม</label>
+            <label className="block text-sm font-medium text-hui-body">กรองตามเกม</label>
             <select
               value={gameFilter}
               onChange={(e) => setGameFilter(e.target.value)}
@@ -683,7 +683,7 @@ export default function AdminPrizePayoutPanel() {
             </select>
           </div>
           <div className="min-w-[200px] flex-[2]">
-            <label className="block text-xs font-medium text-hui-body">
+            <label className="block text-sm font-medium text-hui-body">
               ค้นหา (ชื่อเกม รหัส ยูสเซอร์ ชื่อ รางวัล ผู้สร้าง)
             </label>
             <input
@@ -719,7 +719,7 @@ export default function AdminPrizePayoutPanel() {
           <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
             <table className="min-w-[960px] w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
+                <tr className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold text-hui-body">
                   <th className="px-2 py-2.5">วันที่ขอถอน</th>
                   <th className="px-2 py-2.5">ชื่อ–นามสกุล</th>
                   <th className="px-2 py-2.5">จำนวนเงิน</th>
@@ -746,7 +746,7 @@ export default function AdminPrizePayoutPanel() {
 
       {!loading && !err && tab === "rewards" ? (
         <>
-          <p className="text-xs text-hui-body">
+          <p className="text-sm text-hui-body">
             สรุปตามผู้ได้รับรางวัล · ยอดถอน = เงินที่อนุมัติถอนแล้ว · ยอดคงเหลือ = เงินรางวัลเงินสดรวม − ถอนแล้ว − รอถอน
           </p>
           {recipientGroups.length === 0 ? (

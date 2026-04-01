@@ -142,7 +142,7 @@ export default function AdminHeartPurchasesPanel() {
           คำขอที่รอแอดมินตรวจสลิป — อนุมัติแล้วระบบจะเติมหัวใจชมพู/แดงตามแพ็กเกจที่ซื้อ (ตอนสั่งซื้อ)
         </p>
         <div>
-          <label className="text-xs font-medium text-hui-body">
+          <label className="text-sm font-medium text-hui-body">
             หมายเหตุถึงสมาชิก (ไม่บังคับ)
           </label>
           <textarea
@@ -191,7 +191,7 @@ export default function AdminHeartPurchasesPanel() {
                   )}{" "}
                   · ราคาตอนซื้อ ฿{p.priceThbSnapshot?.toLocaleString("th-TH")}
                 </p>
-                <p className="mt-1 text-xs text-hui-muted">
+                <p className="mt-1 text-sm text-hui-muted">
                   {new Date(p.createdAt).toLocaleString("th-TH")} · {statusThai(p.status)}
                 </p>
                 <p className="mt-2">
@@ -199,7 +199,7 @@ export default function AdminHeartPurchasesPanel() {
                     href={p.slipUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-semibold text-hui-cta underline"
+                    className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                   >
                     เปิดดูสลิปโอนเงิน
                   </a>
@@ -236,19 +236,19 @@ export default function AdminHeartPurchasesPanel() {
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
-            <p className="text-xs font-medium text-hui-body">รายการที่ตรงตัวกรอง</p>
+            <p className="text-sm font-medium text-hui-body">รายการที่ตรงตัวกรอง</p>
             <p className="mt-1 text-lg font-semibold tabular-nums text-hui-section">
               {histTotal.toLocaleString("th-TH")} รายการ
             </p>
           </div>
           <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
-            <p className="text-xs font-medium text-hui-body">ยอดสั่งซื้อ (ราคาในรายการที่กรอง)</p>
+            <p className="text-sm font-medium text-hui-body">ยอดสั่งซื้อ (ราคาในรายการที่กรอง)</p>
             <p className="mt-1 text-lg font-semibold tabular-nums text-hui-section">
               ฿{histSummary.sumPriceThb.toLocaleString("th-TH")}
             </p>
           </div>
           <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
-            <p className="text-xs font-medium text-hui-body">หัวใจที่อนุมัติจ่ายแล้ว (ในรายการที่กรอง)</p>
+            <p className="text-sm font-medium text-hui-body">หัวใจที่อนุมัติจ่ายแล้ว (ในรายการที่กรอง)</p>
             <p className="mt-1 text-sm tabular-nums text-hui-section">
               แดงแจก <span className="font-semibold text-red-700">{histSummary.sumRedApproved}</span>
               {histSummary.sumPinkApproved > 0 ? (
@@ -266,7 +266,7 @@ export default function AdminHeartPurchasesPanel() {
 
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div>
-            <label className="text-xs font-medium text-hui-body">สถานะ</label>
+            <label className="text-sm font-medium text-hui-body">สถานะ</label>
             <select
               value={histStatus}
               onChange={(e) => {
@@ -282,7 +282,7 @@ export default function AdminHeartPurchasesPanel() {
             </select>
           </div>
           <div className="min-w-[200px] flex-1">
-            <label className="text-xs font-medium text-hui-body">ค้นหาผู้ใช้ (ยูสเซอร์ / ชื่อ)</label>
+            <label className="text-sm font-medium text-hui-body">ค้นหาผู้ใช้ (ยูสเซอร์ / ชื่อ)</label>
             <input
               type="search"
               value={histQ}
@@ -321,7 +321,7 @@ export default function AdminHeartPurchasesPanel() {
           <p className="mt-4 text-sm text-hui-muted">ไม่มีรายการตามตัวกรอง</p>
         ) : (
           <>
-            <p className="mt-2 text-xs text-hui-muted">
+            <p className="mt-2 text-sm text-hui-muted">
               แสดง {histOffset + 1}–{histEnd} จาก {histTotal.toLocaleString("th-TH")}
             </p>
             <div className="mt-3 overflow-x-auto rounded-xl border border-hui-border">
@@ -341,20 +341,20 @@ export default function AdminHeartPurchasesPanel() {
                 <tbody className="divide-y divide-hui-border/70 bg-white">
                   {hist.map((p) => (
                     <tr key={p.id} className="hover:bg-hui-pageTop/90">
-                      <td className="whitespace-nowrap px-3 py-2 text-xs text-hui-body">
+                      <td className="whitespace-nowrap px-3 py-2 text-sm text-hui-body">
                         {new Date(p.createdAt).toLocaleString("th-TH")}
                       </td>
                       <td className="px-3 py-2 text-hui-body">
                         <span className="font-medium">@{p.buyerUsername || "?"}</span>
                         <br />
-                        <span className="text-xs text-hui-muted">
+                        <span className="text-sm text-hui-muted">
                           {p.buyerFirstName} {p.buyerLastName}
                         </span>
                       </td>
-                      <td className="max-w-[140px] px-3 py-2 text-xs text-hui-body">
+                      <td className="max-w-[140px] px-3 py-2 text-sm text-hui-body">
                         {p.packageTitle}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-xs">
+                      <td className="whitespace-nowrap px-3 py-2 text-sm">
                         {p.pinkQty > 0 ? (
                           <>
                             ชมพู {p.pinkQty} · แดง {p.redQty}
@@ -366,7 +366,7 @@ export default function AdminHeartPurchasesPanel() {
                       <td className="whitespace-nowrap px-3 py-2 tabular-nums text-hui-body">
                         ฿{Number(p.priceThbSnapshot || 0).toLocaleString("th-TH")}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-xs">
+                      <td className="whitespace-nowrap px-3 py-2 text-sm">
                         {statusThai(p.status)}
                         {p.resolvedAt ? (
                           <span className="block text-hui-muted">
@@ -374,7 +374,7 @@ export default function AdminHeartPurchasesPanel() {
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-3 py-2 text-xs text-hui-body">
+                      <td className="px-3 py-2 text-sm text-hui-body">
                         {p.resolverUsername ? `@${p.resolverUsername}` : "—"}
                       </td>
                       <td className="px-3 py-2">
@@ -383,12 +383,12 @@ export default function AdminHeartPurchasesPanel() {
                             href={p.slipUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-semibold text-hui-cta underline"
+                            className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                           >
                             เปิด
                           </a>
                         ) : (
-                          <span className="text-xs text-hui-muted">—</span>
+                          <span className="text-sm text-hui-muted">—</span>
                         )}
                       </td>
                     </tr>

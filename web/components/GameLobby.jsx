@@ -99,7 +99,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                         </span>
                       </p>
                       {heartLine ? (
-                        <p className="mt-1 text-xs font-medium text-rose-600/90">
+                        <p className="mt-1 text-sm font-medium text-rose-600/90">
                           {heartLine}
                         </p>
                       ) : null}

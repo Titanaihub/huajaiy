@@ -168,7 +168,7 @@ function RuleEditorRow({
     >
       {showSetPicker ? (
         <div className="sm:col-span-1">
-          <label className="text-xs text-hui-muted">ชุด (0=ชุด1)</label>
+          <label className="text-sm text-hui-muted">ชุด (0=ชุด1)</label>
           <input
             type="number"
             min={0}
@@ -176,24 +176,24 @@ function RuleEditorRow({
             value={r.setIndex}
             onChange={(e) => updateRule(idx, "setIndex", e.target.value)}
             disabled={structureLocked}
-            className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+            className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
           />
         </div>
       ) : null}
       <div className="sm:col-span-1">
-        <label className="text-xs text-hui-muted">ลำดับตรวจ</label>
+        <label className="text-sm text-hui-muted">ลำดับตรวจ</label>
         <input
           type="number"
           min={0}
           value={r.sortOrder}
           onChange={(e) => updateRule(idx, "sortOrder", e.target.value)}
           disabled={structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
           title="เลขน้อยตรวจก่อน — ค่าเริ่มต้นตามเลขชุด ปรับได้เมื่อต้องการสลับลำดับระหว่างชุด"
         />
       </div>
       <div className="sm:col-span-1">
-        <label className="text-xs text-hui-muted">เปิดครบ (สูงสุด {cap})</label>
+        <label className="text-sm text-hui-muted">เปิดครบ (สูงสุด {cap})</label>
         <input
           type="number"
           min={1}
@@ -201,14 +201,14 @@ function RuleEditorRow({
           value={r.needCount}
           onChange={(e) => updateRule(idx, "needCount", e.target.value)}
           disabled={structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
         />
       </div>
       <div className="sm:col-span-1">
-        <label className="text-xs text-hui-muted">จำนวนรางวัล</label>
+        <label className="text-sm text-hui-muted">จำนวนรางวัล</label>
         {r.prizeCategory === "none" ? (
           <div
-            className="mt-1 rounded border border-dashed border-hui-border bg-hui-pageTop px-1 py-1.5 text-center text-xs leading-tight text-hui-muted"
+            className="mt-1 rounded border border-dashed border-hui-border bg-hui-pageTop px-1 py-1.5 text-center text-sm leading-tight text-hui-muted"
             title="หมวดไม่มีรางวัล"
           >
             ไม่จำกัด
@@ -227,7 +227,7 @@ function RuleEditorRow({
                   Math.max(prizeQtyMin, parseInt(e.target.value, 10) || prizeQtyMin)
                 )
               }
-              className="mt-1 w-full rounded border px-1 py-1 text-xs"
+              className="mt-1 w-full rounded border px-1 py-1 text-sm"
               title={
                 gamePrizeQtyLocked && prizeQtyMin > 1
                   ? `หลังเผยแพร่แล้วตั้งขั้นต่ำ ${prizeQtyMin} — เพิ่มได้อย่างเดียว`
@@ -237,18 +237,18 @@ function RuleEditorRow({
               }
             />
             {gamePrizeQtyLocked ? (
-              <p className="mt-0.5 text-xs leading-tight text-hui-muted">
+              <p className="mt-0.5 text-sm leading-tight text-hui-muted">
                 หลังเผยแพร่: เพิ่มได้เท่านั้น (ขั้นต่ำ {prizeQtyMin})
               </p>
             ) : null}
-            <p className="mt-0.5 text-xs leading-tight text-hui-muted">
+            <p className="mt-0.5 text-sm leading-tight text-hui-muted">
               รับรางวัลแล้ว {awardedCount} · เหลือ {remainingQty} จากทั้งหมด {totalQty}
             </p>
           </>
         )}
       </div>
       <div className="sm:col-span-2">
-        <label className="text-xs text-hui-muted">หมวดรางวัล</label>
+        <label className="text-sm text-hui-muted">หมวดรางวัล</label>
         <select
           value={r.prizeCategory}
           onChange={(e) => {
@@ -276,7 +276,7 @@ function RuleEditorRow({
             );
           }}
           disabled={structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
         >
           <option value="cash">เงินสด</option>
           <option value="item">สิ่งของ</option>
@@ -284,32 +284,32 @@ function RuleEditorRow({
         </select>
       </div>
       <div className="sm:col-span-2">
-        <label className="text-xs text-hui-muted">หัวข้อรางวัล</label>
+        <label className="text-sm text-hui-muted">หัวข้อรางวัล</label>
         <input
           value={r.prizeTitle}
           onChange={(e) => updateRule(idx, "prizeTitle", e.target.value)}
           disabled={isNone || structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
           placeholder="เช่น รางวัลที่ 1"
         />
       </div>
       <div className="sm:col-span-2">
-        <label className="text-xs text-hui-muted">รายละเอียด</label>
+        <label className="text-sm text-hui-muted">รายละเอียด</label>
         <input
           value={r.prizeValueText}
           onChange={(e) => updateRule(idx, "prizeValueText", e.target.value)}
           disabled={isNone || structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
           placeholder="เช่น 1000"
         />
       </div>
       <div className="sm:col-span-1">
-        <label className="text-xs text-hui-muted">หน่วย</label>
+        <label className="text-sm text-hui-muted">หน่วย</label>
         <select
           value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
           onChange={(e) => updateRule(idx, "prizeUnit", e.target.value)}
           disabled={isNone || structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
@@ -319,12 +319,12 @@ function RuleEditorRow({
         </select>
       </div>
       <div className="sm:col-span-2">
-        <label className="text-xs text-hui-muted">การจ่ายรางวัล</label>
+        <label className="text-sm text-hui-muted">การจ่ายรางวัล</label>
         <select
           value={fulfillGrid}
           onChange={(e) => updateRule(idx, "prizeFulfillmentMode", e.target.value)}
           disabled={isNone || structureLocked}
-          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
+          className="mt-1 w-full rounded border px-1 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop disabled:text-hui-muted"
         >
           {r.prizeCategory === "cash" ? (
             <>
@@ -342,12 +342,12 @@ function RuleEditorRow({
         </select>
       </div>
       <div className={showSetPicker ? "sm:col-span-full" : "sm:col-span-12"}>
-        <label className="text-xs text-hui-muted">หมายเหตุ</label>
+        <label className="text-sm text-hui-muted">หมายเหตุ</label>
         <input
           value={r.description}
           onChange={(e) => updateRule(idx, "description", e.target.value)}
           disabled={structureLocked}
-          className="mt-1 w-full rounded border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+          className="mt-1 w-full rounded border px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
         />
       </div>
     </div>
@@ -1031,12 +1031,12 @@ export default function AdminCentralGamePanel({
           aria-expanded={createExpanded}
         >
           <span>สร้างเกมใหม่ {createExpanded ? "▼" : "▶"}</span>
-          <span className="text-xs font-normal text-hui-muted">แสดงเฉพาะเมื่อต้องการสร้าง — ไม่ซ้ำกับฟอร์มแก้ไขด้านล่าง</span>
+          <span className="text-sm font-normal text-hui-muted">แสดงเฉพาะเมื่อต้องการสร้าง — ไม่ซ้ำกับฟอร์มแก้ไขด้านล่าง</span>
         </button>
         {createExpanded ? (
           <form onSubmit={createGame} className="mt-4 grid gap-3 border-t border-hui-border pt-4 sm:grid-cols-2">
             <div>
-              <label className="text-xs text-hui-body">ชื่อเกม</label>
+              <label className="text-sm text-hui-body">ชื่อเกม</label>
               <input
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
@@ -1045,7 +1045,7 @@ export default function AdminCentralGamePanel({
               />
             </div>
             <div>
-              <label className="text-xs text-hui-body">รหัสเกม</label>
+              <label className="text-sm text-hui-body">รหัสเกม</label>
               <input
                 readOnly
                 value=""
@@ -1054,7 +1054,7 @@ export default function AdminCentralGamePanel({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs text-hui-body">รายละเอียด</label>
+              <label className="text-sm text-hui-body">รายละเอียด</label>
               <textarea
                 value={newGameDescription}
                 onChange={(e) => setNewGameDescription(e.target.value)}
@@ -1064,7 +1064,7 @@ export default function AdminCentralGamePanel({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs text-hui-body">จำนวนชุดภาพ</label>
+              <label className="text-sm text-hui-body">จำนวนชุดภาพ</label>
               <input
                 type="number"
                 min={1}
@@ -1077,21 +1077,21 @@ export default function AdminCentralGamePanel({
                 className="mt-1 w-full max-w-xs rounded-lg border border-hui-border px-3 py-2"
               />
             </div>
-            <p className="sm:col-span-2 text-xs text-hui-muted">
+            <p className="sm:col-span-2 text-sm text-hui-muted">
               เริ่มต้นชุดละ 4 ป้าย — หลังสร้างแล้วเลือกเกมในตารางเพื่อแก้โครงและรูป
             </p>
             <div>
-              <label className="text-xs text-hui-body">ป้ายรวม</label>
+              <label className="text-sm text-hui-body">ป้ายรวม</label>
               <p className="mt-2 font-mono text-hui-body">{newTileCount}</p>
             </div>
             <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
-              <p className="text-xs font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
-              <p className="mt-1 text-xs leading-relaxed text-hui-body">
+              <p className="text-sm font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
+              <p className="mt-1 text-sm leading-relaxed text-hui-body">
                 เลือกโหมดชำระและจำนวนต่อรอบ — โหมดจ่ายอย่างใดอย่างหนึ่งให้ใส่ชมพูและแดงให้เท่ากัน
               </p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="text-xs text-hui-body">โหมดชำระหัวใจ</label>
+                  <label className="text-sm text-hui-body">โหมดชำระหัวใจ</label>
                   <select
                     value={newHeartCurrencyMode}
                     onChange={(e) => setNewHeartCurrencyMode(e.target.value)}
@@ -1111,12 +1111,12 @@ export default function AdminCentralGamePanel({
                     onChange={(e) => setNewAcceptsPink(e.target.checked)}
                     className="mt-0.5 h-4 w-4 rounded border-hui-border"
                   />
-                  <label htmlFor="new-central-accepts-pink" className="text-xs leading-relaxed text-hui-body">
+                  <label htmlFor="new-central-accepts-pink" className="text-sm leading-relaxed text-hui-body">
                     ห้องนี้รับหัวใจชมพู
                   </label>
                 </div>
                 <div>
-                  <label className="text-xs text-hui-body">หักหัวใจชมพูต่อรอบ</label>
+                  <label className="text-sm text-hui-body">หักหัวใจชมพูต่อรอบ</label>
                   <input
                     type="number"
                     min={0}
@@ -1126,7 +1126,7 @@ export default function AdminCentralGamePanel({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-hui-body">หักหัวใจแดงต่อรอบ</label>
+                  <label className="text-sm text-hui-body">หักหัวใจแดงต่อรอบ</label>
                   <input
                     type="number"
                     min={0}
@@ -1194,13 +1194,13 @@ export default function AdminCentralGamePanel({
             <button
               type="button"
               onClick={() => loadList()}
-              className="rounded border border-hui-border bg-white px-2 py-1 text-xs font-medium text-hui-body hover:bg-hui-pageTop"
+              className="rounded border border-hui-border bg-white px-2 py-1 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
             >
               รีเฟรชรายการ
             </button>
           </div>
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
+            <thead className="border-b border-hui-border bg-hui-pageTop text-sm font-semibold text-hui-body">
               <tr>
                 <th className="px-3 py-2">เกม</th>
                 <th className="px-3 py-2">รหัส</th>
@@ -1224,25 +1224,25 @@ export default function AdminCentralGamePanel({
                   }}
                 >
                   <td className="px-3 py-2 font-medium text-hui-section">{g.title}</td>
-                  <td className="px-3 py-2 font-mono text-xs text-hui-body">
+                  <td className="px-3 py-2 font-mono text-sm text-hui-body">
                     {g.gameCode && String(g.gameCode).trim() ? String(g.gameCode).trim() : "—"}
                   </td>
                   <td className="px-3 py-2 tabular-nums text-hui-body">{g.tileCount}</td>
                   <td className="px-3 py-2">
                     <div className="flex flex-col gap-1">
                       {g.isPublished ? (
-                        <span className="w-fit rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-900">
+                        <span className="w-fit rounded-full bg-hui-pageTop px-2 py-0.5 text-sm font-semibold text-hui-section ring-1 ring-hui-border">
                           แสดงใน /game
                         </span>
                       ) : (
-                        <span className="text-xs text-hui-muted">ซ่อน</span>
+                        <span className="text-sm text-hui-muted">ซ่อน</span>
                       )}
                       {g.isActive ? (
-                        <span className="w-fit rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">
+                        <span className="w-fit rounded-full bg-green-100 px-2 py-0.5 text-sm font-semibold text-green-800">
                           กำลังใช้
                         </span>
                       ) : (
-                        <span className="text-xs text-hui-muted">ไม่ได้ใช้</span>
+                        <span className="text-sm text-hui-muted">ไม่ได้ใช้</span>
                       )}
                     </div>
                   </td>
@@ -1250,7 +1250,7 @@ export default function AdminCentralGamePanel({
                     <button
                       type="button"
                       onClick={() => openEditGame(g.id)}
-                      className="mr-2 rounded-lg border border-hui-border bg-white px-2 py-1 text-xs font-semibold text-hui-body hover:bg-hui-pageTop"
+                      className="mr-2 rounded-lg border border-hui-border bg-white px-2 py-1 text-sm font-semibold text-hui-body hover:bg-hui-pageTop"
                     >
                       แก้ไข
                     </button>
@@ -1270,7 +1270,7 @@ export default function AdminCentralGamePanel({
                           Number(g.playCount) || 0
                         )
                       }
-                      className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-45"
+                      className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-sm font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                     >
                       ลบ
                     </button>
@@ -1293,12 +1293,12 @@ export default function AdminCentralGamePanel({
           {loading ? <p className="text-hui-muted">กำลังโหลด…</p> : null}
 
           {awardEditLocked ? (
-            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-950">
               <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
             </div>
           ) : null}
 
-          <p className="text-xs text-hui-muted">
+          <p className="text-sm text-hui-muted">
             แต่ละชุด = <strong className="text-hui-section">จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
             <strong className="text-hui-section">บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
           </p>
@@ -1312,14 +1312,14 @@ export default function AdminCentralGamePanel({
               <h3 className="font-semibold text-hui-section">
                 โครงชุดและรูปภาพ
               </h3>
-              <p className="mt-1 text-xs text-hui-muted">
+              <p className="mt-1 text-sm text-hui-muted">
                 รวม <span className="font-mono text-hui-body">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-hui-section">
+                <label className="text-sm text-hui-section">
                   ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
                 </label>
                 <input
@@ -1332,7 +1332,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div>
-                <label className="text-xs text-hui-body">รหัสเกม (คงเดิม)</label>
+                <label className="text-sm text-hui-body">รหัสเกม (คงเดิม)</label>
                 <input
                   readOnly
                   value={gameCode}
@@ -1342,7 +1342,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-hui-section">รายละเอียด</label>
+                <label className="text-sm text-hui-section">รายละเอียด</label>
                 <textarea
                   value={gameDescription}
                   onChange={(e) => setGameDescription(e.target.value)}
@@ -1352,7 +1352,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div className="sm:col-span-2 rounded-lg border border-hui-border bg-hui-pageTop/80 p-3">
-                <p className="text-xs leading-relaxed text-hui-body">
+                <p className="text-sm leading-relaxed text-hui-body">
                   <span className="font-semibold text-hui-section">
                     สถานะการแสดงในรายการหน้า /game:
                   </span>{" "}
@@ -1367,12 +1367,12 @@ export default function AdminCentralGamePanel({
                   onChange={(e) => setAllowGiftRedPlay(e.target.checked)}
                   className="mt-1 h-4 w-4 rounded border-hui-border"
                 />
-                <label htmlFor="central-game-allow-gift-red" className="text-xs leading-relaxed text-amber-950">
+                <label htmlFor="central-game-allow-gift-red" className="text-sm leading-relaxed text-amber-950">
                   <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
                 </label>
               </div>
               <div>
-                <label className="text-xs text-hui-section">
+                <label className="text-sm text-hui-section">
                   จำนวนชุด
                 </label>
                 <input
@@ -1389,7 +1389,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div>
-                <label className="text-xs text-hui-section">
+                <label className="text-sm text-hui-section">
                   ป้ายรวม (คำนวณอัตโนมัติ)
                 </label>
                 <p className="mt-2 font-mono text-sm text-hui-body">
@@ -1397,14 +1397,14 @@ export default function AdminCentralGamePanel({
                 </p>
               </div>
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
-                <p className="text-xs font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
-                <p className="mt-1 text-xs leading-relaxed text-hui-body">
+                <p className="text-sm font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
+                <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   เลือกโหมดชำระ: หักทั้งชมพูและแดงในรอบเดียวกัน · เฉพาะชมพู · เฉพาะแดง ·
                   หรือให้ผู้เล่นเลือกจ่ายชมพูหรือแดงอย่างใดอย่างหนึ่ง (ใส่สองช่องให้เท่ากัน)
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <label className="text-xs text-hui-body">โหมดชำระหัวใจ</label>
+                    <label className="text-sm text-hui-body">โหมดชำระหัวใจ</label>
                     <select
                       value={heartCurrencyMode}
                       onChange={(e) => setHeartCurrencyMode(e.target.value)}
@@ -1426,12 +1426,12 @@ export default function AdminCentralGamePanel({
                       disabled={awardEditLocked}
                       className="mt-0.5 h-4 w-4 rounded border-hui-border"
                     />
-                    <label htmlFor="central-accepts-pink" className="text-xs leading-relaxed text-hui-body">
+                    <label htmlFor="central-accepts-pink" className="text-sm leading-relaxed text-hui-body">
                       ห้องนี้รับหัวใจชมพู (ปิดถ้าต้องการให้เล่นด้วยแดงเท่านั้น — โหมดจ่ายอย่างใดอย่างหนึ่งจะเหลือแค่แดง)
                     </label>
                   </div>
                   <div>
-                    <label className="text-xs text-hui-body">หักหัวใจชมพูต่อรอบ</label>
+                    <label className="text-sm text-hui-body">หักหัวใจชมพูต่อรอบ</label>
                     <input
                       type="number"
                       min={0}
@@ -1442,7 +1442,7 @@ export default function AdminCentralGamePanel({
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-hui-body">หักหัวใจแดงต่อรอบ</label>
+                    <label className="text-sm text-hui-body">หักหัวใจแดงต่อรอบ</label>
                     <input
                       type="number"
                       min={0}
@@ -1457,7 +1457,7 @@ export default function AdminCentralGamePanel({
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-hui-section">
+              <p className="text-sm font-semibold text-hui-section">
                 แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัล (ชิดรูปเพื่อมีที่สำหรับคอลัมน์การจ่ายรางวัล)
               </p>
               {Array.from({ length: setCount }, (_, s) => {
@@ -1479,8 +1479,8 @@ export default function AdminCentralGamePanel({
                   >
                     <div className="flex flex-shrink-0 flex-wrap items-end gap-3 border-b border-hui-border pb-4 xl:w-[min(100%,240px)] xl:border-b-0 xl:border-r xl:border-hui-border xl:pb-0 xl:pr-3">
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-hui-body">ชุดที่ {s + 1}</span>
-                        <label className="mt-1 text-xs text-hui-muted">จำนวนป้ายในชุดนี้</label>
+                        <span className="text-sm font-semibold text-hui-body">ชุดที่ {s + 1}</span>
+                        <label className="mt-1 text-sm text-hui-muted">จำนวนป้ายในชุดนี้</label>
                         <input
                           type="number"
                           min={1}
@@ -1498,7 +1498,7 @@ export default function AdminCentralGamePanel({
                         />
                       </div>
                       <div className="w-28 shrink-0 sm:w-32">
-                        <p className="mb-1 text-xs text-hui-muted">ตัวอย่าง</p>
+                        <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
                         <div className="aspect-square w-full overflow-hidden rounded-lg border border-hui-border bg-hui-pageTop">
                           {preview ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -1509,21 +1509,21 @@ export default function AdminCentralGamePanel({
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center p-1 text-center text-xs leading-tight text-hui-muted">
+                            <div className="flex h-full items-center justify-center p-1 text-center text-sm leading-tight text-hui-muted">
                               เลือกรูป
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="min-w-[180px] flex-1">
-                        <label className="text-xs font-medium text-hui-body">
+                        <label className="text-sm font-medium text-hui-body">
                           อัปโหลดรูปชุดนี้ (1 ไฟล์)
                         </label>
                         <input
                           type="file"
                           accept="image/*"
                           disabled={awardEditLocked}
-                          className="mt-1 block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-xs file:font-medium file:text-hui-burgundy disabled:cursor-not-allowed disabled:opacity-50"
+                          className="mt-1 block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy disabled:cursor-not-allowed disabled:opacity-50"
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
                             void onPickImage(s, 0, f);
@@ -1535,10 +1535,10 @@ export default function AdminCentralGamePanel({
 
                     <div className="min-w-0 flex-1 space-y-2 xl:pl-1">
                       <div className="space-y-0.5">
-                        <span className="text-xs font-semibold text-hui-body">
+                        <span className="text-sm font-semibold text-hui-body">
                           กติกาและรางวัล — ชุดที่ {s + 1}
                         </span>
-                        <p className="text-xs leading-snug text-hui-muted">
+                        <p className="text-sm leading-snug text-hui-muted">
                           ลำดับตรวจเริ่มที่เลขชุด ({s + 1}) — ปรับได้ถ้าต้องการให้ชุดอื่นตรวจก่อน/หลัง
                         </p>
                       </div>
@@ -1578,7 +1578,7 @@ export default function AdminCentralGamePanel({
                     <p className="text-sm font-semibold text-amber-950">
                       กติกาที่อ้างอิงชุดไม่ถูกต้อง
                     </p>
-                    <p className="mt-1 text-xs text-amber-900">
+                    <p className="mt-1 text-sm text-amber-900">
                       มักเกิดหลังลดจำนวนชุด — แก้เลขชุดหรือลบแถว
                     </p>
                     <div className="mt-3 space-y-3">
@@ -1616,12 +1616,12 @@ export default function AdminCentralGamePanel({
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-xl border border-hui-border bg-white p-4">
                 <h3 className="text-sm font-semibold text-hui-section">รูปหน้าปกเกม</h3>
-                <p className="mt-1 text-xs leading-relaxed text-hui-body">
+                <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
                 </p>
                 <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="w-28 shrink-0 sm:w-32">
-                    <p className="mb-1 text-xs text-hui-muted">ตัวอย่าง</p>
+                    <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
                     <div className="aspect-square w-full overflow-hidden rounded-xl border border-hui-border bg-hui-pageTop">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -1633,13 +1633,13 @@ export default function AdminCentralGamePanel({
                     </div>
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <label className="text-xs font-medium text-hui-body">
+                    <label className="text-sm font-medium text-hui-body">
                       อัปโหลดรูปหน้าปก (1 ไฟล์)
                     </label>
                     <input
                       type="file"
                       accept="image/*"
-                      className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-xs file:font-medium file:text-hui-burgundy"
+                      className="block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy"
                       onChange={(e) => {
                         const f = e.target.files?.[0] || null;
                         void onPickCoverFile(f);
@@ -1649,7 +1649,7 @@ export default function AdminCentralGamePanel({
                     <button
                       type="button"
                       onClick={() => setGameCoverUrl("")}
-                      className="text-xs text-hui-body underline hover:text-hui-section"
+                      className="text-sm text-hui-body underline hover:text-hui-section"
                     >
                       ใช้รูปหัวใจชมพูเริ่มต้น
                     </button>
@@ -1659,12 +1659,12 @@ export default function AdminCentralGamePanel({
 
               <div className="rounded-xl border border-hui-border bg-white p-4">
                 <h3 className="text-sm font-semibold text-hui-section">รูปหน้าปิดป้าย</h3>
-                <p className="mt-1 text-xs leading-relaxed text-hui-body">
+                <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนกระดานก่อนผู้เล่นเปิดป้าย — ถ้าไม่อัปโหลดหรือกดคืนค่า ระบบใช้รูปเริ่มต้นของเว็บ
                 </p>
                 <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="w-28 shrink-0 sm:w-32">
-                    <p className="mb-1 text-xs text-hui-muted">ตัวอย่าง</p>
+                    <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
                     <div className="aspect-square w-full overflow-hidden rounded-xl border border-hui-border bg-hui-pageTop">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -1676,13 +1676,13 @@ export default function AdminCentralGamePanel({
                     </div>
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
-                    <label className="text-xs font-medium text-hui-body">
+                    <label className="text-sm font-medium text-hui-body">
                       อัปโหลดรูปหน้าปิดป้าย (1 ไฟล์)
                     </label>
                     <input
                       type="file"
                       accept="image/*"
-                      className="block w-full text-xs file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-xs file:font-medium file:text-hui-burgundy"
+                      className="block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy"
                       onChange={(e) => {
                         const f = e.target.files?.[0] || null;
                         void onPickTileBackFile(f);
@@ -1692,7 +1692,7 @@ export default function AdminCentralGamePanel({
                     <button
                       type="button"
                       onClick={() => setTileBackCoverUrl("")}
-                      className="text-xs text-hui-body underline hover:text-hui-section"
+                      className="text-sm text-hui-body underline hover:text-hui-section"
                     >
                       ใช้รูปเริ่มต้นของเว็บ
                     </button>
@@ -1717,7 +1717,7 @@ export default function AdminCentralGamePanel({
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-hui-section">บันทึกข้อมูล</p>
-                  <p className="mt-0.5 text-[11px] leading-snug text-hui-muted">
+                  <p className="mt-0.5 text-sm leading-snug text-hui-muted">
                     โปรดตรวจสอบรูปแบบเกม รางวัล ให้ถูกต้องตรงตามความต้องการ · หากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้
                   </p>
                 </div>

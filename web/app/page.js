@@ -126,7 +126,7 @@ export default async function HomePage() {
                       {a.title}
                     </span>
                     {a.badge ? (
-                      <span className="shrink-0 rounded-full bg-hui-cta px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
+                      <span className="shrink-0 rounded-full bg-hui-cta px-2.5 py-0.5 text-sm font-bold uppercase tracking-wide text-white">
                         {a.badge}
                       </span>
                     ) : null}

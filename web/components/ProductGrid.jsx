@@ -152,7 +152,7 @@ export default function ProductGrid() {
               <strong>แอดมิน</strong> ไป{" "}
               <Link
                 href="/admin?tab=shops"
-                className="font-medium text-hui-cta underline decoration-hui-cta/40"
+                className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 แอดมิน → แท็บร้านทั้งหมด
               </Link>{" "}
@@ -162,7 +162,7 @@ export default function ProductGrid() {
               <strong>เจ้าของร้าน</strong> ล็อกอิน →{" "}
               <Link
                 href="/account/shops"
-                className="font-medium text-hui-cta underline decoration-hui-cta/40"
+                className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 บัญชี → ร้านของฉัน
               </Link>{" "}
@@ -218,7 +218,7 @@ export default function ProductGrid() {
               {(p.stockQty ?? 0) < 1 ? "หมด" : "ใส่ตะกร้า"}
             </button>
             {cartHint === p.id ? (
-              <p className="mt-2 text-center text-xs font-medium text-hui-section">ใส่ตะกร้าแล้ว</p>
+              <p className="mt-2 text-center text-sm font-medium text-hui-section">ใส่ตะกร้าแล้ว</p>
             ) : null}
           </li>
         ))}
