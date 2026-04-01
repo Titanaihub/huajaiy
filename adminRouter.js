@@ -869,6 +869,7 @@ router.get(
       }
       images.sort((a, b) => a.setIndex - b.setIndex || a.imageIndex - b.imageIndex);
       const prizeAwardCount = await centralGameService.getPrizeAwardCountForGame(id);
+      const playCount = await centralGameService.getPlayCountForGame(id);
       const awardByRule = await centralGameService.getPrizeAwardCountByRule(id);
       const rules = (snap.rules || []).map((r) => {
         const rid = r?.id != null ? String(r.id).trim().toLowerCase() : "";
@@ -888,6 +889,7 @@ router.get(
         ok: true,
         game: snap.game,
         prizeAwardCount,
+        playCount,
         images,
         rules
       });

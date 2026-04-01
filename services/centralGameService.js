@@ -340,20 +340,33 @@ async function listGamesForAdmin(options = {}) {
   const params = creatorId ? [creatorId] : [];
   const r = await pool.query(
     `SELECT g.*,
-      COALESCE(pa.c, 0)::int AS prize_award_count
+      COALESCE(pa.c, 0)::int AS prize_award_count,
+      COALESCE(ps.c, 0)::int AS play_count
      FROM central_games g
      LEFT JOIN (
        SELECT game_id, COUNT(*)::int AS c
        FROM central_prize_awards
        GROUP BY game_id
      ) pa ON pa.game_id = g.id
+     LEFT JOIN (
+       SELECT
+         (meta->>'gameId')::uuid AS game_id,
+         COUNT(*)::int AS c
+       FROM heart_ledger
+       WHERE kind = 'game_start'
+         AND (meta->>'gameMode') = 'central'
+         AND meta ? 'gameId'
+         AND (meta->>'gameId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+       GROUP BY (meta->>'gameId')::uuid
+     ) ps ON ps.game_id = g.id
      ${where}
      ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`,
     params
   );
   return r.rows.map((row) => ({
     ...rowGame(row),
-    prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0)
+    prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0),
+    playCount: Math.max(0, Math.floor(Number(row.play_count)) || 0)
   }));
 }
 
@@ -363,6 +376,20 @@ async function getPrizeAwardCountForGame(gameId) {
   const r = await pool.query(
     `SELECT COUNT(*)::int AS n FROM central_prize_awards WHERE game_id = $1`,
     [gameId]
+  );
+  return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
+}
+
+/** จำนวนครั้งเริ่มเล่นเกมนี้จาก ledger */
+async function getPlayCountForGame(gameId) {
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT COUNT(*)::int AS n
+     FROM heart_ledger
+     WHERE kind = 'game_start'
+       AND (meta->>'gameMode') = 'central'
+       AND (meta->>'gameId') = $1`,
+    [String(gameId)]
   );
   return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
 }
@@ -1113,6 +1140,17 @@ async function deactivateGame(gameId) {
 
 async function deleteGame(gameId) {
   const pool = requirePool();
+  const [awardCount, playCount] = await Promise.all([
+    getPrizeAwardCountForGame(gameId),
+    getPlayCountForGame(gameId)
+  ]);
+  if (awardCount > 0 || playCount > 0) {
+    const e = new Error(
+      "เกมนี้มีประวัติการเล่นหรือรับรางวัลแล้ว — ไม่สามารถลบได้"
+    );
+    e.code = "GAME_HAS_PLAY_HISTORY";
+    throw e;
+  }
   await pool.query(`DELETE FROM central_games WHERE id = $1`, [gameId]);
 }
 
@@ -1209,6 +1247,7 @@ module.exports = {
   listPublishedGamesForPublic,
   listGamesForAdmin,
   getPrizeAwardCountForGame,
+  getPlayCountForGame,
   getPrizeAwardCountByRule,
   createGame,
   updateGameMeta,

@@ -359,6 +359,8 @@ export default function AdminCentralGamePanel({
   const [createExpanded, setCreateExpanded] = useState(false);
   /** จำนวนรางวัลที่บันทึกในระบบสำหรับเกมที่เลือก — ใช้บล็อกปุ่มลบ */
   const [prizeAwardCount, setPrizeAwardCount] = useState(0);
+  /** จำนวนครั้งที่มีการเริ่มเล่นเกมนี้แล้ว — ใช้บล็อกปุ่มลบ */
+  const [playCount, setPlayCount] = useState(0);
   /** หลังเผยแพร่/เปิดใช้ — จำนวนรางวัลต่อกติกาเพิ่มได้อย่างเดียว */
   const [gamePrizeQtyLocked, setGamePrizeQtyLocked] = useState(false);
   /** รหัสเกม (ออกเมื่อเผยแพร่แล้ว — อ่านอย่างเดียว) */
@@ -413,9 +415,11 @@ export default function AdminCentralGamePanel({
     setErr("");
     setMsg("");
     setPrizeAwardCount(0);
+    setPlayCount(0);
     try {
       const data = await apiAdminCentralGameDetail(token, id);
       setPrizeAwardCount(Math.max(0, Math.floor(Number(data.prizeAwardCount)) || 0));
+      setPlayCount(Math.max(0, Math.floor(Number(data.playCount)) || 0));
       const g = data.game;
       if (!g) {
         setErr("ไม่ได้รับข้อมูลเกมจากเซิร์ฟเวอร์");
@@ -760,6 +764,10 @@ export default function AdminCentralGamePanel({
     try {
       await apiAdminCentralGameDeactivate(token, selectedId);
       setLobbyVisible(false);
+      if (embedded) {
+        router.push("/account/my-games?published=0");
+        return;
+      }
       setMsg("หยุดการเผยแพร่แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
       await loadList();
     } catch (e) {
@@ -771,7 +779,7 @@ export default function AdminCentralGamePanel({
 
   async function removeGame() {
     if (!selectedId) return;
-    if (prizeAwardCount > 0) {
+    if (prizeAwardCount > 0 || playCount > 0) {
       setMsg(DELETE_BLOCKED_HINT);
       return;
     }
@@ -812,9 +820,9 @@ export default function AdminCentralGamePanel({
     scrollToEditor();
   }
 
-  async function deleteGameById(id, title, awardCount = 0) {
+  async function deleteGameById(id, title, awardCount = 0, playCountInList = 0) {
     if (!id) return;
-    if (awardCount > 0) {
+    if (awardCount > 0 || playCountInList > 0) {
       setMsg(DELETE_BLOCKED_HINT);
       return;
     }
@@ -1143,14 +1151,19 @@ export default function AdminCentralGamePanel({
                     </button>
                     <button
                       type="button"
-                      disabled={Number(g.prizeAwardCount) > 0}
+                      disabled={Number(g.prizeAwardCount) > 0 || Number(g.playCount) > 0}
                       title={
-                        Number(g.prizeAwardCount) > 0
-                          ? "มีประวัติรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
+                        Number(g.prizeAwardCount) > 0 || Number(g.playCount) > 0
+                          ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
                           : undefined
                       }
                       onClick={() =>
-                        deleteGameById(g.id, g.title, Number(g.prizeAwardCount) || 0)
+                        deleteGameById(
+                          g.id,
+                          g.title,
+                          Number(g.prizeAwardCount) || 0,
+                          Number(g.playCount) || 0
+                        )
                       }
                       className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                     >
@@ -1621,11 +1634,15 @@ export default function AdminCentralGamePanel({
                 <button
                   type="button"
                   disabled={
-                    gameActionBusy || savingAll || !selectedId || prizeAwardCount > 0
+                    gameActionBusy ||
+                    savingAll ||
+                    !selectedId ||
+                    prizeAwardCount > 0 ||
+                    playCount > 0
                   }
                   title={
-                    prizeAwardCount > 0
-                      ? "มีประวัติรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
+                    prizeAwardCount > 0 || playCount > 0
+                      ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
                       : undefined
                   }
                   onClick={() => removeGame()}
