@@ -14,7 +14,6 @@ import { useMemberAuth } from "./MemberAuthProvider";
 const CAT_LABEL = {
   cash: "เงินสด",
   item: "สิ่งของ",
-  voucher: "บัตรกำนัล",
   none: "ไม่มีรางวัล"
 };
 
@@ -64,6 +63,14 @@ function displayGameCode(a) {
   const id = String(a.gameId || "").replace(/-/g, "");
   if (id.length >= 8) return `…${id.slice(-8)}`;
   return a.gameId ? String(a.gameId).slice(0, 8) + "…" : "—";
+}
+
+function itemStatusLabel(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "ready_pickup") return "ผู้สร้างนัดรับเอง";
+  if (s === "shipped") return "ผู้สร้างจัดส่งแล้ว";
+  if (s === "completed") return "รับของเรียบร้อย";
+  return "รอผู้สร้างกำหนดวิธีรับ";
 }
 
 function groupAwardsByCreator(list) {
@@ -398,6 +405,41 @@ function CreatorPrizeCard({
   );
 }
 
+function ItemPrizeCard({ a }) {
+  const creator =
+    a.creatorUsername && String(a.creatorUsername).trim()
+      ? `@${String(a.creatorUsername).trim()}`
+      : "ไม่ระบุผู้สร้างเกม";
+  const shippingAddr =
+    a.itemShippingAddressSnapshot && typeof a.itemShippingAddressSnapshot === "object"
+      ? String(a.itemShippingAddressSnapshot.address || "").trim()
+      : "";
+  return (
+    <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-slate-900">{prizeLine(a)}</p>
+        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-900">
+          {itemStatusLabel(a.itemFulfillmentStatus)}
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-slate-600">
+        จาก {creator} · {a.gameTitle || "เกม"} · {formatWonAt(a.wonAt)}
+      </p>
+      {a.itemFulfillmentMode === "pickup" ? (
+        <p className="mt-2 text-xs text-slate-700">วิธีรับ: นัดรับเองกับผู้สร้าง</p>
+      ) : a.itemFulfillmentMode === "ship" ? (
+        <p className="mt-2 text-xs text-slate-700">
+          วิธีรับ: ผู้สร้างจัดส่งตามที่อยู่ในระบบ
+          {shippingAddr ? ` (${shippingAddr})` : ""}
+          {a.itemTrackingCode ? ` · เลขพัสดุ: ${a.itemTrackingCode}` : ""}
+        </p>
+      ) : (
+        <p className="mt-2 text-xs text-slate-500">รอผู้สร้างกำหนดวิธีรับรางวัล</p>
+      )}
+    </li>
+  );
+}
+
 export default function AccountMyPrizesSection() {
   const { user, loading: authLoading } = useMemberAuth();
   const [awards, setAwards] = useState([]);
@@ -406,7 +448,14 @@ export default function AccountMyPrizesSection() {
   const [wdRefreshing, setWdRefreshing] = useState(false);
   const [err, setErr] = useState("");
 
-  const groups = useMemo(() => groupAwardsByCreator(awards), [awards]);
+  const cashGroups = useMemo(
+    () => groupAwardsByCreator(awards.filter((a) => a.prizeCategory === "cash")),
+    [awards]
+  );
+  const itemAwards = useMemo(
+    () => awards.filter((a) => a.prizeCategory === "item"),
+    [awards]
+  );
 
   const refreshWithdrawals = useCallback(async () => {
     const token = getMemberToken();
@@ -508,23 +557,44 @@ export default function AccountMyPrizesSection() {
           </Link>
         </div>
       ) : (
-        <ul className="mt-6 space-y-3">
-          {groups.map((g) => {
-            const cu = String(g.creatorUsername || "").trim().toLowerCase();
-            const wds = withdrawals.filter(
-              (w) => String(w.creatorUsername || "").trim().toLowerCase() === cu
-            );
-            return (
-              <CreatorPrizeCard
-                key={g.creatorKey}
-                group={g}
-                withdrawalsForCreator={wds}
-                onRefreshWithdrawals={refreshWithdrawals}
-                wdRefreshing={wdRefreshing}
-              />
-            );
-          })}
-        </ul>
+        <div className="mt-6 space-y-6">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">การ์ดรางวัลเงินสด</h3>
+            {cashGroups.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">ยังไม่มีรางวัลเงินสด</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {cashGroups.map((g) => {
+                  const cu = String(g.creatorUsername || "").trim().toLowerCase();
+                  const wds = withdrawals.filter(
+                    (w) => String(w.creatorUsername || "").trim().toLowerCase() === cu
+                  );
+                  return (
+                    <CreatorPrizeCard
+                      key={g.creatorKey}
+                      group={g}
+                      withdrawalsForCreator={wds}
+                      onRefreshWithdrawals={refreshWithdrawals}
+                      wdRefreshing={wdRefreshing}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">การ์ดรางวัลสิ่งของ</h3>
+            {itemAwards.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-500">ยังไม่มีรางวัลสิ่งของ</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {itemAwards.map((a) => (
+                  <ItemPrizeCard key={a.id} a={a} />
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       )}
     </section>
   );

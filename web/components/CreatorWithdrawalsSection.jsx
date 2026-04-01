@@ -6,6 +6,7 @@ import { getApiBase } from "../lib/config";
 import {
   apiGetIncomingPrizeAwards,
   apiGetIncomingPrizeWithdrawals,
+  apiResolveIncomingItemAward,
   apiResolvePrizeWithdrawal,
   getMemberToken
 } from "../lib/memberApi";
@@ -28,6 +29,14 @@ function formatDate(iso) {
   } catch {
     return String(iso);
   }
+}
+
+function itemStatusLabel(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "ready_pickup") return "พร้อมให้รับเอง";
+  if (s === "shipped") return "จัดส่งแล้ว";
+  if (s === "completed") return "รับของเรียบร้อย";
+  return "รอผู้สร้างกำหนดวิธีรับ";
 }
 
 function loadImage(fileBlob) {
@@ -89,6 +98,7 @@ export default function CreatorWithdrawalsSection() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [busyId, setBusyId] = useState(null);
+  const [itemBusyId, setItemBusyId] = useState(null);
   const [transferDateById, setTransferDateById] = useState({});
   const [slipFileById, setSlipFileById] = useState({});
 
@@ -174,6 +184,29 @@ export default function CreatorWithdrawalsSection() {
     }
   }
 
+  async function resolveItemAward(award, mode, status) {
+    const token = getMemberToken();
+    if (!token || !award?.id) return;
+    setItemBusyId(String(award.id));
+    setErr("");
+    try {
+      let trackingCode = "";
+      if (mode === "ship" && status === "shipped") {
+        trackingCode = window.prompt("กรอกเลขพัสดุ (ถ้ามี)", "") || "";
+      }
+      await apiResolveIncomingItemAward(token, award.id, {
+        mode,
+        status,
+        trackingCode
+      });
+      await load();
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setItemBusyId(null);
+    }
+  }
+
   if (authLoading) {
     return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
   }
@@ -234,6 +267,7 @@ export default function CreatorWithdrawalsSection() {
                   <th className="px-3 py-2.5">เกม</th>
                   <th className="px-3 py-2.5">ผู้เล่น</th>
                   <th className="px-3 py-2.5">รางวัล</th>
+                  <th className="px-3 py-2.5">จัดส่งรางวัลสิ่งของ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -257,6 +291,49 @@ export default function CreatorWithdrawalsSection() {
                         <div className="text-xs text-slate-500">{player || "—"}</div>
                       </td>
                       <td className="px-3 py-2.5 text-slate-700">{prizeBits.join(" ") || "รางวัล"}</td>
+                      <td className="px-3 py-2.5">
+                        {a.prizeCategory !== "item" ? (
+                          <span className="text-xs text-slate-400">—</span>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium text-slate-700">
+                              {itemStatusLabel(a.itemFulfillmentStatus)}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              <button
+                                type="button"
+                                disabled={itemBusyId === a.id}
+                                onClick={() => void resolveItemAward(a, "pickup", "ready_pickup")}
+                                className="rounded border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                              >
+                                นัดรับเอง
+                              </button>
+                              <button
+                                type="button"
+                                disabled={itemBusyId === a.id}
+                                onClick={() => void resolveItemAward(a, "ship", "shipped")}
+                                className="rounded border border-brand-300 px-2 py-1 text-xs font-semibold text-brand-800 hover:bg-brand-50 disabled:opacity-50"
+                              >
+                                ส่งตามที่อยู่
+                              </button>
+                              <button
+                                type="button"
+                                disabled={itemBusyId === a.id}
+                                onClick={() =>
+                                  void resolveItemAward(
+                                    a,
+                                    a.itemFulfillmentMode === "pickup" ? "pickup" : "ship",
+                                    "completed"
+                                  )
+                                }
+                                className="rounded border border-emerald-300 px-2 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+                              >
+                                รับของแล้ว
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

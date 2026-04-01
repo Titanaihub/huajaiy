@@ -340,6 +340,37 @@ export async function apiResolvePrizeWithdrawal(
   return data;
 }
 
+export async function apiResolveIncomingItemAward(
+  token,
+  id,
+  { mode, status, note, trackingCode }
+) {
+  const body = {
+    mode: String(mode || "").trim(),
+    status: String(status || "").trim()
+  };
+  if (note != null && String(note).trim()) body.note = String(note).trim();
+  if (trackingCode != null && String(trackingCode).trim()) {
+    body.trackingCode = String(trackingCode).trim();
+  }
+  const r = await fetch(
+    `${apiRoot()}/api/auth/central-prize-awards/${encodeURIComponent(id)}/item-resolve`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "อัปเดตสถานะรางวัลสิ่งของไม่สำเร็จ");
+  }
+  return data;
+}
+
 /** รายการเกมเผยแพร่ — ใช้จับคู่เจ้าของห้องกับลิงก์เล่น */
 export async function apiListPublishedGames() {
   const r = await fetch(`${apiRoot()}/api/game/list?_nc=${Date.now()}`, {

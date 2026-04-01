@@ -257,7 +257,6 @@ function RuleEditorRow({
         >
           <option value="cash">เงินสด</option>
           <option value="item">สิ่งของ</option>
-          <option value="voucher">บัตรกำนัล</option>
           <option value="none">ไม่มีรางวัล</option>
         </select>
       </div>

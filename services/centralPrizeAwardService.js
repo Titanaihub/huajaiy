@@ -10,6 +10,20 @@ function requirePool() {
   return pool;
 }
 
+function normalizeItemMode(v) {
+  const m = String(v || "").trim().toLowerCase();
+  if (m === "pickup" || m === "ship") return m;
+  return "";
+}
+
+function normalizeItemStatus(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (["pending_creator", "ready_pickup", "shipped", "completed"].includes(s)) {
+    return s;
+  }
+  return "";
+}
+
 /**
  * @returns {Promise<Record<string, number>>} ruleId -> จำนวนที่บันทึกแล้ว
  */
@@ -229,7 +243,13 @@ async function listAwardsForUser(userId) {
        COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
-       COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit"
+       COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
+       a.item_fulfillment_mode AS "itemFulfillmentMode",
+       a.item_fulfillment_status AS "itemFulfillmentStatus",
+       a.item_fulfillment_note AS "itemFulfillmentNote",
+       a.item_tracking_code AS "itemTrackingCode",
+       a.item_shipping_address_snapshot AS "itemShippingAddressSnapshot",
+       a.item_resolved_at AS "itemResolvedAt"
      FROM central_prize_awards a
      LEFT JOIN central_games g ON g.id = a.game_id
      LEFT JOIN users cu ON cu.id = g.created_by
@@ -250,7 +270,21 @@ async function listAwardsForUser(userId) {
     setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
     prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
-    prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : ""
+    prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
+    itemFulfillmentMode:
+      row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    itemFulfillmentStatus:
+      row.itemFulfillmentStatus != null
+        ? String(row.itemFulfillmentStatus).trim().toLowerCase()
+        : "pending_creator",
+    itemFulfillmentNote:
+      row.itemFulfillmentNote != null ? String(row.itemFulfillmentNote).trim() : "",
+    itemTrackingCode: row.itemTrackingCode != null ? String(row.itemTrackingCode).trim() : "",
+    itemShippingAddressSnapshot:
+      row.itemShippingAddressSnapshot && typeof row.itemShippingAddressSnapshot === "object"
+        ? row.itemShippingAddressSnapshot
+        : null,
+    itemResolvedAt: row.itemResolvedAt || null
   }));
 }
 
@@ -284,6 +318,11 @@ async function listAllAwardsForAdmin(opts = {}) {
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
+       a.item_fulfillment_mode AS "itemFulfillmentMode",
+       a.item_fulfillment_status AS "itemFulfillmentStatus",
+       a.item_fulfillment_note AS "itemFulfillmentNote",
+       a.item_tracking_code AS "itemTrackingCode",
+       a.item_resolved_at AS "itemResolvedAt",
        u.id AS "winnerUserId",
        u.username AS "winnerUsername",
        u.first_name AS "winnerFirstName",
@@ -314,6 +353,16 @@ async function listAllAwardsForAdmin(opts = {}) {
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
     prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
+    itemFulfillmentMode:
+      row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    itemFulfillmentStatus:
+      row.itemFulfillmentStatus != null
+        ? String(row.itemFulfillmentStatus).trim().toLowerCase()
+        : "pending_creator",
+    itemFulfillmentNote:
+      row.itemFulfillmentNote != null ? String(row.itemFulfillmentNote).trim() : "",
+    itemTrackingCode: row.itemTrackingCode != null ? String(row.itemTrackingCode).trim() : "",
+    itemResolvedAt: row.itemResolvedAt || null,
     winnerUserId: String(row.winnerUserId),
     winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
     winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
@@ -345,10 +394,25 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
+       a.item_fulfillment_mode AS "itemFulfillmentMode",
+       a.item_fulfillment_status AS "itemFulfillmentStatus",
+       a.item_fulfillment_note AS "itemFulfillmentNote",
+       a.item_tracking_code AS "itemTrackingCode",
+       a.item_shipping_address_snapshot AS "itemShippingAddressSnapshot",
+       a.item_resolved_at AS "itemResolvedAt",
        u.id AS "winnerUserId",
        u.username AS "winnerUsername",
        u.first_name AS "winnerFirstName",
-       u.last_name AS "winnerLastName"
+       u.last_name AS "winnerLastName",
+       u.phone AS "winnerPhone",
+       u.shipping_address AS "winnerShippingAddress",
+       u.shipping_house_no AS "winnerShippingHouseNo",
+       u.shipping_moo AS "winnerShippingMoo",
+       u.shipping_road AS "winnerShippingRoad",
+       u.shipping_subdistrict AS "winnerShippingSubdistrict",
+       u.shipping_district AS "winnerShippingDistrict",
+       u.shipping_province AS "winnerShippingProvince",
+       u.shipping_postal_code AS "winnerShippingPostalCode"
      FROM central_prize_awards a
      JOIN central_games g ON g.id = a.game_id
      JOIN users u ON u.id = a.winner_user_id
@@ -372,11 +436,153 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
     prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
+    itemFulfillmentMode:
+      row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    itemFulfillmentStatus:
+      row.itemFulfillmentStatus != null
+        ? String(row.itemFulfillmentStatus).trim().toLowerCase()
+        : "pending_creator",
+    itemFulfillmentNote:
+      row.itemFulfillmentNote != null ? String(row.itemFulfillmentNote).trim() : "",
+    itemTrackingCode: row.itemTrackingCode != null ? String(row.itemTrackingCode).trim() : "",
+    itemShippingAddressSnapshot:
+      row.itemShippingAddressSnapshot && typeof row.itemShippingAddressSnapshot === "object"
+        ? row.itemShippingAddressSnapshot
+        : null,
+    itemResolvedAt: row.itemResolvedAt || null,
     winnerUserId: String(row.winnerUserId),
     winnerUsername: row.winnerUsername != null ? String(row.winnerUsername).trim() : "",
     winnerFirstName: row.winnerFirstName != null ? String(row.winnerFirstName).trim() : "",
-    winnerLastName: row.winnerLastName != null ? String(row.winnerLastName).trim() : ""
+    winnerLastName: row.winnerLastName != null ? String(row.winnerLastName).trim() : "",
+    winnerPhone: row.winnerPhone != null ? String(row.winnerPhone).trim() : "",
+    winnerShippingAddress:
+      row.winnerShippingAddress != null ? String(row.winnerShippingAddress).trim() : "",
+    winnerShippingParts: {
+      houseNo: row.winnerShippingHouseNo != null ? String(row.winnerShippingHouseNo).trim() : "",
+      moo: row.winnerShippingMoo != null ? String(row.winnerShippingMoo).trim() : "",
+      road: row.winnerShippingRoad != null ? String(row.winnerShippingRoad).trim() : "",
+      subdistrict:
+        row.winnerShippingSubdistrict != null ? String(row.winnerShippingSubdistrict).trim() : "",
+      district: row.winnerShippingDistrict != null ? String(row.winnerShippingDistrict).trim() : "",
+      province: row.winnerShippingProvince != null ? String(row.winnerShippingProvince).trim() : "",
+      postalCode:
+        row.winnerShippingPostalCode != null ? String(row.winnerShippingPostalCode).trim() : ""
+    }
   }));
+}
+
+async function resolveItemAwardByCreator({
+  awardId,
+  creatorUserId,
+  mode,
+  status,
+  note,
+  trackingCode
+}) {
+  const m = normalizeItemMode(mode);
+  const s = normalizeItemStatus(status);
+  if (!m || !s) {
+    const e = new Error("ข้อมูลสถานะรางวัลสิ่งของไม่ถูกต้อง");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (m === "pickup" && s === "shipped") {
+    const e = new Error("นัดรับเองไม่สามารถเป็นสถานะจัดส่งแล้ว");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (m === "ship" && !["pending_creator", "shipped", "completed"].includes(s)) {
+    const e = new Error("โหมดจัดส่งรองรับสถานะ รอผู้สร้าง/จัดส่งแล้ว/รับเรียบร้อย");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const pool = requirePool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const r = await client.query(
+      `SELECT
+         a.id, a.prize_category, a.winner_user_id, a.status,
+         g.created_by AS creator_user_id,
+         u.username AS winner_username, u.phone AS winner_phone,
+         u.shipping_address, u.shipping_house_no, u.shipping_moo, u.shipping_road,
+         u.shipping_subdistrict, u.shipping_district, u.shipping_province, u.shipping_postal_code
+       FROM central_prize_awards a
+       JOIN central_games g ON g.id = a.game_id
+       JOIN users u ON u.id = a.winner_user_id
+       WHERE a.id = $1::uuid
+       FOR UPDATE`,
+      [awardId]
+    );
+    if (r.rows.length === 0) {
+      const e = new Error("ไม่พบรายการรางวัล");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const row = r.rows[0];
+    if (String(row.creator_user_id) !== String(creatorUserId)) {
+      const e = new Error("ไม่มีสิทธิ์จัดการรางวัลนี้");
+      e.code = "FORBIDDEN";
+      throw e;
+    }
+    if (String(row.prize_category) !== "item") {
+      const e = new Error("รายการนี้ไม่ใช่รางวัลสิ่งของ");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    const shippingSnapshot =
+      m === "ship"
+        ? {
+            username: row.winner_username != null ? String(row.winner_username).trim() : "",
+            phone: row.winner_phone != null ? String(row.winner_phone).trim() : "",
+            address: row.shipping_address != null ? String(row.shipping_address).trim() : "",
+            parts: {
+              houseNo: row.shipping_house_no != null ? String(row.shipping_house_no).trim() : "",
+              moo: row.shipping_moo != null ? String(row.shipping_moo).trim() : "",
+              road: row.shipping_road != null ? String(row.shipping_road).trim() : "",
+              subdistrict:
+                row.shipping_subdistrict != null ? String(row.shipping_subdistrict).trim() : "",
+              district: row.shipping_district != null ? String(row.shipping_district).trim() : "",
+              province: row.shipping_province != null ? String(row.shipping_province).trim() : "",
+              postalCode:
+                row.shipping_postal_code != null ? String(row.shipping_postal_code).trim() : ""
+            }
+          }
+        : null;
+    await client.query(
+      `UPDATE central_prize_awards
+       SET
+         item_fulfillment_mode = $2,
+         item_fulfillment_status = $3,
+         item_fulfillment_note = $4,
+         item_tracking_code = $5,
+         item_shipping_address_snapshot = $6::jsonb,
+         item_resolved_at = NOW(),
+         updated_at = NOW()
+       WHERE id = $1::uuid`,
+      [
+        awardId,
+        m,
+        s,
+        note != null && String(note).trim() ? String(note).trim().slice(0, 1000) : null,
+        trackingCode != null && String(trackingCode).trim()
+          ? String(trackingCode).trim().slice(0, 120)
+          : null,
+        shippingSnapshot
+      ]
+    );
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
+  return true;
 }
 
 module.exports = {
@@ -385,5 +591,6 @@ module.exports = {
   listPublicRecipientsForRule,
   listAwardsForUser,
   listAllAwardsForAdmin,
-  listAwardsForCreator
+  listAwardsForCreator,
+  resolveItemAwardByCreator
 };

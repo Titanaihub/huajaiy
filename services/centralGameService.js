@@ -946,7 +946,7 @@ async function replaceRules(gameId, rules, options = {}) {
     const setIndex = Math.floor(Number(r.setIndex));
     const needCount = Math.floor(Number(r.needCount));
     const cat = String(r.prizeCategory || "none").toLowerCase();
-    if (!["cash", "item", "voucher", "none"].includes(cat)) {
+    if (!["cash", "item", "none"].includes(cat)) {
       const e = new Error("ประเภทรางวัลไม่ถูกต้อง");
       e.code = "VALIDATION";
       throw e;
@@ -1188,7 +1188,6 @@ function prizesForClient(rules, setImageCounts, givenByRuleId = null) {
   const catLabel = {
     cash: "เงินสด",
     item: "สิ่งของ",
-    voucher: "บัตรกำนัล",
     none: "ไม่มีรางวัล"
   };
   const map =
@@ -1230,7 +1229,7 @@ function formatRuleLabel(r, catLabel, imagesInThisSet) {
 
 function formatWinnerDisplay(r) {
   if (!r || r.prizeCategory === "none") return null;
-  const cat = { cash: "เงินสด", item: "สิ่งของ", voucher: "บัตรกำนัล" }[r.prizeCategory];
+  const cat = { cash: "เงินสด", item: "สิ่งของ" }[r.prizeCategory];
   const head = r.prizeTitle || cat || "รางวัล";
   const tail = [r.prizeValueText, r.prizeUnit].filter(Boolean).join(" ");
   return tail ? `${head}: ${tail}` : head;

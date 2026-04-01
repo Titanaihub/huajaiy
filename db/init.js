@@ -487,6 +487,30 @@ async function initDb() {
       ADD COLUMN IF NOT EXISTS game_title_at_win TEXT;
     `);
     await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_fulfillment_mode VARCHAR(16);
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_fulfillment_status VARCHAR(24) NOT NULL DEFAULT 'pending_creator';
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_fulfillment_note TEXT;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_tracking_code VARCHAR(120);
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_shipping_address_snapshot JSONB;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS item_resolved_at TIMESTAMPTZ;
+    `);
+    await client.query(`
       UPDATE central_prize_awards a
       SET
         rule_set_index = r.set_index,
