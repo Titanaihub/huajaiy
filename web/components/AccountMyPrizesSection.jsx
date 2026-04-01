@@ -20,6 +20,7 @@ const CAT_LABEL = {
 };
 
 function prizeLine(a) {
+  if (!a || typeof a !== "object") return "รางวัล";
   const cat = CAT_LABEL[a.prizeCategory] || "รางวัล";
   const title = a.prizeTitle?.trim();
   const val = [a.prizeValueText, a.prizeUnit].filter(Boolean).join(" ").trim();
@@ -514,12 +515,13 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
   const [pickupBusyId, setPickupBusyId] = useState(null);
   const [pickupAckErr, setPickupAckErr] = useState("");
   const { creatorUsername, items } = group;
+  const safeItems = Array.isArray(items) ? items : [];
   const creatorDisplay =
     creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
-  const sample = items[0];
+  const sample = safeItems[0];
   const prizeName = prizeLine(sample);
-  const winCount = items.length;
-  const totalUnits = items.reduce((s, a) => s + itemUnitsPerWin(a), 0);
+  const winCount = safeItems.length;
+  const totalUnits = safeItems.reduce((s, a) => s + itemUnitsPerWin(a), 0);
 
   const showReceiveItemInMenu = hasProfileShippingFilled(user);
 
@@ -553,7 +555,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
     }
   }
 
-  const receiptModes = items.map((a) => itemEffectiveFulfillmentMode(a));
+  const receiptModes = safeItems.map((a) => itemEffectiveFulfillmentMode(a));
   const allPickup =
     receiptModes.length > 0 && receiptModes.every((m) => m === "pickup");
   const allShip = receiptModes.length > 0 && receiptModes.every((m) => m === "ship");
@@ -655,15 +657,16 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
-                {items.map((a) => {
+                {safeItems.map((a) => {
                   const shippingAddr =
                     a.itemShippingAddressSnapshot && typeof a.itemShippingAddressSnapshot === "object"
                       ? String(a.itemShippingAddressSnapshot.address || "").trim()
                       : "";
                   const effMode = itemEffectiveFulfillmentMode(a);
                   const ackAt = a.winnerPickupAckAt || null;
+                  const rowKey = a.id != null ? String(a.id) : `row-${a.wonAt}-${prizeLine(a)}`;
                   return (
-                    <tr key={a.id} className="bg-white">
+                    <tr key={rowKey} className="bg-white">
                       <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
                         {formatWonAt(a.wonAt)}
                       </td>
@@ -777,6 +780,17 @@ export default function AccountMyPrizesSection() {
       setWithdrawals(Array.isArray(wdRes.withdrawals) ? wdRes.withdrawals : []);
     } finally {
       setWdRefreshing(false);
+    }
+  }, []);
+
+  const refreshAwards = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token) return;
+    try {
+      const awardRes = await apiGetMyCentralPrizeAwards(token);
+      setAwards(Array.isArray(awardRes.awards) ? awardRes.awards : []);
+    } catch (e) {
+      setErr(e.message || String(e));
     }
   }, []);
 
