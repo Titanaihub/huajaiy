@@ -11,6 +11,10 @@ const THEME_FALLBACK = {
   bgGradientTop: "#FFF5F8",
   bgGradientMid: "#FFEEF3",
   bgGradientBottom: "#FFD6E2",
+  innerBackgroundImageUrl: "",
+  innerBgGradientTop: "#FFF5F8",
+  innerBgGradientMid: "#FFEEF3",
+  innerBgGradientBottom: "#FFD6E2",
   footerScrimHex: "#2B121C",
   footerScrimPercent: 48
 };

@@ -695,6 +695,12 @@ async function initDb() {
         footer_scrim_hex VARCHAR(7) NOT NULL DEFAULT '#2B121C',
         footer_scrim_percent SMALLINT NOT NULL DEFAULT 48
           CHECK (footer_scrim_percent >= 0 AND footer_scrim_percent <= 100),
+        inner_background_image_url TEXT NOT NULL DEFAULT '',
+        inner_bg_gradient_top VARCHAR(7) NOT NULL DEFAULT '#FFF5F8',
+        inner_bg_gradient_mid VARCHAR(7) NOT NULL DEFAULT '#FFEEF3',
+        inner_bg_gradient_bottom VARCHAR(7) NOT NULL DEFAULT '#FFD6E2',
+        inner_image_overlay_percent SMALLINT NOT NULL DEFAULT 78
+          CHECK (inner_image_overlay_percent >= 0 AND inner_image_overlay_percent <= 100),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
@@ -710,6 +716,42 @@ async function initDb() {
       ALTER TABLE site_theme
       ADD COLUMN IF NOT EXISTS footer_scrim_percent SMALLINT NOT NULL DEFAULT 48
         CHECK (footer_scrim_percent >= 0 AND footer_scrim_percent <= 100);
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS inner_background_image_url TEXT NOT NULL DEFAULT '';
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS inner_bg_gradient_top VARCHAR(7) NOT NULL DEFAULT '#FFF5F8';
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS inner_bg_gradient_mid VARCHAR(7) NOT NULL DEFAULT '#FFEEF3';
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS inner_bg_gradient_bottom VARCHAR(7) NOT NULL DEFAULT '#FFD6E2';
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS inner_image_overlay_percent SMALLINT NOT NULL DEFAULT 78
+        CHECK (inner_image_overlay_percent >= 0 AND inner_image_overlay_percent <= 100);
+    `);
+    /* DB เดิม: ยังไม่เคยแยกธีม inner — คัดลอกจากหน้าแรกครั้งเดียวขณะ inner ยังเป็นค่าเริ่ม */
+    await client.query(`
+      UPDATE site_theme SET
+        inner_background_image_url = background_image_url,
+        inner_bg_gradient_top = bg_gradient_top,
+        inner_bg_gradient_mid = bg_gradient_mid,
+        inner_bg_gradient_bottom = bg_gradient_bottom,
+        inner_image_overlay_percent = image_overlay_percent
+      WHERE id = 1
+        AND inner_background_image_url = ''
+        AND inner_bg_gradient_top = '#FFF5F8'
+        AND inner_bg_gradient_mid = '#FFEEF3'
+        AND inner_bg_gradient_bottom = '#FFD6E2'
+        AND inner_image_overlay_percent = 78;
     `);
 
     /* รหัสเก่า (ก่อนมีคอลัมน์ทุน) ถือว่าหักจากแดงเล่นได้ทั้งหมด — คืนยอดสอดคล้องเดิม */

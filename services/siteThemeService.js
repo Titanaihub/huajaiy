@@ -5,12 +5,14 @@ const DEFAULT_THEME = {
   bgGradientTop: "#FFF5F8",
   bgGradientMid: "#FFEEF3",
   bgGradientBottom: "#FFD6E2",
-  /** 0–100 ความทึบของเลเยอร์สีทับภาพ (ยิ่งสูง อ่านตัวหนังสือง่ายขึ้น) */
   imageOverlayPercent: 78,
-  /** สีทึบทับรูปเฉพาะฟุตเตอร์ (#RRGGBB) — ค่าเริ่ม burgundy เข้ม เข้ากับแบรนด์ */
   footerScrimHex: "#2B121C",
-  /** 0–100 ความทึบของเลเยอร์ทับรูปในฟุตเตอร์ */
-  footerScrimPercent: 48
+  footerScrimPercent: 48,
+  innerBackgroundImageUrl: "",
+  innerBgGradientTop: "#FFF5F8",
+  innerBgGradientMid: "#FFEEF3",
+  innerBgGradientBottom: "#FFD6E2",
+  innerImageOverlayPercent: 78
 };
 
 function normalizeHex(s) {
@@ -57,6 +59,19 @@ function rowToTheme(row) {
     footerScrimPercent: readOverlayPercent(
       row.footer_scrim_percent,
       DEFAULT_THEME.footerScrimPercent
+    ),
+    innerBackgroundImageUrl: row.inner_background_image_url
+      ? normalizeUrl(row.inner_background_image_url) || ""
+      : "",
+    innerBgGradientTop:
+      normalizeHex(row.inner_bg_gradient_top) || DEFAULT_THEME.innerBgGradientTop,
+    innerBgGradientMid:
+      normalizeHex(row.inner_bg_gradient_mid) || DEFAULT_THEME.innerBgGradientMid,
+    innerBgGradientBottom:
+      normalizeHex(row.inner_bg_gradient_bottom) || DEFAULT_THEME.innerBgGradientBottom,
+    innerImageOverlayPercent: readOverlayPercent(
+      row.inner_image_overlay_percent,
+      DEFAULT_THEME.innerImageOverlayPercent
     )
   };
 }
@@ -69,7 +84,9 @@ async function getSiteTheme() {
   try {
     const r = await pool.query(
       `SELECT background_image_url, bg_gradient_top, bg_gradient_mid, bg_gradient_bottom,
-              image_overlay_percent, footer_scrim_hex, footer_scrim_percent
+              image_overlay_percent, footer_scrim_hex, footer_scrim_percent,
+              inner_background_image_url, inner_bg_gradient_top, inner_bg_gradient_mid,
+              inner_bg_gradient_bottom, inner_image_overlay_percent
        FROM site_theme WHERE id = 1`
     );
     if (r.rows[0]) return rowToTheme(r.rows[0]);
@@ -118,13 +135,38 @@ async function updateSiteTheme(patch) {
     footerScrimPercent:
       patch.footerScrimPercent !== undefined
         ? readOverlayPercent(patch.footerScrimPercent, current.footerScrimPercent)
-        : current.footerScrimPercent
+        : current.footerScrimPercent,
+    innerBackgroundImageUrl:
+      patch.innerBackgroundImageUrl !== undefined
+        ? normalizeUrl(patch.innerBackgroundImageUrl)
+        : current.innerBackgroundImageUrl,
+    innerBgGradientTop:
+      patch.innerBgGradientTop !== undefined
+        ? normalizeHex(patch.innerBgGradientTop) || current.innerBgGradientTop
+        : current.innerBgGradientTop,
+    innerBgGradientMid:
+      patch.innerBgGradientMid !== undefined
+        ? normalizeHex(patch.innerBgGradientMid) || current.innerBgGradientMid
+        : current.innerBgGradientMid,
+    innerBgGradientBottom:
+      patch.innerBgGradientBottom !== undefined
+        ? normalizeHex(patch.innerBgGradientBottom) || current.innerBgGradientBottom
+        : current.innerBgGradientBottom,
+    innerImageOverlayPercent:
+      patch.innerImageOverlayPercent !== undefined
+        ? readOverlayPercent(
+            patch.innerImageOverlayPercent,
+            current.innerImageOverlayPercent
+          )
+        : current.innerImageOverlayPercent
   };
 
   await pool.query(
     `INSERT INTO site_theme (id, background_image_url, bg_gradient_top, bg_gradient_mid, bg_gradient_bottom,
-      image_overlay_percent, footer_scrim_hex, footer_scrim_percent, updated_at)
-     VALUES (1, $1, $2, $3, $4, $5, $6, $7, NOW())
+      image_overlay_percent, footer_scrim_hex, footer_scrim_percent,
+      inner_background_image_url, inner_bg_gradient_top, inner_bg_gradient_mid, inner_bg_gradient_bottom,
+      inner_image_overlay_percent, updated_at)
+     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
      ON CONFLICT (id) DO UPDATE SET
        background_image_url = EXCLUDED.background_image_url,
        bg_gradient_top = EXCLUDED.bg_gradient_top,
@@ -133,6 +175,11 @@ async function updateSiteTheme(patch) {
        image_overlay_percent = EXCLUDED.image_overlay_percent,
        footer_scrim_hex = EXCLUDED.footer_scrim_hex,
        footer_scrim_percent = EXCLUDED.footer_scrim_percent,
+       inner_background_image_url = EXCLUDED.inner_background_image_url,
+       inner_bg_gradient_top = EXCLUDED.inner_bg_gradient_top,
+       inner_bg_gradient_mid = EXCLUDED.inner_bg_gradient_mid,
+       inner_bg_gradient_bottom = EXCLUDED.inner_bg_gradient_bottom,
+       inner_image_overlay_percent = EXCLUDED.inner_image_overlay_percent,
        updated_at = NOW()`,
     [
       next.backgroundImageUrl || "",
@@ -141,7 +188,12 @@ async function updateSiteTheme(patch) {
       next.bgGradientBottom,
       next.imageOverlayPercent,
       next.footerScrimHex,
-      next.footerScrimPercent
+      next.footerScrimPercent,
+      next.innerBackgroundImageUrl || "",
+      next.innerBgGradientTop,
+      next.innerBgGradientMid,
+      next.innerBgGradientBottom,
+      next.innerImageOverlayPercent
     ]
   );
   return next;

@@ -8,26 +8,39 @@ const FALLBACK_THEME = {
   bgGradientBottom: "#FFD6E2",
   imageOverlayPercent: 78,
   footerScrimHex: "#2B121C",
-  footerScrimPercent: 48
+  footerScrimPercent: 48,
+  innerBackgroundImageUrl: "",
+  innerBgGradientTop: "#FFF5F8",
+  innerBgGradientMid: "#FFEEF3",
+  innerBgGradientBottom: "#FFD6E2",
+  innerImageOverlayPercent: 78
 };
+
+function clampPct(n, fb) {
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : fb;
+}
 
 function normalizeTheme(t) {
   const opNum = Number(t.imageOverlayPercent);
   const fpNum = Number(t.footerScrimPercent);
+  const iopNum = Number(t.innerImageOverlayPercent);
   return {
     backgroundImageUrl: String(t.backgroundImageUrl ?? ""),
     bgGradientTop: String(t.bgGradientTop ?? FALLBACK_THEME.bgGradientTop),
     bgGradientMid: String(t.bgGradientMid ?? FALLBACK_THEME.bgGradientMid),
     bgGradientBottom: String(t.bgGradientBottom ?? FALLBACK_THEME.bgGradientBottom),
-    imageOverlayPercent: Number.isFinite(opNum)
-      ? Math.min(100, Math.max(0, Math.floor(opNum)))
-      : FALLBACK_THEME.imageOverlayPercent,
+    imageOverlayPercent: clampPct(opNum, FALLBACK_THEME.imageOverlayPercent),
     footerScrimHex: /^#[0-9A-Fa-f]{6}$/.test(String(t.footerScrimHex ?? "").trim())
       ? String(t.footerScrimHex).trim()
       : FALLBACK_THEME.footerScrimHex,
-    footerScrimPercent: Number.isFinite(fpNum)
-      ? Math.min(100, Math.max(0, Math.floor(fpNum)))
-      : FALLBACK_THEME.footerScrimPercent
+    footerScrimPercent: clampPct(fpNum, FALLBACK_THEME.footerScrimPercent),
+    innerBackgroundImageUrl: String(t.innerBackgroundImageUrl ?? ""),
+    innerBgGradientTop: String(t.innerBgGradientTop ?? FALLBACK_THEME.innerBgGradientTop),
+    innerBgGradientMid: String(t.innerBgGradientMid ?? FALLBACK_THEME.innerBgGradientMid),
+    innerBgGradientBottom: String(
+      t.innerBgGradientBottom ?? FALLBACK_THEME.innerBgGradientBottom
+    ),
+    innerImageOverlayPercent: clampPct(iopNum, FALLBACK_THEME.innerImageOverlayPercent)
   };
 }
 
@@ -40,7 +53,6 @@ async function fetchThemeFromUrl(url) {
 
 /**
  * ดึงธีมสำหรับ Root layout (SSR)
- * ลอง same-origin ก่อน (ผ่าน rewrite ของ Next) แล้วค่อยยิงตรง API — ลดปัญหา env ฝั่งเว็บชี้ API ไม่ตรง
  */
 export async function fetchSiteThemeForLayout() {
   const baseExternal = getApiBase().replace(/\/$/, "");

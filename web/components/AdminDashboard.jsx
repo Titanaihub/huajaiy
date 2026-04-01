@@ -1650,7 +1650,7 @@ export default function AdminDashboard() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-hui-section">พื้นหลังเว็บไซต์</h2>
           <p className="text-sm text-hui-body">
-            ใช้กับ<strong>ทุกหน้า</strong>รวมหน้าแรก ล็อกอิน ร้าน เกม แอดมิน และหลังบ้านสมาชิก — ตั้งไล่สีหรือรูป (https) ปรับความทึบทับรูปและฟุตเตอร์ — หลังบันทึกให้รีเฟรชหรือรอสักครู่
+            <strong>หน้าแรก (/)</strong> กับ<strong>หน้าอื่นทั้งหมด</strong>ตั้งพื้นหลังคนละชุดได้ (รูปหรือไล่สีแยกกัน) · ฟุตเตอร์ใช้สีทึบชุดเดียวทับพื้นหลังของแต่ละหน้า
           </p>
           <AdminSiteThemePanel />
         </section>

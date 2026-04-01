@@ -18,6 +18,35 @@ function cssUrlQuoted(url) {
 }
 
 /**
+ * เลือกชุดพื้นหลังตาม path — `/` เท่านั้น = หน้าแรก ที่เหลือ = ชุด inner
+ * @param {object} fullTheme ธีมเต็มจาก API (มี inner*)
+ * @param {string} pathname
+ */
+export function pickBackgroundSliceForPathname(fullTheme, pathname) {
+  const p = String(pathname || "/").split("?")[0] || "/";
+  const isHome = p === "/";
+  if (isHome) {
+    return {
+      backgroundImageUrl: fullTheme.backgroundImageUrl,
+      bgGradientTop: fullTheme.bgGradientTop,
+      bgGradientMid: fullTheme.bgGradientMid,
+      bgGradientBottom: fullTheme.bgGradientBottom,
+      imageOverlayPercent: fullTheme.imageOverlayPercent
+    };
+  }
+  const op = Number(fullTheme.innerImageOverlayPercent);
+  return {
+    backgroundImageUrl: String(fullTheme.innerBackgroundImageUrl ?? ""),
+    bgGradientTop: String(fullTheme.innerBgGradientTop ?? "#FFF5F8"),
+    bgGradientMid: String(fullTheme.innerBgGradientMid ?? "#FFEEF3"),
+    bgGradientBottom: String(fullTheme.innerBgGradientBottom ?? "#FFD6E2"),
+    imageOverlayPercent: Number.isFinite(op)
+      ? Math.min(100, Math.max(0, Math.floor(op)))
+      : 78
+  };
+}
+
+/**
  * สไตล์พื้นหลังให้ใส่ที่ `<html>` (layout ราก) — `<body>` โปร่งเพื่อให้ทุกหน้าเห็นชุดเดียวกัน
  * @param {{ backgroundImageUrl?: string, bgGradientTop?: string, bgGradientMid?: string, bgGradientBottom?: string, imageOverlayPercent?: number }} theme
  */

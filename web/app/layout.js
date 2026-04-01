@@ -4,8 +4,9 @@ import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
 import { SiteThemeProvider } from "../components/SiteThemeProvider";
+import { getPathnameForLayout } from "../lib/getPathnameForLayout";
 import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
-import { buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
+import { buildSiteRootBackgroundStyle, pickBackgroundSliceForPathname } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
 const prompt = Prompt({
@@ -53,10 +54,14 @@ export const viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }) {
-  const siteTheme = await fetchSiteThemeForLayout();
-  /** วางที่ <html> เพื่อให้ทุกหน้า (รวมแอดมิน/ล็อกอิน) เห็นพื้นหลังชุดเดียวกัน — body โปร่งไม่ทับเลเยอร์ */
+  const [siteTheme, pathname] = await Promise.all([
+    fetchSiteThemeForLayout(),
+    getPathnameForLayout()
+  ]);
+  const bgSlice = pickBackgroundSliceForPathname(siteTheme, pathname);
+  /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน */
   const htmlBgStyle = {
-    ...buildSiteRootBackgroundStyle(siteTheme),
+    ...buildSiteRootBackgroundStyle(bgSlice),
     minHeight: "100dvh"
   };
 

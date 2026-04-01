@@ -70,22 +70,34 @@ async function uploadImageFile(file) {
   return data.publicUrl;
 }
 
+function validHex(s, fallback) {
+  return /^#[0-9A-Fa-f]{6}$/.test(String(s || "").trim()) ? String(s).trim() : fallback;
+}
+
 export default function AdminSiteThemePanel() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(null);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+
   const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
   const [bgGradientTop, setBgGradientTop] = useState("#FFF5F8");
   const [bgGradientMid, setBgGradientMid] = useState("#FFEEF3");
   const [bgGradientBottom, setBgGradientBottom] = useState("#FFD6E2");
   const [imageOverlayPercent, setImageOverlayPercent] = useState(78);
+
+  const [innerBackgroundImageUrl, setInnerBackgroundImageUrl] = useState("");
+  const [innerBgGradientTop, setInnerBgGradientTop] = useState("#FFF5F8");
+  const [innerBgGradientMid, setInnerBgGradientMid] = useState("#FFEEF3");
+  const [innerBgGradientBottom, setInnerBgGradientBottom] = useState("#FFD6E2");
+  const [innerImageOverlayPercent, setInnerImageOverlayPercent] = useState(78);
+
   const [footerScrimHex, setFooterScrimHex] = useState("#2B121C");
   const [footerScrimPercent, setFooterScrimPercent] = useState(48);
 
-  const previewStyle = useMemo(
+  const previewHomeStyle = useMemo(
     () =>
       buildSiteRootBackgroundStyle({
         backgroundImageUrl,
@@ -95,6 +107,24 @@ export default function AdminSiteThemePanel() {
         imageOverlayPercent
       }),
     [backgroundImageUrl, bgGradientTop, bgGradientMid, bgGradientBottom, imageOverlayPercent]
+  );
+
+  const previewInnerStyle = useMemo(
+    () =>
+      buildSiteRootBackgroundStyle({
+        backgroundImageUrl: innerBackgroundImageUrl,
+        bgGradientTop: innerBgGradientTop,
+        bgGradientMid: innerBgGradientMid,
+        bgGradientBottom: innerBgGradientBottom,
+        imageOverlayPercent: innerImageOverlayPercent
+      }),
+    [
+      innerBackgroundImageUrl,
+      innerBgGradientTop,
+      innerBgGradientMid,
+      innerBgGradientBottom,
+      innerImageOverlayPercent
+    ]
   );
 
   const previewFooterOverlayStyle = useMemo(
@@ -122,11 +152,15 @@ export default function AdminSiteThemePanel() {
         const n = Number(t.imageOverlayPercent);
         setImageOverlayPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 78);
       }
-      setFooterScrimHex(
-        /^#[0-9A-Fa-f]{6}$/.test(String(t.footerScrimHex || "").trim())
-          ? String(t.footerScrimHex).trim()
-          : "#2B121C"
-      );
+      setInnerBackgroundImageUrl(String(t.innerBackgroundImageUrl || ""));
+      setInnerBgGradientTop(String(t.innerBgGradientTop || "#FFF5F8"));
+      setInnerBgGradientMid(String(t.innerBgGradientMid || "#FFEEF3"));
+      setInnerBgGradientBottom(String(t.innerBgGradientBottom || "#FFD6E2"));
+      {
+        const n = Number(t.innerImageOverlayPercent);
+        setInnerImageOverlayPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 78);
+      }
+      setFooterScrimHex(validHex(t.footerScrimHex, "#2B121C"));
       {
         const n = Number(t.footerScrimPercent);
         setFooterScrimPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 48);
@@ -156,11 +190,16 @@ export default function AdminSiteThemePanel() {
         bgGradientMid,
         bgGradientBottom,
         imageOverlayPercent,
+        innerBackgroundImageUrl,
+        innerBgGradientTop,
+        innerBgGradientMid,
+        innerBgGradientBottom,
+        innerImageOverlayPercent,
         footerScrimHex,
         footerScrimPercent
       });
       router.refresh();
-      setMsg("บันทึกแล้ว — หน้าเว็บโหลดธีมใหม่แล้ว (ถ้ายังไม่เห็นรูป ลองลดความทึบทับรูปลง)");
+      setMsg("บันทึกแล้ว — สลับหน้าแรกกับหน้าอื่นเพื่อเทียบพื้นหลัง");
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -168,19 +207,19 @@ export default function AdminSiteThemePanel() {
     }
   }
 
-  async function onPickFile(ev) {
+  async function onPickFile(ev, setUrl, zone) {
     const file = ev.target.files?.[0];
     ev.target.value = "";
     if (!file) return;
-    setUploadBusy(true);
+    setUploadBusy(zone);
     setErr("");
     try {
       const url = await uploadImageFile(file);
-      setBackgroundImageUrl(url);
+      setUrl(url);
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
-      setUploadBusy(false);
+      setUploadBusy(null);
     }
   }
 
@@ -189,133 +228,246 @@ export default function AdminSiteThemePanel() {
   }
 
   return (
-    <form onSubmit={handleSave} className="max-w-xl space-y-4">
+    <form onSubmit={handleSave} className="max-w-5xl space-y-6">
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
       {msg ? <p className="text-sm text-green-800">{msg}</p> : null}
 
-      <div>
-        <p className="hui-label">ตัวอย่างพื้นหลัง</p>
-        <div
-          className="mt-2 h-28 w-full max-w-md rounded-2xl border border-hui-border shadow-inner"
-          style={previewStyle}
-          aria-hidden
-        />
-      </div>
-
-      <div>
-        <label htmlFor="site-bg-url" className="hui-label">
-          URL รูปพื้นหลัง (https เท่านั้น — เว้นว่าง = ใช้แค่ไล่สี)
-        </label>
-        <input
-          id="site-bg-url"
-          type="url"
-          value={backgroundImageUrl}
-          onChange={(e) => setBackgroundImageUrl(e.target.value)}
-          className="hui-input"
-          placeholder="https://..."
-          autoComplete="off"
-        />
-        <div className="mt-2 flex flex-wrap gap-2">
-          <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              disabled={uploadBusy}
-              onChange={onPickFile}
+      <div className="grid gap-8 lg:grid-cols-2">
+        <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+          <legend className="px-1 text-base font-semibold text-hui-section">
+            หน้าแรก <span className="font-normal text-hui-muted">(/)</span>
+          </legend>
+          <div>
+            <p className="hui-label">ตัวอย่าง</p>
+            <div
+              className="mt-2 h-24 w-full rounded-2xl border border-hui-border shadow-inner"
+              style={previewHomeStyle}
+              aria-hidden
             />
-            {uploadBusy ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
-          </label>
-          <button
-            type="button"
-            className="rounded-2xl border border-hui-border bg-white px-4 py-2 text-sm font-semibold text-hui-body hover:bg-hui-surface"
-            onClick={() => setBackgroundImageUrl("")}
-          >
-            ล้าง URL รูป
-          </button>
-        </div>
-      </div>
+          </div>
+          <div>
+            <label htmlFor="site-bg-url" className="hui-label">
+              URL รูป (https — เว้นว่าง = ไล่สีอย่างเดียว)
+            </label>
+            <input
+              id="site-bg-url"
+              type="url"
+              value={backgroundImageUrl}
+              onChange={(e) => setBackgroundImageUrl(e.target.value)}
+              className="hui-input"
+              placeholder="https://..."
+              autoComplete="off"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={uploadBusy !== null}
+                  onChange={(e) => onPickFile(e, setBackgroundImageUrl, "home")}
+                />
+                {uploadBusy === "home" ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
+              </label>
+              <button
+                type="button"
+                className="rounded-2xl border border-hui-border bg-white px-4 py-2 text-sm font-semibold text-hui-body hover:bg-hui-surface"
+                onClick={() => setBackgroundImageUrl("")}
+              >
+                ล้าง URL
+              </button>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label htmlFor="site-bg-top" className="hui-label">
+                สีบน
+              </label>
+              <input
+                id="site-bg-top"
+                type="text"
+                value={bgGradientTop}
+                onChange={(e) => setBgGradientTop(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div>
+              <label htmlFor="site-bg-mid" className="hui-label">
+                สีกลาง
+              </label>
+              <input
+                id="site-bg-mid"
+                type="text"
+                value={bgGradientMid}
+                onChange={(e) => setBgGradientMid(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div>
+              <label htmlFor="site-bg-bot" className="hui-label">
+                สีล่าง
+              </label>
+              <input
+                id="site-bg-bot"
+                type="text"
+                value={bgGradientBottom}
+                onChange={(e) => setBgGradientBottom(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="site-bg-overlay" className="hui-label">
+              ความทึบทับรูป: {imageOverlayPercent}%
+            </label>
+            <input
+              id="site-bg-overlay"
+              type="range"
+              min={0}
+              max={100}
+              value={imageOverlayPercent}
+              onChange={(e) => setImageOverlayPercent(Number(e.target.value))}
+              className="mt-1 w-full"
+            />
+          </div>
+        </fieldset>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <label htmlFor="site-bg-top" className="hui-label">
-            สีบน (#RRGGBB)
-          </label>
-          <input
-            id="site-bg-top"
-            type="text"
-            value={bgGradientTop}
-            onChange={(e) => setBgGradientTop(e.target.value)}
-            className="hui-input font-mono text-sm"
-            maxLength={7}
-          />
-        </div>
-        <div>
-          <label htmlFor="site-bg-mid" className="hui-label">
-            สีกลาง
-          </label>
-          <input
-            id="site-bg-mid"
-            type="text"
-            value={bgGradientMid}
-            onChange={(e) => setBgGradientMid(e.target.value)}
-            className="hui-input font-mono text-sm"
-            maxLength={7}
-          />
-        </div>
-        <div>
-          <label htmlFor="site-bg-bot" className="hui-label">
-            สีล่าง
-          </label>
-          <input
-            id="site-bg-bot"
-            type="text"
-            value={bgGradientBottom}
-            onChange={(e) => setBgGradientBottom(e.target.value)}
-            className="hui-input font-mono text-sm"
-            maxLength={7}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="site-bg-overlay" className="hui-label">
-          ความทึบเลเยอร์สีทับรูป: {imageOverlayPercent}%
-        </label>
-        <input
-          id="site-bg-overlay"
-          type="range"
-          min={0}
-          max={100}
-          value={imageOverlayPercent}
-          onChange={(e) => setImageOverlayPercent(Number(e.target.value))}
-          className="mt-1 w-full max-w-md"
-        />
-        <p className="hui-note mt-1">
-          ใช้เมื่อมีรูปพื้นหลัง — ยิ่งสูง ตัวหนังสืออ่านง่ายขึ้น · รูปโทนอ่อน/ชมพูให้ลดค่านี้ลงจะเห็นลายชัดขึ้น
-        </p>
+        <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+          <legend className="px-1 text-base font-semibold text-hui-section">
+            หน้าอื่นทั้งหมด <span className="font-normal text-hui-muted">(รวมแอดมิน ล็อกอิน เกม ฯลฯ)</span>
+          </legend>
+          <div>
+            <p className="hui-label">ตัวอย่าง</p>
+            <div
+              className="mt-2 h-24 w-full rounded-2xl border border-hui-border shadow-inner"
+              style={previewInnerStyle}
+              aria-hidden
+            />
+          </div>
+          <div>
+            <label htmlFor="inner-bg-url" className="hui-label">
+              URL รูป (https)
+            </label>
+            <input
+              id="inner-bg-url"
+              type="url"
+              value={innerBackgroundImageUrl}
+              onChange={(e) => setInnerBackgroundImageUrl(e.target.value)}
+              className="hui-input"
+              placeholder="https://..."
+              autoComplete="off"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={uploadBusy !== null}
+                  onChange={(e) => onPickFile(e, setInnerBackgroundImageUrl, "inner")}
+                />
+                {uploadBusy === "inner" ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
+              </label>
+              <button
+                type="button"
+                className="rounded-2xl border border-hui-border bg-white px-4 py-2 text-sm font-semibold text-hui-body hover:bg-hui-surface"
+                onClick={() => setInnerBackgroundImageUrl("")}
+              >
+                ล้าง URL
+              </button>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label htmlFor="inner-bg-top" className="hui-label">
+                สีบน
+              </label>
+              <input
+                id="inner-bg-top"
+                type="text"
+                value={innerBgGradientTop}
+                onChange={(e) => setInnerBgGradientTop(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div>
+              <label htmlFor="inner-bg-mid" className="hui-label">
+                สีกลาง
+              </label>
+              <input
+                id="inner-bg-mid"
+                type="text"
+                value={innerBgGradientMid}
+                onChange={(e) => setInnerBgGradientMid(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+            <div>
+              <label htmlFor="inner-bg-bot" className="hui-label">
+                สีล่าง
+              </label>
+              <input
+                id="inner-bg-bot"
+                type="text"
+                value={innerBgGradientBottom}
+                onChange={(e) => setInnerBgGradientBottom(e.target.value)}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="inner-bg-overlay" className="hui-label">
+              ความทึบทับรูป: {innerImageOverlayPercent}%
+            </label>
+            <input
+              id="inner-bg-overlay"
+              type="range"
+              min={0}
+              max={100}
+              value={innerImageOverlayPercent}
+              onChange={(e) => setInnerImageOverlayPercent(Number(e.target.value))}
+              className="mt-1 w-full"
+            />
+          </div>
+        </fieldset>
       </div>
 
       <div className="rounded-xl border border-hui-border bg-white/60 p-4">
-        <p className="hui-label">ฟุตเตอร์ (ด้านล่างเว็บ)</p>
+        <p className="hui-label">ฟุตเตอร์ — สีทึบโปร่งทับพื้นหลังจริงของแต่ละหน้า</p>
         <p className="hui-note mt-1 mb-3">
-          ใช้<strong>รูปพื้นหลังชุดเดียวกับด้านบน</strong> แล้วทับด้วยสีทึบแยกต่างหาก — แนะนำโทนเข้มให้อ่านลิงก์ชัด:{" "}
-          <code className="rounded bg-hui-surface px-1">#2B121C</code> burgundy เข้ม (ค่าเริ่ม),{" "}
-          <code className="rounded bg-hui-surface px-1">#1a1a1a</code> เทาเข้ม, หรือ{" "}
-          <code className="rounded bg-hui-surface px-1">#3d1a24</code> ชมพูเข้ม
+          พื้นหลังฟุตเตอร์ต่อเนื่องจากพื้นหลังหน้านั้น · แนะนำ{" "}
+          <code className="rounded bg-hui-surface px-1">#2B121C</code>,{" "}
+          <code className="rounded bg-hui-surface px-1">#1a1a1a</code>
         </p>
-        <div
-          className="relative mb-4 h-20 w-full max-w-md overflow-hidden rounded-xl border border-hui-border"
-          aria-hidden
-        >
-          <div className="absolute inset-0" style={previewStyle} />
-          {Object.keys(previewFooterOverlayStyle).length > 0 ? (
-            <div className="absolute inset-0" style={previewFooterOverlayStyle} />
-          ) : null}
+        <div className="mb-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="mb-1 text-xs font-medium text-hui-muted">บนหน้าแรก</p>
+            <div className="relative h-16 overflow-hidden rounded-xl border border-hui-border" aria-hidden>
+              <div className="absolute inset-0" style={previewHomeStyle} />
+              {Object.keys(previewFooterOverlayStyle).length > 0 ? (
+                <div className="absolute inset-0" style={previewFooterOverlayStyle} />
+              ) : null}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-medium text-hui-muted">บนหน้าอื่น</p>
+            <div className="relative h-16 overflow-hidden rounded-xl border border-hui-border" aria-hidden>
+              <div className="absolute inset-0" style={previewInnerStyle} />
+              {Object.keys(previewFooterOverlayStyle).length > 0 ? (
+                <div className="absolute inset-0" style={previewFooterOverlayStyle} />
+              ) : null}
+            </div>
+          </div>
         </div>
         <div>
           <label htmlFor="footer-scrim-hex" className="hui-label">
-            สีทึบทับรูปในฟุตเตอร์ (#RRGGBB)
+            สีทึบ (#RRGGBB)
           </label>
           <input
             id="footer-scrim-hex"
@@ -328,7 +480,7 @@ export default function AdminSiteThemePanel() {
         </div>
         <div className="mt-3">
           <label htmlFor="footer-scrim-pct" className="hui-label">
-            ความทึบทับรูปในฟุตเตอร์: {footerScrimPercent}%
+            ความทึบ: {footerScrimPercent}%
           </label>
           <input
             id="footer-scrim-pct"
