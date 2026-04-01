@@ -139,7 +139,7 @@ export default function CreateGameRoomForm() {
 
   if (loading) {
     return (
-      <p className="text-sm text-slate-600" aria-live="polite">
+      <p className="text-sm text-white/90" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -286,14 +286,14 @@ export default function CreateGameRoomForm() {
           </span>
         </label>
 
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-white/90">
           หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
-          <strong className="font-medium text-slate-600">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
-          <span className="text-slate-400">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+          <strong className="font-medium text-white">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
+          <span className="text-white/80">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
         </p>
 
         {err ? (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-100" role="alert">
             {err}
           </p>
         ) : null}
@@ -312,13 +312,13 @@ export default function CreateGameRoomForm() {
           </button>
           <Link
             href="/account"
-            className="text-sm font-medium text-slate-600 underline decoration-slate-300 underline-offset-2 hover:text-brand-800"
+            className="text-sm font-medium text-white/90 underline decoration-white/50 underline-offset-2 hover:text-white"
           >
             ← กลับหลังบ้าน
           </Link>
           <Link
             href="/account/my-games"
-            className="text-sm font-medium text-brand-700 underline decoration-brand-200 underline-offset-2 hover:text-brand-900"
+            className="text-sm font-medium text-white/90 underline decoration-white/50 underline-offset-2 hover:text-white"
           >
             เกมของฉัน
           </Link>
@@ -329,10 +329,10 @@ export default function CreateGameRoomForm() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-white">
           {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
         </h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-white/85">
           {managingExisting
             ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ — แบบฟอร์มเปิดห้องใหม่อยู่ในกล่องที่พับไว้"
             : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
@@ -358,7 +358,7 @@ export default function CreateGameRoomForm() {
           id="game-studio"
           className="scroll-mt-8 border-t border-slate-200 pt-10"
         >
-          <h3 className="text-base font-semibold text-slate-900">ตั้งค่าห้องเกม</h3>
+          <h3 className="text-base font-semibold text-white">ตั้งค่าห้องเกม</h3>
           <div className="mt-6">
             <AdminCentralGamePanel key={studioGameId} embedded focusGameId={studioGameId} />
           </div>

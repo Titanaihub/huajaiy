@@ -892,9 +892,19 @@ export default function AdminCentralGamePanel({
 
   return (
     <section className="space-y-8 text-sm">
-      {err ? <p className="text-red-600">{err}</p> : null}
+      {err ? <p className={embedded ? "text-red-100" : "text-red-600"}>{err}</p> : null}
       {msg ? (
-        <p className={msg.includes("แล้ว") ? "text-green-700" : "text-amber-800"}>{msg}</p>
+        <p
+          className={
+            embedded
+              ? "text-white/90"
+              : msg.includes("แล้ว")
+                ? "text-green-700"
+                : "text-amber-800"
+          }
+        >
+          {msg}
+        </p>
       ) : null}
 
       {!embedded ? (
@@ -1154,7 +1164,7 @@ export default function AdminCentralGamePanel({
 
       {selectedId ? (
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
-          {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
+          {loading ? <p className={embedded ? "text-white/85" : "text-slate-500"}>กำลังโหลด…</p> : null}
 
           {awardEditLocked ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
@@ -1162,7 +1172,7 @@ export default function AdminCentralGamePanel({
             </div>
           ) : null}
 
-          <p className="text-xs text-slate-600">
+          <p className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
             แต่ละชุด = <strong>จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
             <strong>บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
           </p>
