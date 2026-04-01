@@ -36,7 +36,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/admin", adminRouter);

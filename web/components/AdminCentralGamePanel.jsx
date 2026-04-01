@@ -350,7 +350,6 @@ export default function AdminCentralGamePanel({
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
-  const [autoSaving, setAutoSaving] = useState(false);
   /** เผยแพร่ / ปิดใช้ / ลบ — กันซ้ำและให้เห็นสถานะ */
   const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
@@ -459,7 +458,7 @@ export default function AdminCentralGamePanel({
         typeof g.pinkHeartCost === "number" ? g.pinkHeartCost : g.heartCost ?? 0
       );
       setRedHeartCost(typeof g.redHeartCost === "number" ? g.redHeartCost : 0);
-      setLobbyVisible(Boolean(g.isPublished));
+      setLobbyVisible(Boolean(g.isPublished || g.isActive));
       setAllowGiftRedPlay(Boolean(g.allowGiftRedPlay));
       const hcm = g.heartCurrencyMode;
       setHeartCurrencyMode(
@@ -606,8 +605,10 @@ export default function AdminCentralGamePanel({
     });
   }
 
-  async function persistMeta() {
-    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+  /** ไม่ส่ง isPublished ผ่าน PATCH — การเผยแพร่ใช้ POST activate/deactivate เท่านั้น (กันช่องล็อบบี้ทำให้ PATCH ล้มเมื่อรูปยังไม่ครบ) */
+  async function persistMeta(gameIdOverride) {
+    const gid = gameIdOverride ?? selectedId;
+    if (!gid) throw new Error("ยังไม่ได้เลือกเกม");
     const token = getMemberToken();
     if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
     const t = String(title || "").trim();
@@ -615,7 +616,7 @@ export default function AdminCentralGamePanel({
     const counts = setSizes
       .slice(0, setCount)
       .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
-    await apiAdminCentralGamePatch(token, selectedId, {
+    await apiAdminCentralGamePatch(token, gid, {
       title: t,
       description: gameDescription,
       gameCoverUrl: gameCoverUrl.trim() ? gameCoverUrl.trim() : null,
@@ -627,7 +628,6 @@ export default function AdminCentralGamePanel({
       redHeartCost,
       heartCurrencyMode,
       acceptsPinkHearts,
-      isPublished: lobbyVisible,
       allowGiftRedPlay
     });
   }
@@ -640,8 +640,9 @@ export default function AdminCentralGamePanel({
     return true;
   }
 
-  async function persistImages() {
-    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+  async function persistImages(gameIdOverride) {
+    const gid = gameIdOverride ?? selectedId;
+    if (!gid) throw new Error("ยังไม่ได้เลือกเกม");
     const token = getMemberToken();
     if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
     const images = [];
@@ -654,14 +655,28 @@ export default function AdminCentralGamePanel({
       }
       images.push({ setIndex: s, imageUrl: url });
     }
-    await apiAdminCentralGamePutImages(token, selectedId, images, { oneImagePerSet: true });
+    await apiAdminCentralGamePutImages(token, gid, images, { oneImagePerSet: true });
   }
 
-  async function persistRules() {
-    if (!selectedId) throw new Error("ยังไม่ได้เลือกเกม");
+  async function persistRules(gameIdOverride) {
+    const gid = gameIdOverride ?? selectedId;
+    if (!gid) throw new Error("ยังไม่ได้เลือกเกม");
     const token = getMemberToken();
     if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
-    await apiAdminCentralGamePutRules(token, selectedId, rulesPayload());
+    await apiAdminCentralGamePutRules(token, gid, rulesPayload());
+  }
+
+  /** บันทึกโครง+รูป+กติกาแบบครบก่อนเผยแพร่ — ใช้ gameId ชัดเจน (ไม่พึ่ง state หลัง setState) */
+  async function persistAllForPublish(gameId) {
+    if (!gameId) throw new Error("ไม่พบรหัสเกม");
+    await persistMeta(gameId);
+    if (!imagesReadyForSave()) {
+      throw new Error(
+        "เผยแพร่ไม่ได้: อัปโหลดรูปให้ครบทุกชุดก่อน (รอ URL จริงของระบบ ไม่ใช่ blob:)"
+      );
+    }
+    await persistImages(gameId);
+    await persistRules(gameId);
   }
 
   /** บันทึกโครง + รูป (ถ้าครบ) + กติกา ในครั้งเดียว — ลดปัญหากดบันทึกไม่ครบขั้น */
@@ -688,65 +703,31 @@ export default function AdminCentralGamePanel({
         `บันทึกข้อมูลแล้ว — ${parts.join(" · ")} · กรุณาตรวจสอบเกมให้ถูกต้อง ก่อนเผยแพร่`
       );
     } catch (e) {
-      setMsg(e.message || String(e));
+      setErr(e.message || String(e));
+      setMsg("");
     } finally {
       setSavingAll(false);
     }
   }
 
-  useEffect(() => {
-    if (!embedded || !selectedId) return;
-    if (loading || savingAll || gameActionBusy || autoSaving) return;
-    const timer = setTimeout(async () => {
-      try {
-        setAutoSaving(true);
-        await persistMeta();
-        if (imagesReadyForSave()) {
-          await persistImages();
-        }
-        await persistRules();
-      } catch (_) {
-        // ให้ผู้ใช้กดบันทึกเองได้เสมอเมื่อ autosave ไม่สำเร็จ
-      } finally {
-        setAutoSaving(false);
-      }
-    }, 1400);
-    return () => clearTimeout(timer);
-  }, [
-    embedded,
-    selectedId,
-    loading,
-    savingAll,
-    gameActionBusy,
-    title,
-    gameDescription,
-    gameCoverUrl,
-    tileBackCoverUrl,
-    setCount,
-    setSizes,
-    pinkHeartCost,
-    redHeartCost,
-    heartCurrencyMode,
-    acceptsPinkHearts,
-    allowGiftRedPlay,
-    imageMap,
-    rules
-  ]);
-
   async function publishGameById(id) {
     if (!id) {
-      setMsg("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
+      setErr("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
+      setMsg("");
       return;
     }
     if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
     const token = getMemberToken();
     if (!token) {
-      setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองกดเผยแพร่อีกครั้ง");
+      setErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองกดเผยแพร่อีกครั้ง");
+      setMsg("");
       return;
     }
     setGameActionBusy(true);
+    setErr("");
     setMsg("");
     try {
+      await persistAllForPublish(id);
       await apiAdminCentralGameActivate(token, id);
       setSelectedId(id);
       setLobbyVisible(true);
@@ -759,7 +740,8 @@ export default function AdminCentralGamePanel({
       await loadList();
       await loadDetail(id);
     } catch (e) {
-      setMsg(e.message || String(e));
+      setErr(e.message || String(e));
+      setMsg("");
     } finally {
       setGameActionBusy(false);
     }
@@ -767,18 +749,22 @@ export default function AdminCentralGamePanel({
 
   async function activate() {
     if (!selectedId) {
-      setMsg("ยังไม่ได้เลือกเกม — คลิกแถวในตาราง「รายการเกม」ก่อน แล้วค่อยกดเผยแพร่");
+      setErr("ยังไม่ได้เลือกเกม — คลิกแถวในตาราง「รายการเกม」ก่อน แล้วค่อยกดเผยแพร่");
+      setMsg("");
       return;
     }
     if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
     const token = getMemberToken();
     if (!token) {
-      setMsg("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+      setErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
+      setMsg("");
       return;
     }
     setGameActionBusy(true);
+    setErr("");
     setMsg("");
     try {
+      await persistAllForPublish(selectedId);
       await apiAdminCentralGameActivate(token, selectedId);
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
@@ -790,7 +776,8 @@ export default function AdminCentralGamePanel({
       await loadList();
       await loadDetail(selectedId);
     } catch (e) {
-      setMsg(e.message || String(e));
+      setErr(e.message || String(e));
+      setMsg("");
     } finally {
       setGameActionBusy(false);
     }
@@ -798,15 +785,18 @@ export default function AdminCentralGamePanel({
 
   async function deactivate() {
     if (!selectedId) {
-      setMsg("ยังไม่ได้เลือกเกม — คลิกแถวในตารางก่อน");
+      setErr("ยังไม่ได้เลือกเกม — คลิกแถวในตารางก่อน");
+      setMsg("");
       return;
     }
     const token = getMemberToken();
     if (!token) {
-      setMsg("หมดเซสชัน — ล็อกอินใหม่");
+      setErr("หมดเซสชัน — ล็อกอินใหม่");
+      setMsg("");
       return;
     }
     setGameActionBusy(true);
+    setErr("");
     setMsg("");
     try {
       await apiAdminCentralGameDeactivate(token, selectedId);
@@ -818,7 +808,8 @@ export default function AdminCentralGamePanel({
       setMsg("หยุดการเผยแพร่แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
       await loadList();
     } catch (e) {
-      setMsg(e.message || String(e));
+      setErr(e.message || String(e));
+      setMsg("");
     } finally {
       setGameActionBusy(false);
     }
@@ -1293,17 +1284,23 @@ export default function AdminCentralGamePanel({
                   placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
                 />
               </div>
-              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                <input
-                  id="central-game-lobby-visible"
-                  type="checkbox"
-                  checked={lobbyVisible}
-                  onChange={(e) => setLobbyVisible(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-slate-300"
-                />
-                <label htmlFor="central-game-lobby-visible" className="text-xs leading-relaxed text-slate-700">
-                  <span className="font-semibold text-slate-900">แสดงในหน้าเกม (รายการ)</span>
-                </label>
+              <div
+                className={
+                  embedded
+                    ? "sm:col-span-2 rounded-lg border border-white/25 bg-white/10 p-3"
+                    : "sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3"
+                }
+              >
+                <p
+                  className={
+                    embedded ? "text-xs leading-relaxed text-white/95" : "text-xs leading-relaxed text-slate-700"
+                  }
+                >
+                  <span className={embedded ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                    สถานะการแสดงในรายการหน้า /game:
+                  </span>{" "}
+                  {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่ม「เผยแพร่บนเว็บ」หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
+                </p>
               </div>
               <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
                 <input
@@ -1655,11 +1652,11 @@ export default function AdminCentralGamePanel({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
                 <button
                   type="button"
-                  disabled={savingAll || autoSaving || loading || gameActionBusy || !selectedId}
+                  disabled={savingAll || loading || gameActionBusy || !selectedId}
                   onClick={() => saveAllGameData()}
                   className="shrink-0 self-start rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {savingAll ? "กำลังบันทึก…" : autoSaving ? "กำลังบันทึกอัตโนมัติ…" : "บันทึกข้อมูล"}
+                  {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
