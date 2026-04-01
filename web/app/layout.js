@@ -3,6 +3,7 @@ import { Prompt } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
+import HtmlBackgroundSync from "../components/HtmlBackgroundSync";
 import { SiteThemeProvider } from "../components/SiteThemeProvider";
 import { getPathnameForLayout } from "../lib/getPathnameForLayout";
 import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
@@ -69,6 +70,7 @@ export default async function RootLayout({ children }) {
     <html lang="th" className={prompt.variable} style={htmlBgStyle}>
       <body className={`${prompt.className} hui-root flex flex-col bg-transparent`}>
         <SiteThemeProvider value={siteTheme}>
+          <HtmlBackgroundSync />
           <MemberAuthProvider>
             <ImpersonationBanner />
             <HeartsProvider>

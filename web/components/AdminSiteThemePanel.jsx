@@ -207,7 +207,7 @@ export default function AdminSiteThemePanel() {
     }
   }
 
-  async function onPickFile(ev, setUrl, zone) {
+  async function onPickFile(ev, setUrl, zone, slice) {
     const file = ev.target.files?.[0];
     ev.target.value = "";
     if (!file) return;
@@ -216,6 +216,23 @@ export default function AdminSiteThemePanel() {
     try {
       const url = await uploadImageFile(file);
       setUrl(url);
+      const token = getMemberToken();
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(
+            token,
+            slice === "home"
+              ? { backgroundImageUrl: url }
+              : { innerBackgroundImageUrl: url }
+          );
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -367,7 +384,7 @@ export default function AdminSiteThemePanel() {
                   accept="image/*"
                   className="sr-only"
                   disabled={uploadBusy !== null}
-                  onChange={(e) => onPickFile(e, setInnerBackgroundImageUrl, "inner")}
+                  onChange={(e) => onPickFile(e, setInnerBackgroundImageUrl, "inner", "inner")}
                 />
                 {uploadBusy === "inner" ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
               </label>

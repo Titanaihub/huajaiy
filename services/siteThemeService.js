@@ -44,9 +44,7 @@ function readOverlayPercent(rowValue, fallback) {
 function rowToTheme(row) {
   if (!row) return { ...DEFAULT_THEME };
   return {
-    backgroundImageUrl: row.background_image_url
-      ? normalizeUrl(row.background_image_url) || ""
-      : "",
+    backgroundImageUrl: normalizeUrl(row.background_image_url) || "",
     bgGradientTop: normalizeHex(row.bg_gradient_top) || DEFAULT_THEME.bgGradientTop,
     bgGradientMid: normalizeHex(row.bg_gradient_mid) || DEFAULT_THEME.bgGradientMid,
     bgGradientBottom:
@@ -60,9 +58,7 @@ function rowToTheme(row) {
       row.footer_scrim_percent,
       DEFAULT_THEME.footerScrimPercent
     ),
-    innerBackgroundImageUrl: row.inner_background_image_url
-      ? normalizeUrl(row.inner_background_image_url) || ""
-      : "",
+    innerBackgroundImageUrl: normalizeUrl(row.inner_background_image_url) || "",
     innerBgGradientTop:
       normalizeHex(row.inner_bg_gradient_top) || DEFAULT_THEME.innerBgGradientTop,
     innerBgGradientMid:
