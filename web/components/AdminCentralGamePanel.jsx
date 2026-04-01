@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
@@ -312,7 +311,6 @@ export default function AdminCentralGamePanel({
   embedded = false,
   focusGameId = null
 }) {
-  const router = useRouter();
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -352,6 +350,7 @@ export default function AdminCentralGamePanel({
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
   /** เผยแพร่ / ปิดใช้ / ลบ — กันซ้ำและให้เห็นสถานะ */
   const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
@@ -695,6 +694,45 @@ export default function AdminCentralGamePanel({
     }
   }
 
+  useEffect(() => {
+    if (!embedded || !selectedId) return;
+    if (loading || savingAll || gameActionBusy || autoSaving) return;
+    const timer = setTimeout(async () => {
+      try {
+        setAutoSaving(true);
+        await persistMeta();
+        if (imagesReadyForSave()) {
+          await persistImages();
+        }
+        await persistRules();
+      } catch (_) {
+        // ให้ผู้ใช้กดบันทึกเองได้เสมอเมื่อ autosave ไม่สำเร็จ
+      } finally {
+        setAutoSaving(false);
+      }
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [
+    embedded,
+    selectedId,
+    loading,
+    savingAll,
+    gameActionBusy,
+    title,
+    gameDescription,
+    gameCoverUrl,
+    tileBackCoverUrl,
+    setCount,
+    setSizes,
+    pinkHeartCost,
+    redHeartCost,
+    heartCurrencyMode,
+    acceptsPinkHearts,
+    allowGiftRedPlay,
+    imageMap,
+    rules
+  ]);
+
   async function publishGameById(id) {
     if (!id) {
       setMsg("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
@@ -714,7 +752,7 @@ export default function AdminCentralGamePanel({
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === id ? null : p));
       if (embedded) {
-        router.push("/account/my-games?published=1");
+        window.location.assign("/account/my-games?published=1");
         return;
       }
       setMsg("เผยแพร่แล้ว — เกมนี้เป็นเกมหลักบนเว็บ และแสดงในรายการหน้า /game");
@@ -745,7 +783,7 @@ export default function AdminCentralGamePanel({
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
       if (embedded) {
-        router.push("/account/my-games?published=1");
+        window.location.assign("/account/my-games?published=1");
         return;
       }
       setMsg("เผยแพร่แล้ว — เกมหลักบนเว็บ และแสดงในรายการหน้า /game");
@@ -774,7 +812,7 @@ export default function AdminCentralGamePanel({
       await apiAdminCentralGameDeactivate(token, selectedId);
       setLobbyVisible(false);
       if (embedded) {
-        router.push("/account/my-games?published=0");
+        window.location.assign("/account/my-games?published=0");
         return;
       }
       setMsg("หยุดการเผยแพร่แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
@@ -1617,11 +1655,11 @@ export default function AdminCentralGamePanel({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
                 <button
                   type="button"
-                  disabled={savingAll || loading || gameActionBusy || !selectedId}
+                  disabled={savingAll || autoSaving || loading || gameActionBusy || !selectedId}
                   onClick={() => saveAllGameData()}
                   className="shrink-0 self-start rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+                  {savingAll ? "กำลังบันทึก…" : autoSaving ? "กำลังบันทึกอัตโนมัติ…" : "บันทึกข้อมูล"}
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-slate-900">บันทึกข้อมูล</p>
