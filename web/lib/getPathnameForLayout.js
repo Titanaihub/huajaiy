@@ -1,19 +1,19 @@
 import { headers } from "next/headers";
+import { normalizePathnameForTheme } from "./pathnameNormalize";
 
 /**
- * pathname จาก middleware
- * ถ้าไม่มี header ให้ถือว่าไม่ใช่หน้าแรก (ใช้ธีม inner) — ลดโอกาสโชว์พื้นหลังหน้าแรกผิดบนหน้าอื่น
+ * pathname จาก middleware (ทุกคำขอหน้าเว็บควรมีหลัง deploy middleware ที่ matcher รวม "/")
+ * ถ้าไม่มี header ให้ fallback `/` = ธีมหน้าแรก — ปลอดภัยกว่าเดิมที่ fallback เป็น inner แล้วทำให้หน้าแรกเหมือนหน้าอื่น
  */
 export async function getPathnameForLayout() {
   try {
     const h = await headers();
     const raw = h.get("x-huajaiy-pathname");
     if (raw && typeof raw === "string" && raw.length > 0) {
-      const path = raw.split("?")[0] || "/";
-      return path.startsWith("/") ? path : `/${path}`;
+      return normalizePathnameForTheme(raw);
     }
   } catch {
     /* ignore */
   }
-  return "/__missing_pathname_header";
+  return "/";
 }

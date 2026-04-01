@@ -1,3 +1,5 @@
+import { normalizePathnameForTheme } from "./pathnameNormalize";
+
 function hexToRgb(hex) {
   const h = String(hex || "").replace(/^#/, "");
   if (h.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(h)) return { r: 255, g: 245, b: 248 };
@@ -23,7 +25,7 @@ function cssUrlQuoted(url) {
  * @param {string} pathname
  */
 export function pickBackgroundSliceForPathname(fullTheme, pathname) {
-  const p = String(pathname || "/").split("?")[0] || "/";
+  const p = normalizePathnameForTheme(pathname);
   const isHome = p === "/";
   if (isHome) {
     return {

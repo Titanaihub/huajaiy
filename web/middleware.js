@@ -10,6 +10,10 @@ export function middleware(request) {
   });
 }
 
+/* ต้องมี "/" ชัดเช่นกัน — บางเวอร์ชัน Next pattern ด้านล่างไม่จับ path หน้าแรก ทำให้ไม่ส่ง header → layout ใช้ธีม inner ทั้งเว็บ */
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
+  matcher: [
+    "/",
+    "/((?!_next/static|_next/image|favicon.ico).*)"
+  ]
 };
