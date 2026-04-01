@@ -19,7 +19,7 @@ function isActivePath(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavDropdown({ label, menuKey, openKey, setOpenKey, onBrand, children }) {
+function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
   const pathname = usePathname();
   const containerRef = useRef(null);
   const btnRef = useRef(null);
@@ -83,11 +83,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, onBrand, children })
         onClick={() => setOpenKey((k) => (k === menuKey ? null : menuKey))}
         aria-expanded={open}
         aria-haspopup="true"
-        className={
-          onBrand
-            ? "flex min-w-0 items-center gap-0.5 rounded-md px-2 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 hover:text-white sm:py-1"
-            : "flex min-w-0 items-center gap-0.5 rounded-md px-2 py-1.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100 hover:text-neutral-950 sm:py-1"
-        }
+        className="flex min-w-0 items-center gap-0.5 rounded-md px-2 py-1.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100 hover:text-neutral-950 sm:py-1"
       >
         {label}
         <span className="text-[10px] opacity-70" aria-hidden>
@@ -127,20 +123,13 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, onBrand, children })
   );
 }
 
-export default function MemberNav({ onBrand = false }) {
+export default function MemberNav() {
   const { user, loading, logout } = useMemberAuth();
   const [openMenu, setOpenMenu] = useState(null);
 
   if (loading) {
     return (
-      <span
-        className={
-          onBrand
-            ? "text-xs font-medium text-white/70"
-            : "text-xs font-medium text-neutral-500"
-        }
-        aria-live="polite"
-      >
+      <span className="text-xs font-medium text-neutral-500" aria-live="polite">
         …
       </span>
     );
@@ -154,7 +143,6 @@ export default function MemberNav({ onBrand = false }) {
           menuKey="member"
           openKey={openMenu}
           setOpenKey={setOpenMenu}
-          onBrand={onBrand}
         >
           {({ pathname: p, dropItem: cls }) => (
             <>
@@ -196,7 +184,6 @@ export default function MemberNav({ onBrand = false }) {
           menuKey="creator"
           openKey={openMenu}
           setOpenKey={setOpenMenu}
-          onBrand={onBrand}
         >
           {({ pathname: p, dropItem: cls }) => (
             <>
@@ -243,11 +230,7 @@ export default function MemberNav({ onBrand = false }) {
         {user.role === "admin" ? (
           <Link
             href="/admin"
-            className={
-              onBrand
-                ? "font-medium text-white transition hover:text-white/85"
-                : "font-medium text-neutral-900 transition hover:text-neutral-950"
-            }
+            className="font-medium text-neutral-900 transition hover:text-neutral-950"
           >
             แอดมิน
           </Link>
@@ -255,11 +238,7 @@ export default function MemberNav({ onBrand = false }) {
         {user.role === "owner" || user.role === "admin" ? (
           <Link
             href="/owner"
-            className={
-              onBrand
-                ? "font-medium text-white transition hover:text-white/85"
-                : "font-medium text-neutral-900 transition hover:text-neutral-950"
-            }
+            className="font-medium text-neutral-900 transition hover:text-neutral-950"
           >
             เจ้าของร้าน
           </Link>
@@ -268,11 +247,7 @@ export default function MemberNav({ onBrand = false }) {
         <button
           type="button"
           onClick={() => logout()}
-          className={
-            onBrand
-              ? "text-sm font-medium text-white underline decoration-white/50 underline-offset-2 hover:text-white/90"
-              : "text-sm font-medium text-neutral-900 underline decoration-neutral-400 underline-offset-2 hover:text-neutral-950"
-          }
+          className="text-sm font-medium text-neutral-900 underline decoration-neutral-400 underline-offset-2 hover:text-neutral-950"
         >
           ออกจากระบบ
         </button>
@@ -284,22 +259,14 @@ export default function MemberNav({ onBrand = false }) {
     <span className="flex flex-wrap items-center gap-2 text-sm">
       <Link
         href="/register"
-        className={
-          onBrand
-            ? "font-medium text-white transition hover:text-white/85"
-            : "font-medium text-slate-600 transition hover:text-brand-800"
-        }
+        className="font-medium text-neutral-900 transition hover:text-neutral-950"
       >
         สมัครสมาชิก
       </Link>
-      <span className={onBrand ? "text-white/45" : "text-slate-400"}>|</span>
+      <span className="text-slate-400">|</span>
       <Link
         href="/login"
-        className={
-          onBrand
-            ? "font-medium text-white transition hover:text-white/85"
-            : "font-medium text-neutral-900 transition hover:text-neutral-950"
-        }
+        className="font-medium text-neutral-900 transition hover:text-neutral-950"
       >
         เข้าสู่ระบบ
       </Link>
