@@ -54,8 +54,8 @@ export const authOptions = {
       if (account) {
         token.provider = account.provider;
       }
+      /** เก็บ provider ให้แน่หลังรีเฟรช JWT — sub แบบ LINE ใช้บังคับเป็น line */
       if (
-        !token.provider &&
         token.sub &&
         /^U[A-Za-z0-9._-]{4,128}$/.test(String(token.sub))
       ) {

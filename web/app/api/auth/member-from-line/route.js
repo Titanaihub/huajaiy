@@ -1,8 +1,14 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { authOptions } from "../../../../lib/auth";
 import { getApiBase } from "../../../../lib/config";
-import { getNextAuthCookieHeader } from "../../../../lib/getNextAuthCookieHeader";
+
+/**
+ * NextAuth getToken อ่านเฉพาะ req.cookies (ต้องเป็น RequestCookies ที่มี getAll) — ไม่อ่านแค่ headers.cookie
+ * โค้ดเดิมประกอบ string Cookie ส่งใน headers ทำให้ SessionStore ว่าง → getToken เป็น null ตลอด
+ */
+export const dynamic = "force-dynamic";
 
 export async function POST() {
   const secret = process.env.LINE_LINK_SECRET;
@@ -25,13 +31,8 @@ export async function POST() {
     );
   }
 
-  const cookieHeader = getNextAuthCookieHeader();
   const token = await getToken({
-    req: {
-      headers: {
-        cookie: cookieHeader
-      }
-    },
+    req: { cookies: cookies() },
     secret: authSecret
   });
 
