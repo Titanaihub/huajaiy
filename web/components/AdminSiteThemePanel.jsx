@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
-import { buildSiteFooterBackgroundStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
+import { buildSiteFooterOverlayStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
@@ -97,24 +97,9 @@ export default function AdminSiteThemePanel() {
     [backgroundImageUrl, bgGradientTop, bgGradientMid, bgGradientBottom, imageOverlayPercent]
   );
 
-  const previewFooterStyle = useMemo(
-    () =>
-      buildSiteFooterBackgroundStyle({
-        backgroundImageUrl,
-        bgGradientTop,
-        bgGradientMid,
-        bgGradientBottom,
-        footerScrimHex,
-        footerScrimPercent
-      }),
-    [
-      backgroundImageUrl,
-      bgGradientTop,
-      bgGradientMid,
-      bgGradientBottom,
-      footerScrimHex,
-      footerScrimPercent
-    ]
+  const previewFooterOverlayStyle = useMemo(
+    () => buildSiteFooterOverlayStyle({ footerScrimHex, footerScrimPercent }),
+    [footerScrimHex, footerScrimPercent]
   );
 
   const load = useCallback(async () => {
@@ -320,10 +305,14 @@ export default function AdminSiteThemePanel() {
           <code className="rounded bg-hui-surface px-1">#3d1a24</code> ชมพูเข้ม
         </p>
         <div
-          className="mb-4 h-16 w-full max-w-md rounded-xl border border-hui-border"
-          style={previewFooterStyle}
+          className="relative mb-4 h-20 w-full max-w-md overflow-hidden rounded-xl border border-hui-border"
           aria-hidden
-        />
+        >
+          <div className="absolute inset-0" style={previewStyle} />
+          {Object.keys(previewFooterOverlayStyle).length > 0 ? (
+            <div className="absolute inset-0" style={previewFooterOverlayStyle} />
+          ) : null}
+        </div>
         <div>
           <label htmlFor="footer-scrim-hex" className="hui-label">
             สีทึบทับรูปในฟุตเตอร์ (#RRGGBB)

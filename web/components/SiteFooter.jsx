@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { buildSiteFooterBackgroundStyle } from "../lib/siteThemeStyle";
+import { buildSiteFooterOverlayStyle } from "../lib/siteThemeStyle";
 import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import BrandLogo from "./BrandLogo";
 import { useSiteTheme } from "./SiteThemeProvider";
@@ -18,12 +18,12 @@ const THEME_FALLBACK = {
 export default function SiteFooter() {
   const ctx = useSiteTheme();
   const theme = ctx && typeof ctx === "object" ? { ...THEME_FALLBACK, ...ctx } : THEME_FALLBACK;
-  const footerBg = buildSiteFooterBackgroundStyle(theme);
+  const footerOverlay = buildSiteFooterOverlayStyle(theme);
 
   return (
     <footer
       className="mt-12 border-t border-black/10"
-      style={footerBg}
+      style={footerOverlay}
     >
       <div className="mx-auto max-w-5xl px-4 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
