@@ -1280,7 +1280,9 @@ export default function AdminCentralGamePanel({
                 </label>
               </div>
               <div>
-                <label className="text-xs text-slate-600">จำนวนชุด</label>
+                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
+                  จำนวนชุด
+                </label>
                 <input
                   type="number"
                   min={1}
