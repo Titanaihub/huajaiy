@@ -207,13 +207,7 @@ function LineLoginContent() {
                 เข้าสู่ระบบด้วย LINE
               </button>
               <p className="text-center text-sm text-hui-muted">
-                ยังไม่มีบัญชีแบบยูสเซอร์/รหัสผ่าน?{" "}
-                <Link
-                  href="/register"
-                  className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                >
-                  สมัครสมาชิก
-                </Link>
+                บัญชีสมาชิกจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
               </p>
             </div>
           )}

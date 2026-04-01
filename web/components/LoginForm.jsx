@@ -78,13 +78,13 @@ export default function LoginForm({ redirectAfterLogin = null }) {
           เข้าสู่ระบบด้วย LINE
         </Link>
       </p>
-      <p className="mt-3 text-center text-sm text-hui-body">
-        ยังไม่มีบัญชี?{" "}
+      <p className="mt-3 text-center text-sm text-hui-muted">
+        บัญชีใหม่ไม่ต้องสมัคร — ใช้{" "}
         <Link
-          href="/register"
-          className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+          href={redirectAfterLogin ? `/login/line?next=${encodeURIComponent(redirectAfterLogin)}` : "/login/line"}
+          className="font-semibold text-[#06C755] underline decoration-[#06C755]/40 underline-offset-2 hover:brightness-95"
         >
-          สมัครสมาชิก
+          เข้าสู่ระบบด้วย LINE
         </Link>
       </p>
     </>

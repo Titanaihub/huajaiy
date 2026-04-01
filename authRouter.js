@@ -212,6 +212,13 @@ router.post("/check-duplicate-name", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
+    if (process.env.ALLOW_PUBLIC_REGISTER !== "1") {
+      return res.status(403).json({
+        ok: false,
+        error:
+          "ปิดการสมัครสมาชิกแบบฟอร์มแล้ว — กรุณาเข้าสู่ระบบด้วย LINE ที่เว็บไซต์"
+      });
+    }
     const parsed = validateRegisterBody(req.body || {});
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
