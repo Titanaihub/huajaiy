@@ -1,7 +1,14 @@
+/** ตั้งเมื่อ LINE Console ใช้ path อื่น (เช่น /auth/line/callback) — ค่า default ให้ NextAuth จัด /api/auth/callback/line */
+function lineOAuthRedirectUri() {
+  const explicit = String(process.env.LINE_OAUTH_REDIRECT_URI || "").trim();
+  return explicit || undefined;
+}
+
 function buildProviders() {
   const list = [];
 
   if (process.env.LINE_CHANNEL_ID && process.env.LINE_CHANNEL_SECRET) {
+    const lineRedirectUri = lineOAuthRedirectUri();
     list.push({
       id: "line",
       name: "LINE",
@@ -11,7 +18,8 @@ function buildProviders() {
         url: "https://access.line.me/oauth2/v2.1/authorize",
         params: {
           scope: "profile openid",
-          response_type: "code"
+          response_type: "code",
+          ...(lineRedirectUri ? { redirect_uri: lineRedirectUri } : {})
         }
       },
       token: "https://api.line.me/oauth2/v2.1/token",
@@ -48,6 +56,8 @@ const authSecret =
 
 export const authOptions = {
   providers: buildProviders(),
+  /** รองรับ proxy (Render/Vercel) เมื่อโฮสต์จริงไม่ตรง NEXTAUTH_URL ตัวเดียว */
+  trustHost: true,
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60
@@ -58,6 +68,13 @@ export const authOptions = {
     async jwt({ token, account }) {
       if (account) {
         token.provider = account.provider;
+      }
+      if (
+        !token.provider &&
+        token.sub &&
+        /^U[A-Za-z0-9._-]{4,128}$/.test(String(token.sub))
+      ) {
+        token.provider = "line";
       }
       return token;
     },

@@ -10,6 +10,12 @@ import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
 import { safeRedirectPath } from "../../../lib/safeRedirectPath";
 
+function isLineSession(session) {
+  if (!session?.user?.id) return false;
+  if (session.provider === "line") return true;
+  return /^U[A-Za-z0-9._-]{4,128}$/.test(String(session.user.id));
+}
+
 function LineLoginContent() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
@@ -23,7 +29,7 @@ function LineLoginContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.id || session.provider !== "line") {
+    if (status !== "authenticated" || !isLineSession(session)) {
       return undefined;
     }
     setMemberLinkError(null);
@@ -50,7 +56,7 @@ function LineLoginContent() {
       }
     })();
     return () => ac.abort();
-  }, [status, session?.user?.id, session?.provider, callbackUrl, exchangeRetry]);
+  }, [status, session, callbackUrl, exchangeRetry]);
 
   async function handleLineSignIn() {
     setAuthError("");
@@ -91,7 +97,7 @@ function LineLoginContent() {
           {status === "loading" ? (
             <p className="text-sm text-hui-muted">กำลังตรวจสอบเซสชัน...</p>
           ) : status === "authenticated" && session?.user ? (
-            session.provider === "line" ? (
+            isLineSession(session) ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   {session.user.image ? (

@@ -68,3 +68,5 @@ services:
         sync: false
       - key: LINE_LINK_SECRET
         sync: false
+      - key: LINE_OAUTH_REDIRECT_URI
+        sync: false
