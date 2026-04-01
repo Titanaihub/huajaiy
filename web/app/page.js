@@ -52,8 +52,11 @@ export default async function HomePage() {
             className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-brand-50/80 blur-2xl"
             aria-hidden
           />
-          <div className="relative max-w-4xl">
-            <p className="text-base leading-relaxed text-slate-700 md:text-lg">
+          <div className="relative max-w-4xl space-y-3">
+            <p className="text-xl font-bold leading-tight text-red-600 md:text-2xl">
+              ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
+            </p>
+            <p className="text-base leading-relaxed text-neutral-900 md:text-lg">
               แพลตฟอร์มหัวใจ ช่วยยกระดับกิจกรรมและการโปรโมทให้โดดเด่นยิ่งขึ้น ด้วยเกมเปิดป้ายแจกรางวัลที่คุณออกแบบได้ตามต้องการ เพื่อสร้างความสนุก กระตุ้นการมีส่วนร่วม เพิ่มโอกาสในการขาย และขยายฐานผู้ติดตาม
             </p>
           </div>
