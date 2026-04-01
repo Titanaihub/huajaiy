@@ -341,15 +341,21 @@ export default function CreateGameRoomForm() {
 
       {!managingExisting ? intakeForm : null}
 
-      {studioGameId ? (
+      {user ? (
         <div
           ref={studioRef}
           id="game-studio"
           className="scroll-mt-8 border-t border-slate-200 pt-10"
         >
-          <h3 className="text-base font-semibold text-white">ตั้งค่าห้องเกม</h3>
+          <h3 className="text-base font-semibold text-white">
+            {studioGameId ? "ตั้งค่าห้องเกม" : "ตั้งค่าห้องเกมของฉัน"}
+          </h3>
           <div className="mt-6">
-            <AdminCentralGamePanel key={studioGameId} embedded focusGameId={studioGameId} />
+            <AdminCentralGamePanel
+              key={studioGameId || "my-games-studio"}
+              embedded
+              focusGameId={studioGameId || null}
+            />
           </div>
         </div>
       ) : null}
