@@ -22,22 +22,31 @@ export default async function GamePage() {
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-slate-900">เกม</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+          <h1 className="text-2xl font-semibold text-white">เกม</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/95">
             เลือกเกมจากรายการด้านล่าง แต่ละการ์ดแสดงชื่อเกม ผู้สร้าง และคำอธิบายย่อ · คลิกเพื่อเข้าเล่นเกมนั้น
           </p>
         </div>
 
-        <GameLobby initialGames={games} />
+        <GameLobby initialGames={games} onBrand />
 
-        <div className="mt-10 flex flex-wrap gap-4 border-t border-slate-200 pt-8 text-sm">
-          <Link href="/" className="text-blue-600 underline hover:text-blue-800">
+        <div className="mt-10 flex flex-wrap gap-4 border-t border-white/25 pt-8 text-sm">
+          <Link
+            href="/"
+            className="font-medium text-white underline decoration-white/60 underline-offset-2 hover:decoration-white"
+          >
             ← หน้าแรก
           </Link>
-          <Link href="/shop" className="text-blue-600 underline hover:text-blue-800">
+          <Link
+            href="/shop"
+            className="font-medium text-white underline decoration-white/60 underline-offset-2 hover:decoration-white"
+          >
             ร้านค้า
           </Link>
-          <Link href="/cart" className="text-blue-600 underline hover:text-blue-800">
+          <Link
+            href="/cart"
+            className="font-medium text-white underline decoration-white/60 underline-offset-2 hover:decoration-white"
+          >
             ตะกร้า
           </Link>
         </div>

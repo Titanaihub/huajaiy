@@ -16,7 +16,7 @@ function clipDescription(text) {
 /**
  * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }> }} props
  */
-export default function GameLobby({ initialGames = [] }) {
+export default function GameLobby({ initialGames = [], onBrand = false }) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -32,7 +32,14 @@ export default function GameLobby({ initialGames = [] }) {
   return (
     <div className="space-y-6">
       <div>
-        <label htmlFor="game-search" className="text-xs font-medium text-slate-600">
+        <label
+          htmlFor="game-search"
+          className={
+            onBrand
+              ? "text-xs font-medium text-white"
+              : "text-xs font-medium text-slate-600"
+          }
+        >
           ค้นหาชื่อเกมหรือยูสเซอร์ผู้สร้าง
         </label>
         <input
@@ -55,7 +62,15 @@ export default function GameLobby({ initialGames = [] }) {
           </p>
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-sm text-slate-500">ไม่พบเกมที่ตรงกับคำค้น</p>
+        <p
+          className={
+            onBrand
+              ? "text-center text-sm text-white/90"
+              : "text-center text-sm text-slate-500"
+          }
+        >
+          ไม่พบเกมที่ตรงกับคำค้น
+        </p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((g) => {

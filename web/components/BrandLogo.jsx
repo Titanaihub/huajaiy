@@ -1,20 +1,28 @@
+"use client";
+
 import Link from "next/link";
 import HeartIcon from "./HeartIcon";
 
 /**
  * โลโก้: หัวใจ (SVG เดียวกับ favicon) + ชื่อแบรนด์ — ไม่มีกรอบวงกลม
+ * @param {{ variant?: "header" | "footer"; onBrand?: boolean }} props — onBrand = ข้อความขาวบนพื้นแบรนด์แดง (หน้าเกม)
  */
 export default function BrandLogo({
-  variant = "header"
+  variant = "header",
+  onBrand = false
 }) {
   const compact = variant === "footer";
   const titleClass = compact
     ? "text-base font-bold tracking-tight text-white transition group-hover:text-brand-300"
-    : "text-lg font-bold tracking-tight text-slate-900 transition group-hover:text-brand-800 sm:text-xl";
+    : onBrand
+      ? "text-lg font-bold tracking-tight text-white transition group-hover:text-white/90 sm:text-xl"
+      : "text-lg font-bold tracking-tight text-neutral-950 transition group-hover:text-neutral-900 sm:text-xl";
 
   const heartClass = compact
     ? "h-7 w-7 text-rose-200 sm:h-8 sm:w-8"
-    : "heart-logo-blink h-8 w-8 sm:h-9 sm:w-9";
+    : onBrand
+      ? "heart-logo-blink h-8 w-8 text-rose-100 sm:h-9 sm:w-9"
+      : "heart-logo-blink h-8 w-8 sm:h-9 sm:w-9";
 
   return (
     <Link
