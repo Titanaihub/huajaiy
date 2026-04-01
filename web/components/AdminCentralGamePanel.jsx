@@ -312,7 +312,6 @@ export default function AdminCentralGamePanel({
   embedded = false,
   focusGameId = null
 }) {
-  const creatorLimitedMode = embedded;
   const router = useRouter();
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
@@ -337,6 +336,7 @@ export default function AdminCentralGamePanel({
   const [tileBackCoverUrl, setTileBackCoverUrl] = useState("");
   /** แสดงในรายการหน้า /game (ล็อบบี้) */
   const [lobbyVisible, setLobbyVisible] = useState(false);
+  const creatorLimitedMode = embedded && lobbyVisible;
   /** อนุญาตให้ใช้หัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง) หักเล่นในเกมนี้ — มักใช้กับเกมส่วนกลางที่แอดมินตั้ง */
   const [allowGiftRedPlay, setAllowGiftRedPlay] = useState(false);
   const [rules, setRules] = useState([]);
