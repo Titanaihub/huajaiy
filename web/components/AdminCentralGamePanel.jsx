@@ -1183,15 +1183,17 @@ export default function AdminCentralGamePanel({
             className="rounded-xl border border-slate-200 p-4 space-y-4"
           >
             <div>
-              <h3 className="font-semibold text-slate-900">โครงชุดและรูปภาพ</h3>
-              <p className="mt-1 text-xs text-slate-500">
-                รวม <span className="font-mono text-slate-700">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
+              <h3 className={embedded ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+                โครงชุดและรูปภาพ
+              </h3>
+              <p className={embedded ? "mt-1 text-xs text-white/90" : "mt-1 text-xs text-slate-500"}>
+                รวม <span className={embedded ? "font-mono text-white" : "font-mono text-slate-700"}>{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-slate-600">
+                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
                   ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
                 </label>
                 <input
@@ -1214,7 +1216,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs text-slate-600">รายละเอียด</label>
+                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>รายละเอียด</label>
                 <textarea
                   value={gameDescription}
                   onChange={(e) => setGameDescription(e.target.value)}
@@ -1263,8 +1265,12 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-600">ป้ายรวม (คำนวณอัตโนมัติ)</label>
-                <p className="mt-2 font-mono text-sm text-slate-800">{tileCount}</p>
+                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
+                  ป้ายรวม (คำนวณอัตโนมัติ)
+                </label>
+                <p className={embedded ? "mt-2 font-mono text-sm text-white" : "mt-2 font-mono text-sm text-slate-800"}>
+                  {tileCount}
+                </p>
               </div>
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
                 <p className="text-xs font-semibold text-slate-800">การหักหัวใจต่อรอบ</p>
@@ -1327,7 +1333,7 @@ export default function AdminCentralGamePanel({
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-slate-700">
+              <p className={embedded ? "text-xs font-semibold text-white" : "text-xs font-semibold text-slate-700"}>
                 แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัลของชุดนี้ (เลื่อนแนวนอนได้ถ้าจอแคบ)
               </p>
               {Array.from({ length: setCount }, (_, s) => {
