@@ -462,7 +462,7 @@ async function redeemCode(redeemerUserId, rawCode) {
        FROM room_red_gift_codes c
        LEFT JOIN users u ON u.id = c.creator_id
        WHERE c.code = $1
-       FOR UPDATE`,
+       FOR UPDATE OF c`,
       [code]
     );
     if (cRes.rows.length === 0) {
