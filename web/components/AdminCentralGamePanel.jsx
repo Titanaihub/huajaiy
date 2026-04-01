@@ -406,6 +406,16 @@ export default function AdminCentralGamePanel({
     };
   }, [focusGameId, loadList]);
 
+  // โหมด embedded: ถ้าไม่ได้ส่ง focusGameId และยังไม่เลือกเกม ให้เลือกเกมล่าสุดอัตโนมัติ
+  useEffect(() => {
+    if (!embedded) return;
+    if (focusGameId) return;
+    if (selectedId) return;
+    if (!Array.isArray(games) || games.length === 0) return;
+    const firstId = String(games[0]?.id || "").trim();
+    if (firstId) setSelectedId(firstId);
+  }, [embedded, focusGameId, selectedId, games]);
+
   const loadDetail = useCallback(async (id) => {
     if (!id) return;
     const token = getMemberToken();
@@ -1173,6 +1183,12 @@ export default function AdminCentralGamePanel({
               ))}
             </tbody>
           </table>
+        </div>
+      ) : null}
+
+      {embedded && games.length === 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-white/90 px-4 py-5 text-sm text-slate-700 shadow-sm">
+          ยังไม่มีห้องเกมในบัญชีนี้ — กดปุ่ม "เปิดสร้างห้องเกม" ด้านบนก่อน แล้วระบบจะเปิดแผงตั้งค่าให้อัตโนมัติ
         </div>
       ) : null}
 
