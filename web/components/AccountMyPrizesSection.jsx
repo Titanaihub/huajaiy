@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiCancelPrizeWithdrawalRequest,
@@ -71,6 +72,44 @@ function itemStatusLabel(v) {
   if (s === "shipped") return "ผู้สร้างจัดส่งแล้ว";
   if (s === "completed") return "รับของเรียบร้อย";
   return "รอผู้สร้างกำหนดวิธีรับ";
+}
+
+/** จำนวนหน่วยต่อหนึ่งครั้งที่ชนะ — ดึงตัวเลขจากข้อความรางวัล ถ้าไม่มีถือว่า 1 หน่วย */
+function itemUnitsPerWin(a) {
+  const raw = [a.prizeValueText, a.prizeUnit].filter(Boolean).join(" ");
+  const m = String(raw).replace(/,/g, "").match(/[\d]+(?:\.[\d]+)?/);
+  if (!m) return 1;
+  const n = parseFloat(m[0]);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+function groupItemAwardsByCreatorAndPrize(itemAwards) {
+  const map = new Map();
+  for (const a of itemAwards) {
+    const cu = (a.creatorUsername || "").trim().toLowerCase() || "_unknown";
+    const pt = (a.prizeTitle || "").trim();
+    const pv = (a.prizeValueText || "").trim();
+    const pu = (a.prizeUnit || "").trim();
+    const key = `${cu}||${pt}||${pv}||${pu}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        groupKey: key,
+        creatorUsername: (a.creatorUsername || "").trim(),
+        items: []
+      });
+    }
+    map.get(key).items.push(a);
+  }
+  const groups = [...map.values()];
+  for (const g of groups) {
+    g.items.sort((x, y) => new Date(y.wonAt) - new Date(x.wonAt));
+  }
+  groups.sort((a, b) => {
+    const ta = a.items[0]?.wonAt ? new Date(a.items[0].wonAt).getTime() : 0;
+    const tb = b.items[0]?.wonAt ? new Date(b.items[0].wonAt).getTime() : 0;
+    return tb - ta;
+  });
+  return groups;
 }
 
 function groupAwardsByCreator(list) {
@@ -405,37 +444,166 @@ function CreatorPrizeCard({
   );
 }
 
-function ItemPrizeCard({ a }) {
-  const creator =
-    a.creatorUsername && String(a.creatorUsername).trim()
-      ? `@${String(a.creatorUsername).trim()}`
-      : "ไม่ระบุผู้สร้างเกม";
-  const shippingAddr =
-    a.itemShippingAddressSnapshot && typeof a.itemShippingAddressSnapshot === "object"
-      ? String(a.itemShippingAddressSnapshot.address || "").trim()
-      : "";
+function ItemPrizeGroupCard({ group }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const { creatorUsername, items } = group;
+  const creatorDisplay =
+    creatorUsername && creatorUsername.length > 0 ? `@${creatorUsername}` : "ไม่ระบุผู้สร้างเกม";
+  const sample = items[0];
+  const prizeName = prizeLine(sample);
+  const winCount = items.length;
+  const totalUnits = items.reduce((s, a) => s + itemUnitsPerWin(a), 0);
+
+  function goProfile() {
+    router.push("/account/profile");
+  }
+
   return (
     <li className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-slate-900">{prizeLine(a)}</p>
-        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-900">
-          {itemStatusLabel(a.itemFulfillmentStatus)}
-        </span>
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                รางวัลสิ่งของจาก
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                รางวัลที่ได้
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                ชนะกี่ครั้ง
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold text-slate-600">
+                รวมรางวัลที่ได้
+              </th>
+              <th className="whitespace-nowrap px-3 py-2.5 text-xs font-semibold text-slate-600">
+                รายละเอียด
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-white">
+              <td className="px-3 py-3 font-medium text-brand-800">{creatorDisplay}</td>
+              <td className="max-w-[220px] px-3 py-3 text-slate-900">{prizeName}</td>
+              <td className="whitespace-nowrap px-3 py-3 tabular-nums text-slate-800">{winCount} ครั้ง</td>
+              <td className="px-3 py-3 text-center align-middle">
+                <span className="inline-block font-semibold tabular-nums text-slate-900">
+                  {Number.isInteger(totalUnits)
+                    ? totalUnits.toLocaleString("th-TH")
+                    : totalUnits.toLocaleString("th-TH", { maximumFractionDigits: 2 })}{" "}
+                  หน่วย
+                </span>
+                <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
+                  (ผลรวมจากทุกครั้งที่ชนะในกลุ่มนี้)
+                </span>
+              </td>
+              <td className="px-3 py-3 align-middle">
+                <button
+                  type="button"
+                  onClick={() => setOpen((v) => !v)}
+                  className="text-sm font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                  aria-expanded={open}
+                >
+                  {open ? "ซ่อนรายละเอียด" : "ดูรายการที่ได้"}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <p className="mt-1 text-xs text-slate-600">
-        จาก {creator} · {a.gameTitle || "เกม"} · {formatWonAt(a.wonAt)}
-      </p>
-      {a.itemFulfillmentMode === "pickup" ? (
-        <p className="mt-2 text-xs text-slate-700">วิธีรับ: นัดรับเองกับผู้สร้าง</p>
-      ) : a.itemFulfillmentMode === "ship" ? (
-        <p className="mt-2 text-xs text-slate-700">
-          วิธีรับ: ผู้สร้างจัดส่งตามที่อยู่ในระบบ
-          {shippingAddr ? ` (${shippingAddr})` : ""}
-          {a.itemTrackingCode ? ` · เลขพัสดุ: ${a.itemTrackingCode}` : ""}
-        </p>
-      ) : (
-        <p className="mt-2 text-xs text-slate-500">รอผู้สร้างกำหนดวิธีรับรางวัล</p>
-      )}
+
+      {open ? (
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <div className="mb-3 flex flex-col gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-slate-700">
+              จัดส่งตามที่อยู่ที่บันทึกในโปรไฟล์ — ใช้ได้ทั้งรายการเดียวหรือหลายรายการในกลุ่มนี้เมื่อผู้สร้างเลือกส่งของ
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={goProfile}
+                className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900"
+              >
+                ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="min-w-[720px] w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+                  <th className="whitespace-nowrap px-3 py-2.5">วันเวลาที่ชนะ</th>
+                  <th className="min-w-[120px] px-3 py-2.5">เกม</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">หน่วย/ครั้ง</th>
+                  <th className="min-w-[140px] px-3 py-2.5">สถานะการส่งมอบ</th>
+                  <th className="min-w-[160px] px-3 py-2.5">เมนู</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-800">
+                {items.map((a) => {
+                  const shippingAddr =
+                    a.itemShippingAddressSnapshot && typeof a.itemShippingAddressSnapshot === "object"
+                      ? String(a.itemShippingAddressSnapshot.address || "").trim()
+                      : "";
+                  return (
+                    <tr key={a.id} className="bg-white">
+                      <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
+                        {formatWonAt(a.wonAt)}
+                      </td>
+                      <td className="px-3 py-2.5 text-xs">{a.gameTitle || "เกม"}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-slate-600">
+                        {displayGameCode(a)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-xs">
+                        {itemUnitsPerWin(a).toLocaleString("th-TH")}
+                      </td>
+                      <td className="px-3 py-2.5 text-xs">
+                        <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-900">
+                          {itemStatusLabel(a.itemFulfillmentStatus)}
+                        </span>
+                        {a.itemFulfillmentMode === "pickup" ? (
+                          <span className="mt-1 block text-slate-600">นัดรับเองกับผู้สร้าง</span>
+                        ) : a.itemFulfillmentMode === "ship" ? (
+                          <span className="mt-1 block text-slate-600">
+                            จัดส่งตามที่อยู่
+                            {shippingAddr ? ` · ${shippingAddr}` : ""}
+                            {a.itemTrackingCode ? ` · พัสดุ ${a.itemTrackingCode}` : ""}
+                          </span>
+                        ) : (
+                          <span className="mt-1 block text-slate-500">รอผู้สร้างกำหนดวิธีรับ</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 align-top">
+                        <select
+                          aria-label="เมนูรายการรางวัล"
+                          className="max-w-[200px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
+                          defaultValue=""
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            e.target.value = "";
+                            if (v === "profile") goProfile();
+                          }}
+                        >
+                          <option value="" disabled>
+                            เลือกเมนู…
+                          </option>
+                          <option value="profile">ตั้งค่าที่อยู่จัดส่ง (โปรไฟล์)</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            การอัปเดตสถานะจัดส่งเป็นหน้าที่ผู้สร้างเกม — ฝั่งคุณสามารถตรวจสอบที่อยู่ในโปรไฟล์ให้ถูกต้องก่อนผู้สร้างจัดส่ง
+          </p>
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -456,6 +624,7 @@ export default function AccountMyPrizesSection() {
     () => awards.filter((a) => a.prizeCategory === "item"),
     [awards]
   );
+  const itemGroups = useMemo(() => groupItemAwardsByCreatorAndPrize(itemAwards), [itemAwards]);
 
   const refreshWithdrawals = useCallback(async () => {
     const token = getMemberToken();
@@ -588,8 +757,8 @@ export default function AccountMyPrizesSection() {
               <p className="mt-2 text-sm text-slate-500">ยังไม่มีรางวัลสิ่งของ</p>
             ) : (
               <ul className="mt-3 space-y-3">
-                {itemAwards.map((a) => (
-                  <ItemPrizeCard key={a.id} a={a} />
+                {itemGroups.map((g) => (
+                  <ItemPrizeGroupCard key={g.groupKey} group={g} />
                 ))}
               </ul>
             )}
