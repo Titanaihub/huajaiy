@@ -126,7 +126,12 @@ export default function CreateGameRoomForm() {
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
-      router.replace(`/account/create-game?game=${encodeURIComponent(gid)}`);
+      const nextUrl = `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
+      router.replace(nextUrl);
+      // บางเครื่อง/บางเบราว์เซอร์ไม่รีเฟรช query ทันที จึงบังคับเปลี่ยนหน้าเป็น fallback
+      if (typeof window !== "undefined") {
+        window.location.assign(nextUrl);
+      }
     } catch (ex) {
       setErr(ex?.message || "เปิดห้องเกมไม่สำเร็จ");
     } finally {
