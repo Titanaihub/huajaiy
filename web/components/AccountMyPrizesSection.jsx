@@ -58,6 +58,31 @@ function formatBaht(n) {
   return n.toLocaleString("th-TH", { maximumFractionDigits: 2 });
 }
 
+const MIN_WITHDRAW_BAHT = 20;
+
+function cashPrizeFulfillmentMode(a) {
+  const m = String(a.prizeFulfillmentMode || "").toLowerCase();
+  return m === "pickup" ? "pickup" : "transfer";
+}
+
+function creatorCashAllPickup(cashItems) {
+  if (!Array.isArray(cashItems) || cashItems.length === 0) return false;
+  return cashItems.every((a) => cashPrizeFulfillmentMode(a) === "pickup");
+}
+
+function cashDeliveryLabelThai(a) {
+  if (!a || String(a.prizeCategory) !== "cash") return "—";
+  return cashPrizeFulfillmentMode(a) === "pickup" ? "มารับเอง" : "โอนรางวัลให้";
+}
+
+function itemEffectiveFulfillmentMode(a) {
+  const im = String(a.itemFulfillmentMode || "").toLowerCase();
+  if (im === "pickup" || im === "ship") return im;
+  const p = String(a.prizeFulfillmentMode || "").toLowerCase();
+  if (p === "pickup" || p === "ship") return p;
+  return "";
+}
+
 /** มีที่อยู่จัดส่งในโปรไฟล์พอให้จัดส่งสิ่งของ (บ้านเลขที่ + จังหวัด + รหัสไปรษณีย์ 5 หลัก) */
 function hasProfileShippingFilled(user) {
   if (!user) return false;
@@ -243,6 +268,7 @@ function CreatorPrizeCard({
   const ledgerEndCash =
     detailRows.length > 0 ? detailRows[detailRows.length - 1].runningCash : 0;
   const finalCashBalance = Math.max(0, ledgerEndCash - pendingHoldBaht);
+  const cashAllowsTransfer = !creatorCashAllPickup(cashItems);
 
   const approvedWithdrawCount = useMemo(
     () =>
@@ -360,6 +386,7 @@ function CreatorPrizeCard({
                   <th className="whitespace-nowrap px-3 py-2.5">วันเวลา</th>
                   <th className="whitespace-nowrap px-3 py-2.5">รหัสเกม</th>
                   <th className="min-w-[140px] px-3 py-2.5">ชื่อเกม</th>
+                  <th className="whitespace-nowrap px-3 py-2.5">การจ่ายรางวัล</th>
                   <th className="whitespace-nowrap px-3 py-2.5">เงินรางวัลที่ได้</th>
                   <th className="whitespace-nowrap px-3 py-2.5">ยอดคงเหลือ (รวมเงินสด)</th>
                 </tr>
@@ -378,6 +405,9 @@ function CreatorPrizeCard({
                         {displayGameCode(row.award)}
                       </td>
                       <td className="px-3 py-2.5 text-slate-800">{row.award.gameTitle}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-xs text-slate-700">
+                        {cashDeliveryLabelThai(row.award)}
+                      </td>
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
                         {row.cashAmt != null ? (
                           <span>{formatBaht(row.cashAmt)} บาท</span>
@@ -401,6 +431,7 @@ function CreatorPrizeCard({
                         —
                       </td>
                       <td className="px-3 py-2.5 font-medium text-rose-900">ถอนเงิน</td>
+                      <td className="px-3 py-2.5 text-xs text-slate-600">โอนรางวัลให้</td>
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium text-rose-800">
                         −{formatBaht(Math.abs(row.cashAmt))} บาท
                       </td>
@@ -421,12 +452,19 @@ function CreatorPrizeCard({
                 {formatBaht(finalCashBalance)} บาท
               </span>
             </p>
-            <Link
-              href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
-              className="inline-flex shrink-0 items-center justify-center rounded-xl border-2 border-emerald-600 bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-            >
-              ถอนเงินรางวัล
-            </Link>
+            {cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT ? (
+              <Link
+                href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
+                className="inline-flex shrink-0 items-center justify-center rounded-xl border-2 border-emerald-600 bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+              >
+                ถอนเงินรางวัล
+              </Link>
+            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0 ? (
+              <p className="max-w-md text-sm leading-relaxed text-slate-800">
+                รางวัลเงินสดจากผู้สร้างรายนี้ตั้งเป็น{" "}
+                <span className="font-semibold">มารับเอง</span> — ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
+              </p>
+            ) : null}
           </div>
           {pendingHoldBaht > 0 ? (
             <p className="mt-2 text-xs text-amber-800">
@@ -435,9 +473,13 @@ function CreatorPrizeCard({
               (หักจากยอดคงเหลือปัจจุบันด้านบน — ดูรายการและยกเลิกได้ในตารางด้านล่าง)
             </p>
           ) : null}
-          <p className="mt-2 text-xs text-slate-500">
-            ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ
-          </p>
+          {cashItems.length > 0 ? (
+            <p className="mt-2 text-xs text-slate-500">
+              {cashAllowsTransfer
+                ? "ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ (เฉพาะรางวัลที่กติกากำหนดเป็นโอนรางวัลให้)"
+                : "รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง"}
+            </p>
+          ) : null}
           {onRefreshWithdrawals ? (
             <PrizeWithdrawalHistoryTable
               compactTitle
@@ -457,11 +499,7 @@ function CreatorPrizeCard({
   );
 }
 
-function ItemPrizeGroupCard({
-  group,
-  withdrawalsForCreator = [],
-  cashAwardsForCreator = []
-}) {
+function ItemPrizeGroupCard({ group }) {
   const router = useRouter();
   const { user } = useMemberAuth();
   const [open, setOpen] = useState(false);
@@ -473,35 +511,21 @@ function ItemPrizeGroupCard({
   const winCount = items.length;
   const totalUnits = items.reduce((s, a) => s + itemUnitsPerWin(a), 0);
 
-  const finalCashBalance = useMemo(() => {
-    const detailRows = buildMergedLedgerRows(
-      cashAwardsForCreator,
-      withdrawalsForCreator
-    );
-    const pendingHoldBaht = sumPendingWithdrawalsBaht(withdrawalsForCreator);
-    const ledgerEndCash =
-      detailRows.length > 0 ? detailRows[detailRows.length - 1].runningCash : 0;
-    return Math.max(0, ledgerEndCash - pendingHoldBaht);
-  }, [cashAwardsForCreator, withdrawalsForCreator]);
-
-  const showWithdrawInMenu =
-    hasProfileShippingFilled(user) && finalCashBalance >= MIN_WITHDRAW_BAHT;
+  const showReceiveItemInMenu = hasProfileShippingFilled(user);
 
   function goProfile() {
     router.push("/account/profile");
   }
 
-  function goWithdraw() {
-    router.push(
-      `/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`
-    );
+  function goReceiveItem() {
+    router.push("/account/profile#shipping-address");
   }
 
   function handleMenuChange(e) {
     const v = e.target.value;
     e.target.value = "";
     if (v === "profile") goProfile();
-    if (v === "withdraw") goWithdraw();
+    if (v === "receive-item") goReceiveItem();
   }
 
   return (
@@ -593,6 +617,7 @@ function ItemPrizeGroupCard({
                     a.itemShippingAddressSnapshot && typeof a.itemShippingAddressSnapshot === "object"
                       ? String(a.itemShippingAddressSnapshot.address || "").trim()
                       : "";
+                  const effMode = itemEffectiveFulfillmentMode(a);
                   return (
                     <tr key={a.id} className="bg-white">
                       <td className="whitespace-nowrap px-3 py-2.5 text-xs tabular-nums text-slate-700">
@@ -611,9 +636,11 @@ function ItemPrizeGroupCard({
                         <span className="inline-block rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-900">
                           {itemStatusLabel(a.itemFulfillmentStatus)}
                         </span>
-                        {a.itemFulfillmentMode === "pickup" ? (
-                          <span className="mt-1 block text-slate-600">นัดรับเองกับผู้สร้าง</span>
-                        ) : a.itemFulfillmentMode === "ship" ? (
+                        {effMode === "pickup" ? (
+                          <span className="mt-1 block text-slate-600">
+                            มารับเอง (นัดรับกับผู้สร้าง)
+                          </span>
+                        ) : effMode === "ship" ? (
                           <span className="mt-1 block text-slate-600">
                             จัดส่งตามที่อยู่
                             {shippingAddr ? ` · ${shippingAddr}` : ""}

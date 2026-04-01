@@ -232,7 +232,16 @@ function rowGame(row) {
   };
 }
 
+function normalizeRuleFulfillmentMode(cat, raw) {
+  const c = String(cat || "none").toLowerCase();
+  const v = String(raw || "").trim().toLowerCase();
+  if (c === "cash") return v === "pickup" ? "pickup" : "transfer";
+  if (c === "item") return v === "pickup" ? "pickup" : "ship";
+  return null;
+}
+
 function rowRule(row) {
+  const cat = String(row.prize_category || "none").toLowerCase();
   return {
     id: row.id,
     gameId: row.game_id,
@@ -244,6 +253,7 @@ function rowRule(row) {
     prizeValueText: row.prize_value_text || "",
     prizeUnit: row.prize_unit || "",
     description: row.description || "",
+    prizeFulfillmentMode: normalizeRuleFulfillmentMode(cat, row.prize_fulfillment_mode),
     prizeTotalQty:
       row.prize_category === "none"
         ? null
@@ -894,7 +904,8 @@ function centralRuleStructureUnchanged(old, f) {
     String(old.prizeTitle || "") === f.prizeTitle &&
     String(old.prizeValueText || "") === f.prizeValueText &&
     String(old.prizeUnit || "") === f.prizeUnit &&
-    String(old.description || "") === f.description
+    String(old.description || "") === f.description &&
+    String(old.prizeFulfillmentMode || "") === String(f.prizeFulfillmentMode || "")
   );
 }
 
@@ -975,6 +986,10 @@ async function replaceRules(gameId, rules, options = {}) {
     const prizeValueText = String(r.prizeValueText || "").slice(0, 200);
     const prizeUnit = String(r.prizeUnit || "").slice(0, 32);
     const description = String(r.description || "").slice(0, 2000);
+    const prizeFulfillmentMode = normalizeRuleFulfillmentMode(
+      cat,
+      r.prizeFulfillmentMode ?? r.prize_fulfillment_mode
+    );
 
     if (awardCount > 0 && !allowUnsafeEdit) {
       if (!priorId) {
@@ -994,7 +1009,8 @@ async function replaceRules(gameId, rules, options = {}) {
           prizeTitle,
           prizeValueText,
           prizeUnit,
-          description
+          description,
+          prizeFulfillmentMode
         })
       ) {
         const e = new Error(
@@ -1033,7 +1049,8 @@ async function replaceRules(gameId, rules, options = {}) {
       prizeValueText,
       prizeUnit,
       description,
-      prizeTotalQty
+      prizeTotalQty,
+      prizeFulfillmentMode
     });
   }
 
@@ -1045,8 +1062,9 @@ async function replaceRules(gameId, rules, options = {}) {
       await client.query(
         `INSERT INTO central_game_rules (
           id, game_id, sort_order, set_index, need_count, prize_category,
-          prize_title, prize_value_text, prize_unit, description, prize_total_qty
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          prize_title, prize_value_text, prize_unit, description, prize_total_qty,
+          prize_fulfillment_mode
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         ON CONFLICT (id) DO UPDATE SET
           game_id = EXCLUDED.game_id,
           sort_order = EXCLUDED.sort_order,
@@ -1057,7 +1075,8 @@ async function replaceRules(gameId, rules, options = {}) {
           prize_value_text = EXCLUDED.prize_value_text,
           prize_unit = EXCLUDED.prize_unit,
           description = EXCLUDED.description,
-          prize_total_qty = EXCLUDED.prize_total_qty`,
+          prize_total_qty = EXCLUDED.prize_total_qty,
+          prize_fulfillment_mode = EXCLUDED.prize_fulfillment_mode`,
         [
           p.id,
           gameId,
@@ -1069,7 +1088,8 @@ async function replaceRules(gameId, rules, options = {}) {
           p.prizeValueText,
           p.prizeUnit,
           p.description,
-          p.prizeTotalQty
+          p.prizeTotalQty,
+          p.prizeFulfillmentMode
         ]
       );
     }
@@ -1205,6 +1225,7 @@ function prizesForClient(rules, setImageCounts, givenByRuleId = null) {
       imagesPerSet: cap,
       label: formatRuleLabel(r, catLabel, cap),
       prizeCategory: r.prizeCategory,
+      prizeFulfillmentMode: r.prizeFulfillmentMode ?? null,
       prizeTitle: r.prizeTitle,
       prizeValueText: r.prizeValueText || "",
       prizeUnit: r.prizeUnit || "",

@@ -16,6 +16,15 @@ function normalizeItemMode(v) {
   return "";
 }
 
+/** จากกติกา: เงินสด pickup|transfer · สิ่งของ pickup|ship */
+function fulfillmentFromRuleRow(rule) {
+  const cat = String(rule.prize_category || "").toLowerCase();
+  const raw = rule.prize_fulfillment_mode != null ? String(rule.prize_fulfillment_mode).trim().toLowerCase() : "";
+  if (cat === "cash") return raw === "pickup" ? "pickup" : "transfer";
+  if (cat === "item") return raw === "pickup" ? "pickup" : "ship";
+  return null;
+}
+
 function normalizeItemStatus(v) {
   const s = String(v || "").trim().toLowerCase();
   if (["pending_creator", "ready_pickup", "shipped", "completed"].includes(s)) {
@@ -71,7 +80,8 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
   try {
     await client.query("BEGIN");
     const ruleR = await client.query(
-      `SELECT id, prize_category, prize_total_qty, set_index, prize_title, prize_value_text, prize_unit
+      `SELECT id, prize_category, prize_total_qty, set_index, prize_title, prize_value_text, prize_unit,
+              prize_fulfillment_mode
        FROM central_game_rules
        WHERE id = $1 AND game_id = $2
        FOR UPDATE`,
@@ -123,11 +133,17 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
     const gameR = await client.query(`SELECT title FROM central_games WHERE id = $1`, [gameId]);
     const gameTitleAtWin =
       gameR.rows[0]?.title != null ? String(gameR.rows[0].title).trim() : "";
+    const fulfillment = fulfillmentFromRuleRow(rule);
+    const itemMode =
+      String(rule.prize_category).toLowerCase() === "item" && fulfillment
+        ? fulfillment
+        : null;
     const ins = await client.query(
       `INSERT INTO central_prize_awards (
         game_id, rule_id, winner_user_id, play_session_id, prize_category, status,
-        rule_set_index, rule_prize_title, rule_prize_value_text, rule_prize_unit, game_title_at_win
-      ) VALUES ($1, $2, $3, $4, $5, 'recorded', $6, $7, $8, $9, $10)
+        rule_set_index, rule_prize_title, rule_prize_value_text, rule_prize_unit, game_title_at_win,
+        item_fulfillment_mode, prize_fulfillment_mode
+      ) VALUES ($1, $2, $3, $4, $5, 'recorded', $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (play_session_id) DO NOTHING
       RETURNING id`,
       [
@@ -140,7 +156,9 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
         rule.prize_title != null ? String(rule.prize_title) : null,
         rule.prize_value_text != null ? String(rule.prize_value_text) : null,
         rule.prize_unit != null ? String(rule.prize_unit) : null,
-        gameTitleAtWin || null
+        gameTitleAtWin || null,
+        itemMode,
+        fulfillment
       ]
     );
     await client.query("COMMIT");
@@ -245,6 +263,10 @@ async function listAwardsForUser(userId) {
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
        a.item_fulfillment_mode AS "itemFulfillmentMode",
+       COALESCE(
+         NULLIF(BTRIM(COALESCE(a.prize_fulfillment_mode::text, '')), ''),
+         NULLIF(BTRIM(COALESCE(r.prize_fulfillment_mode::text, '')), '')
+       ) AS "prizeFulfillmentMode",
        a.item_fulfillment_status AS "itemFulfillmentStatus",
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
@@ -273,6 +295,10 @@ async function listAwardsForUser(userId) {
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
     itemFulfillmentMode:
       row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    prizeFulfillmentMode: fulfillmentFromRuleRow({
+      prize_category: row.prizeCategory,
+      prize_fulfillment_mode: row.prizeFulfillmentMode
+    }),
     itemFulfillmentStatus:
       row.itemFulfillmentStatus != null
         ? String(row.itemFulfillmentStatus).trim().toLowerCase()
@@ -319,6 +345,10 @@ async function listAllAwardsForAdmin(opts = {}) {
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
        a.item_fulfillment_mode AS "itemFulfillmentMode",
+       COALESCE(
+         NULLIF(BTRIM(COALESCE(a.prize_fulfillment_mode::text, '')), ''),
+         NULLIF(BTRIM(COALESCE(r.prize_fulfillment_mode::text, '')), '')
+       ) AS "prizeFulfillmentMode",
        a.item_fulfillment_status AS "itemFulfillmentStatus",
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
@@ -355,6 +385,10 @@ async function listAllAwardsForAdmin(opts = {}) {
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
     itemFulfillmentMode:
       row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    prizeFulfillmentMode: fulfillmentFromRuleRow({
+      prize_category: row.prizeCategory,
+      prize_fulfillment_mode: row.prizeFulfillmentMode
+    }),
     itemFulfillmentStatus:
       row.itemFulfillmentStatus != null
         ? String(row.itemFulfillmentStatus).trim().toLowerCase()
@@ -395,6 +429,10 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
        COALESCE(NULLIF(trim(a.rule_prize_unit), ''), NULLIF(trim(r.prize_unit), ''), '') AS "prizeUnit",
        a.item_fulfillment_mode AS "itemFulfillmentMode",
+       COALESCE(
+         NULLIF(BTRIM(COALESCE(a.prize_fulfillment_mode::text, '')), ''),
+         NULLIF(BTRIM(COALESCE(r.prize_fulfillment_mode::text, '')), '')
+       ) AS "prizeFulfillmentMode",
        a.item_fulfillment_status AS "itemFulfillmentStatus",
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
@@ -438,6 +476,10 @@ async function listAwardsForCreator(creatorUserId, opts = {}) {
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
     itemFulfillmentMode:
       row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
+    prizeFulfillmentMode: fulfillmentFromRuleRow({
+      prize_category: row.prizeCategory,
+      prize_fulfillment_mode: row.prizeFulfillmentMode
+    }),
     itemFulfillmentStatus:
       row.itemFulfillmentStatus != null
         ? String(row.itemFulfillmentStatus).trim().toLowerCase()
@@ -553,6 +595,7 @@ async function resolveItemAwardByCreator({
       `UPDATE central_prize_awards
        SET
          item_fulfillment_mode = $2,
+         prize_fulfillment_mode = $2,
          item_fulfillment_status = $3,
          item_fulfillment_note = $4,
          item_tracking_code = $5,

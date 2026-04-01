@@ -442,6 +442,20 @@ async function initDb() {
     `);
 
     await client.query(`
+      ALTER TABLE central_game_rules
+      ADD COLUMN IF NOT EXISTS prize_fulfillment_mode VARCHAR(16);
+    `);
+    await client.query(`
+      UPDATE central_game_rules
+      SET prize_fulfillment_mode = CASE
+        WHEN prize_category = 'cash' THEN 'transfer'
+        WHEN prize_category = 'item' THEN 'ship'
+        ELSE NULL
+      END
+      WHERE prize_fulfillment_mode IS NULL;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS central_prize_awards (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         game_id UUID NOT NULL REFERENCES central_games(id) ON DELETE CASCADE,
@@ -509,6 +523,21 @@ async function initDb() {
     await client.query(`
       ALTER TABLE central_prize_awards
       ADD COLUMN IF NOT EXISTS item_resolved_at TIMESTAMPTZ;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_awards
+      ADD COLUMN IF NOT EXISTS prize_fulfillment_mode VARCHAR(16);
+    `);
+    await client.query(`
+      UPDATE central_prize_awards a
+      SET prize_fulfillment_mode = CASE
+        WHEN a.prize_category = 'item' AND NULLIF(TRIM(COALESCE(a.item_fulfillment_mode, '')), '') IS NOT NULL
+          THEN LOWER(TRIM(a.item_fulfillment_mode))
+        WHEN a.prize_category = 'item' THEN 'ship'
+        WHEN a.prize_category = 'cash' THEN 'transfer'
+        ELSE NULL
+      END
+      WHERE a.prize_fulfillment_mode IS NULL;
     `);
     await client.query(`
       UPDATE central_prize_awards a

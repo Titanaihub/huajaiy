@@ -95,6 +95,7 @@ const emptyRule = () => ({
   setIndex: 0,
   needCount: 1,
   prizeCategory: "cash",
+  prizeFulfillmentMode: "transfer",
   prizeTitle: "",
   prizeValueText: "",
   prizeUnit: "บาท",
@@ -146,8 +147,25 @@ function RuleEditorRow({
           Math.floor(Number(awardedCount) || 0)
         )
       : 1;
+  const fulfillGrid =
+    r.prizeCategory === "cash"
+      ? r.prizeFulfillmentMode === "pickup"
+        ? "pickup"
+        : "transfer"
+      : r.prizeCategory === "item"
+        ? r.prizeFulfillmentMode === "pickup"
+          ? "pickup"
+          : "ship"
+        : "";
+
   return (
-    <div className="grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:grid-cols-12">
+    <div
+      className={`grid w-full grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-white p-3 ${
+        showSetPicker
+          ? "sm:grid-cols-[repeat(13,minmax(0,1fr))]"
+          : "sm:grid-cols-12"
+      }`}
+    >
       {showSetPicker ? (
         <div className="sm:col-span-1">
           <label className="text-[10px] text-slate-500">ชุด (0=ชุด1)</label>
@@ -241,6 +259,12 @@ function RuleEditorRow({
                   ? {
                       ...row,
                       prizeCategory: v,
+                      prizeFulfillmentMode:
+                        v === "none"
+                          ? ""
+                          : v === "cash"
+                            ? "transfer"
+                            : "ship",
                       prizeTotalQty: v === "none" ? null : (row.prizeTotalQty ?? 1),
                       minPrizeTotalQty:
                         v === "none"
@@ -279,7 +303,7 @@ function RuleEditorRow({
           placeholder="เช่น 1000"
         />
       </div>
-      <div className={showSetPicker ? "sm:col-span-2" : "sm:col-span-3"}>
+      <div className="sm:col-span-1">
         <label className="text-[10px] text-slate-500">หน่วย</label>
         <select
           value={UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0]}
@@ -294,7 +318,30 @@ function RuleEditorRow({
           ))}
         </select>
       </div>
-      <div className="sm:col-span-12">
+      <div className="sm:col-span-2">
+        <label className="text-[10px] text-slate-500">การจ่ายรางวัล</label>
+        <select
+          value={fulfillGrid}
+          onChange={(e) => updateRule(idx, "prizeFulfillmentMode", e.target.value)}
+          disabled={isNone || structureLocked}
+          className="mt-1 w-full rounded border px-1 py-1 text-xs disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+        >
+          {r.prizeCategory === "cash" ? (
+            <>
+              <option value="pickup">มารับเอง</option>
+              <option value="transfer">โอนรางวัลให้</option>
+            </>
+          ) : r.prizeCategory === "item" ? (
+            <>
+              <option value="pickup">มารับเอง</option>
+              <option value="ship">จัดส่งตามที่อยู่</option>
+            </>
+          ) : (
+            <option value="">—</option>
+          )}
+        </select>
+      </div>
+      <div className={showSetPicker ? "sm:col-span-full" : "sm:col-span-12"}>
         <label className="text-[10px] text-slate-500">หมายเหตุ</label>
         <input
           value={r.description}
@@ -486,11 +533,23 @@ export default function AdminCentralGamePanel({
                 r.prizeCategory === "none"
                   ? null
                   : Math.max(1, Math.floor(Number(r.prizeTotalQty) || 1));
+              const pfm = String(r.prizeFulfillmentMode || "").toLowerCase();
+              const normalizedFulfill =
+                r.prizeCategory === "cash"
+                  ? pfm === "pickup"
+                    ? "pickup"
+                    : "transfer"
+                  : r.prizeCategory === "item"
+                    ? pfm === "pickup"
+                      ? "pickup"
+                      : "ship"
+                    : "";
               return {
                 id: r.id,
                 setIndex: r.setIndex,
                 needCount: r.needCount,
                 prizeCategory: r.prizeCategory,
+                prizeFulfillmentMode: normalizedFulfill,
                 prizeTitle: r.prizeTitle || "",
                 prizeValueText: r.prizeValueText || "",
                 prizeUnit: UNITS.includes(r.prizeUnit) ? r.prizeUnit : UNITS[0],
@@ -589,10 +648,22 @@ export default function AdminCentralGamePanel({
           : gamePrizeQtyLocked && r.minPrizeTotalQty != null
             ? Math.max(r.minPrizeTotalQty, rawQty)
             : rawQty;
+      const pfmRaw = String(r.prizeFulfillmentMode || "").toLowerCase();
+      const prizeFulfillmentMode =
+        r.prizeCategory === "none"
+          ? null
+          : r.prizeCategory === "cash"
+            ? pfmRaw === "pickup"
+              ? "pickup"
+              : "transfer"
+            : pfmRaw === "pickup"
+              ? "pickup"
+              : "ship";
       const row = {
         setIndex: Math.floor(Number(r.setIndex)),
         needCount: Math.floor(Number(r.needCount)),
         prizeCategory: r.prizeCategory,
+        prizeFulfillmentMode,
         prizeTitle: r.prizeTitle,
         prizeValueText: r.prizeValueText,
         prizeUnit: r.prizeUnit,
@@ -1401,7 +1472,7 @@ export default function AdminCentralGamePanel({
 
             <div className="space-y-4">
               <p className={embedded ? "text-xs font-semibold text-white" : "text-xs font-semibold text-slate-700"}>
-                แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัลของชุดนี้ (เลื่อนแนวนอนได้ถ้าจอแคบ)
+                แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัล (ชิดรูปเพื่อมีที่สำหรับคอลัมน์การจ่ายรางวัล)
               </p>
               {Array.from({ length: setCount }, (_, s) => {
                 const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
@@ -1420,7 +1491,7 @@ export default function AdminCentralGamePanel({
                     key={s}
                     className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4 xl:flex-row xl:items-stretch"
                   >
-                    <div className="flex flex-shrink-0 flex-wrap items-end gap-4 border-b border-slate-200 pb-4 xl:w-[min(100%,320px)] xl:border-b-0 xl:border-r xl:pb-0 xl:pr-4">
+                    <div className="flex flex-shrink-0 flex-wrap items-end gap-3 border-b border-slate-200 pb-4 xl:w-[min(100%,240px)] xl:border-b-0 xl:border-r xl:border-slate-200 xl:pb-0 xl:pr-3">
                       <div className="flex flex-col">
                         <span className="text-xs font-semibold text-slate-800">ชุดที่ {s + 1}</span>
                         <label className="mt-1 text-[10px] text-slate-500">จำนวนป้ายในชุดนี้</label>
@@ -1476,7 +1547,7 @@ export default function AdminCentralGamePanel({
                       </div>
                     </div>
 
-                    <div className="min-w-0 flex-1 space-y-2">
+                    <div className="min-w-0 flex-1 space-y-2 xl:pl-1">
                       <div className="space-y-0.5">
                         <span className="text-xs font-semibold text-slate-800">
                           กติกาและรางวัล — ชุดที่ {s + 1}

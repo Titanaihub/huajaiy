@@ -164,6 +164,20 @@ function centralRulePrizeDescriptionLine(p) {
   return `รับรางวัล ${rewardBody} · รางวัลมีทั้งหมด ${qty} รางวัล`;
 }
 
+function centralRuleFulfillmentLine(p) {
+  const cat = p.prizeCategory;
+  const raw = String(p.prizeFulfillmentMode || "").toLowerCase();
+  if (cat === "cash") {
+    const m = raw === "pickup" ? "pickup" : "transfer";
+    return m === "pickup" ? "การจ่ายรางวัล: มารับเอง" : "การจ่ายรางวัล: โอนรางวัลให้";
+  }
+  if (cat === "item") {
+    const m = raw === "pickup" ? "pickup" : "ship";
+    return m === "pickup" ? "การรับรางวัล: มารับเอง" : "การรับรางวัล: จัดส่งตามที่อยู่";
+  }
+  return "";
+}
+
 function centralRulePrizeTotalQty(p) {
   const qtyRaw = p.totalPrizeQty;
   return qtyRaw != null && p.prizeCategory !== "none"
@@ -1834,6 +1848,9 @@ export default function FlipGameDemo({
                       <>
                         <p>{centralRuleSetConditionLine(p, cap)}</p>
                         <p className="mt-1.5">{centralRulePrizeDescriptionLine(p)}</p>
+                        <p className="mt-1 text-xs text-slate-600">
+                          {centralRuleFulfillmentLine(p)}
+                        </p>
                         <p className="mt-1.5 text-slate-700">
                           <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
                           <span className="font-mono font-semibold tabular-nums text-slate-900">
