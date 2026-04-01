@@ -92,17 +92,14 @@ function itemReceiptMethodLabelThai(a) {
   return "รอผู้สร้างกำหนดวิธีรับ";
 }
 
-/** มีที่อยู่จัดส่งในโปรไฟล์พอให้จัดส่งสิ่งของ (บ้านเลขที่ + จังหวัด + รหัสไปรษณีย์ 5 หลัก) */
-function hasProfileShippingFilled(user) {
-  if (!user) return false;
-  const p =
-    user.shippingAddressParts && typeof user.shippingAddressParts === "object"
-      ? user.shippingAddressParts
-      : {};
-  const house = String(p.houseNo || "").trim();
-  const prov = String(p.province || "").trim();
-  const postal = String(p.postalCode || "").replace(/\D/g, "");
-  return Boolean(house && prov && postal.length >= 5);
+/** ลิงก์เปิด LINE — รองรับ URL เต็ม หรือ @id / id */
+function lineContactHref(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return null;
+  if (/^https?:\/\//i.test(s)) return s;
+  const id = s.replace(/^@+/, "").trim();
+  if (!id) return null;
+  return `https://line.me/ti/p/~${id}`;
 }
 
 function displayGameCode(a) {
@@ -510,7 +507,6 @@ function CreatorPrizeCard({
 
 function ItemPrizeGroupCard({ group, onRefreshAwards }) {
   const router = useRouter();
-  const { user } = useMemberAuth();
   const [open, setOpen] = useState(false);
   const [pickupBusyId, setPickupBusyId] = useState(null);
   const [pickupAckErr, setPickupAckErr] = useState("");
@@ -523,21 +519,8 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
   const winCount = safeItems.length;
   const totalUnits = safeItems.reduce((s, a) => s + itemUnitsPerWin(a), 0);
 
-  const showReceiveItemInMenu = hasProfileShippingFilled(user);
-
   function goProfile() {
     router.push("/account/profile");
-  }
-
-  function goReceiveItem() {
-    router.push("/account/profile#shipping-address");
-  }
-
-  function handleMenuChange(e) {
-    const v = e.target.value;
-    e.target.value = "";
-    if (v === "profile") goProfile();
-    if (v === "receive-item") goReceiveItem();
   }
 
   async function handleWinnerPickupAck(awardId) {
@@ -653,7 +636,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                   <th className="whitespace-nowrap px-3 py-2.5">หน่วย/ครั้ง</th>
                   <th className="min-w-[140px] px-3 py-2.5">สถานะการส่งมอบ</th>
                   <th className="min-w-[140px] px-3 py-2.5">วิธีรับรางวัล</th>
-                  <th className="min-w-[200px] px-3 py-2.5">กดรับรางวัล</th>
+                  <th className="min-w-[200px] px-3 py-2.5">ติดต่อรับรางวัล</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800">
@@ -664,6 +647,9 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                       : "";
                   const effMode = itemEffectiveFulfillmentMode(a);
                   const ackAt = a.winnerPickupAckAt || null;
+                  const lineRaw =
+                    a.creatorPrizeContactLine != null ? String(a.creatorPrizeContactLine).trim() : "";
+                  const lineHref = lineContactHref(lineRaw);
                   const rowKey = a.id != null ? String(a.id) : `row-${a.wonAt}-${prizeLine(a)}`;
                   return (
                     <tr key={rowKey} className="bg-white">
@@ -701,39 +687,61 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                         {itemReceiptMethodLabelThai(a)}
                       </td>
                       <td className="px-3 py-2.5 align-top">
-                        {effMode === "pickup" ? (
-                          <div className="space-y-1.5">
-                            {ackAt ? (
-                              <p className="text-xs font-medium text-emerald-800">
-                                แจ้งผู้สร้างแล้ว · {formatWonAt(ackAt)}
-                              </p>
-                            ) : (
+                        <div className="space-y-2">
+                          {lineHref ? (
+                            <a
+                              href={lineHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex rounded-lg bg-[#06C755] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-95"
+                            >
+                              เปิดแชท LINE ผู้สร้าง
+                            </a>
+                          ) : (
+                            <p className="text-xs text-slate-600">
+                              ผู้สร้างยังไม่ได้ใส่ LINE ในโปรไฟล์
+                              {creatorUsername ? (
+                                <>
+                                  {" "}
+                                  (@{String(creatorUsername).replace(/^@+/, "")})
+                                </>
+                              ) : null}
+                            </p>
+                          )}
+                          {lineRaw && !/^https?:\/\//i.test(lineRaw) ? (
+                            <p className="font-mono text-[11px] text-slate-500">{lineRaw}</p>
+                          ) : null}
+                          {effMode === "pickup" ? (
+                            <div className="border-t border-slate-100 pt-2">
+                              {ackAt ? (
+                                <p className="text-xs font-medium text-emerald-800">
+                                  แจ้งรับทราบแล้ว · {formatWonAt(ackAt)}
+                                </p>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={pickupBusyId === String(a.id) || !onRefreshAwards}
+                                  onClick={() => void handleWinnerPickupAck(a.id)}
+                                  className="rounded-lg border border-brand-400 bg-white px-2.5 py-1 text-[11px] font-semibold text-brand-900 hover:bg-brand-50 disabled:opacity-50"
+                                >
+                                  {pickupBusyId === String(a.id)
+                                    ? "กำลังบันทึก…"
+                                    : "แจ้งผู้สร้างว่าจะมารับ"}
+                                </button>
+                              )}
+                            </div>
+                          ) : effMode === "ship" ? (
+                            <div className="border-t border-slate-100 pt-2">
                               <button
                                 type="button"
-                                disabled={pickupBusyId === String(a.id) || !onRefreshAwards}
-                                onClick={() => void handleWinnerPickupAck(a.id)}
-                                className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                                onClick={goProfile}
+                                className="text-left text-[11px] font-semibold text-brand-800 underline"
                               >
-                                {pickupBusyId === String(a.id) ? "กำลังบันทึก…" : "กดรับรางวัล"}
+                                ตั้งค่าที่อยู่จัดส่งในโปรไฟล์
                               </button>
-                            )}
-                          </div>
-                        ) : (
-                          <select
-                            aria-label="กดรับรางวัล — เมนูช่วยจัดการที่อยู่และรับของ"
-                            className="w-full min-w-[180px] max-w-[260px] rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800"
-                            defaultValue=""
-                            onChange={handleMenuChange}
-                          >
-                            <option value="" disabled>
-                              เลือกเมนู…
-                            </option>
-                            <option value="profile">ตั้งค่าที่อยู่จัดส่ง (โปรไฟล์)</option>
-                            {showReceiveItemInMenu ? (
-                              <option value="receive-item">รับสิ่งของ</option>
-                            ) : null}
-                          </select>
-                        )}
+                            </div>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -744,7 +752,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
           <p className="mt-3 text-xs text-slate-500">
             การอัปเดตสถานะจัดส่งเป็นหน้าที่ผู้สร้างเกม — ฝั่งคุณสามารถตรวจสอบที่อยู่ในโปรไฟล์ให้ถูกต้องก่อนผู้สร้างจัดส่ง
             {allPickup || receiptModes.some((m) => m === "pickup")
-              ? " · ถ้าเป็นมารับเอง การกด「กดรับรางวัล」จะส่งเวลาแจ้งไปยังผู้สร้างเกม"
+              ? " · มารับเอง: กด「แจ้งผู้สร้างว่าจะมารับ」เพื่อบันทึกเวลาให้ผู้สร้างเห็น — ติดต่อนัดรับผ่าน LINE ด้านขวา"
               : ""}
           </p>
         </div>

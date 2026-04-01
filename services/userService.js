@@ -60,7 +60,11 @@ function rowToUser(row) {
     redGiveawayBalance: giveaway,
     heartsBalance: sum,
     accountDisabled: Boolean(row.account_disabled),
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    prizeContactLine:
+      row.prize_contact_line != null && String(row.prize_contact_line).trim()
+        ? String(row.prize_contact_line).trim().slice(0, 500)
+        : null
   };
 }
 
@@ -96,7 +100,15 @@ function enrichFileUserShipping(u) {
     (u.shippingAddress && String(u.shippingAddress).trim()) ||
     formatShippingLines(parts) ||
     null;
-  return { ...u, shippingAddress: line, shippingAddressParts: parts };
+  return {
+    ...u,
+    shippingAddress: line,
+    shippingAddressParts: parts,
+    prizeContactLine:
+      u.prizeContactLine != null && String(u.prizeContactLine).trim()
+        ? String(u.prizeContactLine).trim().slice(0, 500)
+        : null
+  };
 }
 
 async function findById(id) {
@@ -243,13 +255,38 @@ function publicUser(u) {
     redGiveawayBalance: g,
     heartsBalance: p + r + g,
     accountDisabled: blocked,
-    createdAt
+    createdAt,
+    prizeContactLine:
+      u.prizeContactLine != null && String(u.prizeContactLine).trim()
+        ? String(u.prizeContactLine).trim()
+        : null
   };
+}
+
+async function syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine) {
+  if (!pool || !updatePrizeContactLine) return;
+  const v =
+    prizeContactLine != null && String(prizeContactLine).trim()
+      ? String(prizeContactLine).trim().slice(0, 500)
+      : null;
+  await pool.query(`UPDATE users SET prize_contact_line = $2 WHERE id = $1::uuid`, [
+    userId,
+    v
+  ]);
 }
 
 async function updateProfile(
   userId,
-  { gender, birthDate, shippingParts, updateShipping, phone, updatePhone },
+  {
+    gender,
+    birthDate,
+    shippingParts,
+    updateShipping,
+    phone,
+    updatePhone,
+    prizeContactLine,
+    updatePrizeContactLine
+  },
   opts = {}
 ) {
   const clientIp = opts.clientIp ?? null;
@@ -291,6 +328,9 @@ async function updateProfile(
       });
       patch.phone = newPhone;
       patch.phoneHistory = phoneHistory;
+    }
+    if (updatePrizeContactLine) {
+      patch.prizeContactLine = prizeContactLine;
     }
     userStore.updateUser(userId, patch);
     return findById(userId);
@@ -357,6 +397,7 @@ async function updateProfile(
     } finally {
       client.release();
     }
+    await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
     return findById(userId);
   }
 
@@ -388,6 +429,7 @@ async function updateProfile(
         shipDb.shipping_postal_code
       ]
     );
+    await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
     return findById(userId);
   }
 
@@ -395,6 +437,7 @@ async function updateProfile(
     `UPDATE users SET gender = $2, birth_date = $3 WHERE id = $1`,
     [userId, gender, birthDate || null]
   );
+  await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
   return findById(userId);
 }
 

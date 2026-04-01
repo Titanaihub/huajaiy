@@ -80,6 +80,19 @@ function validateProfilePatch(body) {
     if (!pv.ok) return pv;
     phone = pv.value;
   }
+
+  let prizeContactLine = null;
+  let updatePrizeContactLine = false;
+  if (Object.prototype.hasOwnProperty.call(body, "prizeContactLine")) {
+    updatePrizeContactLine = true;
+    const rawPl =
+      body.prizeContactLine == null ? "" : String(body.prizeContactLine).trim();
+    if (rawPl.length > 500) {
+      return { ok: false, error: "ข้อความติดต่อรับรางวัลยาวเกิน 500 ตัวอักษร" };
+    }
+    prizeContactLine = rawPl === "" ? null : rawPl;
+  }
+
   return {
     ok: true,
     data: {
@@ -88,7 +101,9 @@ function validateProfilePatch(body) {
       shippingParts,
       updateShipping,
       phone,
-      updatePhone
+      updatePhone,
+      prizeContactLine,
+      updatePrizeContactLine
     }
   };
 }

@@ -258,6 +258,7 @@ async function listAwardsForUser(userId) {
        COALESCE(NULLIF(trim(COALESCE(a.game_title_at_win, g.title)), ''), 'เกม') AS "gameTitle",
        NULLIF(BTRIM(COALESCE(g.game_code::text, '')), '') AS "gameCode",
        NULLIF(BTRIM(COALESCE(cu.username, '')), '') AS "creatorUsername",
+       NULLIF(BTRIM(COALESCE(cu.prize_contact_line, '')), '') AS "creatorPrizeContactLine",
        COALESCE(a.rule_set_index, r.set_index, 0) AS "setIndex",
        COALESCE(NULLIF(trim(a.rule_prize_title), ''), NULLIF(trim(r.prize_title), ''), '') AS "prizeTitle",
        COALESCE(NULLIF(trim(a.rule_prize_value_text), ''), NULLIF(trim(r.prize_value_text), ''), '') AS "prizeValueText",
@@ -266,7 +267,8 @@ async function listAwardsForUser(userId) {
        COALESCE(
          NULLIF(BTRIM(COALESCE(a.prize_fulfillment_mode::text, '')), ''),
          NULLIF(BTRIM(COALESCE(r.prize_fulfillment_mode::text, '')), '')
-       ) AS "prizeFulfillmentMode",
+       ) AS "prizeFulfillmentCoalesceRaw",
+       r.prize_fulfillment_mode AS "rulePrizeFulfillmentModeRaw",
        a.item_fulfillment_status AS "itemFulfillmentStatus",
        a.item_fulfillment_note AS "itemFulfillmentNote",
        a.item_tracking_code AS "itemTrackingCode",
@@ -282,7 +284,38 @@ async function listAwardsForUser(userId) {
      ORDER BY a.created_at DESC`,
     [userId]
   );
-  return r.rows.map((row) => ({
+  return r.rows.map((row) => {
+    const itemStatus =
+      row.itemFulfillmentStatus != null
+        ? String(row.itemFulfillmentStatus).trim().toLowerCase()
+        : "pending_creator";
+    const coalescedRaw =
+      row.prizeFulfillmentCoalesceRaw != null && String(row.prizeFulfillmentCoalesceRaw).trim()
+        ? String(row.prizeFulfillmentCoalesceRaw).trim().toLowerCase()
+        : "";
+    const ruleRaw =
+      row.rulePrizeFulfillmentModeRaw != null && String(row.rulePrizeFulfillmentModeRaw).trim()
+        ? String(row.rulePrizeFulfillmentModeRaw).trim().toLowerCase()
+        : "";
+
+    let itemFulfillmentModeStr =
+      row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "";
+    let prizeFulfillmentModeOut = fulfillmentFromRuleRow({
+      prize_category: row.prizeCategory,
+      prize_fulfillment_mode: coalescedRaw
+    });
+
+    if (String(row.prizeCategory) === "item" && itemStatus === "pending_creator") {
+      const rr = ruleRaw || coalescedRaw;
+      const fromRule = fulfillmentFromRuleRow({
+        prize_category: "item",
+        prize_fulfillment_mode: rr
+      });
+      itemFulfillmentModeStr = fromRule;
+      prizeFulfillmentModeOut = fromRule;
+    }
+
+    return {
     id: String(row.id),
     wonAt: row.wonAt,
     prizeCategory: row.prizeCategory,
@@ -290,20 +323,15 @@ async function listAwardsForUser(userId) {
     gameTitle: String(row.gameTitle || "").trim() || "เกม",
     gameCode: row.gameCode != null ? String(row.gameCode).trim() : "",
     creatorUsername: row.creatorUsername != null ? String(row.creatorUsername).trim().toLowerCase() : "",
+    creatorPrizeContactLine:
+      row.creatorPrizeContactLine != null ? String(row.creatorPrizeContactLine).trim().slice(0, 500) : "",
     setIndex: Math.max(0, Math.floor(Number(row.setIndex)) || 0),
     prizeTitle: row.prizeTitle != null ? String(row.prizeTitle).trim() : "",
     prizeValueText: row.prizeValueText != null ? String(row.prizeValueText).trim() : "",
     prizeUnit: row.prizeUnit != null ? String(row.prizeUnit).trim() : "",
-    itemFulfillmentMode:
-      row.itemFulfillmentMode != null ? String(row.itemFulfillmentMode).trim().toLowerCase() : "",
-    prizeFulfillmentMode: fulfillmentFromRuleRow({
-      prize_category: row.prizeCategory,
-      prize_fulfillment_mode: row.prizeFulfillmentMode
-    }),
-    itemFulfillmentStatus:
-      row.itemFulfillmentStatus != null
-        ? String(row.itemFulfillmentStatus).trim().toLowerCase()
-        : "pending_creator",
+    itemFulfillmentMode: itemFulfillmentModeStr,
+    prizeFulfillmentMode: prizeFulfillmentModeOut,
+    itemFulfillmentStatus: itemStatus,
     itemFulfillmentNote:
       row.itemFulfillmentNote != null ? String(row.itemFulfillmentNote).trim() : "",
     itemTrackingCode: row.itemTrackingCode != null ? String(row.itemTrackingCode).trim() : "",
@@ -313,7 +341,8 @@ async function listAwardsForUser(userId) {
         : null,
     itemResolvedAt: row.itemResolvedAt || null,
     winnerPickupAckAt: row.winnerPickupAckAt || null
-  }));
+    };
+  });
 }
 
 function itemEffectiveModeFromDbRow(row) {

@@ -34,6 +34,7 @@ export default function AccountProfileForm() {
     postalCode: ""
   });
   const [phone, setPhone] = useState("");
+  const [prizeContactLine, setPrizeContactLine] = useState("");
   const [profileMsg, setProfileMsg] = useState("");
   const [profileErr, setProfileErr] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
@@ -61,6 +62,9 @@ export default function AccountProfileForm() {
     setGender(user.gender || "");
     setBirthDate(user.birthDate || "");
     setPhone(String(user.phone || "").replace(/\s+/g, ""));
+    setPrizeContactLine(
+      user.prizeContactLine != null ? String(user.prizeContactLine) : ""
+    );
     const p = user.shippingAddressParts || {};
     setShippingParts({
       houseNo: p.houseNo || "",
@@ -126,7 +130,8 @@ export default function AccountProfileForm() {
           district: shippingParts.district,
           province: shippingParts.province,
           postalCode: shippingParts.postalCode
-        }
+        },
+        prizeContactLine: String(prizeContactLine || "").trim()
       };
       const nextPhone = String(phone || "").replace(/\s+/g, "").trim();
       const currentPhone = String(user.phone || "").replace(/\s+/g, "").trim();
@@ -422,6 +427,34 @@ export default function AccountProfileForm() {
                 </div>
               </div>
             </fieldset>
+
+            <fieldset id="prize-contact-line" className="scroll-mt-24 space-y-3">
+              <legend className="text-sm font-semibold text-white">
+                ติดต่อรับรางวัล (สำหรับผู้สร้างเกม)
+              </legend>
+              <p className="text-xs text-white/80">
+                ผู้ชนะรางวัลสิ่งของจะเห็นปุ่มเปิด LINE จากค่าที่ตั้งไว้ที่นี่ — ใส่ลิงก์เต็ม (https://…) หรือไอดีไลน์
+                เช่น <span className="font-mono">@myshop</span>
+              </p>
+              <div>
+                <label
+                  htmlFor="prizeContactLineInput"
+                  className="block text-xs font-medium text-white/90"
+                >
+                  LINE / ลิงก์ติดต่อ
+                </label>
+                <input
+                  id="prizeContactLineInput"
+                  type="text"
+                  autoComplete="off"
+                  value={prizeContactLine}
+                  onChange={(e) => setPrizeContactLine(e.target.value.slice(0, 500))}
+                  placeholder="https://line.me/ti/p/~@xxx หรือ @username"
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                />
+              </div>
+            </fieldset>
+
             {profileErr ? (
               <p
                 className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-800 shadow-sm"
