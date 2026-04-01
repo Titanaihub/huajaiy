@@ -26,7 +26,7 @@ export default function SiteHeader() {
           <Link href="/game" className={navClass}>
             เกม
           </Link>
-          <span className="hidden h-4 w-px bg-slate-200 sm:inline-block" />
+          <span className="hidden h-4 w-px bg-hui-border/35 sm:inline-block" />
           <MemberNav />
         </nav>
       </div>

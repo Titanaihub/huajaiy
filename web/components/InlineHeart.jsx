@@ -10,7 +10,7 @@ const sizeClass = {
 };
 
 /** หัวใจ SVG แนวนอนกับข้อความ — ไม่ใช้อักขระ ♥ */
-export default function InlineHeart({ size = "sm", className = "text-brand-700" }) {
+export default function InlineHeart({ size = "sm", className = "text-hui-pink" }) {
   return (
     <HeartIcon
       className={`inline-block shrink-0 align-[-0.12em] ${sizeClass[size]} ${className}`}

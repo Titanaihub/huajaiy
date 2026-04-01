@@ -8,7 +8,7 @@ export default function AccountPrizePayoutSection() {
   const { user, loading } = useMemberAuth();
 
   if (loading) {
-    return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
+    return <p className="text-sm text-hui-muted">กำลังโหลด…</p>;
   }
 
   if (!user || user.role !== "admin") {
@@ -18,7 +18,7 @@ export default function AccountPrizePayoutSection() {
         <p className="mt-2 text-amber-900">
           หน้านี้ใช้ดูรายการผู้ได้รับรางวัลและคำขอถอน — สมาชิกทั่วไปเห็นเมนูเพื่อทดสอบระบบ แต่ใช้งานแผงจ่ายรางวัลได้เมื่อเป็นแอดมินเท่านั้น
         </p>
-        <Link href="/account" className="mt-3 inline-block text-sm font-semibold text-brand-800 underline">
+        <Link href="/account" className="mt-3 inline-block text-sm font-semibold text-hui-cta underline">
           กลับภาพรวมบัญชี
         </Link>
       </div>
@@ -28,8 +28,8 @@ export default function AccountPrizePayoutSection() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">จ่ายรางวัล</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-lg font-semibold text-hui-section">จ่ายรางวัล</h2>
+        <p className="mt-1 text-sm text-hui-body">
           รายการผู้เล่นที่ชนะรางวัลจากเกมส่วนกลาง (ตามที่ระบบบันทึก) — ใช้ตรวจสอบว่าต้องโอนเงิน ส่งของ หรือมอบบัตรกำนัลให้ใคร
         </p>
       </div>

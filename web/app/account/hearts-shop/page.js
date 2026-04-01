@@ -8,7 +8,7 @@ export const metadata = {
 export default function HeartsShopPage() {
   return (
     <>
-      <h2 className="text-lg font-semibold text-slate-900">ซื้อหัวใจแดง</h2>
+      <h2 className="text-lg font-semibold text-hui-section">ซื้อหัวใจแดง</h2>
       <div className="mt-6">
         <HeartShopClient />
       </div>

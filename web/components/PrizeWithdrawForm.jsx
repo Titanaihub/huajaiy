@@ -180,14 +180,14 @@ export default function PrizeWithdrawForm() {
   }
 
   if (authLoading) {
-    return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
+    return <p className="text-sm text-hui-muted">กำลังโหลด…</p>;
   }
 
   if (!user) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบก่อนขอถอนเงินรางวัล</p>
-        <Link href="/login" className="mt-2 inline-block font-semibold text-brand-800 underline">
+        <Link href="/login" className="mt-2 inline-block font-semibold text-hui-cta underline">
           เข้าสู่ระบบ
         </Link>
       </div>
@@ -196,11 +196,11 @@ export default function PrizeWithdrawForm() {
 
   if (!refCreator) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
-        <p className="font-medium text-slate-900">ไม่พบข้อมูลผู้สร้างเกม</p>
+      <div className="rounded-xl border border-hui-border bg-hui-pageTop px-4 py-4 text-sm text-hui-body">
+        <p className="font-medium text-hui-section">ไม่พบข้อมูลผู้สร้างเกม</p>
         <p className="mt-2">
           เปิดหน้านี้จากปุ่ม「ถอนเงินรางวัล」ในหน้า{" "}
-          <Link href="/account/prizes" className="font-semibold text-brand-800 underline">
+          <Link href="/account/prizes" className="font-semibold text-hui-cta underline">
             รางวัลของฉัน
           </Link>
         </p>
@@ -211,28 +211,28 @@ export default function PrizeWithdrawForm() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">ถอนเงินรางวัล (เงินสด)</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-brand-800">@{refCreator}</span>{" "}
+        <h2 className="text-lg font-semibold text-hui-section">ถอนเงินรางวัล (เงินสด)</h2>
+        <p className="mt-1 text-sm text-hui-body">
+          คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-hui-cta">@{refCreator}</span>{" "}
           เพื่อโอนเงิน — หลังจ่ายแล้วผู้สร้างจะกดอนุมัติในระบบ
         </p>
       </div>
 
       {loadingAvail ? (
-        <p className="text-sm text-slate-500">กำลังตรวจสอบยอดถอนได้…</p>
+        <p className="text-sm text-hui-muted">กำลังตรวจสอบยอดถอนได้…</p>
       ) : availErr ? (
         <p className="text-sm text-red-700" role="alert">
           {availErr}
         </p>
       ) : avail ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
-          <p className="text-slate-700">
+        <div className="rounded-xl border border-hui-border bg-white p-4 text-sm shadow-sm">
+          <p className="text-hui-body">
             ยอดถอนได้คงเหลือ{" "}
             <span className="text-lg font-bold tabular-nums text-emerald-800">
               {formatBaht(avail.availableBaht)}
             </span>{" "}
             บาท
-            <span className="block pt-1 text-xs text-slate-500">
+            <span className="block pt-1 text-xs text-hui-muted">
               รวมจากรางวัลเงินสด {formatBaht(avail.earnedBaht)} บาท · หักคำขอที่รอ/อนุมัติแล้ว{" "}
               {formatBaht(avail.reservedBaht)} บาท
             </span>
@@ -252,7 +252,7 @@ export default function PrizeWithdrawForm() {
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
               href="/account/prizes"
-              className="font-semibold text-brand-800 underline hover:text-brand-950"
+              className="font-semibold text-hui-cta underline hover:brightness-95"
             >
               กลับหน้ารางวัลของฉัน
             </Link>
@@ -262,7 +262,7 @@ export default function PrizeWithdrawForm() {
                 setDone(false);
                 router.push("/account/prizes");
               }}
-              className="text-sm font-semibold text-slate-600 underline"
+              className="text-sm font-semibold text-hui-body underline"
             >
               ปิด
             </button>
@@ -272,10 +272,10 @@ export default function PrizeWithdrawForm() {
 
       <form
         onSubmit={onSubmit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        className="space-y-4 rounded-2xl border border-hui-border bg-white p-4 shadow-sm sm:p-5"
       >
         <div>
-          <label htmlFor="withdraw-amount" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="withdraw-amount" className="block text-sm font-medium text-hui-body">
             จำนวนเงินที่ถอน (บาท) <span className="text-rose-600">*</span>
           </label>
           <input
@@ -286,30 +286,30 @@ export default function PrizeWithdrawForm() {
             value={amountDigits}
             onChange={onAmountChange}
             placeholder="กรอกตัวเลขเท่านั้น"
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-mono text-base tabular-nums shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 font-mono text-base tabular-nums shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-hui-muted">
             ขั้นต่ำ {MIN_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-hui-body">
             ชื่อเจ้าของบัญชี <span className="text-rose-600">*</span>
           </label>
-          <p className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900">
+          <p className="mt-1.5 rounded-xl border border-hui-border bg-hui-pageTop px-3 py-2.5 text-sm font-medium text-hui-section">
             {accountHolderName || "— (ไม่พบชื่อในระบบ)"}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-hui-muted">
             ดึงจากชื่อ–นามสกุลในโปรไฟล์ — แก้ได้ที่{" "}
-            <Link href="/account/profile" className="font-medium text-brand-800 underline">
+            <Link href="/account/profile" className="font-medium text-hui-cta underline">
               ข้อมูลส่วนตัว
             </Link>
           </p>
         </div>
 
         <div>
-          <label htmlFor="withdraw-account" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="withdraw-account" className="block text-sm font-medium text-hui-body">
             หมายเลขบัญชี <span className="text-rose-600">*</span>
           </label>
           <input
@@ -317,13 +317,13 @@ export default function PrizeWithdrawForm() {
             name="accountNumber"
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value.slice(0, 32))}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
             autoComplete="off"
           />
         </div>
 
         <div>
-          <label htmlFor="withdraw-bank" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="withdraw-bank" className="block text-sm font-medium text-hui-body">
             ชื่อธนาคาร <span className="text-rose-600">*</span>
           </label>
           <input
@@ -332,7 +332,7 @@ export default function PrizeWithdrawForm() {
             value={bankName}
             onChange={(e) => setBankName(e.target.value.slice(0, 120))}
             placeholder="เช่น ธนาคารกสิกรไทย"
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
           />
         </div>
 
@@ -369,7 +369,7 @@ export default function PrizeWithdrawForm() {
         emptyMessage="ยังไม่มีรายการ — ส่งคำขอด้านบนเมื่อพร้อม"
       />
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-hui-muted">
         การถอนเป็นการประสานงานกับผู้สร้างเกม — ยังไม่มีการโอนอัตโนมัติจากเว็บ
       </p>
     </section>

@@ -18,7 +18,7 @@ export default function AccountGiveHeartsSection() {
 
   if (loading || !user) {
     return (
-      <p className="text-sm text-slate-600" aria-live="polite">
+      <p className="text-sm text-hui-body" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -27,23 +27,23 @@ export default function AccountGiveHeartsSection() {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold text-slate-900">แจกหัวใจแดง</h2>
+        <h2 className="text-lg font-semibold text-hui-section">แจกหัวใจแดง</h2>
         <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
           <Link
             href="/account/hearts-shop"
-            className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             ซื้อหัวใจแดง
           </Link>
           <Link
             href="/account/heart-history/purchases"
-            className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             ประวัติหัวใจแดง
           </Link>
           <Link
             href="/account/my-hearts"
-            className="font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             หัวใจของฉัน (มุมมองผู้เล่น)
           </Link>

@@ -15,7 +15,7 @@
 }
 
 ::selection {
-  @apply bg-brand-200 text-hui-body;
+  @apply bg-hui-border text-hui-body;
 }
 
 @layer components {

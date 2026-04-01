@@ -284,11 +284,11 @@ function PendingWithdrawalRow({ row, token, onDone }) {
   const creator = row.creatorUsername ? `@${row.creatorUsername}` : "—";
 
   return (
-    <tr className="align-top border-b border-slate-100 text-sm text-slate-800">
-      <td className="whitespace-nowrap px-2 py-2.5 text-slate-600">{formatWonAt(row.createdAt)}</td>
+    <tr className="align-top border-b border-hui-border/70 text-sm text-hui-body">
+      <td className="whitespace-nowrap px-2 py-2.5 text-hui-body">{formatWonAt(row.createdAt)}</td>
       <td className="px-2 py-2.5">
-        <span className="font-medium text-slate-900">{row.requesterDisplayName || "—"}</span>
-        <span className="mt-0.5 block text-xs text-slate-500">
+        <span className="font-medium text-hui-section">{row.requesterDisplayName || "—"}</span>
+        <span className="mt-0.5 block text-xs text-hui-muted">
           ถอนจาก {creator} · บัญชี {row.accountHolderName}
         </span>
       </td>
@@ -313,7 +313,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
             href={slipUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 block text-xs font-medium text-brand-800 underline"
+            className="mt-1 block text-xs font-medium text-hui-cta underline"
           >
             ดูสลิปที่แนบแล้ว
           </a>
@@ -334,7 +334,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
               type="button"
               disabled={busy}
               onClick={() => setRejectOpen(true)}
-              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-hui-border bg-white px-2 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-pageTop disabled:opacity-50"
             >
               ยกเลิกการถอน
             </button>
@@ -345,7 +345,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
                 onChange={(e) => setRejectNote(e.target.value.slice(0, 500))}
                 placeholder="หมายเหตุ (บังคับ) เช่น ชื่อไม่ตรงบัญชี"
                 rows={2}
-                className="w-full min-w-[160px] rounded border border-slate-300 px-2 py-1 text-xs"
+                className="w-full min-w-[160px] rounded border border-hui-border px-2 py-1 text-xs"
               />
               <div className="flex gap-1">
                 <button
@@ -363,7 +363,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
                     setRejectOpen(false);
                     setRejectNote("");
                   }}
-                  className="text-[11px] text-slate-600 underline"
+                  className="text-[11px] text-hui-body underline"
                 >
                   ปิด
                 </button>
@@ -405,11 +405,11 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <li className="rounded-xl border border-hui-border bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+            <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
               <th className="px-3 py-2.5">ชื่อ–นามสกุล (ผู้ได้รับรางวัล)</th>
               <th className="px-3 py-2.5">หัวใจแดงเล่นได้</th>
               <th className="px-3 py-2.5">เงินรางวัล (รวมเงินสด)</th>
@@ -422,8 +422,8 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
           <tbody>
             <tr>
               <td className="px-3 py-3">
-                <p className="font-semibold text-slate-900">{w.primary}</p>
-                {w.secondary ? <p className="text-xs text-slate-600">{w.secondary}</p> : null}
+                <p className="font-semibold text-hui-section">{w.primary}</p>
+                {w.secondary ? <p className="text-xs text-hui-body">{w.secondary}</p> : null}
                 <p className="mt-0.5 text-[11px] text-red-700">
                   หัวใจแดงเล่นได้:{" "}
                   {Math.max(0, Math.floor(Number(group.winnerRedHeartsBalance) || 0)).toLocaleString(
@@ -436,11 +436,11 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                   "th-TH"
                 )}
               </td>
-              <td className="px-3 py-3 font-bold tabular-nums text-slate-900">
+              <td className="px-3 py-3 font-bold tabular-nums text-hui-section">
                 {formatBahtTotal(cashTotal)} บาท
               </td>
               <td className="px-3 py-3 tabular-nums">{winCount} ครั้ง</td>
-              <td className="px-3 py-3 tabular-nums text-slate-800">
+              <td className="px-3 py-3 tabular-nums text-hui-body">
                 {formatBahtTotal(res.approvedBaht)} บาท
               </td>
               <td className="px-3 py-3 font-semibold tabular-nums text-emerald-900">
@@ -450,7 +450,7 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                 <button
                   type="button"
                   onClick={() => setOpen((v) => !v)}
-                  className="text-sm font-semibold text-brand-800 underline"
+                  className="text-sm font-semibold text-hui-cta underline"
                   aria-expanded={open}
                 >
                   {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
@@ -469,11 +469,11 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
       ) : null}
 
       {open ? (
-        <div className="border-t border-slate-100 p-3">
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <div className="border-t border-hui-border/70 p-3">
+          <div className="overflow-x-auto rounded-lg border border-hui-border">
             <table className="min-w-[860px] w-full border-collapse text-left text-xs sm:text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 font-semibold text-slate-600">
+                <tr className="border-b border-hui-border bg-hui-pageTop font-semibold text-hui-body">
                   <th className="whitespace-nowrap px-2 py-2">วันที่</th>
                   <th className="whitespace-nowrap px-2 py-2">ผู้สร้างเกม</th>
                   <th className="whitespace-nowrap px-2 py-2">รหัสเกม</th>
@@ -483,55 +483,55 @@ function RewardRecipientCard({ group, withdrawals, reserveMap }) {
                   <th className="whitespace-nowrap px-2 py-2">ยอดคงเหลือ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-hui-border/70">
                 {detailRows.map((row) =>
                   row.kind === "win" ? (
                     <tr key={row.key} className="bg-white">
-                      <td className="whitespace-nowrap px-2 py-2 text-slate-700">
+                      <td className="whitespace-nowrap px-2 py-2 text-hui-body">
                         {formatWonAt(row.atLabel)}
                       </td>
                       <td className="whitespace-nowrap px-2 py-2">
                         {row.award.creatorUsername ? (
-                          <span className="text-brand-800">@{row.award.creatorUsername}</span>
+                          <span className="text-hui-cta">@{row.award.creatorUsername}</span>
                         ) : (
                           "—"
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2 font-mono text-[11px] text-slate-600">
+                      <td className="whitespace-nowrap px-2 py-2 font-mono text-[11px] text-hui-body">
                         {displayGameCode(row.award)}
                       </td>
-                      <td className="px-2 py-2 text-slate-800">{row.award.gameTitle}</td>
+                      <td className="px-2 py-2 text-hui-body">{row.award.gameTitle}</td>
                       <td className="whitespace-nowrap px-2 py-2 tabular-nums">
                         {row.cashAmt != null ? (
                           <span>{formatBahtTotal(row.cashAmt)} บาท</span>
                         ) : (
-                          <span className="text-slate-600">{prizeLine(row.award)}</span>
+                          <span className="text-hui-body">{prizeLine(row.award)}</span>
                         )}
                       </td>
-                      <td className="px-2 py-2 text-slate-700">{adminPickupAckLabel(row.award)}</td>
+                      <td className="px-2 py-2 text-hui-body">{adminPickupAckLabel(row.award)}</td>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
                       </td>
                     </tr>
                   ) : (
                     <tr key={row.key} className="bg-rose-50/50">
-                      <td className="whitespace-nowrap px-2 py-2 text-slate-700">
+                      <td className="whitespace-nowrap px-2 py-2 text-hui-body">
                         {formatWonAt(row.atLabel)}
                       </td>
                       <td className="whitespace-nowrap px-2 py-2 text-rose-900">
                         {row.creatorUsername ? `@${row.creatorUsername}` : "—"}
                       </td>
-                      <td className="px-2 py-2 text-slate-500">—</td>
+                      <td className="px-2 py-2 text-hui-muted">—</td>
                       <td className="px-2 py-2">
                         <span className="font-medium text-rose-900">ถอนเงิน</span>
-                        <span className="mt-0.5 block text-[11px] text-slate-600">
+                        <span className="mt-0.5 block text-[11px] text-hui-body">
                           {row.withdrawal.accountNumber} · {row.withdrawal.bankName}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-2 py-2 font-medium tabular-nums text-rose-800">
                         −{formatBahtTotal(Math.abs(row.cashAmt))} บาท
                       </td>
-                      <td className="px-2 py-2 text-slate-400">—</td>
+                      <td className="px-2 py-2 text-hui-muted">—</td>
                       <td className="whitespace-nowrap px-2 py-2 font-semibold tabular-nums">
                         {formatBahtTotal(row.runningCash)} บาท
                       </td>
@@ -639,14 +639,14 @@ export default function AdminPrizePayoutPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-hui-border pb-3">
         <button
           type="button"
           onClick={() => setTab("withdrawals")}
           className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
             tab === "withdrawals"
-              ? "bg-brand-100 text-brand-900"
-              : "text-slate-600 hover:bg-slate-100"
+              ? "bg-hui-pageTop text-hui-burgundy"
+              : "text-hui-body hover:bg-hui-pageTop"
           }`}
         >
           1. รายการรอถอน
@@ -656,8 +656,8 @@ export default function AdminPrizePayoutPanel() {
           onClick={() => setTab("rewards")}
           className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
             tab === "rewards"
-              ? "bg-brand-100 text-brand-900"
-              : "text-slate-600 hover:bg-slate-100"
+              ? "bg-hui-pageTop text-hui-burgundy"
+              : "text-hui-body hover:bg-hui-pageTop"
           }`}
         >
           2. รายละเอียดรางวัล
@@ -667,11 +667,11 @@ export default function AdminPrizePayoutPanel() {
       {tab === "rewards" ? (
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[180px] flex-1">
-            <label className="block text-xs font-medium text-slate-600">กรองตามเกม</label>
+            <label className="block text-xs font-medium text-hui-body">กรองตามเกม</label>
             <select
               value={gameFilter}
               onChange={(e) => setGameFilter(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border bg-white px-3 py-2 text-sm"
             >
               <option value="">ทุกเกม</option>
               {games.map((g) => (
@@ -683,43 +683,43 @@ export default function AdminPrizePayoutPanel() {
             </select>
           </div>
           <div className="min-w-[200px] flex-[2]">
-            <label className="block text-xs font-medium text-slate-600">
+            <label className="block text-xs font-medium text-hui-body">
               ค้นหา (ชื่อเกม รหัส ยูสเซอร์ ชื่อ รางวัล ผู้สร้าง)
             </label>
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="พิมพ์คำค้น…"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
           <button
             type="button"
             onClick={() => void load()}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            className="rounded-lg border border-hui-border bg-white px-4 py-2 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
           >
             รีเฟรช
           </button>
         </div>
       ) : (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-hui-body">
           อนุมัติหลังโอนเงินแล้ว — แนบสลิปได้ถ้าต้องการ · ยกเลิกต้องกรอกหมายเหตุ
         </p>
       )}
 
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
-      {loading ? <p className="text-sm text-slate-500">กำลังโหลด…</p> : null}
+      {loading ? <p className="text-sm text-hui-muted">กำลังโหลด…</p> : null}
 
       {!loading && !err && tab === "withdrawals" ? (
         pendingWithdrawals.length === 0 ? (
-          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
+          <p className="rounded-xl border border-hui-border bg-hui-pageTop px-4 py-6 text-center text-sm text-hui-body">
             ไม่มีรายการถอนที่รอดำเนินการ
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
             <table className="min-w-[960px] w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+                <tr className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold text-hui-body">
                   <th className="px-2 py-2.5">วันที่ขอถอน</th>
                   <th className="px-2 py-2.5">ชื่อ–นามสกุล</th>
                   <th className="px-2 py-2.5">จำนวนเงิน</th>
@@ -746,11 +746,11 @@ export default function AdminPrizePayoutPanel() {
 
       {!loading && !err && tab === "rewards" ? (
         <>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-hui-body">
             สรุปตามผู้ได้รับรางวัล · ยอดถอน = เงินที่อนุมัติถอนแล้ว · ยอดคงเหลือ = เงินรางวัลเงินสดรวม − ถอนแล้ว − รอถอน
           </p>
           {recipientGroups.length === 0 ? (
-            <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
+            <p className="rounded-xl border border-hui-border bg-hui-pageTop px-4 py-6 text-center text-sm text-hui-body">
               ยังไม่มีรายการรางวัลที่ตรงตัวกรอง
             </p>
           ) : (

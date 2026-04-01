@@ -15,7 +15,7 @@ export default function CartBadge() {
   return (
     <Link
       href="/cart"
-      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+      className="inline-flex items-center gap-1 rounded-full border border-hui-border bg-white px-2.5 py-1 text-xs font-semibold text-hui-body shadow-sm transition hover:border-hui-border hover:bg-hui-pageTop"
       title="ตะกร้า"
     >
       <span aria-hidden>🛒</span>

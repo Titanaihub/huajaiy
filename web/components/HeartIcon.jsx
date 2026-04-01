@@ -1,5 +1,5 @@
 /**
- * หัวใจทึบโทนชมพูเข้ม — ใช้ currentColor กำหนดสีจาก className (เช่น text-brand-700)
+ * หัวใจทึบโทนชมพูเข้ม — ใช้ currentColor กำหนดสีจาก className (เช่น text-hui-pink)
  */
 export default function HeartIcon({ className = "h-4 w-4", ...props }) {
   return (

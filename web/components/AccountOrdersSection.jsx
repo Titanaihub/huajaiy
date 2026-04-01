@@ -18,7 +18,7 @@ export default function AccountOrdersSection() {
 
   if (loading || !user) {
     return (
-      <p className="text-sm text-slate-600" aria-live="polite">
+      <p className="text-sm text-hui-body" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -26,13 +26,13 @@ export default function AccountOrdersSection() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-slate-900">ออเดอร์ของฉัน</h2>
-      <p className="text-sm text-slate-600">
+      <h2 className="text-lg font-semibold text-hui-section">ออเดอร์ของฉัน</h2>
+      <p className="text-sm text-hui-body">
         ออเดอร์ที่บันทึกในบัญชีของคุณหลังล็อกอินและยืนยันตะกร้า — หากมีประวัติทดลองในเครื่องจะแสดงแยกด้านล่าง
       </p>
       <OrdersList />
-      <p className="text-sm text-slate-600">
-        <Link href="/cart" className="text-brand-800 underline hover:text-brand-950">
+      <p className="text-sm text-hui-body">
+        <Link href="/cart" className="text-hui-cta underline hover:brightness-95">
           ไปตะกร้า
         </Link>
       </p>

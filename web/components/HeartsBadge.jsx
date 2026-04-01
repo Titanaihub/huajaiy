@@ -6,7 +6,7 @@ import { useHearts } from "./HeartsProvider";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const badgeClass =
-  "inline-flex items-center gap-2 overflow-visible rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-neutral-900 shadow-none transition hover:border-slate-300 hover:bg-slate-50";
+  "inline-flex items-center gap-2 overflow-visible rounded-full border border-hui-border bg-white px-2 py-1 text-xs font-semibold text-hui-body shadow-none transition hover:border-hui-border hover:bg-hui-pageTop";
 
 export default function HeartsBadge() {
   const { user, loading: authLoading } = useMemberAuth();
@@ -30,7 +30,7 @@ export default function HeartsBadge() {
           <GlossyHeartIcon tone="pink" className="h-4 w-4 shrink-0" />
           {pink.toLocaleString("th-TH")}
         </span>
-        <span className="text-slate-400" aria-hidden>
+        <span className="text-hui-muted" aria-hidden>
           |
         </span>
         <span
@@ -72,7 +72,7 @@ export default function HeartsBadge() {
             <GlossyHeartIcon tone="pink" className="h-4 w-4 shrink-0" />
             {(0).toLocaleString("th-TH")}
           </span>
-          <span className="text-slate-400" aria-hidden>
+          <span className="text-hui-muted" aria-hidden>
             |
           </span>
           <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจแดงจากรหัสห้อง">
@@ -81,7 +81,7 @@ export default function HeartsBadge() {
           </span>
         </>
       ) : (
-        <span className="tabular-nums text-neutral-900">—</span>
+        <span className="tabular-nums text-hui-body">—</span>
       )}
     </Link>
   );

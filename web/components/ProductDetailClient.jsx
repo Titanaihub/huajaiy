@@ -85,15 +85,15 @@ export default function ProductDetailClient({ productId }) {
         </div>
         <div className="min-w-0 flex-1">
           {p.category ? (
-            <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
+            <span className="inline-block rounded-full bg-hui-pageTop px-2 py-0.5 text-xs text-hui-body">
               {p.category}
             </span>
           ) : null}
-          <h1 className="mt-2 text-xl font-semibold text-slate-900">{p.title}</h1>
-          <p className="mt-2 text-2xl font-medium text-slate-800">
+          <h1 className="mt-2 text-xl font-semibold text-hui-section">{p.title}</h1>
+          <p className="mt-2 text-2xl font-medium text-hui-body">
             ฿{Number(p.priceThb).toLocaleString("th-TH")}
           </p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-hui-body">
             คงเหลือ {p.stockQty} ชิ้น · ร้าน {p.shopName}
           </p>
           {p.heartsBonus > 0 ? (
@@ -102,7 +102,7 @@ export default function ProductDetailClient({ productId }) {
             </p>
           ) : null}
           {p.description ? (
-            <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+            <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-hui-body">
               {p.description}
             </p>
           ) : null}

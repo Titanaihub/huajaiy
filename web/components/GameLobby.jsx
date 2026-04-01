@@ -37,7 +37,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           className={
             onBrand
               ? "hui-label text-xs"
-              : "text-xs font-medium text-slate-600"
+              : "text-xs font-medium text-hui-body"
           }
         >
           ค้นหาชื่อเกมหรือยูสเซอร์ผู้สร้าง
@@ -48,15 +48,15 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="พิมพ์คำค้น…"
-          className="mt-1 w-full rounded-2xl border border-hui-border bg-white px-4 py-2.5 text-sm text-hui-body shadow-sm outline-none ring-brand-200 placeholder:text-hui-placeholder focus:border-brand-300 focus:ring-2"
+          className="mt-1 w-full rounded-2xl border border-hui-border bg-white px-4 py-2.5 text-sm text-hui-body shadow-sm outline-none ring-hui-border placeholder:text-hui-placeholder focus:border-hui-cta/50 focus:ring-2 focus:ring-hui-cta/15"
           autoComplete="off"
         />
       </div>
 
       {initialGames.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">
-          <p className="font-medium text-slate-800">ยังไม่มีเกมที่เปิดแสดง</p>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+        <div className="rounded-2xl border border-hui-border bg-white p-8 text-center text-sm text-hui-body shadow-sm">
+          <p className="font-medium text-hui-body">ยังไม่มีเกมที่เปิดแสดง</p>
+          <p className="mt-2 text-xs leading-relaxed text-hui-muted">
             เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ถ้าใช้ฐานข้อมูล PostgreSQL
             ตรวจว่า API เชื่อมต่อและมีเกมที่พร้อมเล่น
           </p>
@@ -66,7 +66,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           className={
             onBrand
               ? "text-center text-sm text-hui-muted"
-              : "text-center text-sm text-slate-500"
+              : "text-center text-sm text-hui-muted"
           }
         >
           ไม่พบเกมที่ตรงกับคำค้น
@@ -81,10 +81,10 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
               <li key={g.id}>
                 <Link
                   href={href}
-                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-hui-border bg-hui-surface shadow-sm transition hover:border-brand-300 hover:shadow-md"
+                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-hui-border bg-hui-surface shadow-sm transition hover:border-hui-cta/45 hover:shadow-md"
                 >
                   <div className="flex gap-3 p-4">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
@@ -96,9 +96,9 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                       <h2 className="text-sm font-semibold leading-snug text-hui-cardTitle line-clamp-2">
                         {g.title || "เกม"}
                       </h2>
-                      <p className="mt-1 text-[11px] text-slate-500">
+                      <p className="mt-1 text-[11px] text-hui-muted">
                         ผู้สร้าง:{" "}
-                        <span className="font-medium text-slate-700">
+                        <span className="font-medium text-hui-body">
                           {g.creatorUsername ? `@${g.creatorUsername}` : "—"}
                         </span>
                       </p>
@@ -108,15 +108,15 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                     </div>
                   </div>
                   {g.description ? (
-                    <p className="border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-600 line-clamp-4">
+                    <p className="border-t border-hui-border/70 px-4 py-3 text-xs leading-relaxed text-hui-body line-clamp-4">
                       {clipDescription(g.description)}
                     </p>
                   ) : (
-                    <p className="border-t border-slate-100 px-4 py-3 text-xs italic text-slate-400">
+                    <p className="border-t border-hui-border/70 px-4 py-3 text-xs italic text-hui-muted">
                       ไม่มีคำอธิบายสั้น
                     </p>
                   )}
-                  <span className="mt-auto border-t border-slate-100 bg-brand-50/60 px-4 py-2.5 text-center text-xs font-semibold text-brand-900">
+                  <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/70 px-4 py-2.5 text-center text-xs font-semibold text-hui-burgundy">
                     เข้าเล่นเกมนี้
                   </span>
                 </Link>

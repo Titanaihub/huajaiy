@@ -25,14 +25,14 @@ export default function ApiHealthStrip() {
 
   if (state === "checking") {
     return (
-      <p className="mt-3 text-xs text-slate-500" role="status">
+      <p className="mt-3 text-xs text-hui-muted" role="status">
         กำลังเช็กการเชื่อมต่อ API…
       </p>
     );
   }
   if (state === "up") {
     return (
-      <p className="mt-3 text-xs text-brand-800" role="status">
+      <p className="mt-3 text-xs text-hui-cta" role="status">
         เชื่อมต่อ API ได้ปกติ
       </p>
     );

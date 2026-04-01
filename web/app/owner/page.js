@@ -40,28 +40,28 @@ export default function OwnerPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8">
-        <h1 className="text-xl font-bold text-slate-900">ขายสินค้า (เจ้าของร้าน)</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600">
+        <h1 className="text-xl font-bold text-hui-section">ขายสินค้า (เจ้าของร้าน)</h1>
+        <p className="mt-2 max-w-2xl text-sm text-hui-body">
           ระบบขายทำงานแบบมาร์เก็ตเพลส: แอดมินสร้างร้านและผูกบัญชีคุณ → คุณลงสินค้า → ลูกค้าช้อปที่หน้า{" "}
-          <Link href="/shop" className="font-medium text-brand-800 underline">
+          <Link href="/shop" className="font-medium text-hui-cta underline">
             ร้านค้า
           </Link>{" "}
           และยืนยันตะกร้าเป็นออเดอร์
         </p>
 
-        <section className="mt-6 rounded-xl border border-brand-100 bg-brand-50/40 p-4 text-sm text-slate-800">
-          <p className="font-semibold text-slate-900">ขั้นตอนสั้น ๆ</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5 text-slate-700">
+        <section className="mt-6 rounded-xl border border-hui-border bg-hui-pageTop/40 p-4 text-sm text-hui-body">
+          <p className="font-semibold text-hui-section">ขั้นตอนสั้น ๆ</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-hui-body">
             <li>
               แอดมินไป{" "}
-              <Link href="/admin?tab=shops" className="font-medium text-brand-800 underline">
+              <Link href="/admin?tab=shops" className="font-medium text-hui-cta underline">
                 แอดมิน → ร้านทั้งหมด
               </Link>{" "}
               สร้างร้าน และใส่ยูสเซอร์เจ้าของ (ถ้ามี)
             </li>
             <li>
               คุณล็อกอินแล้วไป{" "}
-              <Link href="/account/shops" className="font-medium text-brand-800 underline">
+              <Link href="/account/shops" className="font-medium text-hui-cta underline">
                 ร้านของฉัน
               </Link>{" "}
               → <strong>จัดการสินค้า</strong> เพิ่มชื่อ ราคา รูป สต็อก
@@ -71,10 +71,10 @@ export default function OwnerPage() {
         </section>
 
         {loading ? (
-          <p className="mt-6 text-sm text-slate-500">กำลังโหลด...</p>
+          <p className="mt-6 text-sm text-hui-muted">กำลังโหลด...</p>
         ) : !user ? (
           <p className="mt-6 text-sm">
-            <Link href="/login?next=/owner" className="font-medium text-brand-800 underline">
+            <Link href="/login?next=/owner" className="font-medium text-hui-cta underline">
               เข้าสู่ระบบ
             </Link>{" "}
             ก่อน แล้วค่อยลงสินค้าได้หลังแอดมินผูกร้านให้
@@ -87,7 +87,7 @@ export default function OwnerPage() {
               ที่แผงแอดมิน — หรือสมัครสมาชิกแล้วแจ้งทีมงานให้เปิดร้านให้
             </p>
             <p className="mt-3">
-              <Link href="/account/shops" className="font-medium text-brand-800 underline">
+              <Link href="/account/shops" className="font-medium text-hui-cta underline">
                 ไปหน้าร้านของฉัน
               </Link>{" "}
               (จะว่างจนกว่าจะมีร้านในชื่อคุณ)
@@ -95,31 +95,31 @@ export default function OwnerPage() {
           </div>
         ) : (
           <div className="mt-6 space-y-4">
-            <p className="text-sm text-slate-700">
+            <p className="text-sm text-hui-body">
               เข้าสู่ระบบเป็น <strong>{user.username}</strong> · บทบาท{" "}
-              <span className="font-semibold text-brand-800">{user.role}</span>
+              <span className="font-semibold text-hui-cta">{user.role}</span>
             </p>
             {user.role === "admin" ? (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-hui-body">
                 คุณเป็นแอดมิน — สร้างร้านได้ที่{" "}
-                <Link href="/admin?tab=shops" className="font-medium text-brand-800 underline">
+                <Link href="/admin?tab=shops" className="font-medium text-hui-cta underline">
                   สร้างร้านใหม่ (แอดมิน)
                 </Link>
               </p>
             ) : null}
             {err ? <p className="text-sm text-red-600">{err}</p> : null}
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">ร้านที่คุณดูแล</h2>
+              <h2 className="text-sm font-semibold text-hui-section">ร้านที่คุณดูแล</h2>
               {shops === null ? (
-                <p className="mt-2 text-sm text-slate-500">กำลังโหลดรายการร้าน...</p>
+                <p className="mt-2 text-sm text-hui-muted">กำลังโหลดรายการร้าน...</p>
               ) : shops.length === 0 ? (
-                <div className="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/90 p-4 text-sm text-slate-700">
+                <div className="mt-3 rounded-xl border border-dashed border-hui-border bg-hui-pageTop/95 p-4 text-sm text-hui-body">
                   <p>ยังไม่มีร้านในชื่อคุณ — ยังลงสินค้าไม่ได้</p>
                   <p className="mt-2">
                     {user.role === "admin" ? (
                       <>
                         สร้างร้านและผูกเจ้าของได้ที่{" "}
-                        <Link href="/admin?tab=shops" className="font-medium text-brand-800 underline">
+                        <Link href="/admin?tab=shops" className="font-medium text-hui-cta underline">
                           /admin?tab=shops
                         </Link>
                       </>
@@ -133,10 +133,10 @@ export default function OwnerPage() {
                   {shops.map((s) => (
                     <li
                       key={s.id}
-                      className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+                      className="rounded-xl border border-hui-border bg-white p-4 text-sm shadow-sm"
                     >
-                      <p className="font-semibold text-slate-900">{s.name}</p>
-                      <p className="mt-1 font-mono text-xs text-slate-500">{s.slug}</p>
+                      <p className="font-semibold text-hui-section">{s.name}</p>
+                      <p className="mt-1 font-mono text-xs text-hui-muted">{s.slug}</p>
                       <div className="mt-3 flex flex-wrap gap-3">
                         <Link
                           href={`/account/shops/${s.id}/products`}
@@ -146,13 +146,13 @@ export default function OwnerPage() {
                         </Link>
                         <Link
                           href="/shop"
-                          className="inline-flex rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          className="inline-flex rounded-lg border border-hui-border px-3 py-1.5 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
                         >
                           ไปหน้าร้านค้า
                         </Link>
                         <Link
                           href="/account/shops"
-                          className="inline-flex text-sm font-medium text-brand-800 underline"
+                          className="inline-flex text-sm font-medium text-hui-cta underline"
                         >
                           ร้านของฉัน
                         </Link>

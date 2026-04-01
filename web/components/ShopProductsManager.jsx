@@ -122,22 +122,22 @@ export default function ShopProductsManager({ shopId }) {
   }
 
   if (loading || !user) {
-    return <p className="text-sm text-slate-600">กำลังโหลด…</p>;
+    return <p className="text-sm text-hui-body">กำลังโหลด…</p>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">จัดการสินค้า</h2>
+          <h2 className="text-lg font-semibold text-hui-section">จัดการสินค้า</h2>
           {shop ? (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-hui-body">
               ร้าน <strong>{shop.name}</strong>{" "}
-              <span className="font-mono text-xs text-slate-500">{shop.slug}</span>
+              <span className="font-mono text-xs text-hui-muted">{shop.slug}</span>
             </p>
           ) : null}
         </div>
-        <Link href="/account/shops" className="text-sm text-brand-800 underline">
+        <Link href="/account/shops" className="text-sm text-hui-cta underline">
           ← ร้านของฉัน
         </Link>
       </div>
@@ -146,12 +146,12 @@ export default function ShopProductsManager({ shopId }) {
 
       <form
         onSubmit={createProduct}
-        className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3"
+        className="rounded-xl border border-hui-border bg-hui-pageTop/90 p-4 space-y-3"
       >
-        <h3 className="text-sm font-semibold text-slate-800">เพิ่มสินค้า</h3>
+        <h3 className="text-sm font-semibold text-hui-body">เพิ่มสินค้า</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs text-slate-600">ชื่อ</label>
+            <label className="text-xs text-hui-body">ชื่อ</label>
             <input
               required
               value={draft.title}
@@ -160,7 +160,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs text-slate-600">รายละเอียด</label>
+            <label className="text-xs text-hui-body">รายละเอียด</label>
             <textarea
               value={draft.description}
               onChange={(e) =>
@@ -171,7 +171,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-600">ราคา (บาท)</label>
+            <label className="text-xs text-hui-body">ราคา (บาท)</label>
             <input
               type="number"
               min={0}
@@ -186,7 +186,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-600">สต็อก</label>
+            <label className="text-xs text-hui-body">สต็อก</label>
             <input
               type="number"
               min={0}
@@ -201,7 +201,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-600">หมวด (ไม่บังคับ)</label>
+            <label className="text-xs text-hui-body">หมวด (ไม่บังคับ)</label>
             <input
               value={draft.category}
               onChange={(e) =>
@@ -211,7 +211,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-600">URL รูป (ไม่บังคับ)</label>
+            <label className="text-xs text-hui-body">URL รูป (ไม่บังคับ)</label>
             <input
               value={draft.imageUrl}
               onChange={(e) =>
@@ -222,7 +222,7 @@ export default function ShopProductsManager({ shopId }) {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-600">แถมหัวใจชมพู/ชิ้น</label>
+            <label className="text-xs text-hui-body">แถมหัวใจชมพู/ชิ้น</label>
             <input
               type="number"
               min={0}
@@ -246,25 +246,25 @@ export default function ShopProductsManager({ shopId }) {
       </form>
 
       {busy ? (
-        <p className="text-sm text-slate-500">กำลังโหลดรายการ…</p>
+        <p className="text-sm text-hui-muted">กำลังโหลดรายการ…</p>
       ) : (
         <ul className="space-y-3">
           {products.length === 0 ? (
-            <li className="text-sm text-slate-500">ยังไม่มีสินค้า</li>
+            <li className="text-sm text-hui-muted">ยังไม่มีสินค้า</li>
           ) : null}
           {products.map((p) => (
             <li
               key={p.id}
-              className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-xl border border-hui-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-hui-section">
                   {p.title}{" "}
                   {!p.active ? (
                     <span className="text-xs font-normal text-amber-700">(ปิดขาย)</span>
                   ) : null}
                 </p>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-hui-body">
                   ฿{Number(p.priceThb).toLocaleString("th-TH")} · เหลือ {p.stockQty} ·{" "}
                   {p.category || "ไม่มีหมวด"}
                 </p>
@@ -273,7 +273,7 @@ export default function ShopProductsManager({ shopId }) {
                 <button
                   type="button"
                   onClick={() => toggleActive(p)}
-                  className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
+                  className="rounded-lg border border-hui-border px-3 py-1 text-xs font-medium hover:bg-hui-pageTop"
                 >
                   {p.active ? "ปิดการขาย" : "เปิดการขาย"}
                 </button>

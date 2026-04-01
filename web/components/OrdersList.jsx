@@ -61,7 +61,7 @@ export default function OrdersList() {
   if (!hasLocal && !hasServer) {
     return (
       <div className="space-y-4">
-        <p className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+        <p className="rounded-xl border border-dashed border-hui-border bg-white p-6 text-center text-sm text-hui-body">
           ยังไม่มีออเดอร์ — ไปที่ตะกร้าแล้วยืนยันออเดอร์เพื่อบันทึกในประวัติ
         </p>
         {serverNote ? (
@@ -75,46 +75,46 @@ export default function OrdersList() {
     <div className="space-y-8">
       {hasServer ? (
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">ออเดอร์ที่บันทึกในระบบ</h2>
-          <p className="mt-1 text-xs text-slate-500">ยืนยันแล้วจากตะกร้าขณะล็อกอิน</p>
+          <h2 className="text-sm font-semibold text-hui-section">ออเดอร์ที่บันทึกในระบบ</h2>
+          <p className="mt-1 text-xs text-hui-muted">ยืนยันแล้วจากตะกร้าขณะล็อกอิน</p>
           <ul className="mt-3 space-y-4">
             {serverOrders.map((o) => (
               <li
                 key={o.id}
-                className="rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm shadow-sm"
+                className="rounded-2xl border border-hui-border bg-hui-pageTop/50 p-4 text-sm shadow-soft"
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-brand-100 pb-2">
-                  <span className="font-mono text-xs text-slate-600">{o.id}</span>
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hui-border/70 pb-2">
+                  <span className="font-mono text-xs text-hui-body">{o.id}</span>
                   <time
-                    className="text-xs text-slate-500"
+                    className="text-xs text-hui-muted"
                     dateTime={new Date(o.createdAt).toISOString()}
                   >
                     {formatThaiDate(o.createdAt)}
                   </time>
                 </div>
-                <ul className="mt-3 space-y-1 text-slate-700">
+                <ul className="mt-3 space-y-1 text-hui-body">
                   {(o.items || []).map((it, i) => (
                     <li key={i}>
                       {it.name} × {it.qty}{" "}
-                      <span className="text-slate-500">
+                      <span className="text-hui-muted">
                         (฿{Number(it.lineSubtotal).toLocaleString("th-TH")})
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-2 text-xs text-slate-600">
+                <p className="mt-2 text-xs text-hui-body">
                   สถานะ: <strong>{orderStatusLabel(o)}</strong>
                   {o.orderKind === "marketplace" ? (
-                    <span className="ml-2 text-slate-500">(มาร์เก็ตเพลส)</span>
+                    <span className="ml-2 text-hui-muted">(มาร์เก็ตเพลส)</span>
                   ) : null}
                 </p>
                 {o.shippingSnapshot ? (
-                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white/60 p-2 text-xs text-slate-700">
-                    <span className="font-semibold text-slate-800">จัดส่ง: </span>
+                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white/60 p-2 text-xs text-hui-body">
+                    <span className="font-semibold text-hui-body">จัดส่ง: </span>
                     {o.shippingSnapshot}
                   </p>
                 ) : null}
-                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-brand-100 pt-2 text-slate-800">
+                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-hui-border/70 pt-2 text-hui-body">
                   <span>ยอดรวม</span>
                   <span className="font-semibold">
                     ฿{Number(o.totalPrice).toLocaleString("th-TH")}
@@ -137,38 +137,38 @@ export default function OrdersList() {
 
       {hasLocal ? (
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">
+          <h2 className="text-sm font-semibold text-hui-section">
             ประวัติในเครื่อง (สาธิต)
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-hui-muted">
             เก็บในเบราว์เซอร์ — ไม่ต้องล็อกอิน
           </p>
           <ul className="mt-3 space-y-4">
             {localOrders.map((o) => (
               <li
                 key={o.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+                className="rounded-2xl border border-hui-border bg-white p-4 text-sm shadow-sm"
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-2">
-                  <span className="font-mono text-xs text-slate-500">{o.id}</span>
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hui-border/70 pb-2">
+                  <span className="font-mono text-xs text-hui-muted">{o.id}</span>
                   <time
-                    className="text-xs text-slate-500"
+                    className="text-xs text-hui-muted"
                     dateTime={new Date(o.at).toISOString()}
                   >
                     {formatThaiDate(o.at)}
                   </time>
                 </div>
-                <ul className="mt-3 space-y-1 text-slate-700">
+                <ul className="mt-3 space-y-1 text-hui-body">
                   {(o.items || []).map((it, i) => (
                     <li key={i}>
                       {it.name} × {it.qty}{" "}
-                      <span className="text-slate-500">
+                      <span className="text-hui-muted">
                         (฿{it.lineSubtotal?.toLocaleString("th-TH") ?? "—"})
                       </span>
                     </li>
                   ))}
                 </ul>
-                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-slate-100 pt-2 text-slate-800">
+                <div className="mt-3 flex flex-wrap justify-between gap-2 border-t border-hui-border/70 pt-2 text-hui-body">
                   <span>ยอดรวม</span>
                   <span className="font-semibold">
                     ฿{Number(o.totalPrice).toLocaleString("th-TH")}

@@ -10,13 +10,13 @@ function buildActions(centralMeta) {
       href: "/shop",
       title: "ร้านค้า",
       desc: "ดูสินค้าตัวอย่างและแต้มหัวใจ",
-      accent: "border-brand-200/90 bg-gradient-to-br from-brand-50/90 to-white"
+      accent: "border-hui-border/90 bg-gradient-to-br from-hui-pageTop/90 to-white"
     },
     {
       href: "/cart",
       title: "ตะกร้า",
       desc: "จัดการรายการและยืนยันออเดอร์สาธิต",
-      accent: "border-slate-200/90 bg-white"
+      accent: "border-hui-border/90 bg-white"
     },
     {
       href: "/game",
@@ -25,8 +25,8 @@ function buildActions(centralMeta) {
         ? `เผยแพร่แล้ว · ${centralMeta.cardCount} ป้าย — แตะเพื่อเล่นเกมส่วนกลาง`
         : "ทดสอบกติกาสะสมครบก่อนชนะ",
       accent: centralMeta
-        ? "border-brand-300/90 bg-gradient-to-br from-brand-50 to-white ring-1 ring-brand-200/70"
-        : "border-slate-200/90 bg-white",
+        ? "border-hui-cta/25 bg-gradient-to-br from-hui-pageTop to-white ring-1 ring-hui-border/80"
+        : "border-hui-border/90 bg-white",
       badge: centralMeta ? "เผยแพร่" : null
     },
     
@@ -45,7 +45,7 @@ export default async function HomePage() {
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
         <section className="relative overflow-hidden rounded-3xl border border-hui-border bg-hui-surface/95 p-8 shadow-soft md:p-10 lg:p-12">
           <div
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-brand-200/60 via-brand-100/50 to-transparent blur-3xl"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-hui-border/50 via-hui-pageTop/60 to-transparent blur-3xl"
             aria-hidden
           />
           <div
@@ -73,29 +73,29 @@ export default async function HomePage() {
                   <li key={g.id}>
                     <Link
                       href={`/game/${encodeURIComponent(g.id)}`}
-                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md"
+                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white shadow-sm transition hover:border-hui-cta/30 hover:shadow-md"
                     >
                       <div className="flex gap-3 p-4">
-                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-hui-border/70 bg-hui-pageTop">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={cover} alt="" className="h-full w-full object-cover" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
+                          <p className="line-clamp-2 text-sm font-semibold leading-snug text-hui-section">
                             {g.title || "เกม"}
                           </p>
-                          <p className="mt-1 text-[11px] text-slate-500">
+                          <p className="mt-1 text-[11px] text-hui-muted">
                             ผู้สร้าง:{" "}
-                            <span className="font-medium text-slate-700">
+                            <span className="font-medium text-hui-body">
                               {g.creatorUsername ? `@${g.creatorUsername}` : "แอดมิน"}
                             </span>
                           </p>
                         </div>
                       </div>
-                      <p className="line-clamp-3 border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-600">
+                      <p className="line-clamp-3 border-t border-hui-border/70 px-4 py-3 text-xs leading-relaxed text-hui-body">
                         {String(g.description || "").trim() || "ไม่มีคำอธิบายสั้น"}
                       </p>
-                      <span className="mt-auto border-t border-slate-100 bg-brand-50/60 px-4 py-2.5 text-center text-xs font-semibold text-brand-900">
+                      <span className="mt-auto border-t border-hui-border/70 bg-hui-pageTop/80 px-4 py-2.5 text-center text-xs font-semibold text-hui-section">
                         เข้าเล่นเกมนี้
                       </span>
                     </Link>
@@ -104,7 +104,7 @@ export default async function HomePage() {
               })}
             </ul>
           ) : (
-            <p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+            <p className="rounded-xl border border-hui-border bg-white px-4 py-3 text-sm text-hui-muted">
               ยังไม่มีเกมที่เปิดแสดง
             </p>
           )}
@@ -119,22 +119,22 @@ export default async function HomePage() {
               <li key={a.href}>
                 <Link
                   href={a.href}
-                  className={`group flex h-full min-h-[8.5rem] flex-col rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-brand-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${a.accent}`}
+                  className={`group flex h-full min-h-[8.5rem] flex-col rounded-2xl border p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-hui-cta/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/35 focus-visible:ring-offset-2 ${a.accent}`}
                 >
                   <span className="flex items-start justify-between gap-2">
-                    <span className="font-semibold text-slate-900 group-hover:text-brand-900">
+                    <span className="font-semibold text-hui-section group-hover:text-hui-burgundy">
                       {a.title}
                     </span>
                     {a.badge ? (
-                      <span className="shrink-0 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                      <span className="shrink-0 rounded-full bg-hui-cta px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                         {a.badge}
                       </span>
                     ) : null}
                   </span>
-                  <span className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+                  <span className="mt-2 flex-1 text-sm leading-relaxed text-hui-body">
                     {a.desc}
                   </span>
-                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-hui-cta">
                     ไปที่หน้า
                     <span
                       className="transition group-hover:translate-x-0.5"

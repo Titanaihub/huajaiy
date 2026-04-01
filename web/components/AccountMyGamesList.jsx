@@ -30,7 +30,7 @@ function gameStatusBadge(g) {
     );
   }
   return (
-    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+    <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-xs font-medium text-hui-body">
       ร่าง
     </span>
   );
@@ -124,8 +124,8 @@ export default function AccountMyGamesList() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">เกมของฉัน</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-lg font-semibold text-hui-section">เกมของฉัน</h2>
+        <p className="mt-1 text-sm text-hui-body">
           เกมที่คุณสร้างจะเก็บไว้ในบัญชีนี้ — ล็อกเอาต์แล้วล็อกอินใหม่เกมยังอยู่ที่นี่
         </p>
       </div>

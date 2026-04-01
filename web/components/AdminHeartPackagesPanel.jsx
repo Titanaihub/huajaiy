@@ -223,7 +223,7 @@ export default function AdminHeartPackagesPanel() {
 
   return (
     <section className="space-y-6">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-hui-body">
         ขายได้เฉพาะหัวใจแดง (เข้ายอดแจก) สำหรับผู้สร้างเกม — หัวใจชมพูได้จากกิจกรรม/รหัสพิเศษที่แอดมินกำหนดเท่านั้น · สมาชิกแนบสลิป แอดมินอนุมัติในแท็บอนุมัติสลิป
         · กด<strong>แก้ไข</strong>เพื่อเปลี่ยนชื่อ ราคา ยอดแดง บัญชีรับโอน หรือ QR เมื่อต้องการ
         · หลัง<strong>ปิดการขาย</strong> รายการ「เปิดการขาย」จะกดไม่ได้ (ปิดถาวรในหน้านี้)
@@ -232,26 +232,26 @@ export default function AdminHeartPackagesPanel() {
 
       <form
         onSubmit={createPkg}
-        className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3"
+        className="rounded-xl border border-hui-border bg-hui-pageTop/90 p-4 space-y-3"
       >
-        <h3 className="text-sm font-semibold text-slate-800">สร้างแพ็กเกจใหม่</h3>
+        <h3 className="text-sm font-semibold text-hui-body">สร้างแพ็กเกจใหม่</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-slate-600">ชื่อแพ็กเกจ</label>
+            <label className="text-xs font-medium text-hui-body">ชื่อแพ็กเกจ</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               required
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-slate-600">รายละเอียด</label>
+            <label className="text-xs font-medium text-hui-body">รายละเอียด</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
           <div className="sm:col-span-2 rounded-lg border border-sky-200 bg-sky-50/80 px-3 py-2 text-xs text-sky-950">
@@ -264,60 +264,60 @@ export default function AdminHeartPackagesPanel() {
               min={1}
               value={redQty}
               onChange={(e) => setRedQty(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">ราคา (บาท)</label>
+            <label className="text-xs font-medium text-hui-body">ราคา (บาท)</label>
             <input
               type="number"
               min={0}
               value={priceThb}
               onChange={(e) => setPriceThb(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">ลำดับแสดง</label>
+            <label className="text-xs font-medium text-hui-body">ลำดับแสดง</label>
             <input
               type="number"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
             />
           </div>
           <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
             ข้อมูลรับโอน — สมาชิกจะเห็นตอนเลือกแพ็กเพื่อโอนและแนบสลิป
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">ชื่อบัญชี (รับโอน)</label>
+            <label className="text-xs font-medium text-hui-body">ชื่อบัญชี (รับโอน)</label>
             <input
               value={paymentAccountName}
               onChange={(e) => setPaymentAccountName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               required
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">หมายเลขบัญชี</label>
+            <label className="text-xs font-medium text-hui-body">หมายเลขบัญชี</label>
             <input
               value={paymentAccountNumber}
               onChange={(e) => setPaymentAccountNumber(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               required
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-slate-600">ชื่อธนาคาร</label>
+            <label className="text-xs font-medium text-hui-body">ชื่อธนาคาร</label>
             <input
               value={paymentBankName}
               onChange={(e) => setPaymentBankName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               required
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="text-xs font-medium text-slate-600">อัปโหลด QR โค้ด (สแกนจ่าย)</label>
+            <label className="text-xs font-medium text-hui-body">อัปโหลด QR โค้ด (สแกนจ่าย)</label>
             <input
               type="file"
               accept="image/*"
@@ -341,11 +341,11 @@ export default function AdminHeartPackagesPanel() {
       </form>
 
       {loading ? (
-        <p className="text-sm text-slate-500">กำลังโหลด…</p>
+        <p className="text-sm text-hui-muted">กำลังโหลด…</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-hui-border bg-white shadow-sm">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-600">
+            <thead className="border-b border-hui-border bg-hui-pageTop text-xs font-semibold uppercase text-hui-body">
               <tr>
                 <th className="px-3 py-2">ชื่อ</th>
                 <th className="px-3 py-2">แดงแจก</th>
@@ -358,17 +358,17 @@ export default function AdminHeartPackagesPanel() {
             <tbody>
               {list.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-3 py-8 text-center text-hui-muted">
                     ยังไม่มีแพ็กเกจ
                   </td>
                 </tr>
               ) : (
                 list.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-100">
+                  <tr key={p.id} className="border-b border-hui-border/70">
                     <td className="px-3 py-2 font-medium">{p.title}</td>
                     <td className="px-3 py-2 text-red-700">{p.redQty}</td>
                     <td className="px-3 py-2">฿{p.priceThb?.toLocaleString("th-TH")}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">
+                    <td className="px-3 py-2 text-xs text-hui-body">
                       {p.paymentAccountName && p.paymentQrUrl ? (
                         <span className="text-emerald-800">ครบ</span>
                       ) : (
@@ -384,7 +384,7 @@ export default function AdminHeartPackagesPanel() {
                           type="button"
                           disabled={busyId === p.id}
                           onClick={() => openEdit(p)}
-                          className="text-xs font-semibold text-brand-800 underline"
+                          className="text-xs font-semibold text-hui-cta underline"
                         >
                           แก้ไข
                         </button>
@@ -393,13 +393,13 @@ export default function AdminHeartPackagesPanel() {
                             type="button"
                             disabled={busyId === p.id}
                             onClick={() => void closeSale(p)}
-                            className="text-xs font-semibold text-brand-800 underline"
+                            className="text-xs font-semibold text-hui-cta underline"
                           >
                             ปิดการขาย
                           </button>
                         ) : (
                           <span
-                            className="cursor-not-allowed select-none text-xs font-semibold text-slate-400 underline decoration-slate-300"
+                            className="cursor-not-allowed select-none text-xs font-semibold text-hui-muted underline decoration-hui-border"
                             title="ปิดการขายแล้ว — เปิดผ่านหน้านี้ไม่ได้ (ถือว่าปิดถาวร)"
                           >
                             เปิดการขาย
@@ -428,26 +428,26 @@ export default function AdminHeartPackagesPanel() {
           onSubmit={saveEdit}
           className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3"
         >
-          <h3 className="text-sm font-semibold text-slate-900">แก้ไขแพ็กเกจ</h3>
-          <p className="text-xs text-slate-600">
+          <h3 className="text-sm font-semibold text-hui-section">แก้ไขแพ็กเกจ</h3>
+          <p className="text-xs text-hui-body">
             แก้ชื่อ ราคา ยอดแดง หรือบัญชีรับโอน / QR ได้ตลอด — ช่อง QR เว้นว่างถ้าใช้รูปเดิม
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-slate-600">ชื่อแพ็กเกจ</label>
+              <label className="text-xs font-medium text-hui-body">ชื่อแพ็กเกจ</label>
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-slate-600">รายละเอียด</label>
+              <label className="text-xs font-medium text-hui-body">รายละเอียด</label>
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={2}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -457,57 +457,57 @@ export default function AdminHeartPackagesPanel() {
                 min={1}
                 value={editRedQty}
                 onChange={(e) => setEditRedQty(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">ราคา (บาท)</label>
+              <label className="text-xs font-medium text-hui-body">ราคา (บาท)</label>
               <input
                 type="number"
                 min={0}
                 value={editPriceThb}
                 onChange={(e) => setEditPriceThb(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">ลำดับแสดง</label>
+              <label className="text-xs font-medium text-hui-body">ลำดับแสดง</label>
               <input
                 type="number"
                 value={editSortOrder}
                 onChange={(e) => setEditSortOrder(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
-            <div className="sm:col-span-2 rounded-lg border border-white/60 bg-white/50 px-3 py-2 text-xs text-slate-700">
+            <div className="sm:col-span-2 rounded-lg border border-white/60 bg-white/50 px-3 py-2 text-xs text-hui-body">
               บัญชีรับโอนและ QR (สมาชิกเห็นตอนซื้อ)
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">ชื่อบัญชี</label>
+              <label className="text-xs font-medium text-hui-body">ชื่อบัญชี</label>
               <input
                 value={editPayName}
                 onChange={(e) => setEditPayName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600">หมายเลขบัญชี</label>
+              <label className="text-xs font-medium text-hui-body">หมายเลขบัญชี</label>
               <input
                 value={editPayNumber}
                 onChange={(e) => setEditPayNumber(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-slate-600">ชื่อธนาคาร</label>
+              <label className="text-xs font-medium text-hui-body">ชื่อธนาคาร</label>
               <input
                 value={editPayBank}
                 onChange={(e) => setEditPayBank(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-slate-600">
+              <label className="text-xs font-medium text-hui-body">
                 อัปโหลด QR ใหม่ (เว้นว่างถ้าคงรูปเดิม)
               </label>
               <input
@@ -517,13 +517,13 @@ export default function AdminHeartPackagesPanel() {
                 className="mt-1 block w-full text-sm"
               />
               {editPkg.paymentQrUrl ? (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-hui-muted">
                   รูปปัจจุบัน:{" "}
                   <a
                     href={editPkg.paymentQrUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-800 underline"
+                    className="text-hui-cta underline"
                   >
                     เปิดดู
                   </a>
@@ -543,7 +543,7 @@ export default function AdminHeartPackagesPanel() {
             <button
               type="button"
               onClick={() => setEditPkg(null)}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
+              className="rounded-lg border border-hui-border px-4 py-2 text-sm"
             >
               ยกเลิก
             </button>

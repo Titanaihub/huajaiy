@@ -220,7 +220,7 @@ export default function RegisterForm() {
 
         {nameDuplicate === true && namesValid && !dupCheckPending ? (
           <div
-            className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-slate-800"
+            className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-hui-body"
             role="status"
           >
             <p className="font-semibold text-amber-950">

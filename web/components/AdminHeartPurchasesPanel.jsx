@@ -137,45 +137,45 @@ export default function AdminHeartPurchasesPanel() {
   return (
     <section className="space-y-8">
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-slate-900">คำขอที่รออนุมัติ</h3>
-        <p className="text-sm text-slate-600">
+        <h3 className="text-base font-semibold text-hui-section">คำขอที่รออนุมัติ</h3>
+        <p className="text-sm text-hui-body">
           คำขอที่รอแอดมินตรวจสลิป — อนุมัติแล้วระบบจะเติมหัวใจชมพู/แดงตามแพ็กเกจที่ซื้อ (ตอนสั่งซื้อ)
         </p>
         <div>
-          <label className="text-xs font-medium text-slate-600">
+          <label className="text-xs font-medium text-hui-body">
             หมายเหตุถึงสมาชิก (ไม่บังคับ)
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={2}
-            className="mt-1 w-full max-w-lg rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full max-w-lg rounded-xl border border-hui-border px-3 py-2 text-sm"
             placeholder="ใช้ร่วมกับปุ่มอนุมัติ/ปฏิเสธ"
           />
         </div>
         <button
           type="button"
           onClick={() => load()}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800"
+          className="rounded-lg border border-hui-border bg-white px-3 py-1.5 text-sm font-semibold text-hui-body"
         >
           รีเฟรช
         </button>
         {err ? <p className="text-sm text-red-600">{err}</p> : null}
         {loading ? (
-          <p className="text-sm text-slate-500">กำลังโหลด…</p>
+          <p className="text-sm text-hui-muted">กำลังโหลด…</p>
         ) : list.length === 0 ? (
-          <p className="text-sm text-slate-500">ไม่มีคำขอที่รออนุมัติ</p>
+          <p className="text-sm text-hui-muted">ไม่มีคำขอที่รออนุมัติ</p>
         ) : (
           <ul className="space-y-4">
             {list.map((p) => (
               <li
                 key={p.id}
-                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-hui-border bg-white p-4 shadow-sm"
               >
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-hui-section">
                   @{p.buyerUsername || "?"} — {p.buyerFirstName} {p.buyerLastName}
                 </p>
-                <p className="mt-1 text-sm text-slate-700">
+                <p className="mt-1 text-sm text-hui-body">
                   แพ็กเกจ: <span className="font-medium">{p.packageTitle}</span>
                   {p.pinkQty > 0 ? (
                     <>
@@ -191,7 +191,7 @@ export default function AdminHeartPurchasesPanel() {
                   )}{" "}
                   · ราคาตอนซื้อ ฿{p.priceThbSnapshot?.toLocaleString("th-TH")}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-hui-muted">
                   {new Date(p.createdAt).toLocaleString("th-TH")} · {statusThai(p.status)}
                 </p>
                 <p className="mt-2">
@@ -199,7 +199,7 @@ export default function AdminHeartPurchasesPanel() {
                     href={p.slipUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-semibold text-brand-800 underline"
+                    className="text-sm font-semibold text-hui-cta underline"
                   >
                     เปิดดูสลิปโอนเงิน
                   </a>
@@ -228,28 +228,28 @@ export default function AdminHeartPurchasesPanel() {
         )}
       </div>
 
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-base font-semibold text-slate-900">ประวัติการสั่งซื้อหัวใจ</h3>
-        <p className="mt-1 text-sm text-slate-600">
+      <div className="border-t border-hui-border pt-8">
+        <h3 className="text-base font-semibold text-hui-section">ประวัติการสั่งซื้อหัวใจ</h3>
+        <p className="mt-1 text-sm text-hui-body">
           ตรวจสอบย้อนหลังว่ามีใครสั่งซื้อ มูลค่าเท่าใด และสถานะอนุมัติ — ตัวเลขสรุปด้านล่างคิดจากตัวกรองปัจจุบัน (ทุกหน้า)
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3">
-            <p className="text-xs font-medium text-slate-600">รายการที่ตรงตัวกรอง</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
+          <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
+            <p className="text-xs font-medium text-hui-body">รายการที่ตรงตัวกรอง</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-hui-section">
               {histTotal.toLocaleString("th-TH")} รายการ
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3">
-            <p className="text-xs font-medium text-slate-600">ยอดสั่งซื้อ (ราคาในรายการที่กรอง)</p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
+          <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
+            <p className="text-xs font-medium text-hui-body">ยอดสั่งซื้อ (ราคาในรายการที่กรอง)</p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-hui-section">
               ฿{histSummary.sumPriceThb.toLocaleString("th-TH")}
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3">
-            <p className="text-xs font-medium text-slate-600">หัวใจที่อนุมัติจ่ายแล้ว (ในรายการที่กรอง)</p>
-            <p className="mt-1 text-sm tabular-nums text-slate-900">
+          <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-3">
+            <p className="text-xs font-medium text-hui-body">หัวใจที่อนุมัติจ่ายแล้ว (ในรายการที่กรอง)</p>
+            <p className="mt-1 text-sm tabular-nums text-hui-section">
               แดงแจก <span className="font-semibold text-red-700">{histSummary.sumRedApproved}</span>
               {histSummary.sumPinkApproved > 0 ? (
                 <>
@@ -266,14 +266,14 @@ export default function AdminHeartPurchasesPanel() {
 
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div>
-            <label className="text-xs font-medium text-slate-600">สถานะ</label>
+            <label className="text-xs font-medium text-hui-body">สถานะ</label>
             <select
               value={histStatus}
               onChange={(e) => {
                 setHistStatus(e.target.value);
                 setHistOffset(0);
               }}
-              className="mt-1 block rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 block rounded-lg border border-hui-border px-3 py-2 text-sm"
             >
               <option value="">ทั้งหมด</option>
               <option value="pending">รออนุมัติ</option>
@@ -282,7 +282,7 @@ export default function AdminHeartPurchasesPanel() {
             </select>
           </div>
           <div className="min-w-[200px] flex-1">
-            <label className="text-xs font-medium text-slate-600">ค้นหาผู้ใช้ (ยูสเซอร์ / ชื่อ)</label>
+            <label className="text-xs font-medium text-hui-body">ค้นหาผู้ใช้ (ยูสเซอร์ / ชื่อ)</label>
             <input
               type="search"
               value={histQ}
@@ -290,7 +290,7 @@ export default function AdminHeartPurchasesPanel() {
               onKeyDown={(e) => {
                 if (e.key === "Enter") applyHistoryFilters();
               }}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-hui-border px-3 py-2 text-sm"
               placeholder="เช่น member01"
             />
           </div>
@@ -307,7 +307,7 @@ export default function AdminHeartPurchasesPanel() {
               setHistOffset(0);
               loadHistory();
             }}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800"
+            className="rounded-lg border border-hui-border bg-white px-3 py-2 text-sm font-semibold text-hui-body"
           >
             รีเฟรชประวัติ
           </button>
@@ -316,42 +316,42 @@ export default function AdminHeartPurchasesPanel() {
         {histErr ? <p className="mt-3 text-sm text-red-600">{histErr}</p> : null}
 
         {histLoading ? (
-          <p className="mt-4 text-sm text-slate-500">กำลังโหลดประวัติ…</p>
+          <p className="mt-4 text-sm text-hui-muted">กำลังโหลดประวัติ…</p>
         ) : hist.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">ไม่มีรายการตามตัวกรอง</p>
+          <p className="mt-4 text-sm text-hui-muted">ไม่มีรายการตามตัวกรอง</p>
         ) : (
           <>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-hui-muted">
               แสดง {histOffset + 1}–{histEnd} จาก {histTotal.toLocaleString("th-TH")}
             </p>
-            <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead className="bg-slate-50">
+            <div className="mt-3 overflow-x-auto rounded-xl border border-hui-border">
+              <table className="min-w-full divide-y divide-hui-border text-left text-sm">
+                <thead className="bg-hui-pageTop">
                   <tr>
-                    <th className="px-3 py-2 font-semibold text-slate-700">วันที่สั่ง</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">ผู้ซื้อ</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">แพ็ก</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">หัวใจ</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">บาท</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">สถานะ</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">แก้โดย</th>
-                    <th className="px-3 py-2 font-semibold text-slate-700">สลิป</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">วันที่สั่ง</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">ผู้ซื้อ</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">แพ็ก</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">หัวใจ</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">บาท</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">สถานะ</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">แก้โดย</th>
+                    <th className="px-3 py-2 font-semibold text-hui-body">สลิป</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
+                <tbody className="divide-y divide-hui-border/70 bg-white">
                   {hist.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/80">
-                      <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600">
+                    <tr key={p.id} className="hover:bg-hui-pageTop/90">
+                      <td className="whitespace-nowrap px-3 py-2 text-xs text-hui-body">
                         {new Date(p.createdAt).toLocaleString("th-TH")}
                       </td>
-                      <td className="px-3 py-2 text-slate-800">
+                      <td className="px-3 py-2 text-hui-body">
                         <span className="font-medium">@{p.buyerUsername || "?"}</span>
                         <br />
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-hui-muted">
                           {p.buyerFirstName} {p.buyerLastName}
                         </span>
                       </td>
-                      <td className="max-w-[140px] px-3 py-2 text-xs text-slate-700">
+                      <td className="max-w-[140px] px-3 py-2 text-xs text-hui-body">
                         {p.packageTitle}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs">
@@ -363,18 +363,18 @@ export default function AdminHeartPurchasesPanel() {
                           <>แดงแจก {p.redQty}</>
                         )}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2 tabular-nums text-slate-800">
+                      <td className="whitespace-nowrap px-3 py-2 tabular-nums text-hui-body">
                         ฿{Number(p.priceThbSnapshot || 0).toLocaleString("th-TH")}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs">
                         {statusThai(p.status)}
                         {p.resolvedAt ? (
-                          <span className="block text-slate-500">
+                          <span className="block text-hui-muted">
                             {new Date(p.resolvedAt).toLocaleString("th-TH")}
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-3 py-2 text-xs text-slate-600">
+                      <td className="px-3 py-2 text-xs text-hui-body">
                         {p.resolverUsername ? `@${p.resolverUsername}` : "—"}
                       </td>
                       <td className="px-3 py-2">
@@ -383,12 +383,12 @@ export default function AdminHeartPurchasesPanel() {
                             href={p.slipUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-semibold text-brand-800 underline"
+                            className="text-xs font-semibold text-hui-cta underline"
                           >
                             เปิด
                           </a>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-xs text-hui-muted">—</span>
                         )}
                       </td>
                     </tr>
@@ -402,7 +402,7 @@ export default function AdminHeartPurchasesPanel() {
                 type="button"
                 disabled={!canPrev || histLoading}
                 onClick={() => setHistOffset((o) => Math.max(0, o - HISTORY_PAGE))}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm disabled:opacity-50"
+                className="rounded-lg border border-hui-border bg-white px-3 py-1.5 text-sm disabled:opacity-50"
               >
                 ก่อนหน้า
               </button>
@@ -410,7 +410,7 @@ export default function AdminHeartPurchasesPanel() {
                 type="button"
                 disabled={!canNext || histLoading}
                 onClick={() => setHistOffset((o) => o + HISTORY_PAGE)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm disabled:opacity-50"
+                className="rounded-lg border border-hui-border bg-white px-3 py-1.5 text-sm disabled:opacity-50"
               >
                 ถัดไป
               </button>

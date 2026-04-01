@@ -137,7 +137,7 @@ function deltaLine(pinkDelta, redDelta) {
       </span>
     );
   }
-  if (chunks.length === 0) return <span className="text-slate-500">0</span>;
+  if (chunks.length === 0) return <span className="text-hui-muted">0</span>;
   return <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{chunks}</div>;
 }
 
@@ -215,7 +215,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
   }, [user, authLoading]);
 
   if (authLoading) {
-    return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
+    return <p className="text-sm text-hui-muted">กำลังโหลด…</p>;
   }
 
   if (!user) {
@@ -224,7 +224,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
         <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
         <Link
           href={`/login?next=${encodeURIComponent(loginNext)}`}
-          className="mt-3 inline-block font-semibold text-brand-800 underline hover:text-brand-950"
+          className="mt-3 inline-block font-semibold text-hui-cta underline hover:brightness-95"
         >
           เข้าสู่ระบบ
         </Link>
@@ -234,16 +234,16 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
-      <p className="mt-1 text-sm text-slate-600">{blurb}</p>
+      <h2 className="text-lg font-semibold text-hui-section">{heading}</h2>
+      <p className="mt-1 text-sm text-hui-body">{blurb}</p>
       {variant !== "all" ? (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-hui-muted">
           {variant === "play" ? (
             <>
               ดูประวัติหัวใจแดงได้ที่{" "}
               <Link
                 href="/account/heart-history/purchases"
-                className="font-semibold text-brand-800 underline underline-offset-2 hover:text-brand-950"
+                className="font-semibold text-hui-cta underline underline-offset-2 hover:brightness-95"
               >
                 ประวัติหัวใจแดง
               </Link>
@@ -253,7 +253,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
               ดูการหักตอนเล่นเกมได้ที่{" "}
               <Link
                 href="/account/heart-history/play"
-                className="font-semibold text-brand-800 underline underline-offset-2 hover:text-brand-950"
+                className="font-semibold text-hui-cta underline underline-offset-2 hover:brightness-95"
               >
                 ประวัติหัวใจ (เล่นเกม)
               </Link>
@@ -275,9 +275,9 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
       ) : null}
 
       {loading ? (
-        <p className="mt-6 text-sm text-slate-500">กำลังโหลดรายการ…</p>
+        <p className="mt-6 text-sm text-hui-muted">กำลังโหลดรายการ…</p>
       ) : filtered.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-600">
+        <div className="mt-6 rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
           <p>
             {variant === "play"
               ? "ยังไม่มีประวัติการหักหัวใจจากการเริ่มเล่นเกม"
@@ -285,7 +285,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
                 ? "ยังไม่มีประวัติการซื้อหัวใจหรือทุนรหัสแจกห้องในช่วงที่แสดง"
                 : "ยังไม่มีรายการในประวัติ"}
           </p>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-hui-muted">
             รายการจะปรากฏหลังมีการหัก/เพิ่มหัวใจ — ข้อมูลก่อนอัปเดตระบบนี้อาจไม่ย้อนหลัง
           </p>
         </div>
@@ -294,32 +294,32 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
           {filtered.map((e) => (
             <li
               key={e.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+              className="rounded-xl border border-hui-border bg-white p-4 text-sm shadow-sm"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-[11px] font-semibold text-hui-body">
                   {KIND_HINT[e.kind] || e.kind || "รายการ"}
                 </span>
                 <time
-                  className="text-xs text-slate-500 tabular-nums"
+                  className="text-xs text-hui-muted tabular-nums"
                   dateTime={e.createdAt ? new Date(e.createdAt).toISOString() : undefined}
                 >
                   {formatWhen(e.createdAt)}
                 </time>
               </div>
-              <p className="mt-2 font-medium leading-snug text-slate-900">
+              <p className="mt-2 font-medium leading-snug text-hui-section">
                 {e.label || "—"}
               </p>
               <div className="mt-2">{deltaLine(e.pinkDelta, e.redDelta)}</div>
               {giveawayLedgerNote(e)}
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-hui-muted">
                 คงเหลือหลังรายการนี้: ชมพู{" "}
-                <span className="font-semibold tabular-nums text-slate-700">
+                <span className="font-semibold tabular-nums text-hui-body">
                   {e.pinkBalanceAfter.toLocaleString("th-TH")}
                 </span>
                 {" · "}
                 แดง{" "}
-                <span className="font-semibold tabular-nums text-slate-700">
+                <span className="font-semibold tabular-nums text-hui-body">
                   {e.redBalanceAfter.toLocaleString("th-TH")}
                 </span>
               </p>
@@ -327,7 +327,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
                 <p className="mt-2">
                   <Link
                     href={`/game/${encodeURIComponent(String(e.meta.gameId))}`}
-                    className="text-xs font-semibold text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+                    className="text-xs font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
                   >
                     เปิดหน้าเกมนี้
                   </Link>

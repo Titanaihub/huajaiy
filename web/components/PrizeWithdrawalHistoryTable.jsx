@@ -33,7 +33,7 @@ function StatusBadge({ status }) {
   }
   if (status === "rejected") {
     return (
-      <span className={`${base} bg-slate-200 text-slate-800 ring-1 ring-slate-300/80`}>
+      <span className={`${base} bg-hui-border/35 text-hui-body ring-1 ring-hui-border/80`}>
         {withdrawalStatusThai(status)}
       </span>
     );
@@ -46,7 +46,7 @@ function StatusBadge({ status }) {
     );
   }
   return (
-    <span className={`${base} bg-slate-100 text-slate-800 ring-1 ring-slate-200/80`}>
+    <span className={`${base} bg-hui-pageTop text-hui-body ring-1 ring-hui-border/80`}>
       {withdrawalStatusThai(status)}
     </span>
   );
@@ -100,22 +100,22 @@ export default function PrizeWithdrawalHistoryTable({
     <div
       className={
         compactTitle
-          ? "mt-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
-          : "rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5"
+          ? "mt-4 rounded-xl border border-hui-border bg-white p-3 shadow-sm sm:p-4"
+          : "rounded-2xl border border-hui-border/90 bg-white p-4 shadow-sm sm:p-5"
       }
     >
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hui-border/70 pb-3">
         <div>
           <h3
             className={
-              compactTitle ? "text-sm font-semibold text-slate-900" : "text-base font-semibold text-slate-900"
+              compactTitle ? "text-sm font-semibold text-hui-section" : "text-base font-semibold text-hui-section"
             }
           >
             ประวัติการขอถอน
           </h3>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 text-xs text-hui-muted">
             ถอนจากผู้สร้าง{" "}
-            <span className="font-medium text-slate-700">@{String(creatorRefLabel || "").replace(/^@+/, "")}</span>{" "}
+            <span className="font-medium text-hui-body">@{String(creatorRefLabel || "").replace(/^@+/, "")}</span>{" "}
             (ผู้โอนเงินให้คุณ)
           </p>
         </div>
@@ -123,35 +123,35 @@ export default function PrizeWithdrawalHistoryTable({
           type="button"
           onClick={() => void onRefresh()}
           disabled={loading}
-          className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          className="shrink-0 rounded-lg border border-hui-border bg-white px-3 py-1.5 text-xs font-semibold text-hui-body transition hover:bg-hui-pageTop disabled:opacity-50"
         >
           {loading ? "กำลังโหลด…" : "รีเฟรชรายการ"}
         </button>
       </div>
       {loading && withdrawals.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">กำลังโหลดประวัติ…</p>
+        <p className="mt-4 text-sm text-hui-muted">กำลังโหลดประวัติ…</p>
       ) : withdrawals.length === 0 ? (
-        <p className="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-600">
+        <p className="mt-4 rounded-xl border border-dashed border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
           {emptyMessage}
         </p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-hui-border/70">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90">
-                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <tr className="border-b border-hui-border bg-hui-pageTop/95">
+                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-hui-body">
                   วันที่สั่งถอน
                 </th>
-                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-hui-body">
                   ถอนจาก
                 </th>
-                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-hui-body">
                   จำนวน
                 </th>
-                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-hui-body">
                   สถานะ
                 </th>
-                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-hui-body">
                   รายละเอียด
                 </th>
               </tr>
@@ -163,8 +163,8 @@ export default function PrizeWithdrawalHistoryTable({
                 const pending = w.status === "pending";
                 return (
                   <Fragment key={wid}>
-                    <tr className="border-b border-slate-100 transition hover:bg-slate-50/60">
-                      <td className="whitespace-nowrap px-3 py-3 text-slate-700">
+                    <tr className="border-b border-hui-border/70 transition hover:bg-hui-pageTop/60">
+                      <td className="whitespace-nowrap px-3 py-3 text-hui-body">
                         {w.createdAt
                           ? new Date(w.createdAt).toLocaleString("th-TH", {
                               year: "numeric",
@@ -177,7 +177,7 @@ export default function PrizeWithdrawalHistoryTable({
                       </td>
                       <td className="px-3 py-3">
                         <span
-                          className="font-medium text-slate-900"
+                          className="font-medium text-hui-section"
                           title="ยูสเซอร์ผู้สร้างที่รับผิดชอบโอน"
                         >
                           @{String(w.creatorUsername || "").replace(/^@+/, "")}
@@ -195,7 +195,7 @@ export default function PrizeWithdrawalHistoryTable({
                             type="button"
                             aria-expanded={open}
                             onClick={() => setDetailOpenId(open ? null : wid)}
-                            className="w-fit text-sm font-semibold text-brand-800 underline decoration-brand-800/30 underline-offset-2 hover:text-brand-950"
+                            className="w-fit text-sm font-semibold text-hui-cta underline decoration-hui-cta/30 underline-offset-2 hover:brightness-95"
                           >
                             {open ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
                           </button>
@@ -213,41 +213,41 @@ export default function PrizeWithdrawalHistoryTable({
                       </td>
                     </tr>
                     {open ? (
-                      <tr className="border-b border-slate-100 bg-gradient-to-b from-slate-50/90 to-white">
+                      <tr className="border-b border-hui-border/70 bg-gradient-to-b from-hui-pageTop/90 to-white">
                         <td colSpan={5} className="px-3 py-4 sm:px-4">
-                          <div className="mx-auto max-w-xl space-y-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-sm">
+                          <div className="mx-auto max-w-xl space-y-4 rounded-xl border border-hui-border bg-white p-4 text-sm text-hui-body shadow-sm">
                             <div>
-                              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                              <p className="text-[11px] font-bold uppercase tracking-wide text-hui-muted">
                                 บัญชีรับเงิน (ตอนส่งคำขอ)
                               </p>
-                              <ul className="mt-2 space-y-1 text-slate-800">
+                              <ul className="mt-2 space-y-1 text-hui-body">
                                 <li>
-                                  <span className="text-slate-500">ชื่อบัญชี</span>{" "}
+                                  <span className="text-hui-muted">ชื่อบัญชี</span>{" "}
                                   <span className="font-medium">{w.accountHolderName || "—"}</span>
                                 </li>
                                 <li>
-                                  <span className="text-slate-500">เลขบัญชี</span>{" "}
+                                  <span className="text-hui-muted">เลขบัญชี</span>{" "}
                                   <span className="font-mono tabular-nums">{w.accountNumber || "—"}</span>
                                 </li>
                                 <li>
-                                  <span className="text-slate-500">ธนาคาร</span> {w.bankName || "—"}
+                                  <span className="text-hui-muted">ธนาคาร</span> {w.bankName || "—"}
                                 </li>
                               </ul>
                             </div>
                             {w.creatorNote && w.status !== "rejected" && w.status !== "cancelled" ? (
-                              <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                                <span className="font-medium text-slate-600">หมายเหตุผู้สร้าง:</span>{" "}
+                              <p className="rounded-lg bg-hui-pageTop px-3 py-2 text-sm">
+                                <span className="font-medium text-hui-body">หมายเหตุผู้สร้าง:</span>{" "}
                                 {w.creatorNote}
                               </p>
                             ) : null}
                             {w.status === "approved" ? (
-                              <div className="space-y-2 border-t border-slate-100 pt-3">
+                              <div className="space-y-2 border-t border-hui-border/70 pt-3">
                                 <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">
                                   ยืนยันจากผู้สร้าง
                                 </p>
                                 {w.transferDate ? (
-                                  <p className="text-slate-800">
-                                    <span className="text-slate-500">วันที่โอนเงิน</span>{" "}
+                                  <p className="text-hui-body">
+                                    <span className="text-hui-muted">วันที่โอนเงิน</span>{" "}
                                     {new Date(`${w.transferDate}T12:00:00`).toLocaleDateString("th-TH", {
                                       year: "numeric",
                                       month: "long",
@@ -255,19 +255,19 @@ export default function PrizeWithdrawalHistoryTable({
                                     })}
                                   </p>
                                 ) : (
-                                  <p className="text-xs text-slate-500">ไม่ได้ระบุวันที่โอนในฟอร์ม</p>
+                                  <p className="text-xs text-hui-muted">ไม่ได้ระบุวันที่โอนในฟอร์ม</p>
                                 )}
                                 {w.transferSlipUrl ? (
                                   <a
                                     href={w.transferSlipUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 font-semibold text-brand-800 underline"
+                                    className="inline-flex items-center gap-1 font-semibold text-hui-cta underline"
                                   >
                                     เปิดดูสลิปโอนเงิน
                                   </a>
                                 ) : (
-                                  <p className="text-xs text-slate-500">ไม่มีสลิปแนบ</p>
+                                  <p className="text-xs text-hui-muted">ไม่มีสลิปแนบ</p>
                                 )}
                               </div>
                             ) : w.status === "pending" ? (
@@ -279,12 +279,12 @@ export default function PrizeWithdrawalHistoryTable({
                                 คุณยกเลิกคำขอถอนนี้แล้ว — ยอดถอนได้จะไม่ถูกหักจากคำขอนี้อีก
                               </p>
                             ) : (
-                              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
-                                <p className="font-medium text-slate-800">คำขอถูกปฏิเสธ</p>
+                              <div className="rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 text-xs text-hui-body">
+                                <p className="font-medium text-hui-body">คำขอถูกปฏิเสธ</p>
                                 {w.creatorNote ? (
-                                  <p className="mt-1 text-slate-700">{w.creatorNote}</p>
+                                  <p className="mt-1 text-hui-body">{w.creatorNote}</p>
                                 ) : (
-                                  <p className="mt-1 text-slate-500">ไม่มีหมายเหตุเพิ่มเติม</p>
+                                  <p className="mt-1 text-hui-muted">ไม่มีหมายเหตุเพิ่มเติม</p>
                                 )}
                               </div>
                             )}

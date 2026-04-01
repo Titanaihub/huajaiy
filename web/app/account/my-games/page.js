@@ -7,7 +7,7 @@ export default function MyGamesPage() {
   return (
     <Suspense
       fallback={
-        <p className="text-sm text-slate-600" aria-live="polite">
+        <p className="text-sm text-hui-body" aria-live="polite">
           กำลังโหลด…
         </p>
       }

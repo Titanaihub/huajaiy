@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrizeWithdrawPage() {
   return (
-    <Suspense fallback={<p className="text-sm text-slate-500">กำลังโหลด…</p>}>
+    <Suspense fallback={<p className="text-sm text-hui-muted">กำลังโหลด…</p>}>
       <PrizeWithdrawForm />
     </Suspense>
   );

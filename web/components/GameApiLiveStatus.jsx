@@ -61,7 +61,7 @@ export default function GameApiLiveStatus({ gameId = null } = {}) {
       ? "border-emerald-200 bg-emerald-50/90 text-emerald-950"
       : tone === "amber"
         ? "border-amber-200 bg-amber-50/90 text-amber-950"
-        : "border-slate-200 bg-slate-50 text-slate-800";
+        : "border-hui-border bg-hui-pageTop text-hui-body";
 
   return (
     <p

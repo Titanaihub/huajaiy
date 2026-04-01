@@ -55,27 +55,27 @@ export default async function PublicMemberPage({ params }) {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-lg px-4 py-8 sm:py-10">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-hui-muted">
           <Link
             href="/"
-            className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            className="font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             ← หน้าแรก
           </Link>
-          <span className="mx-2 text-slate-300" aria-hidden>
+          <span className="mx-2 text-hui-border" aria-hidden>
             ·
           </span>
           <Link
             href="/game"
-            className="font-medium text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950"
+            className="font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             รายการเกม
           </Link>
         </p>
-        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">
+        <h1 className="mt-6 text-2xl font-semibold tracking-tight text-hui-section">
           {displayName}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">@{m.username}</p>
+        <p className="mt-1 text-sm text-hui-muted">@{m.username}</p>
       </main>
       <SiteFooter />
     </>
