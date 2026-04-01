@@ -38,10 +38,13 @@ function rowToTheme(row) {
     bgGradientMid: normalizeHex(row.bg_gradient_mid) || DEFAULT_THEME.bgGradientMid,
     bgGradientBottom:
       normalizeHex(row.bg_gradient_bottom) || DEFAULT_THEME.bgGradientBottom,
-    imageOverlayPercent: Math.min(
-      100,
-      Math.max(0, Math.floor(Number(row.image_overlay_percent) || DEFAULT_THEME.imageOverlayPercent))
-    )
+    imageOverlayPercent: (() => {
+      const v = row.image_overlay_percent;
+      if (v === undefined || v === null) return DEFAULT_THEME.imageOverlayPercent;
+      const n = Math.floor(Number(v));
+      if (!Number.isFinite(n)) return DEFAULT_THEME.imageOverlayPercent;
+      return Math.min(100, Math.max(0, n));
+    })()
   };
 }
 

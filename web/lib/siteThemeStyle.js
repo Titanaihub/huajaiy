@@ -46,6 +46,17 @@ export function buildSiteRootBackgroundStyle(theme) {
     };
   }
 
+  /** 0% = ไม่ทับสี — ใช้แค่รูป ลดปัญหาเลเยอร์โปร่งบางเบราว์เซอร์ */
+  if (a < 0.001) {
+    return {
+      backgroundImage: cssUrlQuoted(img),
+      backgroundAttachment: "fixed",
+      backgroundSize: "cover",
+      backgroundPosition: "center center",
+      backgroundRepeat: "no-repeat"
+    };
+  }
+
   const overlayLayer = `linear-gradient(180deg, ${rgbaFromHex(top, a)} 0%, ${rgbaFromHex(mid, a)} 52%, ${rgbaFromHex(bot, a)} 100%)`;
 
   return {
