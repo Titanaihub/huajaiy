@@ -682,6 +682,24 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_room_red_gift_redemptions_code ON room_red_gift_redemptions(code_id, redeemed_at DESC);`
     );
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_theme (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        background_image_url TEXT NOT NULL DEFAULT '',
+        bg_gradient_top VARCHAR(7) NOT NULL DEFAULT '#FFF5F8',
+        bg_gradient_mid VARCHAR(7) NOT NULL DEFAULT '#FFEEF3',
+        bg_gradient_bottom VARCHAR(7) NOT NULL DEFAULT '#FFD6E2',
+        image_overlay_percent SMALLINT NOT NULL DEFAULT 78
+          CHECK (image_overlay_percent >= 0 AND image_overlay_percent <= 100),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      INSERT INTO site_theme (id) VALUES (1)
+      ON CONFLICT (id) DO NOTHING;
+    `);
+
     /* รหัสเก่า (ก่อนมีคอลัมน์ทุน) ถือว่าหักจากแดงเล่นได้ทั้งหมด — คืนยอดสอดคล้องเดิม */
     await client.query(`
       UPDATE room_red_gift_codes

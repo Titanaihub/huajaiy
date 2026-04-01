@@ -6,6 +6,7 @@ import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import AdminPrizePayoutPanel from "./AdminPrizePayoutPanel";
+import AdminSiteThemePanel from "./AdminSiteThemePanel";
 import { getMemberToken, IMPERSONATION_RETURN_TOKEN_KEY, setMemberToken } from "../lib/memberApi";
 import { formatHeartCostSummary } from "../lib/formatHeartCostLabel";
 import {
@@ -95,6 +96,7 @@ export default function AdminDashboard() {
     const tabParam = new URLSearchParams(window.location.search).get("tab");
     if (tabParam === "shops") setTab("shops");
     if (tabParam === "centralGame") setTab("centralGame");
+    if (tabParam === "siteTheme") setTab("siteTheme");
   }, []);
 
   /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
@@ -550,6 +552,17 @@ export default function AdminDashboard() {
           }`}
         >
           คำขอเปลี่ยนชื่อ
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("siteTheme")}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            tab === "siteTheme"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
+          }`}
+        >
+          พื้นหลังเว็บ
         </button>
       </div>
 
@@ -1619,6 +1632,14 @@ export default function AdminDashboard() {
             ตรวจคิวที่รออนุมัติ และดูประวัติย้อนหลังว่าใครซื้อไปเท่าไหร่ พร้อมสรุปยอดตามตัวกรอง
           </p>
           <AdminHeartPurchasesPanel />
+        </section>
+      ) : tab === "siteTheme" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-hui-section">พื้นหลังเว็บไซต์</h2>
+          <p className="text-sm text-hui-body">
+            ตั้งไล่สีพื้นหลังทั้งเว็บ หรือใส่รูป (URL https) พร้อมปรับความทึบของเลเยอร์สีทับรูป — หลังบันทึกให้รีเฟรชหน้าเพื่อดูผล
+          </p>
+          <AdminSiteThemePanel />
         </section>
       ) : (
         <section className="space-y-4">

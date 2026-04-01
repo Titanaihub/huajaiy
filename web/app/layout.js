@@ -3,6 +3,8 @@ import { Prompt } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
+import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
+import { buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
 const prompt = Prompt({
@@ -46,10 +48,13 @@ export const viewport = {
   viewportFit: "cover"
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const siteTheme = await fetchSiteThemeForLayout();
+  const bodyBgStyle = buildSiteRootBackgroundStyle(siteTheme);
+
   return (
     <html lang="th" className={prompt.variable}>
-      <body className={`${prompt.className} hui-root flex flex-col`}>
+      <body className={`${prompt.className} hui-root flex flex-col`} style={bodyBgStyle}>
         <MemberAuthProvider>
           <ImpersonationBanner />
           <HeartsProvider>

@@ -27,6 +27,7 @@ const {
   runMarch2026AunyaweePhongCleanup,
   previewMarch2026AunyaweePhongCleanup
 } = require("./services/oneoffUserCleanupMarch2026");
+const siteThemeService = require("./services/siteThemeService");
 
 const router = express.Router();
 
@@ -77,6 +78,37 @@ router.get("/ping", authMiddleware, requireRole("admin"), (req, res) => {
     role: req.userRole
   });
 });
+
+router.get(
+  "/site-theme",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const theme = await siteThemeService.getSiteTheme();
+      return res.json({ ok: true, theme });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.patch(
+  "/site-theme",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const theme = await siteThemeService.updateSiteTheme(req.body || {});
+      return res.json({ ok: true, theme });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+  }
+);
 
 /** รายการสมาชิก — ค้นหาได้จากยูสเซอร์ ชื่อ นามสกุล เบอร์ หรือ id */
 router.get("/members", authMiddleware, requireRole("admin"), async (req, res) => {

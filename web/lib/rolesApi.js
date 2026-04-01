@@ -472,3 +472,26 @@ export async function apiAdminRejectNameChange(token, id, note) {
   if (!r.ok) throw new Error(data.error || "ปฏิเสธไม่สำเร็จ");
   return data;
 }
+
+export async function apiAdminGetSiteTheme(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/site-theme`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "โหลดธีมเว็บไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminPatchSiteTheme(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/site-theme`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body || {})
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "บันทึกธีมเว็บไม่สำเร็จ");
+  return data;
+}

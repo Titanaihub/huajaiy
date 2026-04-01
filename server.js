@@ -27,6 +27,7 @@ const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralGameSession = require("./centralGameSession");
 const gameStartDeductionService = require("./services/gameStartDeductionService");
 const { validateUsername } = require("./authValidators");
+const siteThemeService = require("./services/siteThemeService");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -302,6 +303,16 @@ app.get("/api/public/members/:username", async (req, res) => {
       firstName: fn,
       lastName: ln
     });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ธีมพื้นหลังเว็บ (สาธารณะ) — ใช้ใน layout ฝั่ง Next */
+app.get("/api/public/site-theme", async (_req, res) => {
+  try {
+    const theme = await siteThemeService.getSiteTheme();
+    return res.json({ ok: true, theme });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

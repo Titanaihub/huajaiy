@@ -8,9 +8,9 @@
   }
 }
 
-/** พื้นหลัง + สีตัวหนังสือหลักทั้งเว็บ (ธีมชมพู–burgundy) */
+/** พื้นหลังตั้งจาก API ที่ `<body style=…>` — คลาสนี้คุมสีตัวหนังสือและความสูงขั้นต่ำ */
 .hui-root {
-  @apply min-h-screen bg-gradient-to-b from-hui-pageTop via-hui-pageMid to-hui-pageBot text-base text-hui-body antialiased;
+  @apply min-h-screen text-base text-hui-body antialiased;
   line-height: 1.5;
 }
 
