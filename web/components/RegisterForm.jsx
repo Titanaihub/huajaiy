@@ -137,9 +137,9 @@ export default function RegisterForm() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold text-slate-900">สมัครสมาชิก</h1>
-      <div className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
-        <p className="font-semibold text-slate-800">1 คนต่อ 1 บัญชีเท่านั้น</p>
+      <h1 className="text-xl font-semibold text-white">สมัครสมาชิก</h1>
+      <div className="mt-3 space-y-2 text-sm leading-relaxed text-white/95">
+        <p className="font-semibold text-white">1 คนต่อ 1 บัญชีเท่านั้น</p>
         <p>
           กรุณากรอกข้อมูลจริงให้ถูกต้อง
           ข้อมูลผิดอาจแก้ไขภายหลังได้ยากและอาจเสียสิทธิ์รับรางวัล
@@ -149,7 +149,7 @@ export default function RegisterForm() {
         <div>
           <label
             htmlFor="firstName"
-            className="block text-sm font-medium leading-snug text-slate-700"
+            className="block text-sm font-medium leading-snug text-white"
           >
             {countryCode === COUNTRY_TH ? (
               <>
@@ -174,12 +174,12 @@ export default function RegisterForm() {
             aria-invalid={firstThaiWarn || firstLatinWarn}
           />
           {firstThaiWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-900">
+            <p className="mt-1.5 text-sm font-medium text-amber-100">
               {firstNameEnglishHint}
             </p>
           ) : null}
           {firstLatinWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-900">
+            <p className="mt-1.5 text-sm font-medium text-amber-100">
               หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot; แล้วกรอกชื่อเป็นภาษาไทย
             </p>
           ) : null}
@@ -188,7 +188,7 @@ export default function RegisterForm() {
         <div>
           <label
             htmlFor="lastName"
-            className="block text-sm font-medium leading-snug text-slate-700"
+            className="block text-sm font-medium leading-snug text-white"
           >
             {countryCode === COUNTRY_TH
               ? "นามสกุล (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน"
@@ -206,12 +206,12 @@ export default function RegisterForm() {
             aria-invalid={lastThaiWarn || lastLatinWarn}
           />
           {lastThaiWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-900">
+            <p className="mt-1.5 text-sm font-medium text-amber-100">
               {lastNameEnglishHint}
             </p>
           ) : null}
           {lastLatinWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-900">
+            <p className="mt-1.5 text-sm font-medium text-amber-100">
               หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot;
               แล้วกรอกนามสกุลเป็นภาษาไทย
             </p>
@@ -273,11 +273,11 @@ export default function RegisterForm() {
         ) : null}
 
         {namesValid && dupCheckPending ? (
-          <p className="text-xs text-slate-500">กำลังตรวจสอบชื่อในระบบ…</p>
+          <p className="text-xs text-white/80">กำลังตรวจสอบชื่อในระบบ…</p>
         ) : null}
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="phone" className="block text-sm font-medium text-white">
             เบอร์โทรศัพท์
           </label>
           <input
@@ -292,8 +292,8 @@ export default function RegisterForm() {
           />
         </div>
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-slate-700">
-            ชื่อผู้ใช้ (a–z, ตัวเลข, _)
+          <label htmlFor="username" className="block text-sm font-medium text-white">
+            ตั้งค่า ชื่อผู้ใช้ (a–z, ตัวเลข, _)
           </label>
           <input
             id="username"
@@ -305,8 +305,8 @@ export default function RegisterForm() {
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-            รหัสผ่าน (อย่างน้อย 6 ตัว)
+          <label htmlFor="password" className="block text-sm font-medium text-white">
+            ตั้งค่า รหัสผ่าน (อย่างน้อย 6 ตัว)
           </label>
           <input
             id="password"
@@ -319,7 +319,7 @@ export default function RegisterForm() {
           />
         </div>
         <div>
-          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-white">
             ยืนยันรหัสผ่าน
           </label>
           <input
@@ -332,7 +332,9 @@ export default function RegisterForm() {
             autoComplete="new-password"
           />
         </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? (
+          <p className="text-sm font-medium text-amber-100">{error}</p>
+        ) : null}
         <button
           type="submit"
           disabled={submitBlocked}
@@ -341,9 +343,12 @@ export default function RegisterForm() {
           {loading ? "กำลังส่ง..." : "สมัครสมาชิก"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-6 text-center text-sm text-white/95">
         มีบัญชีแล้ว?{" "}
-        <Link href="/login" className="text-blue-600 underline">
+        <Link
+          href="/login"
+          className="font-semibold text-white underline decoration-white/70 underline-offset-2 hover:decoration-white"
+        >
           เข้าสู่ระบบ
         </Link>
       </p>
