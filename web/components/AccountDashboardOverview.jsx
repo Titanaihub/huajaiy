@@ -36,7 +36,8 @@ export default function AccountDashboardOverview() {
       <section>
         <h2 className="hui-h2">สวัสดี {user.firstName}</h2>
         <p className="mt-1 text-sm text-hui-muted">
-          @{user.username} · เบอร์ {user.phone}
+          @{user.username}
+          {user.phone ? ` · เบอร์ ${user.phone}` : " · ยังไม่มีเบอร์ในระบบ"}
         </p>
         <div className="mt-4 max-w-md">
           <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">

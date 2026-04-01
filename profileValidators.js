@@ -76,7 +76,7 @@ function validateProfilePatch(body) {
   let updatePhone = false;
   if (Object.prototype.hasOwnProperty.call(body, "phone")) {
     updatePhone = true;
-    const pv = validatePhone(body.phone);
+    const pv = validatePhone(body.phone, { optional: true });
     if (!pv.ok) return pv;
     phone = pv.value;
   }

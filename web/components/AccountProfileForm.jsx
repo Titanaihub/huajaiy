@@ -223,7 +223,15 @@ export default function AccountProfileForm() {
               </div>
               <div>
                 <dt className="text-hui-muted">เบอร์โทร (ปัจจุบัน)</dt>
-                <dd className="font-medium text-hui-body">{user.phone}</dd>
+                <dd className="font-medium text-hui-body">
+                  {user.phone ? (
+                    user.phone
+                  ) : (
+                    <span className="text-hui-muted">
+                      ยังไม่ได้กรอก — LINE Login ไม่ส่งเบอร์มาให้
+                    </span>
+                  )}
+                </dd>
               </div>
               <div>
                 <dt className="text-hui-muted">ประเทศเอกสารชื่อ</dt>
@@ -271,7 +279,8 @@ export default function AccountProfileForm() {
                 className="hui-input max-w-md"
               />
               <p className="mt-1 text-sm text-hui-muted">
-                เปลี่ยนเบอร์ได้ที่นี่ — ระบบจะเก็บประวัติเบอร์เก่าไว้ด้านล่าง
+                กรอกเบอร์ 10 หลัก (ขึ้นต้น 0) เมื่อสะดวก — LINE ไม่ให้เบอร์อัตโนมัติ
+                · เปลี่ยนเบอร์ที่นี่แล้วระบบจะเก็บประวัติไว้ด้านล่าง
               </p>
             </div>
             <div>

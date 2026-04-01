@@ -10,10 +10,18 @@ async function insertWithClient(client, row) {
   const id = crypto.randomUUID();
   const ip =
     row.clientIp == null ? null : String(row.clientIp).slice(0, 64);
+  const oldP =
+    row.oldPhone == null || String(row.oldPhone).trim() === ""
+      ? ""
+      : String(row.oldPhone).trim().slice(0, 16);
+  const newP =
+    row.newPhone == null || String(row.newPhone).trim() === ""
+      ? ""
+      : String(row.newPhone).trim().slice(0, 16);
   await client.query(
     `INSERT INTO user_phone_history (id, user_id, old_phone, new_phone, client_ip)
      VALUES ($1, $2, $3, $4, $5)`,
-    [id, row.userId, row.oldPhone, row.newPhone, ip]
+    [id, row.userId, oldP, newP, ip]
   );
 }
 

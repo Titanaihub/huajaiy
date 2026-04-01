@@ -108,6 +108,17 @@ async function initDb() {
       ON users (line_user_id)
       WHERE line_user_id IS NOT NULL AND line_user_id <> '';
     `);
+    /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */
+    await client.query(`
+      ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
+    `);
+    await client.query(`
+      UPDATE users SET phone = NULL
+      WHERE line_user_id IS NOT NULL
+        AND phone IS NOT NULL
+        AND phone LIKE 'LU%'
+        AND char_length(phone) <= 16;
+    `);
     /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
     await client.query(`
       UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))

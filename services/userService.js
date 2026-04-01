@@ -23,6 +23,13 @@ function normalizeBirthDate(v) {
   return s.length >= 10 ? s.slice(0, 10) : s || null;
 }
 
+/** เบอร์ใน DB — ว่างเป็น null (ไม่ใช่ placeholder จาก LINE) */
+function normPhone(p) {
+  if (p == null) return null;
+  const s = String(p).replace(/\s+/g, "").trim();
+  return s === "" ? null : s.slice(0, 16);
+}
+
 function rowToUser(row) {
   const pink =
     row.pink_hearts_balance == null
@@ -379,13 +386,13 @@ async function updateProfile(
   if (!current) return null;
 
   const pool = getPool();
-  const oldPhone = String(current.phone || "").trim();
-  const newPhone = updatePhone ? String(phone || "").trim() : oldPhone;
+  const oldPhone = normPhone(current.phone);
+  const newPhone = updatePhone ? normPhone(phone) : oldPhone;
   const phoneChanged = Boolean(updatePhone) && newPhone !== oldPhone;
   const shipDb =
     updateShipping && shippingParts ? dbValuesFromParts(shippingParts) : null;
 
-  if (phoneChanged) {
+  if (phoneChanged && newPhone != null) {
     const taken = await findByPhone(newPhone);
     if (taken && taken.id !== userId) {
       const err = new Error("PHONE_TAKEN");
@@ -405,8 +412,8 @@ async function updateProfile(
         ? [...current.phoneHistory]
         : [];
       phoneHistory.push({
-        oldPhone,
-        newPhone,
+        oldPhone: oldPhone ?? "",
+        newPhone: newPhone ?? "",
         changedAt: new Date().toISOString(),
         clientIp:
           clientIp == null ? null : String(clientIp).slice(0, 64)
@@ -851,9 +858,8 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
     throw e;
   }
 
-  const nextPhone = has("phone")
-    ? String(b.phone ?? "").trim().slice(0, 16)
-    : current.phone;
+  const oldPhoneNorm = normPhone(current.phone);
+  const nextPhone = has("phone") ? normPhone(b.phone) : oldPhoneNorm;
   const nextCc = has("countryCode")
     ? String(b.countryCode ?? "TH")
         .trim()
@@ -901,11 +907,11 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
       })
     : null;
 
-  const oldPhone = String(current.phone || "").trim();
-  const newPhone = String(nextPhone || "").trim();
+  const oldPhone = oldPhoneNorm;
+  const newPhone = nextPhone;
   const phoneChanged = has("phone") && newPhone !== oldPhone;
 
-  if (phoneChanged) {
+  if (phoneChanged && newPhone != null) {
     const taken = await findByPhone(newPhone);
     if (taken && taken.id !== userId) {
       const e = new Error("เบอร์นี้ถูกใช้แล้ว");

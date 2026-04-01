@@ -104,9 +104,13 @@ function validateRegisterNames(countryCode, firstName, lastName) {
   };
 }
 
-function validatePhone(value) {
+/** @param {{ optional?: boolean }} [opts] optional=true ใช้ตอนแก้โปรไฟล์ — เว้นว่างได้ */
+function validatePhone(value, opts = {}) {
   const s = cleanStr(value).replace(/\s+/g, "");
-  if (!s) return { ok: false, error: "กรุณากรอกเบอร์โทรศัพท์" };
+  if (!s) {
+    if (opts.optional) return { ok: true, value: null };
+    return { ok: false, error: "กรุณากรอกเบอร์โทรศัพท์" };
+  }
   if (!PHONE.test(s)) {
     return { ok: false, error: "เบอร์โทรต้องเป็นตัวเลข 10 หลัก ขึ้นต้นด้วย 0" };
   }
