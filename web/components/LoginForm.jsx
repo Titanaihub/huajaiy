@@ -71,6 +71,14 @@ export default function LoginForm({ redirectAfterLogin = null }) {
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-hui-body">
+        <Link
+          href={redirectAfterLogin ? `/login/line?next=${encodeURIComponent(redirectAfterLogin)}` : "/login/line"}
+          className="font-semibold text-[#06C755] underline decoration-[#06C755]/40 underline-offset-2 hover:brightness-95"
+        >
+          เข้าสู่ระบบด้วย LINE
+        </Link>
+      </p>
+      <p className="mt-3 text-center text-sm text-hui-body">
         ยังไม่มีบัญชี?{" "}
         <Link
           href="/register"

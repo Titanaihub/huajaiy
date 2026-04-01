@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {
@@ -26,6 +27,17 @@ function capabilitiesPayloadForUser(user) {
   return {
     capabilities: listCapabilitiesForRole(user.role || MEMBER)
   };
+}
+
+function timingSafeLineSecret(headerVal, envSecret) {
+  const a = Buffer.from(String(headerVal || ""), "utf8");
+  const b = Buffer.from(String(envSecret || ""), "utf8");
+  if (a.length !== b.length || b.length < 16) return false;
+  try {
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
 function getJwtSecret() {
@@ -281,6 +293,75 @@ router.post("/login", async (req, res) => {
       ok: true,
       token,
       user: await publicUserWithRoomGiftRed(user)
+    });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/**
+ * แลก LINE identity เป็น JWT สมาชิก — เรียกได้เฉพาะจากเว็บ (Next) ที่ส่ง X-HUAJAIY-Line-Link-Secret ตรงกับ LINE_LINK_SECRET
+ */
+router.post("/login-line", async (req, res) => {
+  try {
+    const secret = process.env.LINE_LINK_SECRET;
+    if (!secret || String(secret).length < 16) {
+      return res.status(503).json({
+        ok: false,
+        error: "เซิร์ฟเวอร์ยังไม่ตั้ง LINE_LINK_SECRET"
+      });
+    }
+    const hdr = req.headers["x-huajaiy-line-link-secret"];
+    if (!timingSafeLineSecret(hdr, secret)) {
+      return res.status(403).json({
+        ok: false,
+        error: "ไม่มีสิทธิ์เรียก endpoint นี้"
+      });
+    }
+
+    const lineUserId = String(req.body?.lineUserId || "").trim();
+    const displayName = String(req.body?.displayName || "").trim().slice(0, 100);
+
+    if (!lineUserId) {
+      return res.status(400).json({ ok: false, error: "ไม่มี LINE user id" });
+    }
+
+    let user = await userService.findByLineUserId(lineUserId);
+    if (!user) {
+      try {
+        user = await userService.createUserFromLine({
+          lineUserId,
+          displayName: displayName || undefined,
+          registrationIp: clientIp(req)
+        });
+      } catch (e) {
+        if (e.code === "INVALID_LINE_USER") {
+          return res.status(400).json({ ok: false, error: e.message });
+        }
+        if (e.code === "DB_REQUIRED") {
+          return res.status(503).json({ ok: false, error: e.message });
+        }
+        throw e;
+      }
+    }
+
+    if (!user) {
+      return res.status(500).json({ ok: false, error: "สร้างบัญชีไม่สำเร็จ" });
+    }
+    if (user.accountDisabled) {
+      return res.status(403).json({
+        ok: false,
+        error: "บัญชีนี้ถูกระงับการใช้งาน — ติดต่อผู้ดูแลระบบ",
+        code: "ACCOUNT_DISABLED"
+      });
+    }
+
+    const token = signToken(user);
+    return res.json({
+      ok: true,
+      token,
+      user: await publicUserWithRoomGiftRed(user),
+      ...capabilitiesPayloadForUser(user)
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });

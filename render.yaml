@@ -33,6 +33,9 @@ services:
       # ไม่บังคับ: แอดมินกด「ดูหน้าสมาชิก (โหมดตรวจสอบ)」ได้ — ค่า true หรือ 1 · ปิดก่อน production ได้
       - key: ADMIN_IMPERSONATION_ENABLED
         sync: false
+      # แลก LINE Login เป็น JWT สมาชิก — ต้องตรงกับค่าบน huajaiy-web
+      - key: LINE_LINK_SECRET
+        sync: false
 
   # --- เว็บ: Next.js (รากโฟลเดอร์ web/) ---
   - type: web
@@ -58,4 +61,10 @@ services:
       - key: NEXTAUTH_URL
         sync: false
       - key: NEXTAUTH_SECRET
+        sync: false
+      - key: LINE_CHANNEL_ID
+        sync: false
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: LINE_LINK_SECRET
         sync: false

@@ -99,6 +99,15 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS prize_contact_line VARCHAR(500);
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS line_user_id VARCHAR(128);
+    `);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_line_user_id
+      ON users (line_user_id)
+      WHERE line_user_id IS NOT NULL AND line_user_id <> '';
+    `);
     /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
     await client.query(`
       UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))

@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const { getPool } = require("../db/pool");
 const userStore = require("../userStore");
 const { MEMBER, ADMIN, OWNER } = require("../constants/roles");
@@ -64,6 +65,10 @@ function rowToUser(row) {
     prizeContactLine:
       row.prize_contact_line != null && String(row.prize_contact_line).trim()
         ? String(row.prize_contact_line).trim().slice(0, 500)
+        : null,
+    lineUserId:
+      row.line_user_id != null && String(row.line_user_id).trim()
+        ? String(row.line_user_id).trim()
         : null
   };
 }
@@ -136,6 +141,86 @@ async function findByPhone(phone) {
 }
 
 /** หาผู้ใช้ที่ชื่อและนามสกุลตรงกันทั้งคู่เท่านั้น (ไม่ถือว่าซ้ำถ้าตรงแค่อย่างใดอย่างหนึ่ง) */
+async function findByLineUserId(lineUserId) {
+  const lid = String(lineUserId || "").trim();
+  if (!lid) return null;
+  const pool = getPool();
+  if (!pool) return null;
+  const r = await pool.query(
+    "SELECT * FROM users WHERE line_user_id = $1 LIMIT 1",
+    [lid]
+  );
+  if (r.rows.length === 0) return null;
+  return rowToUser(r.rows[0]);
+}
+
+/**
+ * สร้างสมาชิกจาก LINE Login — ต้องมี PostgreSQL
+ * @param {{ lineUserId: string, displayName?: string, registrationIp?: string|null }} opts
+ */
+async function createUserFromLine({ lineUserId, displayName, registrationIp = null }) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("ต้องใช้ PostgreSQL เพื่อล็อกอินด้วย LINE");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const lid = String(lineUserId || "").trim();
+  if (!/^U[A-Za-z0-9._-]{4,128}$/.test(lid)) {
+    const err = new Error("รูปแบบ LINE user id ไม่ถูกต้อง");
+    err.code = "INVALID_LINE_USER";
+    throw err;
+  }
+
+  const existing = await findByLineUserId(lid);
+  if (existing) return existing;
+
+  const dn = String(displayName || "").trim().slice(0, 100) || "สมาชิก LINE";
+  const parts = dn.split(/\s+/).filter(Boolean);
+  let firstName = (parts[0] || "สมาชิก").slice(0, 64);
+  let lastName = (parts.slice(1).join(" ") || "LINE").slice(0, 64);
+
+  const phone = (`L${lid.replace(/[^A-Za-z0-9]/g, "")}`).slice(0, 16);
+  const ip =
+    registrationIp == null ? null : String(registrationIp).slice(0, 64);
+
+  const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString("hex"), 10);
+
+  let username = null;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const candidate = `l${crypto.randomBytes(6).toString("hex")}`;
+    const clash = await pool.query("SELECT 1 FROM users WHERE username = $1", [
+      candidate
+    ]);
+    if (clash.rows.length === 0) {
+      username = candidate;
+      break;
+    }
+  }
+  if (!username) {
+    const err = new Error("สร้างชื่อผู้ใช้ไม่สำเร็จ ลองใหม่");
+    err.code = "USERNAME_GEN_FAILED";
+    throw err;
+  }
+
+  const id = crypto.randomUUID();
+  try {
+    const r = await pool.query(
+      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip, role, line_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6, 'TH', $7, $8, $9)
+       RETURNING *`,
+      [id, username, passwordHash, firstName, lastName, phone, ip, MEMBER, lid]
+    );
+    return rowToUser(r.rows[0]);
+  } catch (e) {
+    if (e.code === "23505") {
+      const again = await findByLineUserId(lid);
+      if (again) return again;
+    }
+    throw e;
+  }
+}
+
 async function findByThaiFullName(firstName, lastName) {
   const fn = String(firstName ?? "").trim();
   const ln = String(lastName ?? "").trim();
@@ -1064,8 +1149,10 @@ module.exports = {
   findByUsername,
   findById,
   findByPhone,
+  findByLineUserId,
   findByThaiFullName,
   createUser,
+  createUserFromLine,
   setPasswordAndRole,
   setPasswordHashOnly,
   adjustHeartsBalance,
