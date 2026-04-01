@@ -10,6 +10,38 @@ import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
 import { safeRedirectPath } from "../../../lib/safeRedirectPath";
 
+const NEXT_AUTH_ERROR_TH = {
+  Configuration: "การตั้งค่า NextAuth ไม่สมบูรณ์ — ตรวจสอบ NEXTAUTH_URL / NEXTAUTH_SECRET",
+  AccessDenied: "ถูกปฏิเสธการเข้าถึง",
+  Verification: "ลิงก์หมดอายุหรือถูกใช้แล้ว",
+  OAuthSignin: "เริ่มล็อกอิน OAuth ไม่สำเร็จ",
+  OAuthCallback:
+    "LINE ตอบกลับไม่สำเร็จ — ตรวจสอบ Callback URL ใน LINE ให้เป็น …/api/auth/callback/line",
+  OAuthCreateAccount: "สร้างบัญชีไม่สำเร็จ",
+  Callback: "Callback ผิดพลาด",
+  OAuthAccountNotLinked: "บัญชี LINE ยังไม่ได้ผูกกับระบบ",
+  Default: "เข้าสู่ระบบไม่สำเร็จ"
+};
+
+/** หลังล็อกอินแล้วจะพาไป path นี้ — รองรับ ?next= และ ?callbackUrl= จาก NextAuth */
+function resolveMemberRedirect(searchParams) {
+  const direct = safeRedirectPath(searchParams.get("next"));
+  if (direct) return direct;
+  const cb = searchParams.get("callbackUrl");
+  if (!cb) return "/account";
+  try {
+    const raw = decodeURIComponent(cb);
+    const u = new URL(raw);
+    const inner = safeRedirectPath(u.searchParams.get("next"));
+    if (inner) return inner;
+    const pathOnly = safeRedirectPath(u.pathname);
+    if (pathOnly) return pathOnly;
+  } catch {
+    /* ignore */
+  }
+  return "/account";
+}
+
 function isLineSession(session) {
   if (!session?.user?.id) return false;
   if (session.provider === "line") return true;
@@ -23,9 +55,16 @@ function LineLoginContent() {
   const [memberLinkError, setMemberLinkError] = useState(null);
   const [exchangeRetry, setExchangeRetry] = useState(0);
 
-  const callbackUrl = useMemo(() => {
-    const next = searchParams.get("next");
-    return safeRedirectPath(next) || "/account";
+  const callbackUrl = useMemo(
+    () => resolveMemberRedirect(searchParams),
+    [searchParams]
+  );
+
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (!err) return;
+    const msg = NEXT_AUTH_ERROR_TH[err] || NEXT_AUTH_ERROR_TH.Default;
+    setAuthError((prev) => prev || msg);
   }, [searchParams]);
 
   useEffect(() => {

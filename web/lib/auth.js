@@ -87,6 +87,7 @@ export const authOptions = {
     }
   },
   pages: {
-    signIn: "/auth"
+    /** ต้องเป็นหน้าที่แลก JWT สมาชิกได้ — ห้ามใช้ /auth เพราะจะวนกลับมาโดยไม่เข้าระบบสมาชิก */
+    signIn: "/login/line"
   }
 };
