@@ -1611,7 +1611,10 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "heartPurchases" ? (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">อนุมัติสลิปซื้อหัวใจ</h2>
+          <h2 className="text-lg font-semibold text-slate-900">อนุมัติสลิปและประวัติการซื้อหัวใจ</h2>
+          <p className="text-sm text-slate-600">
+            ตรวจคิวที่รออนุมัติ และดูประวัติย้อนหลังว่าใครซื้อไปเท่าไหร่ พร้อมสรุปยอดตามตัวกรอง
+          </p>
           <AdminHeartPurchasesPanel />
         </section>
       ) : (

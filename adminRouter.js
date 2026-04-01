@@ -489,6 +489,39 @@ router.get(
   }
 );
 
+/** ประวัติการสั่งซื้อหัวใจทั้งหมด — ค้นหาและแบ่งหน้า */
+router.get(
+  "/heart-purchases/history",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const limit = req.query.limit != null ? Number(req.query.limit) : undefined;
+      const offset = req.query.offset != null ? Number(req.query.offset) : undefined;
+      const status =
+        req.query.status != null && String(req.query.status).trim() !== ""
+          ? String(req.query.status).trim()
+          : null;
+      const q = req.query.q != null ? String(req.query.q) : "";
+      const result = await heartPurchaseService.listHistoryForAdmin({
+        limit,
+        offset,
+        status,
+        q
+      });
+      return res.json({ ok: true, ...result });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
 router.post(
   "/heart-purchases/:id/approve",
   authMiddleware,

@@ -407,6 +407,21 @@ export async function apiAdminPendingHeartPurchases(token) {
   return data;
 }
 
+/** ประวัติการสั่งซื้อหัวใจ (แอดมิน) — @param opts {{ limit?, offset?, status?: 'approved'|'rejected'|'pending', q?: string }} */
+export async function apiAdminHeartPurchaseHistory(token, opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.limit != null) params.set("limit", String(opts.limit));
+  if (opts.offset != null) params.set("offset", String(opts.offset));
+  if (opts.status) params.set("status", String(opts.status));
+  if (opts.q != null && String(opts.q).trim() !== "") params.set("q", String(opts.q).trim());
+  const qs = params.toString();
+  const url = `${apiRoot()}/api/admin/heart-purchases/history${qs ? `?${qs}` : ""}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดประวัติไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminApproveHeartPurchase(token, id, note) {
   const r = await fetch(
     `${apiRoot()}/api/admin/heart-purchases/${encodeURIComponent(id)}/approve`,

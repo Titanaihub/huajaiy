@@ -153,6 +153,98 @@ async function listMine(userId, limit = 50) {
   return r.rows.map(rowToMine);
 }
 
+/**
+ * ประวัติการสั่งซื้อทั้งหมด (แอดมิน) — รองรับค้นหาและแบ่งหน้า
+ * @param {{ limit?: number, offset?: number, status?: 'approved'|'rejected'|'pending'|null, q?: string }} options
+ */
+async function listHistoryForAdmin(options = {}) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("DB_REQUIRED");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const limit = Math.min(Math.max(Number(options.limit) || 50, 1), 200);
+  const offset = Math.max(0, Math.floor(Number(options.offset) || 0));
+  const st = options.status != null ? String(options.status).trim().toLowerCase() : "";
+  const statusFilter =
+    st === "approved" || st === "rejected" || st === "pending" ? st : null;
+  const qRaw = options.q != null ? String(options.q).trim().slice(0, 80) : "";
+  const q = qRaw ? `%${qRaw}%` : null;
+
+  const cond = [];
+  const params = [];
+  if (statusFilter) {
+    params.push(statusFilter);
+    cond.push(`p.status = $${params.length}`);
+  }
+  if (q) {
+    params.push(q);
+    const n = params.length;
+    cond.push(
+      `(u.username ILIKE $${n} OR COALESCE(u.first_name, '') ILIKE $${n} OR COALESCE(u.last_name, '') ILIKE $${n})`
+    );
+  }
+  const whereSql = cond.length ? `WHERE ${cond.join(" AND ")}` : "";
+
+  const countSql = `
+    SELECT
+      COUNT(*)::int AS total,
+      COALESCE(SUM(p.price_thb_snapshot), 0)::bigint AS sum_price_thb,
+      COALESCE(SUM(CASE WHEN p.status = 'approved' THEN p.red_qty ELSE 0 END), 0)::bigint AS sum_red_approved,
+      COALESCE(SUM(CASE WHEN p.status = 'approved' THEN p.pink_qty ELSE 0 END), 0)::bigint AS sum_pink_approved
+    FROM heart_purchases p
+    JOIN users u ON u.id = p.user_id
+    ${whereSql}
+  `;
+  const countR = await pool.query(countSql, params);
+  const agg = countR.rows[0] || {};
+  const total = Math.max(0, Math.floor(Number(agg.total) || 0));
+
+  params.push(limit);
+  const limIdx = params.length;
+  params.push(offset);
+  const offIdx = params.length;
+
+  const dataSql = `
+    SELECT
+      p.*,
+      u.username AS buyer_username,
+      u.first_name AS buyer_first_name,
+      u.last_name AS buyer_last_name,
+      pk.title AS package_title,
+      adm.username AS resolver_username
+    FROM heart_purchases p
+    JOIN users u ON u.id = p.user_id
+    JOIN heart_packages pk ON pk.id = p.package_id
+    LEFT JOIN users adm ON adm.id = p.resolved_by
+    ${whereSql}
+    ORDER BY p.created_at DESC
+    LIMIT $${limIdx} OFFSET $${offIdx}
+  `;
+  const dataR = await pool.query(dataSql, params);
+  const purchases = dataR.rows.map((row) => ({
+    ...rowToPurchase(row),
+    buyerUsername: row.buyer_username,
+    buyerFirstName: row.buyer_first_name,
+    buyerLastName: row.buyer_last_name,
+    packageTitle: row.package_title,
+    resolverUsername: row.resolver_username || null
+  }));
+
+  return {
+    purchases,
+    total,
+    limit,
+    offset,
+    summary: {
+      sumPriceThb: Math.max(0, Number(agg.sum_price_thb) || 0),
+      sumRedApproved: Math.max(0, Number(agg.sum_red_approved) || 0),
+      sumPinkApproved: Math.max(0, Number(agg.sum_pink_approved) || 0)
+    }
+  };
+}
+
 async function listPendingForAdmin(limit = 100) {
   const pool = getPool();
   if (!pool) {
@@ -329,6 +421,7 @@ module.exports = {
   attachSlip,
   listMine,
   listPendingForAdmin,
+  listHistoryForAdmin,
   findById,
   approve,
   reject,
