@@ -338,36 +338,61 @@ async function listGamesForAdmin(options = {}) {
       : null;
   const where = creatorId ? " WHERE g.created_by = $1" : "";
   const params = creatorId ? [creatorId] : [];
-  const r = await pool.query(
-    `SELECT g.*,
-      COALESCE(pa.c, 0)::int AS prize_award_count,
-      COALESCE(ps.c, 0)::int AS play_count
-     FROM central_games g
-     LEFT JOIN (
-       SELECT game_id, COUNT(*)::int AS c
-       FROM central_prize_awards
-       GROUP BY game_id
-     ) pa ON pa.game_id = g.id
-     LEFT JOIN (
-       SELECT
-         (meta->>'gameId')::uuid AS game_id,
-         COUNT(*)::int AS c
-       FROM heart_ledger
-       WHERE kind = 'game_start'
-         AND (meta->>'gameMode') = 'central'
-         AND meta ? 'gameId'
-         AND (meta->>'gameId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-       GROUP BY (meta->>'gameId')::uuid
-     ) ps ON ps.game_id = g.id
-     ${where}
-     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`,
-    params
-  );
-  return r.rows.map((row) => ({
-    ...rowGame(row),
-    prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0),
-    playCount: Math.max(0, Math.floor(Number(row.play_count)) || 0)
-  }));
+  try {
+    const r = await pool.query(
+      `SELECT g.*,
+        COALESCE(pa.c, 0)::int AS prize_award_count,
+        COALESCE(ps.c, 0)::int AS play_count
+       FROM central_games g
+       LEFT JOIN (
+         SELECT game_id, COUNT(*)::int AS c
+         FROM central_prize_awards
+         GROUP BY game_id
+       ) pa ON pa.game_id = g.id
+       LEFT JOIN (
+         SELECT
+           (meta->>'gameId')::uuid AS game_id,
+           COUNT(*)::int AS c
+         FROM heart_ledger
+         WHERE kind = 'game_start'
+           AND (meta->>'gameMode') = 'central'
+           AND meta ? 'gameId'
+           AND (meta->>'gameId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+         GROUP BY (meta->>'gameId')::uuid
+       ) ps ON ps.game_id = g.id
+       ${where}
+       ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`,
+      params
+    );
+    return r.rows.map((row) => ({
+      ...rowGame(row),
+      prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0),
+      playCount: Math.max(0, Math.floor(Number(row.play_count)) || 0)
+    }));
+  } catch (e) {
+    // บางฐานข้อมูลเก่ายังไม่มี heart_ledger — ให้ใช้งานหน้าจัดการเกมต่อได้ก่อน
+    if (e && e.code === "42P01") {
+      const r = await pool.query(
+        `SELECT g.*,
+          COALESCE(pa.c, 0)::int AS prize_award_count
+         FROM central_games g
+         LEFT JOIN (
+           SELECT game_id, COUNT(*)::int AS c
+           FROM central_prize_awards
+           GROUP BY game_id
+         ) pa ON pa.game_id = g.id
+         ${where}
+         ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`,
+        params
+      );
+      return r.rows.map((row) => ({
+        ...rowGame(row),
+        prizeAwardCount: Math.max(0, Math.floor(Number(row.prize_award_count)) || 0),
+        playCount: 0
+      }));
+    }
+    throw e;
+  }
 }
 
 /** จำนวนแถวรางวัลที่บันทึกแล้ว — ใช้บล็อกลบเกม */
@@ -383,15 +408,20 @@ async function getPrizeAwardCountForGame(gameId) {
 /** จำนวนครั้งเริ่มเล่นเกมนี้จาก ledger */
 async function getPlayCountForGame(gameId) {
   const pool = requirePool();
-  const r = await pool.query(
-    `SELECT COUNT(*)::int AS n
-     FROM heart_ledger
-     WHERE kind = 'game_start'
-       AND (meta->>'gameMode') = 'central'
-       AND (meta->>'gameId') = $1`,
-    [String(gameId)]
-  );
-  return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
+  try {
+    const r = await pool.query(
+      `SELECT COUNT(*)::int AS n
+       FROM heart_ledger
+       WHERE kind = 'game_start'
+         AND (meta->>'gameMode') = 'central'
+         AND (meta->>'gameId') = $1`,
+      [String(gameId)]
+    );
+    return Math.max(0, Math.floor(Number(r.rows[0]?.n)) || 0);
+  } catch (e) {
+    if (e && e.code === "42P01") return 0;
+    throw e;
+  }
 }
 
 /** จำนวนรับรางวัลแยกรายกติกา */
