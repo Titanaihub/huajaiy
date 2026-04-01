@@ -6,7 +6,8 @@ const {
   signImpersonationToken,
   publicUserWithRoomGiftRed
 } = require("./authRouter");
-const { ADMIN } = require("./constants/roles");
+const { ADMIN, MEMBER } = require("./constants/roles");
+const { hasCapability, listCapabilitiesForRole } = require("./permissions");
 const { validatePassword } = require("./authValidators");
 const userService = require("./services/userService");
 const nameChangeRequestService = require("./services/nameChangeRequestService");
@@ -40,14 +41,17 @@ function isUuidParam(id) {
   );
 }
 
-const CENTRAL_GAME_BUILDER_ROLES = new Set(["admin", "member", "owner"]);
-
 function requireGameBuilderRole(req, res, next) {
-  const r = req.userRole || "member";
-  if (!CENTRAL_GAME_BUILDER_ROLES.has(r)) {
+  const r = req.userRole || MEMBER;
+  const ok =
+    hasCapability(r, "create_central_game") ||
+    hasCapability(r, "manage_own_central_game");
+  if (!ok) {
     return res.status(403).json({
       ok: false,
-      error: "ไม่มีสิทธิ์สร้างหรือแก้ไขเกมส่วนกลาง"
+      error:
+        "ไม่มีสิทธิ์ใช้สตูดิโอเกมส่วนกลางของสมาชิก — ล็อกอินใหม่หรือติดต่อผู้ดูแลหากคุณเป็นสมาชิกแล้ว",
+      code: "CAPABILITY_DENIED"
     });
   }
   next();
@@ -203,6 +207,7 @@ router.post(
         ok: true,
         token,
         user: await publicUserWithRoomGiftRed(target),
+        capabilities: listCapabilitiesForRole(target.role || MEMBER),
         impersonation: {
           active: true,
           adminUsername: req.username || null

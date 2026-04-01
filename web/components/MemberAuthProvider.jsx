@@ -8,6 +8,7 @@ import {
   useMemo,
   useState
 } from "react";
+import { deriveCapabilitiesForRole, hasCapability } from "../lib/capabilities";
 import {
   apiLogin,
   apiMe,
@@ -31,6 +32,7 @@ export function useMemberAuth() {
 
 export default function MemberAuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [capabilities, setCapabilities] = useState(null);
   const [loading, setLoading] = useState(true);
   const [impersonation, setImpersonation] = useState(null);
 
@@ -38,6 +40,7 @@ export default function MemberAuthProvider({ children }) {
     const token = getMemberToken();
     if (!token) {
       setUser(null);
+      setCapabilities(null);
       setImpersonation(null);
       setLoading(false);
       return;
@@ -45,6 +48,11 @@ export default function MemberAuthProvider({ children }) {
     try {
       const data = await apiMe(token);
       setUser(data.user);
+      setCapabilities(
+        Array.isArray(data.capabilities) && data.capabilities.length
+          ? data.capabilities
+          : deriveCapabilitiesForRole(data.user?.role)
+      );
       const imp = data.impersonation;
       setImpersonation(
         imp && imp.active ? { adminUsername: imp.adminUsername || null } : null
@@ -52,6 +60,7 @@ export default function MemberAuthProvider({ children }) {
     } catch {
       clearMemberToken();
       setUser(null);
+      setCapabilities(null);
       setImpersonation(null);
     } finally {
       setLoading(false);
@@ -73,6 +82,11 @@ export default function MemberAuthProvider({ children }) {
     const data = await apiLogin({ username, password });
     setMemberToken(data.token);
     setUser(data.user);
+    setCapabilities(
+      Array.isArray(data.capabilities) && data.capabilities.length
+        ? data.capabilities
+        : deriveCapabilitiesForRole(data.user?.role)
+    );
     setImpersonation(null);
     return data;
   }, []);
@@ -88,6 +102,11 @@ export default function MemberAuthProvider({ children }) {
     const data = await apiRegister(payload);
     setMemberToken(data.token);
     setUser(data.user);
+    setCapabilities(
+      Array.isArray(data.capabilities) && data.capabilities.length
+        ? data.capabilities
+        : deriveCapabilitiesForRole(data.user?.role)
+    );
     setImpersonation(null);
     return data;
   }, []);
@@ -95,6 +114,7 @@ export default function MemberAuthProvider({ children }) {
   const logout = useCallback(() => {
     clearMemberToken();
     setUser(null);
+    setCapabilities(null);
     setImpersonation(null);
     if (typeof window !== "undefined") {
       try {
@@ -137,17 +157,36 @@ export default function MemberAuthProvider({ children }) {
     }
     const data = await apiPatchProfile(token, payload);
     setUser(data.user);
+    setCapabilities(
+      Array.isArray(data.capabilities) && data.capabilities.length
+        ? data.capabilities
+        : deriveCapabilitiesForRole(data.user?.role)
+    );
     return data;
   }, []);
 
   /** อัปเดต user จาก response API (เช่น แลกรหัสห้อง) โดยไม่ต้องรอ GET /me */
   const applyUser = useCallback((next) => {
-    if (next && typeof next === "object") setUser(next);
+    if (next && typeof next === "object") {
+      setUser(next);
+      setCapabilities(deriveCapabilitiesForRole(next.role));
+    }
   }, []);
+
+  const can = useCallback(
+    (capability) => {
+      const caps =
+        capabilities ?? deriveCapabilitiesForRole(user?.role);
+      return hasCapability(caps, capability);
+    },
+    [capabilities, user]
+  );
 
   const value = useMemo(
     () => ({
       user,
+      capabilities,
+      can,
       loading,
       impersonation,
       login,
@@ -160,6 +199,8 @@ export default function MemberAuthProvider({ children }) {
     }),
     [
       user,
+      capabilities,
+      can,
       loading,
       impersonation,
       login,

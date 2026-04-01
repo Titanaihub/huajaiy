@@ -15,11 +15,18 @@ const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
+const { listCapabilitiesForRole } = require("./permissions");
 const {
   validateProfilePatch,
   validateNameChangeRequest
 } = require("./profileValidators");
 const { MEMBER } = require("./constants/roles");
+
+function capabilitiesPayloadForUser(user) {
+  return {
+    capabilities: listCapabilitiesForRole(user.role || MEMBER)
+  };
+}
 
 function getJwtSecret() {
   const s = process.env.JWT_SECRET;
@@ -231,7 +238,8 @@ router.post("/register", async (req, res) => {
     return res.json({
       ok: true,
       token,
-      user: await publicUserWithRoomGiftRed(user)
+      user: await publicUserWithRoomGiftRed(user),
+      ...capabilitiesPayloadForUser(user)
     });
   } catch (e) {
     if (e.code === "USERNAME_TAKEN") {
@@ -296,7 +304,22 @@ router.get("/me", authMiddleware, async (req, res) => {
     return res.json({
       ok: true,
       user: await publicUserWithRoomGiftRed(user),
-      impersonation
+      impersonation,
+      ...capabilitiesPayloadForUser(user)
+    });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ความสามารถของ role ปัจจุบัน — ใช้ยืนยันสิทธิ์บนหน้าเว็บ/ดีบักสมาชิกเก่า-ใหม่ */
+router.get("/capabilities", authMiddleware, async (req, res) => {
+  try {
+    const role = req.userRole || MEMBER;
+    return res.json({
+      ok: true,
+      role,
+      capabilities: listCapabilitiesForRole(role)
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
@@ -315,7 +338,11 @@ router.patch("/profile", authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
-    return res.json({ ok: true, user: await publicUserWithRoomGiftRed(user) });
+    return res.json({
+      ok: true,
+      user: await publicUserWithRoomGiftRed(user),
+      ...capabilitiesPayloadForUser(user)
+    });
   } catch (e) {
     if (e.code === "PHONE_TAKEN") {
       return res.status(400).json({
