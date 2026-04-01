@@ -88,12 +88,12 @@ export default function UploadForm({ showCardHeader = true }) {
   return (
     <section
       id="upload"
-      className="scroll-mt-24 overflow-hidden rounded-2xl border border-brand-100/90 bg-white shadow-soft"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-hui-border bg-hui-surface shadow-soft"
     >
       {showCardHeader ? (
-        <div className="border-b border-brand-100/80 bg-gradient-to-r from-brand-50/90 to-white px-6 py-4 md:px-8">
-          <h2 className="text-lg font-bold text-slate-900">อัปโหลดรูป</h2>
-          <p className="mt-1 text-sm text-slate-600">
+        <div className="border-b border-hui-border bg-gradient-to-r from-hui-pageTop to-white px-6 py-4 md:px-8">
+          <h2 className="hui-h2">อัปโหลดรูป</h2>
+          <p className="mt-1 text-sm text-hui-muted">
             บีบอัดรูปอัตโนมัติก่อนส่ง — ไม่ต้องล็อกอิน
           </p>
         </div>
@@ -102,11 +102,11 @@ export default function UploadForm({ showCardHeader = true }) {
       <div className={`p-6 md:p-8 ${showCardHeader ? "" : "pt-8"}`}>
         <label
           htmlFor="upload-file"
-          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/80 px-4 py-12 transition hover:border-brand-400 hover:bg-brand-50/40"
+          className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-hui-border bg-hui-pageTop/70 px-4 py-12 transition hover:border-hui-cta/40 hover:bg-white"
         >
-          <span className="rounded-full bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
+          <span className="rounded-full bg-white p-3 shadow-sm ring-1 ring-hui-border">
             <svg
-              className="h-8 w-8 text-brand-600"
+              className="h-8 w-8 text-hui-cta"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -120,14 +120,14 @@ export default function UploadForm({ showCardHeader = true }) {
               />
             </svg>
           </span>
-          <span className="mt-4 text-center text-sm font-medium text-slate-800">
+          <span className="mt-4 text-center text-sm font-medium text-hui-body">
             แตะเพื่อเลือกไฟล์ หรือถ่ายรูป
           </span>
-          <span className="mt-1 text-center text-xs text-slate-500">
+          <span className="mt-1 text-center text-xs text-hui-muted">
             รองรับ JPG, PNG, HEIC ผ่านเบราว์เซอร์
           </span>
           {file ? (
-            <span className="mt-3 max-w-full truncate text-xs font-medium text-brand-800">
+            <span className="mt-3 max-w-full truncate text-xs font-medium text-hui-cta">
               {file.name}
             </span>
           ) : null}
@@ -142,7 +142,7 @@ export default function UploadForm({ showCardHeader = true }) {
         </label>
 
         <button
-          className="mt-6 w-full rounded-xl bg-brand-700 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="hui-btn-primary mt-6 w-full px-4 py-3.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           type="button"
           onClick={onUpload}
           disabled={loading}
@@ -157,20 +157,20 @@ export default function UploadForm({ showCardHeader = true }) {
         ) : null}
 
         {resultUrl ? (
-          <div className="mt-6 space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="mt-6 space-y-3 rounded-2xl border border-hui-border bg-hui-pageTop/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-hui-muted">
               อัปโหลดสำเร็จ
             </p>
             <img
               src={resultUrl}
               alt="รูปที่อัปโหลด"
-              className="w-full rounded-lg border border-slate-200 shadow-sm"
+              className="w-full rounded-xl border border-hui-border shadow-sm"
             />
             <a
               href={resultUrl}
               target="_blank"
               rel="noreferrer"
-              className="block break-all text-sm font-medium text-brand-800 underline-offset-2 hover:underline"
+              className="block break-all text-sm font-medium text-hui-cta underline-offset-2 hover:underline"
             >
               {resultUrl}
             </a>

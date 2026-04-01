@@ -98,10 +98,10 @@ export default function ContactForm() {
     <div className="mt-6 space-y-4">
       <form
         onSubmit={onSubmit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        className="space-y-4 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft sm:p-5"
       >
         <div>
-          <label htmlFor="topic" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="topic" className="hui-label block">
             หัวข้อ (ไม่บังคับ)
           </label>
           <input
@@ -109,13 +109,13 @@ export default function ContactForm() {
             name="topic"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-2xl border border-hui-border px-3 py-2.5 text-sm text-hui-body shadow-sm transition placeholder:text-hui-placeholder focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
             placeholder="เช่น สอบถามสินค้า / ชำระเงิน"
             maxLength={80}
           />
         </div>
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="name" className="hui-label block">
             ชื่อ (ไม่บังคับ)
           </label>
           <input
@@ -123,13 +123,13 @@ export default function ContactForm() {
             name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-2xl border border-hui-border px-3 py-2.5 text-sm text-hui-body shadow-sm transition placeholder:text-hui-placeholder focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
             maxLength={120}
             autoComplete="name"
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+          <label htmlFor="email" className="hui-label block">
             อีเมล (ไม่บังคับ)
           </label>
           <input
@@ -139,14 +139,14 @@ export default function ContactForm() {
             inputMode="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-2xl border border-hui-border px-3 py-2.5 text-sm text-hui-body shadow-sm transition placeholder:text-hui-placeholder focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
             maxLength={256}
             autoComplete="email"
           />
         </div>
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-slate-700">
-            ข้อความ <span className="text-rose-600">*</span>
+          <label htmlFor="message" className="hui-label block">
+            ข้อความ <span className="text-hui-cta">*</span>
           </label>
           <textarea
             id="message"
@@ -155,11 +155,11 @@ export default function ContactForm() {
             rows={6}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm leading-relaxed shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="mt-1.5 w-full rounded-2xl border border-hui-border px-3 py-2.5 text-sm leading-relaxed text-hui-body shadow-sm transition placeholder:text-hui-placeholder focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
             placeholder="พิมพ์ข้อความที่นี่"
             maxLength={2000}
           />
-          <p className="mt-1 text-xs text-slate-500">{message.length}/2000 ตัวอักษร</p>
+          <p className="mt-1 text-xs text-hui-muted">{message.length}/2000 ตัวอักษร</p>
         </div>
         {error ? (
           <p className="text-sm font-medium text-red-600" role="alert">
@@ -167,14 +167,14 @@ export default function ContactForm() {
           </p>
         ) : null}
         {done ? (
-          <p className="rounded-lg bg-brand-50 px-3 py-2.5 text-sm font-medium text-brand-900 ring-1 ring-brand-100">
+          <p className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2.5 text-sm font-medium text-emerald-950">
             ส่งข้อความแล้ว — ทีมงานจะใช้ข้อมูลนี้ติดตามการถอน/ตอบกลับ (ขณะนี้บันทึกผ่านระบบเว็บไซต์)
           </p>
         ) : null}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-brand-800 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:opacity-60"
+          className="hui-btn-primary w-full py-3.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 disabled:opacity-60"
         >
           {loading ? "กำลังส่ง..." : "ส่งข้อความ"}
         </button>

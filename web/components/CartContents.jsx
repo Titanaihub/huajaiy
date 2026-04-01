@@ -136,11 +136,11 @@ export default function CartContents() {
 
   if (lines.length === 0 && !doneMsg) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+      <div className="rounded-2xl border border-dashed border-hui-border bg-hui-surface p-8 text-center text-sm text-hui-muted">
         <p>ตะกร้าว่าง</p>
         <Link
           href="/shop"
-          className="mt-3 inline-block text-blue-600 underline hover:text-blue-800"
+          className="mt-3 inline-block font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
         >
           ไปเลือกสินค้า
         </Link>
@@ -151,18 +151,15 @@ export default function CartContents() {
   return (
     <div className="space-y-4">
       {doneMsg ? (
-        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-900">
+        <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 text-sm text-hui-body shadow-soft">
           {doneMsg}
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              href="/account/orders"
-              className="rounded-lg bg-brand-800 px-3 py-1.5 text-white hover:bg-brand-900"
-            >
+            <Link href="/account/orders" className="hui-btn-primary px-3 py-1.5 text-sm">
               ออเดอร์ของฉัน
             </Link>
             <Link
               href="/shop"
-              className="rounded-lg border border-brand-300 px-3 py-1.5 text-brand-900 hover:bg-brand-100"
+              className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-sm font-semibold text-hui-section shadow-soft hover:bg-hui-pageTop"
             >
               ช้อปต่อ
             </Link>
@@ -191,26 +188,29 @@ export default function CartContents() {
       ) : null}
 
       {!doneMsg ? (
-        <ul className="divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white">
+        <ul className="divide-y divide-hui-border rounded-2xl border border-hui-border bg-hui-surface shadow-soft">
           {rows.map(({ line, product }) => (
             <li
               key={line.productId}
               className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <p className="font-medium text-slate-900">{product.title}</p>
-                <p className="text-xs text-slate-500">{product.shopName}</p>
-                <p className="mt-1 flex flex-wrap items-center gap-1 text-sm text-slate-600">
-                  <span>฿{Number(product.priceThb).toLocaleString("th-TH")} / ชิ้น</span>
+                <p className="font-medium text-hui-body">{product.title}</p>
+                <p className="text-xs text-hui-muted">{product.shopName}</p>
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-sm text-hui-body">
+                  <span className="font-semibold text-hui-cta">
+                    ฿{Number(product.priceThb).toLocaleString("th-TH")}
+                  </span>
+                  <span>/ ชิ้น</span>
                   {product.heartsBonus > 0 ? (
                     <>
                       <span>· แถม</span>
-                      <InlineHeart size="sm" className="text-brand-700" />
+                      <InlineHeart size="sm" className="text-hui-pink" />
                       <span>{product.heartsBonus} / ชิ้น</span>
                     </>
                   ) : null}
                 </p>
-                <p className="text-xs text-slate-500">สต็อก {product.stockQty} ชิ้น</p>
+                <p className="text-xs text-hui-muted">สต็อก {product.stockQty} ชิ้น</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <label className="sr-only" htmlFor={`qty-${line.productId}`}>
@@ -225,7 +225,7 @@ export default function CartContents() {
                   onChange={(e) =>
                     setLineQty(line.productId, Number(e.target.value))
                   }
-                  className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+                  className="w-20 rounded-xl border border-hui-border px-2 py-1 text-sm text-hui-body"
                 />
                 <button
                   type="button"
@@ -241,26 +241,27 @@ export default function CartContents() {
       ) : null}
 
       {!doneMsg && rows.length > 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm space-y-3">
+        <div className="rounded-2xl border border-hui-border bg-hui-surface/95 p-4 text-sm space-y-3 shadow-soft">
           <div>
-            <label className="text-xs font-medium text-slate-700">
-              ที่อยู่จัดส่ง
-            </label>
+            <label className="block text-xs font-medium text-hui-section">ที่อยู่จัดส่ง</label>
             <textarea
               value={shipping}
               onChange={(e) => setShipping(e.target.value)}
               rows={3}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="hui-input mt-1"
               placeholder="ชื่อ โทร ที่อยู่เต็ม"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-hui-muted">
               บันทึกถาวรในออเดอร์ — แก้ค่าเริ่มต้นได้ที่{" "}
-              <Link href="/account/profile" className="text-brand-800 underline">
+              <Link
+                href="/account/profile"
+                className="font-medium text-hui-cta underline decoration-hui-cta/40"
+              >
                 โปรไฟล์
               </Link>
             </p>
           </div>
-          <p className="flex justify-between text-slate-800">
+          <p className="flex justify-between text-hui-body">
             <span>ยอดรวม</span>
             <span className="font-semibold">
               ฿{totals.price.toLocaleString("th-TH")}
@@ -279,8 +280,11 @@ export default function CartContents() {
             <p className="text-sm text-red-600">{checkoutErr}</p>
           ) : null}
           {!user ? (
-            <p className="text-sm text-slate-700">
-              <Link href="/login?next=/cart" className="font-semibold text-brand-800 underline">
+            <p className="text-sm text-hui-body">
+              <Link
+                href="/login?next=/cart"
+                className="font-semibold text-hui-cta underline decoration-hui-cta/40"
+              >
                 เข้าสู่ระบบ
               </Link>{" "}
               เพื่อยืนยันออเดอร์
@@ -290,12 +294,12 @@ export default function CartContents() {
               type="button"
               disabled={busy || missingCount > 0}
               onClick={checkout}
-              className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:bg-slate-400"
+              className="hui-btn-primary w-full py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "กำลังดำเนินการ…" : "ยืนยันออเดอร์ (รอชำระเงิน)"}
             </button>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-hui-muted">
             ระบบตัดสต็อกทันที · ชำระเงินหลายช่องทางตามที่วางแผนในขั้นถัดไป
           </p>
         </div>

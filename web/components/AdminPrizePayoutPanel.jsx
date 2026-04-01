@@ -325,7 +325,7 @@ function PendingWithdrawalRow({ row, token, onDone }) {
             type="button"
             disabled={busy}
             onClick={() => void handleApprove()}
-            className="rounded-lg bg-emerald-700 px-2 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+            className="hui-btn-primary px-2 py-1.5 text-xs disabled:opacity-50"
           >
             {busy ? "…" : "อนุมัติ"}
           </button>

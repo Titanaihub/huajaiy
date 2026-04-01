@@ -484,7 +484,7 @@ export default function CreatorWithdrawalsSection() {
                                 type="button"
                                 disabled={busyId === r.id}
                                 onClick={() => void resolveApprove(r.id)}
-                                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-50"
+                                className="hui-btn-primary px-4 py-2 text-sm shadow-soft disabled:opacity-50"
                               >
                                 {busyId === r.id ? "กำลังบันทึก…" : "อนุมัติ (จ่ายแล้ว)"}
                               </button>

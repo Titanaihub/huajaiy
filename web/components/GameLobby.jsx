@@ -36,7 +36,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           htmlFor="game-search"
           className={
             onBrand
-              ? "text-xs font-medium text-white"
+              ? "hui-label text-xs"
               : "text-xs font-medium text-slate-600"
           }
         >
@@ -48,7 +48,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="พิมพ์คำค้น…"
-          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-brand-200 placeholder:text-slate-400 focus:border-brand-300 focus:ring-2"
+          className="mt-1 w-full rounded-2xl border border-hui-border bg-white px-4 py-2.5 text-sm text-hui-body shadow-sm outline-none ring-brand-200 placeholder:text-hui-placeholder focus:border-brand-300 focus:ring-2"
           autoComplete="off"
         />
       </div>
@@ -65,7 +65,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
         <p
           className={
             onBrand
-              ? "text-center text-sm text-white/90"
+              ? "text-center text-sm text-hui-muted"
               : "text-center text-sm text-slate-500"
           }
         >
@@ -81,7 +81,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
               <li key={g.id}>
                 <Link
                   href={href}
-                  className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md"
+                  className="flex h-full flex-col overflow-hidden rounded-3xl border border-hui-border bg-hui-surface shadow-sm transition hover:border-brand-300 hover:shadow-md"
                 >
                   <div className="flex gap-3 p-4">
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
@@ -93,7 +93,7 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-sm font-semibold leading-snug text-slate-900 line-clamp-2">
+                      <h2 className="text-sm font-semibold leading-snug text-hui-cardTitle line-clamp-2">
                         {g.title || "เกม"}
                       </h2>
                       <p className="mt-1 text-[11px] text-slate-500">

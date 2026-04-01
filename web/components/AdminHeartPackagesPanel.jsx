@@ -334,7 +334,7 @@ export default function AdminHeartPackagesPanel() {
         ) : null}
         <button
           type="submit"
-          className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+          className="hui-btn-primary px-4 py-2 text-sm"
         >
           สร้างแพ็กเกจ
         </button>
@@ -536,7 +536,7 @@ export default function AdminHeartPackagesPanel() {
             <button
               type="submit"
               disabled={editBusy}
-              className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+              className="hui-btn-primary px-4 py-2 text-sm disabled:opacity-50"
             >
               {editBusy ? "กำลังบันทึก…" : "บันทึกการแก้ไข"}
             </button>

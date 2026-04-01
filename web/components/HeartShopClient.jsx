@@ -159,14 +159,14 @@ export default function HeartShopClient() {
   }
 
   if (authLoading || !user) {
-    return <p className="text-sm text-slate-600">กำลังโหลด…</p>;
+    return <p className="text-sm text-hui-muted">กำลังโหลด…</p>;
   }
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-hui-body">
         เมื่อระบบอนุมัติการซื้อ จำนวนหัวใจแดงจะเข้าไปในเมนู{" "}
-        <strong>แจกหัวใจแดง</strong> (เมนูผู้สร้าง → แจกหัวใจแดง)
+        <strong className="text-hui-section">แจกหัวใจแดง</strong> (เมนูผู้สร้าง → แจกหัวใจแดง)
       </p>
       {loadErr ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -175,36 +175,36 @@ export default function HeartShopClient() {
       ) : null}
 
       <section>
-        <h2 className="text-lg font-semibold text-slate-900">แพ็กเกจ</h2>
+        <h2 className="hui-h2">แพ็กเกจ</h2>
         <ul className="mt-3 grid gap-4 sm:grid-cols-2">
           {packages.length === 0 && !loadErr ? (
-            <li className="text-sm text-slate-500">ยังไม่มีแพ็กเปิดขาย</li>
+            <li className="text-sm text-hui-muted">ยังไม่มีแพ็กเปิดขาย</li>
           ) : (
             packages.map((p) => (
               <li
                 key={p.id}
-                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft"
               >
-                <p className="font-semibold text-slate-900">{p.title}</p>
-                <p className="mt-2 text-sm text-slate-700">
+                <p className="font-semibold text-hui-section">{p.title}</p>
+                <p className="mt-2 text-sm text-hui-body">
                   {(p.description || "").trim() ||
                     "หัวใจแดงสำหรับเอาไว้แจกเล่นเกม"}
                 </p>
-                <p className="mt-1 flex flex-wrap items-baseline gap-x-1 text-base text-slate-800">
+                <p className="mt-1 flex flex-wrap items-baseline gap-x-1 text-base text-hui-body">
                   <span>หัวใจแดง</span>
-                  <span className="text-2xl font-bold tabular-nums text-red-700 sm:text-3xl">
+                  <span className="text-2xl font-bold tabular-nums text-hui-cta sm:text-3xl">
                     {p.redQty?.toLocaleString("th-TH")}
                   </span>
                   <span>ดวง</span>
                 </p>
-                <p className="mt-1 text-lg font-bold text-slate-900">
+                <p className="hui-price mt-1">
                   ฿{p.priceThb?.toLocaleString("th-TH")}
                 </p>
                 <button
                   type="button"
                   disabled={creatingId === p.id}
                   onClick={() => onSelectPackage(p)}
-                  className="mt-3 rounded-lg bg-brand-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+                  className="hui-btn-primary mt-3 px-3 py-1.5 text-sm disabled:opacity-50"
                 >
                   {creatingId === p.id ? "กำลังสร้างรายการ…" : "เลือกแพ็กนี้"}
                 </button>
@@ -215,7 +215,7 @@ export default function HeartShopClient() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-slate-900">รายการสั่งซื้อ</h2>
+        <h2 className="hui-h2">รายการสั่งซื้อ</h2>
         {msg ? (
           <p
             className={`mt-2 text-sm ${
@@ -226,16 +226,16 @@ export default function HeartShopClient() {
           </p>
         ) : null}
         {purchases.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">ยังไม่มีรายการ — เลือกแพ็กด้านบนเพื่อสั่งซื้อ</p>
+          <p className="mt-2 text-sm text-hui-muted">ยังไม่มีรายการ — เลือกแพ็กด้านบนเพื่อสั่งซื้อ</p>
         ) : (
-          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-hui-border bg-hui-surface shadow-soft">
             <table className="w-full min-w-[640px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/90">
-                  <th className="px-3 py-2.5 font-semibold text-slate-800">วันที่</th>
-                  <th className="px-3 py-2.5 font-semibold text-slate-800">รายการสั่งซื้อ</th>
-                  <th className="px-3 py-2.5 font-semibold text-slate-800">สถานะ</th>
-                  <th className="px-3 py-2.5 font-semibold text-slate-800">ดูรายละเอียดการชำระ</th>
+                <tr className="border-b border-hui-border bg-hui-pageTop/90">
+                  <th className="px-3 py-2.5 font-semibold text-hui-section">วันที่</th>
+                  <th className="px-3 py-2.5 font-semibold text-hui-section">รายการสั่งซื้อ</th>
+                  <th className="px-3 py-2.5 font-semibold text-hui-section">สถานะ</th>
+                  <th className="px-3 py-2.5 font-semibold text-hui-section">ดูรายละเอียดการชำระ</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,8 +243,8 @@ export default function HeartShopClient() {
                   const expanded = expandedId === row.id;
                   return (
                     <Fragment key={row.id}>
-                      <tr className="border-b border-slate-100">
-                        <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
+                      <tr className="border-b border-hui-border/80">
+                        <td className="whitespace-nowrap px-3 py-2.5 text-hui-body">
                           {new Date(row.createdAt).toLocaleString("th-TH", {
                             year: "numeric",
                             month: "short",
@@ -253,10 +253,10 @@ export default function HeartShopClient() {
                             minute: "2-digit"
                           })}
                         </td>
-                        <td className="px-3 py-2.5 font-medium text-slate-900">
+                        <td className="px-3 py-2.5 font-medium text-hui-body">
                           {row.packageTitle || "—"}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2.5 text-slate-800">
+                        <td className="whitespace-nowrap px-3 py-2.5 text-hui-body">
                           {purchaseStatusLabel(row)}
                         </td>
                         <td className="px-3 py-2.5">
@@ -265,40 +265,40 @@ export default function HeartShopClient() {
                             onClick={() =>
                               setExpandedId(expanded ? null : row.id)
                             }
-                            className="text-sm font-semibold text-brand-800 underline hover:text-brand-950"
+                            className="text-sm font-semibold text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
                           >
                             {expanded ? "ซ่อน" : "ดูรายละเอียดการชำระ"}
                           </button>
                         </td>
                       </tr>
                       {expanded ? (
-                        <tr className="border-b border-slate-100 bg-slate-50/80">
+                        <tr className="border-b border-hui-border/80 bg-hui-pageTop/60">
                           <td colSpan={4} className="px-3 py-4">
-                            <div className="max-w-lg rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-800">
-                              <p className="text-xs font-semibold uppercase text-slate-500">
+                            <div className="max-w-lg rounded-xl border border-hui-border bg-white p-3 text-sm text-hui-body">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-hui-muted">
                                 โอนเงินมาที่
                               </p>
-                              <ul className="mt-2 space-y-1 text-slate-700">
+                              <ul className="mt-2 space-y-1 text-hui-body">
                                 <li>
-                                  <span className="font-medium text-slate-600">ชื่อบัญชี:</span>{" "}
+                                  <span className="font-medium text-hui-muted">ชื่อบัญชี:</span>{" "}
                                   {row.paymentAccountName || "—"}
                                 </li>
                                 <li>
-                                  <span className="font-medium text-slate-600">เลขบัญชี:</span>{" "}
+                                  <span className="font-medium text-hui-muted">เลขบัญชี:</span>{" "}
                                   {row.paymentAccountNumber || "—"}
                                 </li>
                                 <li>
-                                  <span className="font-medium text-slate-600">ธนาคาร:</span>{" "}
+                                  <span className="font-medium text-hui-muted">ธนาคาร:</span>{" "}
                                   {row.paymentBankName || "—"}
                                 </li>
                               </ul>
                               {row.paymentQrUrl ? (
                                 <div className="mt-3">
-                                  <p className="text-xs font-medium text-slate-600">สแกน QR จ่าย</p>
+                                  <p className="text-xs font-medium text-hui-muted">สแกน QR จ่าย</p>
                                   <img
                                     src={row.paymentQrUrl}
                                     alt="QR ชำระเงิน"
-                                    className="mt-2 max-h-48 w-auto max-w-full rounded-lg border border-slate-200 bg-white object-contain"
+                                    className="mt-2 max-h-48 w-auto max-w-full rounded-lg border border-hui-border bg-white object-contain"
                                   />
                                 </div>
                               ) : null}
@@ -309,7 +309,7 @@ export default function HeartShopClient() {
                                 onSubmit={(e) => submitSlipForPurchase(row.id, e)}
                               >
                                 <div>
-                                  <label className="text-xs font-medium text-slate-600">
+                                  <label className="text-xs font-medium text-hui-section">
                                     รูปสลิปโอนเงิน
                                   </label>
                                   <input
@@ -327,7 +327,7 @@ export default function HeartShopClient() {
                                 <button
                                   type="submit"
                                   disabled={submittingSlipId === row.id}
-                                  className="rounded-lg bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-50"
+                                  className="hui-btn-primary px-4 py-2 text-sm disabled:opacity-50"
                                 >
                                   {submittingSlipId === row.id
                                     ? "กำลังส่ง…"
@@ -341,7 +341,7 @@ export default function HeartShopClient() {
                                   href={row.slipUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-medium text-brand-800 underline"
+                                  className="font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
                                 >
                                   เปิดดูสลิปที่ส่งแล้ว
                                 </a>
@@ -360,7 +360,10 @@ export default function HeartShopClient() {
       </section>
 
       <p className="text-sm">
-        <Link href="/account" className="text-brand-800 underline">
+        <Link
+          href="/account"
+          className="font-medium text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+        >
           ← ภาพรวมบัญชี
         </Link>
       </p>

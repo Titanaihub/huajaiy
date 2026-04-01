@@ -16,8 +16,8 @@ import {
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const inputBase =
-  "mt-1 w-full rounded-xl border px-3 py-2 text-sm transition-colors";
-const inputNormal = "border-slate-300";
+  "mt-1 w-full rounded-2xl border px-3 py-2 text-sm text-hui-body transition-colors placeholder:text-hui-placeholder";
+const inputNormal = "border-hui-border bg-white";
 const inputWarn = "border-amber-500 bg-amber-50/40 ring-1 ring-amber-400/80";
 
 export default function RegisterForm() {
@@ -137,9 +137,9 @@ export default function RegisterForm() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold text-white">สมัครสมาชิก</h1>
-      <div className="mt-3 space-y-2 text-sm leading-relaxed text-white/95">
-        <p className="font-semibold text-white">1 คนต่อ 1 บัญชีเท่านั้น</p>
+      <h1 className="hui-h2">สมัครสมาชิก</h1>
+      <div className="mt-3 space-y-2 text-base leading-relaxed text-hui-body">
+        <p className="font-semibold text-hui-section">1 คนต่อ 1 บัญชีเท่านั้น</p>
         <p>
           กรุณากรอกข้อมูลจริงให้ถูกต้อง
           ข้อมูลผิดอาจแก้ไขภายหลังได้ยากและอาจเสียสิทธิ์รับรางวัล
@@ -149,7 +149,7 @@ export default function RegisterForm() {
         <div>
           <label
             htmlFor="firstName"
-            className="block text-sm font-medium leading-snug text-white"
+            className="block text-sm font-medium leading-snug text-hui-section"
           >
             {countryCode === COUNTRY_TH ? (
               <>
@@ -174,12 +174,12 @@ export default function RegisterForm() {
             aria-invalid={firstThaiWarn || firstLatinWarn}
           />
           {firstThaiWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-100">
+            <p className="mt-1.5 text-sm font-medium text-amber-800">
               {firstNameEnglishHint}
             </p>
           ) : null}
           {firstLatinWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-100">
+            <p className="mt-1.5 text-sm font-medium text-amber-800">
               หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot; แล้วกรอกชื่อเป็นภาษาไทย
             </p>
           ) : null}
@@ -188,7 +188,7 @@ export default function RegisterForm() {
         <div>
           <label
             htmlFor="lastName"
-            className="block text-sm font-medium leading-snug text-white"
+            className="block text-sm font-medium leading-snug text-hui-section"
           >
             {countryCode === COUNTRY_TH
               ? "นามสกุล (ภาษาไทย) กรุณากรอกให้ตรงตามบัตรประชาชน"
@@ -206,12 +206,12 @@ export default function RegisterForm() {
             aria-invalid={lastThaiWarn || lastLatinWarn}
           />
           {lastThaiWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-100">
+            <p className="mt-1.5 text-sm font-medium text-amber-800">
               {lastNameEnglishHint}
             </p>
           ) : null}
           {lastLatinWarn ? (
-            <p className="mt-1.5 text-sm font-medium text-amber-100">
+            <p className="mt-1.5 text-sm font-medium text-amber-800">
               หากถือเอกสารไทยให้เลือก &quot;ประเทศไทย&quot;
               แล้วกรอกนามสกุลเป็นภาษาไทย
             </p>
@@ -273,11 +273,11 @@ export default function RegisterForm() {
         ) : null}
 
         {namesValid && dupCheckPending ? (
-          <p className="text-xs text-white/80">กำลังตรวจสอบชื่อในระบบ…</p>
+          <p className="hui-note">กำลังตรวจสอบชื่อในระบบ…</p>
         ) : null}
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-white">
+          <label htmlFor="phone" className="hui-label">
             เบอร์โทรศัพท์
           </label>
           <input
@@ -285,27 +285,27 @@ export default function RegisterForm() {
             inputMode="numeric"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             placeholder="0812345678"
             required
             autoComplete="tel"
           />
         </div>
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-white">
+          <label htmlFor="username" className="hui-label">
             ตั้งค่า ชื่อผู้ใช้ (a–z, ตัวเลข, _)
           </label>
           <input
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase())}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             required
             autoComplete="username"
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-white">
+          <label htmlFor="password" className="hui-label">
             ตั้งค่า รหัสผ่าน (อย่างน้อย 6 ตัว)
           </label>
           <input
@@ -313,13 +313,13 @@ export default function RegisterForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             required
             autoComplete="new-password"
           />
         </div>
         <div>
-          <label htmlFor="passwordConfirm" className="block text-sm font-medium text-white">
+          <label htmlFor="passwordConfirm" className="hui-label">
             ยืนยันรหัสผ่าน
           </label>
           <input
@@ -327,27 +327,27 @@ export default function RegisterForm() {
             type="password"
             value={passwordConfirm}
             onChange={(e) => setPasswordConfirm(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             required
             autoComplete="new-password"
           />
         </div>
         {error ? (
-          <p className="text-sm font-medium text-amber-100">{error}</p>
+          <p className="text-sm font-medium text-rose-700">{error}</p>
         ) : null}
         <button
           type="submit"
           disabled={submitBlocked}
-          className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
+          className="hui-btn-primary w-full py-3 text-center disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "กำลังส่ง..." : "สมัครสมาชิก"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-white/95">
+      <p className="mt-6 text-center text-sm text-hui-body">
         มีบัญชีแล้ว?{" "}
         <Link
           href="/login"
-          className="font-semibold text-white underline decoration-white/70 underline-offset-2 hover:decoration-white"
+          className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
         >
           เข้าสู่ระบบ
         </Link>

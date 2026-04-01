@@ -468,8 +468,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("members")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "members"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           สมาชิก
@@ -479,8 +479,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("shops")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "shops"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           ร้านทั้งหมด
@@ -490,8 +490,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("game")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "game"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           เกมและรางวัล
@@ -501,8 +501,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("centralGame")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "centralGame"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           เกมส่วนกลาง
@@ -512,8 +512,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("prizePayouts")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "prizePayouts"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           จ่ายรางวัล
@@ -523,8 +523,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("heartPackages")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "heartPackages"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           แพ็กขายหัวใจ
@@ -534,8 +534,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("heartPurchases")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "heartPurchases"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           อนุมัติสลิป
@@ -545,8 +545,8 @@ export default function AdminDashboard() {
           onClick={() => setTab("nameChanges")}
           className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             tab === "nameChanges"
-              ? "bg-brand-800 text-white"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-hui-cta text-white shadow-soft"
+              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
           คำขอเปลี่ยนชื่อ
@@ -575,7 +575,7 @@ export default function AdminDashboard() {
             </div>
             <button
               type="submit"
-              className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900"
+              className="hui-btn-primary px-4 py-2 text-sm"
             >
               ค้นหา
             </button>
@@ -685,7 +685,7 @@ export default function AdminDashboard() {
                               e.stopPropagation();
                               if (rowId) openDetail(rowId);
                             }}
-                            className="cursor-pointer text-brand-800 underline decoration-brand-300 underline-offset-2 hover:text-brand-950 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
+                            className="cursor-pointer text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:no-underline"
                           >
                             ดูทั้งหมด
                           </button>
@@ -1046,7 +1046,7 @@ export default function AdminDashboard() {
                         <button
                           type="submit"
                           disabled={admProfileBusy}
-                          className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+                          className="hui-btn-primary px-4 py-2 text-sm disabled:opacity-50"
                         >
                           {admProfileBusy ? "กำลังบันทึก…" : "บันทึกโปรไฟล์"}
                         </button>
@@ -1075,7 +1075,7 @@ export default function AdminDashboard() {
                       <button
                         type="submit"
                         disabled={heartBusy}
-                        className="rounded-lg bg-pink-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-pink-800 disabled:opacity-50"
+                        className="hui-btn-pink px-3 py-1.5 text-sm disabled:opacity-50"
                       >
                         {heartBusy ? "…" : "บันทึก"}
                       </button>
@@ -1108,7 +1108,7 @@ export default function AdminDashboard() {
                       <button
                         type="submit"
                         disabled={passBusy}
-                        className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-900 disabled:opacity-50"
+                        className="rounded-2xl bg-hui-burgundy px-3 py-1.5 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-50"
                       >
                         {passBusy ? "…" : "ตั้งรหัส"}
                       </button>
@@ -1303,7 +1303,10 @@ export default function AdminDashboard() {
         <section className="space-y-4">
           <p className="text-sm text-slate-600">
             ร้านที่ลงทะเบียนในฐานข้อมูล — สร้างร้านด้านล่างได้เลย จากนั้นให้เจ้าของร้านไป{" "}
-            <Link href="/account/shops" className="font-medium text-brand-800 underline">
+            <Link
+              href="/account/shops"
+              className="font-medium text-hui-cta underline decoration-hui-cta/40"
+            >
               ร้านของฉัน → จัดการสินค้า
             </Link>
           </p>
@@ -1374,7 +1377,7 @@ export default function AdminDashboard() {
             <button
               type="submit"
               disabled={shopCreateBusy}
-              className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+              className="hui-btn-primary px-4 py-2 text-sm disabled:opacity-50"
             >
               {shopCreateBusy ? "กำลังสร้าง…" : "สร้างร้าน"}
             </button>
@@ -1417,7 +1420,7 @@ export default function AdminDashboard() {
                       <td className="px-3 py-2">
                         <Link
                           href={`/account/shops/${s.id}/products`}
-                          className="text-brand-800 underline hover:text-brand-950"
+                          className="text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
                         >
                           จัดการสินค้า
                         </Link>
@@ -1447,7 +1450,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setTab("centralGame")}
-              className="mt-3 rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+              className="hui-btn-primary mt-3 px-4 py-2 text-sm"
             >
               ไปตั้งค่าเกมส่วนกลาง
             </button>

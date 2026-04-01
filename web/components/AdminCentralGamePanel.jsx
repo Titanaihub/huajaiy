@@ -1011,15 +1011,11 @@ export default function AdminCentralGamePanel({
 
   return (
     <section className="space-y-8 text-sm">
-      {err ? <p className={embedded ? "text-red-100" : "text-red-600"}>{err}</p> : null}
+      {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
         <p
           className={
-            embedded
-              ? "text-white/90"
-              : msg.includes("แล้ว")
-                ? "text-green-700"
-                : "text-amber-800"
+            msg.includes("แล้ว") ? "text-green-700" : "text-amber-800"
           }
         >
           {msg}
@@ -1144,7 +1140,7 @@ export default function AdminCentralGamePanel({
             <div className="sm:col-span-2 flex flex-wrap gap-2">
               <button
                 type="submit"
-                className="rounded-lg bg-brand-800 px-4 py-2 font-semibold text-white hover:bg-brand-900"
+                className="hui-btn-primary text-sm py-2 px-4"
               >
                 สร้างเกม
               </button>
@@ -1176,7 +1172,7 @@ export default function AdminCentralGamePanel({
               disabled={gameActionBusy}
               aria-busy={gameActionBusy}
               onClick={() => publishGameById(publishPrompt.id)}
-              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="hui-btn-primary text-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               เผยแพร่บนเว็บ
             </button>
@@ -1294,7 +1290,7 @@ export default function AdminCentralGamePanel({
 
       {selectedId ? (
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
-          {loading ? <p className={embedded ? "text-white/85" : "text-slate-500"}>กำลังโหลด…</p> : null}
+          {loading ? <p className="text-hui-muted">กำลังโหลด…</p> : null}
 
           {awardEditLocked ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-950">
@@ -1302,28 +1298,28 @@ export default function AdminCentralGamePanel({
             </div>
           ) : null}
 
-          <p className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
-            แต่ละชุด = <strong>จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
-            <strong>บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
+          <p className="text-xs text-hui-muted">
+            แต่ละชุด = <strong className="text-hui-section">จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
+            <strong className="text-hui-section">บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
           </p>
 
           <form
             onSubmit={(e) => e.preventDefault()}
             noValidate
-            className="rounded-xl border border-slate-200 p-4 space-y-4"
+            className="space-y-4 rounded-xl border border-hui-border bg-hui-surface/90 p-4 shadow-soft"
           >
             <div>
-              <h3 className={embedded ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+              <h3 className="font-semibold text-hui-section">
                 โครงชุดและรูปภาพ
               </h3>
-              <p className={embedded ? "mt-1 text-xs text-white/90" : "mt-1 text-xs text-slate-500"}>
-                รวม <span className={embedded ? "font-mono text-white" : "font-mono text-slate-700"}>{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
+              <p className="mt-1 text-xs text-hui-muted">
+                รวม <span className="font-mono text-hui-body">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
+                <label className="text-xs text-hui-section">
                   ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
                 </label>
                 <input
@@ -1346,7 +1342,7 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>รายละเอียด</label>
+                <label className="text-xs text-hui-section">รายละเอียด</label>
                 <textarea
                   value={gameDescription}
                   onChange={(e) => setGameDescription(e.target.value)}
@@ -1355,19 +1351,9 @@ export default function AdminCentralGamePanel({
                   placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
                 />
               </div>
-              <div
-                className={
-                  embedded
-                    ? "sm:col-span-2 rounded-lg border border-white/25 bg-white/10 p-3"
-                    : "sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50/60 p-3"
-                }
-              >
-                <p
-                  className={
-                    embedded ? "text-xs leading-relaxed text-white/95" : "text-xs leading-relaxed text-slate-700"
-                  }
-                >
-                  <span className={embedded ? "font-semibold text-white" : "font-semibold text-slate-900"}>
+              <div className="sm:col-span-2 rounded-lg border border-hui-border bg-hui-pageTop/80 p-3">
+                <p className="text-xs leading-relaxed text-hui-body">
+                  <span className="font-semibold text-hui-section">
                     สถานะการแสดงในรายการหน้า /game:
                   </span>{" "}
                   {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่ม「เผยแพร่บนเว็บ」หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
@@ -1386,7 +1372,7 @@ export default function AdminCentralGamePanel({
                 </label>
               </div>
               <div>
-                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
+                <label className="text-xs text-hui-section">
                   จำนวนชุด
                 </label>
                 <input
@@ -1403,10 +1389,10 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div>
-                <label className={embedded ? "text-xs text-white/90" : "text-xs text-slate-600"}>
+                <label className="text-xs text-hui-section">
                   ป้ายรวม (คำนวณอัตโนมัติ)
                 </label>
-                <p className={embedded ? "mt-2 font-mono text-sm text-white" : "mt-2 font-mono text-sm text-slate-800"}>
+                <p className="mt-2 font-mono text-sm text-hui-body">
                   {tileCount}
                 </p>
               </div>
@@ -1471,7 +1457,7 @@ export default function AdminCentralGamePanel({
             </div>
 
             <div className="space-y-4">
-              <p className={embedded ? "text-xs font-semibold text-white" : "text-xs font-semibold text-slate-700"}>
+              <p className="text-xs font-semibold text-hui-section">
                 แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัล (ชิดรูปเพื่อมีที่สำหรับคอลัมน์การจ่ายรางวัล)
               </p>
               {Array.from({ length: setCount }, (_, s) => {
@@ -1725,7 +1711,7 @@ export default function AdminCentralGamePanel({
                   type="button"
                   disabled={savingAll || loading || gameActionBusy || !selectedId}
                   onClick={() => saveAllGameData()}
-                  className="shrink-0 self-start rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="hui-btn-primary shrink-0 self-start px-6 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
                 </button>
@@ -1742,7 +1728,7 @@ export default function AdminCentralGamePanel({
                   disabled={gameActionBusy || savingAll || !selectedId}
                   aria-busy={gameActionBusy}
                   onClick={() => activate()}
-                  className="rounded-lg bg-green-700 px-3 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   เผยแพร่บนเว็บ
                 </button>
@@ -1750,7 +1736,7 @@ export default function AdminCentralGamePanel({
                   type="button"
                   disabled={gameActionBusy || savingAll || !selectedId}
                   onClick={() => deactivate()}
-                  className="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   หยุดการเผยแพร่
                 </button>

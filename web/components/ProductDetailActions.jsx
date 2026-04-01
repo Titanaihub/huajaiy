@@ -20,12 +20,12 @@ export default function ProductDetailActions({ product }) {
         type="button"
         onClick={putInCart}
         disabled={!canBuy}
-        className="w-full rounded-xl bg-brand-800 py-3 text-sm font-medium text-white hover:bg-brand-900 disabled:cursor-not-allowed disabled:bg-slate-300 sm:max-w-xs"
+        className="hui-btn-primary w-full py-3 text-sm sm:max-w-xs disabled:cursor-not-allowed disabled:opacity-40"
       >
         {canBuy ? "ใส่ตะกร้า" : "สินค้าหมด"}
       </button>
       {hint === "cart" ? (
-        <p className="text-center text-xs text-blue-700">ใส่ตะกร้าแล้ว</p>
+        <p className="text-center text-xs font-medium text-hui-section">ใส่ตะกร้าแล้ว</p>
       ) : null}
     </div>
   );

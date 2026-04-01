@@ -351,7 +351,7 @@ export default function PrizeWithdrawForm() {
             loadingAvail ||
             done
           }
-          className="w-full rounded-xl bg-emerald-700 py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="hui-btn-primary w-full py-3.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "กำลังส่งคำขอ…" : "ถอนเงิน"}
         </button>

@@ -9,12 +9,11 @@ import HeartIcon from "./HeartIcon";
 export default function BrandLogo({ variant = "header" }) {
   const compact = variant === "footer";
   const titleClass = compact
-    ? "text-base font-bold tracking-tight text-white transition group-hover:text-brand-300"
-    : "text-lg font-bold tracking-tight text-neutral-950 transition group-hover:text-neutral-900 sm:text-xl";
+    ? "text-base font-bold tracking-tight text-hui-burgundy transition group-hover:text-hui-cta sm:text-lg"
+    : "text-lg font-bold tracking-tight text-hui-burgundy transition group-hover:text-hui-cta sm:text-xl";
 
-  /** ชมพูสดเดียวกับโลโก้หลัก (#db2777) — footer พื้นแดงอ่อนจึงใช้สีชมพูเข้มให้เด่น */
   const heartClass = compact
-    ? "h-7 w-7 text-[#db2777] sm:h-8 sm:w-8"
+    ? "h-7 w-7 text-hui-cta sm:h-8 sm:w-8"
     : "heart-logo-blink h-8 w-8 sm:h-9 sm:w-9";
 
   return (

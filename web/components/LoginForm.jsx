@@ -31,20 +31,20 @@ export default function LoginForm({ redirectAfterLogin = null }) {
     <>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label htmlFor="login-username" className="block text-sm font-medium text-white">
+          <label htmlFor="login-username" className="hui-label">
             ชื่อผู้ใช้
           </label>
           <input
             id="login-username"
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase())}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             required
             autoComplete="username"
           />
         </div>
         <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-white">
+          <label htmlFor="login-password" className="hui-label">
             รหัสผ่าน
           </label>
           <input
@@ -52,27 +52,30 @@ export default function LoginForm({ redirectAfterLogin = null }) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
             required
             autoComplete="current-password"
           />
         </div>
         {error ? (
-          <p className="rounded-lg bg-black/25 px-3 py-2 text-sm text-amber-100 ring-1 ring-white/20">
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
             {error}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-brand-800 py-3 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-60"
+          className="hui-btn-primary w-full py-3 text-center disabled:opacity-60"
         >
           {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
         </button>
       </form>
-      <p className="mt-6 text-center text-sm text-white/95">
+      <p className="mt-6 text-center text-sm text-hui-body">
         ยังไม่มีบัญชี?{" "}
-        <Link href="/register" className="font-semibold text-white underline decoration-white/70 underline-offset-2 hover:decoration-white">
+        <Link
+          href="/register"
+          className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+        >
           สมัครสมาชิก
         </Link>
       </p>

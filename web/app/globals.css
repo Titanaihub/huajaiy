@@ -6,13 +6,52 @@
   html {
     @apply scroll-smooth;
   }
-  body {
-    @apply min-h-screen bg-brand-50 text-slate-900;
-  }
+}
+
+/** พื้นหลัง + สีตัวหนังสือหลักทั้งเว็บ (ธีมชมพู–burgundy) */
+.hui-root {
+  @apply min-h-screen bg-gradient-to-b from-hui-pageTop via-hui-pageMid to-hui-pageBot text-hui-body antialiased;
+  line-height: 1.5;
 }
 
 ::selection {
-  @apply bg-brand-200 text-slate-900;
+  @apply bg-brand-200 text-hui-body;
+}
+
+@layer components {
+  .hui-h1 {
+    @apply text-hui-hero font-bold text-hui-burgundy md:text-[2.625rem];
+  }
+  .hui-h2 {
+    @apply text-hui-h2 font-semibold text-hui-section;
+  }
+  .hui-h3 {
+    @apply text-hui-h3 font-semibold text-hui-cardTitle;
+  }
+  .hui-body-text {
+    @apply text-base text-hui-body;
+  }
+  .hui-note {
+    @apply text-[0.8125rem] text-hui-muted;
+  }
+  .hui-price {
+    @apply text-hui-price font-bold text-hui-cta;
+  }
+  .hui-btn-primary {
+    @apply rounded-2xl bg-hui-cta px-5 py-2.5 text-base font-semibold text-white shadow-soft transition hover:brightness-95 active:scale-[0.99];
+  }
+  .hui-btn-pink {
+    @apply rounded-2xl bg-hui-pink px-5 py-2.5 text-base font-semibold text-white shadow-soft transition hover:brightness-95;
+  }
+  .hui-btn-gold {
+    @apply rounded-2xl bg-hui-gold px-5 py-2.5 text-base font-semibold text-hui-goldInk shadow-soft transition hover:brightness-95;
+  }
+  .hui-label {
+    @apply text-sm font-medium text-hui-section;
+  }
+  .hui-input {
+    @apply mt-1 w-full rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm text-hui-body placeholder:text-hui-placeholder;
+  }
 }
 
 @keyframes huajaiy-heart-blink {
@@ -29,7 +68,7 @@
 
 .heart-logo-blink {
   animation: huajaiy-heart-blink 1.15s ease-in-out infinite;
-  color: #db2777;
+  color: #d72654;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -211,7 +211,7 @@ export default function AccountRoomRedGiftSection() {
           <button
             type="submit"
             disabled={createBusy}
-            className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-50"
+            className="hui-btn-primary px-4 py-2 text-sm disabled:opacity-50"
           >
             {createBusy ? "กำลังสร้าง…" : "สร้างรหัส"}
           </button>

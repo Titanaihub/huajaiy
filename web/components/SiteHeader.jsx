@@ -4,15 +4,15 @@ import HeartsBadge from "./HeartsBadge";
 import MemberNav from "./MemberNav";
 
 const navClass =
-  "shrink-0 whitespace-nowrap rounded-md px-1 py-0.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-100 hover:text-neutral-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2";
+  "shrink-0 whitespace-nowrap rounded-xl px-2 py-1 text-sm font-medium text-hui-section transition hover:bg-hui-border/40 hover:text-hui-burgundy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/40 focus-visible:ring-offset-2";
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-hui-border bg-hui-surface/95 shadow-soft backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
           <BrandLogo />
-          <div className="flex items-center gap-2 border-l border-slate-200 pl-2 sm:pl-3">
+          <div className="flex items-center gap-2 border-l border-hui-border pl-2 sm:pl-3">
             <HeartsBadge />
           </div>
         </div>

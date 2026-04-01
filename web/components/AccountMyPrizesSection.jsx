@@ -461,7 +461,7 @@ function CreatorPrizeCard({
             {cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT ? (
               <Link
                 href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}`}
-                className="inline-flex shrink-0 items-center justify-center rounded-xl border-2 border-emerald-600 bg-emerald-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                className="hui-btn-primary inline-flex shrink-0 items-center justify-center px-4 py-2.5 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2"
               >
                 ถอนเงินรางวัล
               </Link>
@@ -612,7 +612,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                 <button
                   type="button"
                   onClick={goProfile}
-                  className="rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-900"
+                  className="hui-btn-primary px-3 py-2 text-xs"
                 >
                   ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
                 </button>

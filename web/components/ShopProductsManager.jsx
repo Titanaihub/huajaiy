@@ -239,7 +239,7 @@ export default function ShopProductsManager({ shopId }) {
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-brand-800 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+          className="hui-btn-primary px-4 py-2 text-sm"
         >
           เพิ่มสินค้า
         </button>

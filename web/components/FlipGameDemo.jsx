@@ -2143,7 +2143,7 @@ export default function FlipGameDemo({
             <button
               type="button"
               onClick={() => setRecipientsModalPrize(null)}
-              className="mt-6 w-full rounded-xl bg-slate-800 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:scale-[0.99]"
+              className="hui-btn-primary mt-6 w-full py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
             >
               ปิด
             </button>
@@ -2184,7 +2184,7 @@ export default function FlipGameDemo({
                 <button
                   type="button"
                   onClick={() => setResultModalOpen(false)}
-                  className="mt-6 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:scale-[0.99]"
+                  className="hui-btn-primary mt-6 w-full py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
                 >
                   ปิด
                 </button>
@@ -2206,7 +2206,7 @@ export default function FlipGameDemo({
                 <button
                   type="button"
                   onClick={() => setResultModalOpen(false)}
-                  className="mt-6 w-full rounded-xl bg-slate-800 py-3 text-base font-semibold text-white shadow-soft transition hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:scale-[0.99]"
+                  className="hui-btn-primary mt-6 w-full py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
                 >
                   ปิด
                 </button>

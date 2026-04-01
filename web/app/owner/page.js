@@ -140,7 +140,7 @@ export default function OwnerPage() {
                       <div className="mt-3 flex flex-wrap gap-3">
                         <Link
                           href={`/account/shops/${s.id}/products`}
-                          className="inline-flex rounded-lg bg-brand-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-900"
+                          className="hui-btn-primary inline-flex px-3 py-1.5 text-sm"
                         >
                           จัดการสินค้า (ลงขาย)
                         </Link>

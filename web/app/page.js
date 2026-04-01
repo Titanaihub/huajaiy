@@ -43,20 +43,18 @@ export default async function HomePage() {
     <>
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
-        <section className="relative overflow-hidden rounded-3xl border border-brand-100/90 bg-white p-8 shadow-soft md:p-10 lg:p-12">
+        <section className="relative overflow-hidden rounded-3xl border border-hui-border bg-hui-surface/95 p-8 shadow-soft md:p-10 lg:p-12">
           <div
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-brand-200/50 via-brand-100/60 to-transparent blur-3xl"
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-br from-brand-200/60 via-brand-100/50 to-transparent blur-3xl"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-brand-50/80 blur-2xl"
+            className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-hui-pageMid/90 blur-2xl"
             aria-hidden
           />
-          <div className="relative max-w-4xl space-y-3">
-            <p className="text-xl font-bold leading-tight text-red-600 md:text-2xl">
-              ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
-            </p>
-            <p className="text-base leading-relaxed text-neutral-900 md:text-lg">
+          <div className="relative max-w-4xl space-y-4">
+            <h1 className="hui-h1">ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ</h1>
+            <p className="text-base leading-relaxed text-hui-body md:text-lg">
               แพลตฟอร์มหัวใจ ช่วยยกระดับกิจกรรมและการโปรโมทให้โดดเด่นยิ่งขึ้น ด้วยเกมเปิดป้ายแจกรางวัลที่คุณออกแบบได้ตามต้องการ เพื่อสร้างความสนุก กระตุ้นการมีส่วนร่วม เพิ่มโอกาสในการขาย และขยายฐานผู้ติดตาม
             </p>
           </div>

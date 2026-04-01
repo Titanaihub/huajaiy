@@ -139,7 +139,7 @@ export default function CreateGameRoomForm() {
 
   if (loading) {
     return (
-      <p className="text-sm text-white/90" aria-live="polite">
+      <p className="text-sm text-hui-muted" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -147,10 +147,13 @@ export default function CreateGameRoomForm() {
 
   if (!user) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700 shadow-sm">
-        <p className="font-medium text-slate-900">ต้องเข้าสู่ระบบก่อน</p>
+      <div className="rounded-2xl border border-hui-border bg-hui-surface p-6 text-sm text-hui-body shadow-soft">
+        <p className="font-medium text-hui-section">ต้องเข้าสู่ระบบก่อน</p>
         <p className="mt-2">
-          <Link href="/login?next=/account/create-game" className="font-semibold text-brand-800 underline">
+          <Link
+            href="/login?next=/account/create-game"
+            className="font-semibold text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
+          >
             เข้าสู่ระบบ
           </Link>
         </p>
@@ -160,19 +163,19 @@ export default function CreateGameRoomForm() {
 
   const intakeForm = (
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 pt-5 shadow-sm">
-          <div className="-mx-1 border-b border-slate-100 pb-3">
-            <h3 className="text-base font-semibold leading-snug text-slate-900">
+        <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 pt-5 shadow-soft">
+          <div className="-mx-1 border-b border-hui-border/70 pb-3">
+            <h3 className="hui-h3 leading-snug">
               วัตถุประสงค์ในการเปิดห้องเกม
             </h3>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <p className="mt-2 text-xs leading-relaxed text-hui-muted">
               เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
             </p>
           </div>
           <ul className="mt-4 w-full max-w-none space-y-3">
             {PURPOSES.map((p) => (
               <li key={p.id} className="w-full">
-                <label className="flex w-full min-w-0 cursor-pointer items-start gap-3 text-sm leading-snug text-slate-800">
+                <label className="flex w-full min-w-0 cursor-pointer items-start gap-3 text-sm leading-snug text-hui-body">
                   <input
                     type="radio"
                     name="purpose"
@@ -190,7 +193,7 @@ export default function CreateGameRoomForm() {
             <div className="mt-4">
               <label
                 htmlFor="otherReason"
-                className="block text-xs font-medium text-slate-600"
+                className="block text-xs font-medium text-hui-section"
               >
                 เหตุผล (อื่นๆ) <span className="text-red-600">*</span>
               </label>
@@ -200,7 +203,7 @@ export default function CreateGameRoomForm() {
                 onChange={(e) => setOtherReason(e.target.value)}
                 rows={3}
                 placeholder="อธิบายวัตถุประสงค์ให้ชัดเจน"
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="hui-input"
               />
             </div>
           ) : null}
@@ -235,11 +238,8 @@ export default function CreateGameRoomForm() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <label
-            htmlFor="roomTitle"
-            className="block text-sm font-medium text-slate-700"
-          >
+        <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
+          <label htmlFor="roomTitle" className="hui-label">
             ชื่อห้อง / ชื่อเกม (ไม่บังคับ)
           </label>
           <input
@@ -248,18 +248,15 @@ export default function CreateGameRoomForm() {
             onChange={(e) => setRoomTitle(e.target.value)}
             maxLength={200}
             placeholder="เช่น ลดราคาเดือนมีนา — เกมพลิกการ์ด"
-            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input"
           />
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <label
-            htmlFor="prizeConditions"
-            className="block text-sm font-medium text-slate-700"
-          >
+        <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
+          <label htmlFor="prizeConditions" className="hui-label">
             เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
           </label>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-hui-muted">
             ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
           </p>
           <textarea
@@ -268,12 +265,12 @@ export default function CreateGameRoomForm() {
             onChange={(e) => setPrizeConditions(e.target.value)}
             rows={6}
             required
-            className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="hui-input mt-2"
             placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
           />
         </div>
 
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm text-slate-800">
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-hui-border bg-hui-surface/90 p-4 text-sm text-hui-body">
           <input
             type="checkbox"
             checked={agreeRules}
@@ -286,14 +283,14 @@ export default function CreateGameRoomForm() {
           </span>
         </label>
 
-        <p className="text-xs leading-relaxed text-white/90">
+        <p className="text-xs leading-relaxed text-hui-muted">
           หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
-          <strong className="font-medium text-white">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
-          <span className="text-white/80">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+          <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
+          <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
         </p>
 
         {err ? (
-          <p className="text-sm text-red-100" role="alert">
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
             {err}
           </p>
         ) : null}
@@ -302,7 +299,7 @@ export default function CreateGameRoomForm() {
           <button
             type="submit"
             disabled={busy || Boolean(studioGameId)}
-            className="rounded-xl bg-brand-800 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
+            className="hui-btn-primary px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {busy
               ? "กำลังเปิดห้อง…"
@@ -312,13 +309,13 @@ export default function CreateGameRoomForm() {
           </button>
           <Link
             href="/account"
-            className="text-sm font-medium text-white/90 underline decoration-white/50 underline-offset-2 hover:text-white"
+            className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             ← กลับหลังบ้าน
           </Link>
           <Link
             href="/account/my-games"
-            className="text-sm font-medium text-white/90 underline decoration-white/50 underline-offset-2 hover:text-white"
+            className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
           >
             เกมของฉัน
           </Link>
@@ -329,10 +326,10 @@ export default function CreateGameRoomForm() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="hui-h2">
           {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
         </h2>
-        <p className="mt-1 text-sm text-white/85">
+        <p className="mt-1 text-sm text-hui-muted">
           {managingExisting
             ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
             : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
@@ -345,9 +342,9 @@ export default function CreateGameRoomForm() {
         <div
           ref={studioRef}
           id="game-studio"
-          className="scroll-mt-8 border-t border-slate-200 pt-10"
+          className="scroll-mt-8 border-t border-hui-border pt-10"
         >
-          <h3 className="text-base font-semibold text-white">
+          <h3 className="hui-h3">
             {studioGameId ? "ตั้งค่าห้องเกม" : "ตั้งค่าห้องเกมของฉัน"}
           </h3>
           <div className="mt-6">

@@ -115,7 +115,7 @@ export default function AccountMyGamesList() {
 
   if (loading || !user) {
     return (
-      <p className="text-sm text-slate-600" aria-live="polite">
+      <p className="text-sm text-hui-muted" aria-live="polite">
         กำลังโหลด…
       </p>
     );
@@ -133,7 +133,7 @@ export default function AccountMyGamesList() {
       <p className="text-sm">
         <Link
           href="/account/create-game"
-          className="font-semibold text-brand-800 underline hover:text-brand-950"
+          className="font-semibold text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
         >
           + เปิดห้องเกมใหม่
         </Link>
@@ -159,12 +159,15 @@ export default function AccountMyGamesList() {
       ) : null}
 
       {listLoading ? (
-        <p className="text-sm text-slate-500">กำลังโหลดรายการเกม…</p>
+        <p className="text-sm text-hui-muted">กำลังโหลดรายการเกม…</p>
       ) : games.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-6 text-center text-sm text-slate-600">
+        <div className="rounded-2xl border border-dashed border-hui-border bg-hui-surface/90 p-6 text-center text-sm text-hui-muted shadow-soft">
           <p>ยังไม่มีเกมที่สร้างจากบัญชีนี้</p>
           <p className="mt-2">
-            <Link href="/account/create-game" className="font-semibold text-brand-800 underline">
+            <Link
+              href="/account/create-game"
+              className="font-semibold text-hui-cta underline decoration-hui-cta/40"
+            >
               ไปหน้าเปิดห้องเกม
             </Link>
           </p>
@@ -177,14 +180,14 @@ export default function AccountMyGamesList() {
             return (
               <li
                 key={id}
-                className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-slate-900">{g.title || "ไม่มีชื่อ"}</p>
+                  <p className="font-medium text-hui-body">{g.title || "ไม่มีชื่อ"}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     {gameStatusBadge(g)}
                     {g.gameCode ? (
-                      <span className="text-xs text-slate-500">รหัส {g.gameCode}</span>
+                      <span className="text-xs text-hui-muted">รหัส {g.gameCode}</span>
                     ) : null}
                   </div>
                 </div>
@@ -192,7 +195,7 @@ export default function AccountMyGamesList() {
                   {canPreview ? (
                     <Link
                       href={`/game/${encodeURIComponent(id)}`}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                      className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop"
                     >
                       ดูหน้าเล่น
                     </Link>
@@ -201,10 +204,10 @@ export default function AccountMyGamesList() {
                     type="button"
                     disabled={busyId === id || !id || !UUID_RE.test(id)}
                     onClick={() => togglePublish(g, !Boolean(g.isPublished || g.isActive))}
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
+                    className={`rounded-2xl px-3 py-2 text-sm font-semibold disabled:opacity-50 ${
                       g.isPublished || g.isActive
-                        ? "border border-slate-400 text-slate-800 hover:bg-slate-50"
-                        : "bg-green-700 text-white hover:bg-green-800"
+                        ? "border border-hui-border bg-white text-hui-body shadow-soft hover:bg-hui-pageTop"
+                        : "bg-emerald-600 text-white shadow-soft hover:bg-emerald-700"
                     }`}
                   >
                     {busyId === id
@@ -215,14 +218,14 @@ export default function AccountMyGamesList() {
                   </button>
                   <Link
                     href={`/account/create-game?game=${encodeURIComponent(id)}#game-studio`}
-                    className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+                    className="rounded-2xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100"
                     title="เพิ่มรางวัลใหม่ได้ แต่ไม่ควรแก้ไขรางวัลเดิม"
                   >
                     เพิ่มรางวัล
                   </Link>
                   <Link
                     href={`/account/create-game?game=${encodeURIComponent(id)}`}
-                    className="rounded-lg bg-brand-800 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+                    className="hui-btn-primary px-3 py-2 text-sm"
                   >
                     จัดการเกม
                   </Link>
@@ -233,8 +236,11 @@ export default function AccountMyGamesList() {
         </ul>
       )}
 
-      <p className="text-sm text-slate-600">
-        <Link href="/account" className="text-brand-800 underline hover:text-brand-950">
+      <p className="text-sm text-hui-body">
+        <Link
+          href="/account"
+          className="text-hui-cta underline decoration-hui-cta/40 hover:brightness-95"
+        >
           ← ภาพรวมบัญชี
         </Link>
       </p>

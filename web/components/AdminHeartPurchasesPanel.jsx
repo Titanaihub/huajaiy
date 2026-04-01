@@ -209,7 +209,7 @@ export default function AdminHeartPurchasesPanel() {
                     type="button"
                     disabled={busyId === p.id}
                     onClick={() => approve(p.id)}
-                    className="rounded-lg bg-green-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-50"
+                    className="hui-btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
                   >
                     อนุมัติและเติมหัวใจ
                   </button>
@@ -297,7 +297,7 @@ export default function AdminHeartPurchasesPanel() {
           <button
             type="button"
             onClick={applyHistoryFilters}
-            className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900"
+            className="hui-btn-primary px-4 py-2 text-sm"
           >
             ค้นหา
           </button>

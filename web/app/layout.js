@@ -1,15 +1,15 @@
 import "./globals.css";
-import { Sarabun } from "next/font/google";
+import { Prompt } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
 import { getSiteUrl } from "../lib/siteUrl";
 
-const sarabun = Sarabun({
+const prompt = Prompt({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin", "thai"],
   display: "swap",
-  variable: "--font-sarabun"
+  variable: "--font-prompt"
 });
 
 const site = getSiteUrl();
@@ -48,10 +48,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="th" className={sarabun.variable}>
-      <body
-        className={`${sarabun.className} flex min-h-screen flex-col bg-[#E63946] text-slate-900 antialiased`}
-      >
+    <html lang="th" className={prompt.variable}>
+      <body className={`${prompt.className} hui-root flex flex-col`}>
         <MemberAuthProvider>
           <ImpersonationBanner />
           <HeartsProvider>
