@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
@@ -50,6 +51,7 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
 }
 
 export default function CreateGameRoomForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
   const managingExisting =
@@ -124,6 +126,7 @@ export default function CreateGameRoomForm() {
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
+      router.replace(`/account/create-game?game=${encodeURIComponent(gid)}`);
     } catch (ex) {
       setErr(ex?.message || "เปิดห้องเกมไม่สำเร็จ");
     } finally {
@@ -289,10 +292,14 @@ export default function CreateGameRoomForm() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || Boolean(studioGameId)}
             className="rounded-xl bg-brand-800 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {busy ? "กำลังเปิดห้อง…" : "เปิดสร้างห้องเกม"}
+            {busy
+              ? "กำลังเปิดห้อง…"
+              : studioGameId
+                ? "สร้างห้องแล้ว"
+                : "เปิดสร้างห้องเกม"}
           </button>
           <Link
             href="/account"
