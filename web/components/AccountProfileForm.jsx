@@ -36,6 +36,7 @@ export default function AccountProfileForm() {
   const [phone, setPhone] = useState("");
   const [profileMsg, setProfileMsg] = useState("");
   const [profileErr, setProfileErr] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
   const [reqFirst, setReqFirst] = useState("");
   const [reqLast, setReqLast] = useState("");
   const [reqReason, setReqReason] = useState("");
@@ -112,6 +113,7 @@ export default function AccountProfileForm() {
     e.preventDefault();
     setProfileErr("");
     setProfileMsg("");
+    setProfileSaving(true);
     try {
       const payload = {
         gender: gender === "" ? null : gender,
@@ -128,13 +130,16 @@ export default function AccountProfileForm() {
       };
       const nextPhone = String(phone || "").replace(/\s+/g, "").trim();
       const currentPhone = String(user.phone || "").replace(/\s+/g, "").trim();
-      if (nextPhone !== currentPhone) {
+      // ส่ง phone เฉพาะเมื่อกรอกเบอร์ใหม่ที่ไม่ว่าง — ถ้าเคลียร์ช่องโดยไม่ตั้งใจ ไม่ส่ง phone เพื่อไม่ให้ API validate ล้มทั้งคำขอ (ที่อยู่จะบันทึกได้; หลังบันทึกจะซิงค์เบอร์จากเซิร์ฟเวอร์กลับมา)
+      if (nextPhone !== currentPhone && nextPhone !== "") {
         payload.phone = nextPhone;
       }
       await patchProfile(payload);
-      setProfileMsg("บันทึกข้อมูลแล้ว");
+      setProfileMsg("บันทึกข้อมูลแล้ว — ที่อยู่จัดส่งถูกบันทึกแล้ว");
     } catch (err) {
       setProfileErr(err.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setProfileSaving(false);
     }
   }
 
@@ -418,16 +423,25 @@ export default function AccountProfileForm() {
               </div>
             </fieldset>
             {profileErr ? (
-              <p className="text-sm text-red-600">{profileErr}</p>
+              <p
+                className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-800 shadow-sm"
+                role="alert"
+              >
+                {profileErr}
+              </p>
             ) : null}
             {profileMsg ? (
-              <p className="text-sm text-green-700">{profileMsg}</p>
+              <p className="rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-900 shadow-sm">
+                {profileMsg}
+              </p>
             ) : null}
             <button
               type="submit"
-              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-900"
+              disabled={profileSaving}
+              aria-busy={profileSaving}
+              className="rounded-xl bg-brand-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              บันทึกข้อมูลส่วนตัว
+              {profileSaving ? "กำลังบันทึก…" : "บันทึกข้อมูลส่วนตัว"}
             </button>
           </form>
 
