@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
+import { DEFAULT_NEW_ROOM_HEART_PRESET } from "../lib/centralGameDefaults";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminCentralGameCreate } from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -118,10 +119,7 @@ export default function CreateGameRoomForm() {
         description,
         setCount: 1,
         imagesPerSet: 4,
-        pinkHeartCost: 0,
-        redHeartCost: 0,
-        heartCurrencyMode: "both",
-        acceptsPinkHearts: true
+        ...DEFAULT_NEW_ROOM_HEART_PRESET
       });
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
@@ -287,6 +285,12 @@ export default function CreateGameRoomForm() {
             และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
           </span>
         </label>
+
+        <p className="text-xs leading-relaxed text-slate-500">
+          หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
+          <strong className="font-medium text-slate-600">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
+          <span className="text-slate-400">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+        </p>
 
         {err ? (
           <p className="text-sm text-red-600" role="alert">
