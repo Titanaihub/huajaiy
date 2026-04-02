@@ -6,7 +6,10 @@ import MemberAuthProvider from "../components/MemberAuthProvider";
 import HtmlBackgroundSync from "../components/HtmlBackgroundSync";
 import { SiteThemeProvider } from "../components/SiteThemeProvider";
 import { getPathnameForLayout } from "../lib/getPathnameForLayout";
-import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
+import {
+  FALLBACK_SITE_THEME,
+  fetchSiteThemeForLayout
+} from "../lib/fetchSiteTheme";
 import {
   buildSiteRootBackgroundStyle,
   buildThemeLabEmbedHtmlBackgroundStyle,
@@ -60,15 +63,34 @@ export const viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }) {
-  const [siteTheme, pathname] = await Promise.all([
-    fetchSiteThemeForLayout(),
-    getPathnameForLayout()
-  ]);
-  const bgSlice = pickBackgroundSliceForPathname(siteTheme, pathname);
-  /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน; Theme Lab iframe = พื้นเรียบ ไม่ดึงธีมเดิม */
-  const htmlBgStyle = isThemeLabFullPageEmbedPath(pathname)
-    ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
-    : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
+  let siteTheme = { ...FALLBACK_SITE_THEME };
+  let pathname = "/";
+  try {
+    const pair = await Promise.all([
+      fetchSiteThemeForLayout(),
+      getPathnameForLayout()
+    ]);
+    siteTheme =
+      pair[0] && typeof pair[0] === "object" ? pair[0] : { ...FALLBACK_SITE_THEME };
+    pathname = typeof pair[1] === "string" ? pair[1] : "/";
+  } catch {
+    siteTheme = { ...FALLBACK_SITE_THEME };
+    pathname = "/";
+  }
+
+  let htmlBgStyle;
+  try {
+    const bgSlice = pickBackgroundSliceForPathname(siteTheme, pathname);
+    /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน; Theme Lab iframe = พื้นเรียบ ไม่ดึงธีมเดิม */
+    htmlBgStyle = isThemeLabFullPageEmbedPath(pathname)
+      ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
+      : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
+  } catch {
+    htmlBgStyle = {
+      ...buildThemeLabEmbedHtmlBackgroundStyle(),
+      minHeight: "100dvh"
+    };
+  }
 
   return (
     <html lang="th" className={prompt.variable} style={htmlBgStyle}>

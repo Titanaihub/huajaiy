@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import AccountBackOfficeShell from "../../components/AccountBackOfficeShell";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
@@ -11,8 +12,13 @@ export const metadata = {
 };
 
 export default async function AccountLayout({ children }) {
-  const h = await headers();
-  const pathname = normalizePathnameForTheme(h.get("x-huajaiy-pathname") || "/");
+  let pathname = "/";
+  try {
+    const h = await headers();
+    pathname = normalizePathnameForTheme(h.get("x-huajaiy-pathname") || "/");
+  } catch {
+    pathname = "/";
+  }
   /** โปรไฟล์ = TailAdmin เต็มจอ — ไม่ครอบด้วยหัวเว็บ/ฟุตเตอร์/ชั้นกล่องเดิม */
   if (pathname === "/account/profile") {
     return <>{children}</>;

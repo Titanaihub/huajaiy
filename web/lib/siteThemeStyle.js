@@ -1,3 +1,4 @@
+import { FALLBACK_SITE_THEME } from "./siteThemeDefaults";
 import { normalizePathnameForTheme } from "./pathnameNormalize";
 
 /** หน้าเปิดเทมเพลตหลังบ้านแบบ iframe เต็มจอ — ไม่ใช้พื้นหลังธีมเว็บหลัก (กลาแล็กซี/ชุด inner) */
@@ -51,23 +52,25 @@ function cssUrlQuoted(url) {
  * @param {string} pathname
  */
 export function pickBackgroundSliceForPathname(fullTheme, pathname) {
+  const t =
+    fullTheme && typeof fullTheme === "object" ? fullTheme : FALLBACK_SITE_THEME;
   const p = normalizePathnameForTheme(pathname);
   const isHome = p === "/";
   if (isHome) {
     return {
-      backgroundImageUrl: fullTheme.backgroundImageUrl,
-      bgGradientTop: fullTheme.bgGradientTop,
-      bgGradientMid: fullTheme.bgGradientMid,
-      bgGradientBottom: fullTheme.bgGradientBottom,
-      imageOverlayPercent: fullTheme.imageOverlayPercent
+      backgroundImageUrl: t.backgroundImageUrl,
+      bgGradientTop: t.bgGradientTop,
+      bgGradientMid: t.bgGradientMid,
+      bgGradientBottom: t.bgGradientBottom,
+      imageOverlayPercent: t.imageOverlayPercent
     };
   }
-  const op = Number(fullTheme.innerImageOverlayPercent);
+  const op = Number(t.innerImageOverlayPercent);
   return {
-    backgroundImageUrl: String(fullTheme.innerBackgroundImageUrl ?? ""),
-    bgGradientTop: String(fullTheme.innerBgGradientTop ?? "#FFF5F8"),
-    bgGradientMid: String(fullTheme.innerBgGradientMid ?? "#FFEEF3"),
-    bgGradientBottom: String(fullTheme.innerBgGradientBottom ?? "#FFD6E2"),
+    backgroundImageUrl: String(t.innerBackgroundImageUrl ?? ""),
+    bgGradientTop: String(t.innerBgGradientTop ?? "#FFF5F8"),
+    bgGradientMid: String(t.innerBgGradientMid ?? "#FFEEF3"),
+    bgGradientBottom: String(t.innerBgGradientBottom ?? "#FFD6E2"),
     imageOverlayPercent: Number.isFinite(op)
       ? Math.min(100, Math.max(0, Math.floor(op)))
       : 78

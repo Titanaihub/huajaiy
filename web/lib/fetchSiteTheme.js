@@ -1,20 +1,8 @@
 import { headers } from "next/headers";
 import { getApiBase } from "./config";
+import { FALLBACK_SITE_THEME } from "./siteThemeDefaults";
 
-const FALLBACK_THEME = {
-  backgroundImageUrl: "",
-  bgGradientTop: "#FFF5F8",
-  bgGradientMid: "#FFEEF3",
-  bgGradientBottom: "#FFD6E2",
-  imageOverlayPercent: 78,
-  footerScrimHex: "#2B121C",
-  footerScrimPercent: 48,
-  innerBackgroundImageUrl: "",
-  innerBgGradientTop: "#FFF5F8",
-  innerBgGradientMid: "#FFEEF3",
-  innerBgGradientBottom: "#FFD6E2",
-  innerImageOverlayPercent: 78
-};
+export { FALLBACK_SITE_THEME } from "./siteThemeDefaults";
 
 function clampPct(n, fb) {
   return Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : fb;
@@ -26,29 +14,39 @@ function normalizeTheme(t) {
   const iopNum = Number(t.innerImageOverlayPercent);
   return {
     backgroundImageUrl: String(t.backgroundImageUrl ?? ""),
-    bgGradientTop: String(t.bgGradientTop ?? FALLBACK_THEME.bgGradientTop),
-    bgGradientMid: String(t.bgGradientMid ?? FALLBACK_THEME.bgGradientMid),
-    bgGradientBottom: String(t.bgGradientBottom ?? FALLBACK_THEME.bgGradientBottom),
-    imageOverlayPercent: clampPct(opNum, FALLBACK_THEME.imageOverlayPercent),
+    bgGradientTop: String(t.bgGradientTop ?? FALLBACK_SITE_THEME.bgGradientTop),
+    bgGradientMid: String(t.bgGradientMid ?? FALLBACK_SITE_THEME.bgGradientMid),
+    bgGradientBottom: String(t.bgGradientBottom ?? FALLBACK_SITE_THEME.bgGradientBottom),
+    imageOverlayPercent: clampPct(opNum, FALLBACK_SITE_THEME.imageOverlayPercent),
     footerScrimHex: /^#[0-9A-Fa-f]{6}$/.test(String(t.footerScrimHex ?? "").trim())
       ? String(t.footerScrimHex).trim()
-      : FALLBACK_THEME.footerScrimHex,
-    footerScrimPercent: clampPct(fpNum, FALLBACK_THEME.footerScrimPercent),
+      : FALLBACK_SITE_THEME.footerScrimHex,
+    footerScrimPercent: clampPct(fpNum, FALLBACK_SITE_THEME.footerScrimPercent),
     innerBackgroundImageUrl: String(t.innerBackgroundImageUrl ?? ""),
-    innerBgGradientTop: String(t.innerBgGradientTop ?? FALLBACK_THEME.innerBgGradientTop),
-    innerBgGradientMid: String(t.innerBgGradientMid ?? FALLBACK_THEME.innerBgGradientMid),
+    innerBgGradientTop: String(t.innerBgGradientTop ?? FALLBACK_SITE_THEME.innerBgGradientTop),
+    innerBgGradientMid: String(t.innerBgGradientMid ?? FALLBACK_SITE_THEME.innerBgGradientMid),
     innerBgGradientBottom: String(
-      t.innerBgGradientBottom ?? FALLBACK_THEME.innerBgGradientBottom
+      t.innerBgGradientBottom ?? FALLBACK_SITE_THEME.innerBgGradientBottom
     ),
-    innerImageOverlayPercent: clampPct(iopNum, FALLBACK_THEME.innerImageOverlayPercent)
+    innerImageOverlayPercent: clampPct(iopNum, FALLBACK_SITE_THEME.innerImageOverlayPercent)
   };
 }
 
+const THEME_FETCH_TIMEOUT_MS = 4500;
+
 async function fetchThemeFromUrl(url) {
-  const r = await fetch(url, { cache: "no-store" });
-  const data = await r.json().catch(() => ({}));
-  if (!r.ok || !data.ok || !data.theme) return null;
-  return normalizeTheme(data.theme);
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), THEME_FETCH_TIMEOUT_MS);
+  try {
+    const r = await fetch(url, { cache: "no-store", signal: ac.signal });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok || !data.theme) return null;
+    return normalizeTheme(data.theme);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function isLocalDevHost(host) {
@@ -95,8 +93,8 @@ export async function fetchSiteThemeForLayout() {
       }
     }
 
-    return { ...FALLBACK_THEME };
+    return { ...FALLBACK_SITE_THEME };
   } catch {
-    return { ...FALLBACK_THEME };
+    return { ...FALLBACK_SITE_THEME };
   }
 }
