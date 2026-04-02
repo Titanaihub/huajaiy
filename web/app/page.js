@@ -29,7 +29,12 @@ function buildActions(centralMeta) {
         : "border-hui-border/90 bg-white",
       badge: centralMeta ? "เผยแพร่" : null
     },
-    
+    {
+      href: "/theme-lab",
+      title: "Theme Lab",
+      desc: "หน้าทดลองตกแต่ง UI ก่อนใช้งานจริง",
+      accent: "border-hui-border/90 bg-white"
+    }
   ];
 }
 
