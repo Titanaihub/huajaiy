@@ -19,6 +19,12 @@ function statusLabel(s) {
   return s;
 }
 
+/** รหัสเข้าระบบแบบใหม่หลัง LINE (6 หลัก ไม่มี 0 กับ o) */
+function looksLikeLineMemberLoginCode(username) {
+  const u = String(username || "").toLowerCase();
+  return u.length === 6 && /^[a-np-z1-9]{6}$/.test(u);
+}
+
 export default function AccountProfileForm() {
   const router = useRouter();
   const { user, loading, patchProfile } = useMemberAuth();
@@ -214,6 +220,12 @@ export default function AccountProfileForm() {
                 <dd className="font-mono font-medium text-hui-body">
                   {user.username}
                 </dd>
+                {looksLikeLineMemberLoginCode(user.username) ? (
+                  <p className="mt-1 text-xs leading-relaxed text-hui-muted">
+                    รหัส 6 หลักนี้ใช้เข้าระบบที่หน้าเข้าสู่ระบบ — เลือกแท็บ「รหัสสมาชิก 6 หลัก」แล้วกรอกแค่ช่องเดียว
+                    (ระบบส่งค่าเดียวกันเป็นยูสเซอร์และรหัสผ่าน ไม่ต้องตั้งรหัสแยก)
+                  </p>
+                ) : null}
               </div>
               <div>
                 <dt className="text-hui-muted">ชื่อ–นามสกุล (ในระบบ)</dt>

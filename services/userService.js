@@ -30,6 +30,24 @@ function normPhone(p) {
   return s === "" ? null : s.slice(0, 16);
 }
 
+/** รหัสเข้าระบบ 6 หลัก — ตัวอักษร a–z (ไม่มี o) + ตัวเลข 1–9 (ไม่มี 0) สลับกันอย่างน้อย 1 ตัวอักษรและ 1 ตัวเลข */
+const MEMBER_LOGIN_CODE_CHARS =
+  "abcdefghijklmnpqrstuvwxyz123456789";
+
+function randomMemberLoginCode6() {
+  for (let outer = 0; outer < 40; outer++) {
+    const buf = crypto.randomBytes(8);
+    let s = "";
+    for (let i = 0; i < 6; i++) {
+      s += MEMBER_LOGIN_CODE_CHARS[buf[i] % MEMBER_LOGIN_CODE_CHARS.length];
+    }
+    if (/[a-z]/.test(s) && /[1-9]/.test(s)) return s;
+  }
+  const err = new Error("สร้างรหัสสมาชิกไม่สำเร็จ ลองใหม่");
+  err.code = "LOGIN_CODE_GEN_FAILED";
+  throw err;
+}
+
 function rowToUser(row) {
   const pink =
     row.pink_hearts_balance == null
@@ -187,25 +205,25 @@ async function createUserFromLine({ lineUserId, displayName, registrationIp = nu
   let firstName = (parts[0] || "สมาชิก").slice(0, 64);
   let lastName = (parts.slice(1).join(" ") || "LINE").slice(0, 64);
 
-  const phone = (`L${lid.replace(/[^A-Za-z0-9]/g, "")}`).slice(0, 16);
+  const phone = null;
   const ip =
     registrationIp == null ? null : String(registrationIp).slice(0, 64);
 
-  const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString("hex"), 10);
-
   let username = null;
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const candidate = `l${crypto.randomBytes(6).toString("hex")}`;
+  let passwordHash = null;
+  for (let attempt = 0; attempt < 32; attempt++) {
+    const loginCode = randomMemberLoginCode6();
     const clash = await pool.query("SELECT 1 FROM users WHERE username = $1", [
-      candidate
+      loginCode
     ]);
     if (clash.rows.length === 0) {
-      username = candidate;
+      username = loginCode;
+      passwordHash = bcrypt.hashSync(loginCode, 10);
       break;
     }
   }
-  if (!username) {
-    const err = new Error("สร้างชื่อผู้ใช้ไม่สำเร็จ ลองใหม่");
+  if (!username || !passwordHash) {
+    const err = new Error("สร้างรหัสเข้าระบบไม่สำเร็จ ลองใหม่");
     err.code = "USERNAME_GEN_FAILED";
     throw err;
   }

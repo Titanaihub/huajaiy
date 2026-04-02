@@ -8,12 +8,14 @@ import { useMemberAuth } from "./MemberAuthProvider";
 export default function LoginForm({ redirectAfterLogin = null }) {
   const router = useRouter();
   const { login } = useMemberAuth();
+  const [mode, setMode] = useState("password");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [memberCode, setMemberCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e) {
+  async function onSubmitPassword(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -27,49 +29,145 @@ export default function LoginForm({ redirectAfterLogin = null }) {
     }
   }
 
+  async function onSubmitCode(e) {
+    e.preventDefault();
+    setError("");
+    const c = memberCode.trim().toLowerCase().replace(/\s+/g, "");
+    if (c.length !== 6) {
+      setError("กรอกรหัสสมาชิก 6 หลัก");
+      return;
+    }
+    setLoading(true);
+    try {
+      await login(c, c);
+      router.push(redirectAfterLogin || "/");
+    } catch (err) {
+      setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="login-username" className="hui-label">
-            ชื่อผู้ใช้
-          </label>
-          <input
-            id="login-username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase())}
-            className="hui-input"
-            required
-            autoComplete="username"
-          />
-        </div>
-        <div>
-          <label htmlFor="login-password" className="hui-label">
-            รหัสผ่าน
-          </label>
-          <input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="hui-input"
-            required
-            autoComplete="current-password"
-          />
-        </div>
-        {error ? (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {error}
-          </p>
-        ) : null}
+      <div className="mb-4 flex flex-wrap gap-2 rounded-2xl border border-hui-border bg-hui-pageTop/80 p-1 text-sm">
         <button
-          type="submit"
-          disabled={loading}
-          className="hui-btn-primary w-full py-3 text-center disabled:opacity-60"
+          type="button"
+          className={`flex-1 rounded-xl px-3 py-2 font-medium transition ${
+            mode === "password"
+              ? "bg-white text-hui-section shadow-sm"
+              : "text-hui-muted hover:text-hui-body"
+          }`}
+          onClick={() => {
+            setMode("password");
+            setError("");
+          }}
         >
-          {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+          ยูสเซอร์ + รหัสผ่าน
         </button>
-      </form>
+        <button
+          type="button"
+          className={`flex-1 rounded-xl px-3 py-2 font-medium transition ${
+            mode === "code"
+              ? "bg-white text-hui-section shadow-sm"
+              : "text-hui-muted hover:text-hui-body"
+          }`}
+          onClick={() => {
+            setMode("code");
+            setError("");
+          }}
+        >
+          รหัสสมาชิก 6 หลัก
+        </button>
+      </div>
+
+      {mode === "password" ? (
+        <form onSubmit={onSubmitPassword} className="space-y-4">
+          <div>
+            <label htmlFor="login-username" className="hui-label">
+              ชื่อผู้ใช้
+            </label>
+            <input
+              id="login-username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              className="hui-input"
+              required
+              autoComplete="username"
+            />
+          </div>
+          <div>
+            <label htmlFor="login-password" className="hui-label">
+              รหัสผ่าน
+            </label>
+            <input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="hui-input"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          {error ? (
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {error}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={loading}
+            className="hui-btn-primary w-full py-3 text-center disabled:opacity-60"
+          >
+            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={onSubmitCode} className="space-y-4">
+          <p className="text-sm leading-relaxed text-hui-muted">
+            สำหรับสมาชิกที่สร้างบัญชีผ่าน LINE — ใช้รหัส 6 หลักเดียวกับที่แสดงในหน้าโปรไฟล์ (ชื่อผู้ใช้ล็อกอิน)
+            ไม่มี 0 กับตัว o เพื่อลดการสับสน
+          </p>
+          <div>
+            <label htmlFor="login-member-code" className="hui-label">
+              รหัสสมาชิก 6 หลัก
+            </label>
+            <input
+              id="login-member-code"
+              value={memberCode}
+              onChange={(e) =>
+                setMemberCode(
+                  String(e.target.value)
+                    .toLowerCase()
+                    .replace(/[^a-np-z1-9]/g, "")
+                    .slice(0, 6)
+                )
+              }
+              className="hui-input font-mono text-lg tracking-widest"
+              required
+              minLength={6}
+              maxLength={6}
+              inputMode="text"
+              autoComplete="username"
+              placeholder="เช่น a3k7n2"
+            />
+          </div>
+          {error ? (
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+              {error}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={loading}
+            className="hui-btn-primary w-full py-3 text-center disabled:opacity-60"
+          >
+            {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบด้วยรหัสนี้"}
+          </button>
+        </form>
+      )}
+
       <p className="mt-6 text-center text-sm text-hui-body">
         <Link
           href={redirectAfterLogin ? `/login/line?next=${encodeURIComponent(redirectAfterLogin)}` : "/login/line"}
