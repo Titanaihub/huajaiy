@@ -328,6 +328,8 @@ router.post("/login-line", async (req, res) => {
 
     const lineUserId = String(req.body?.lineUserId || "").trim();
     const displayName = String(req.body?.displayName || "").trim().slice(0, 100);
+    const pictureUrl =
+      req.body?.pictureUrl != null ? String(req.body.pictureUrl) : null;
 
     if (!lineUserId) {
       return res.status(400).json({ ok: false, error: "ไม่มี LINE user id" });
@@ -339,7 +341,8 @@ router.post("/login-line", async (req, res) => {
         user = await userService.createUserFromLine({
           lineUserId,
           displayName: displayName || undefined,
-          registrationIp: clientIp(req)
+          registrationIp: clientIp(req),
+          pictureUrl
         });
       } catch (e) {
         if (e.code === "INVALID_LINE_USER") {
@@ -354,6 +357,13 @@ router.post("/login-line", async (req, res) => {
 
     if (!user) {
       return res.status(500).json({ ok: false, error: "สร้างบัญชีไม่สำเร็จ" });
+    }
+    const picSynced = await userService.syncLinePictureFromLine(
+      user.id,
+      pictureUrl
+    );
+    if (picSynced) {
+      user = picSynced;
     }
     if (user.accountDisabled) {
       return res.status(403).json({

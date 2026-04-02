@@ -232,7 +232,7 @@ export default function AccountProfileForm() {
   const nameFieldsLocked = nameEditsRemaining <= 0;
 
   return (
-    <div className="space-y-10 text-hui-body">
+    <div id="hui-profile-edit-section" className="space-y-10 text-hui-body">
         <section>
           <h3 className="hui-h3">
             ข้อมูลในระบบ

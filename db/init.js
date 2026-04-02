@@ -108,6 +108,10 @@ async function initDb() {
       ON users (line_user_id)
       WHERE line_user_id IS NOT NULL AND line_user_id <> '';
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS line_picture_url VARCHAR(1024);
+    `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */
     await client.query(`
       ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;

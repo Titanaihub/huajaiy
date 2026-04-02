@@ -16,6 +16,13 @@ const {
 } = require("../shippingAddress");
 const { validateUsername, validateEmail } = require("../authValidators");
 
+function sanitizeLinePictureUrl(v) {
+  if (v == null) return null;
+  const s = String(v).trim().slice(0, 1024);
+  if (!/^https:\/\//i.test(s)) return null;
+  return s;
+}
+
 function normalizeBirthDate(v) {
   if (v == null) return null;
   if (v instanceof Date) return v.toISOString().slice(0, 10);
@@ -103,6 +110,7 @@ function rowToUser(row) {
       row.line_user_id != null && String(row.line_user_id).trim()
         ? String(row.line_user_id).trim()
         : null,
+    linePictureUrl: sanitizeLinePictureUrl(row.line_picture_url),
     email:
       row.email != null && String(row.email).trim()
         ? String(row.email).trim().toLowerCase().slice(0, 254)
@@ -220,9 +228,14 @@ async function findByLineUserId(lineUserId) {
 
 /**
  * สร้างสมาชิกจาก LINE Login — ต้องมี PostgreSQL
- * @param {{ lineUserId: string, displayName?: string, registrationIp?: string|null }} opts
+ * @param {{ lineUserId: string, displayName?: string, registrationIp?: string|null, pictureUrl?: string|null }} opts
  */
-async function createUserFromLine({ lineUserId, displayName, registrationIp = null }) {
+async function createUserFromLine({
+  lineUserId,
+  displayName,
+  registrationIp = null,
+  pictureUrl = null
+}) {
   const pool = getPool();
   if (!pool) {
     const err = new Error("ต้องใช้ PostgreSQL เพื่อล็อกอินด้วย LINE");
@@ -268,12 +281,13 @@ async function createUserFromLine({ lineUserId, displayName, registrationIp = nu
   }
 
   const id = crypto.randomUUID();
+  const linePic = sanitizeLinePictureUrl(pictureUrl);
   try {
     const r = await pool.query(
-      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip, role, line_user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, 'TH', $7, $8, $9)
+      `INSERT INTO users (id, username, password_hash, first_name, last_name, phone, country_code, registration_ip, role, line_user_id, line_picture_url)
+       VALUES ($1, $2, $3, $4, $5, $6, 'TH', $7, $8, $9, $10)
        RETURNING *`,
-      [id, username, passwordHash, firstName, lastName, phone, ip, MEMBER, lid]
+      [id, username, passwordHash, firstName, lastName, phone, ip, MEMBER, lid, linePic]
     );
     return rowToUser(r.rows[0]);
   } catch (e) {
@@ -283,6 +297,18 @@ async function createUserFromLine({ lineUserId, displayName, registrationIp = nu
     }
     throw e;
   }
+}
+
+async function syncLinePictureFromLine(userId, pictureUrl) {
+  const pool = getPool();
+  const url = sanitizeLinePictureUrl(pictureUrl);
+  if (!pool || !url) return null;
+  const r = await pool.query(
+    `UPDATE users SET line_picture_url = $2 WHERE id = $1 RETURNING *`,
+    [String(userId), url]
+  );
+  if (r.rows.length === 0) return null;
+  return rowToUser(r.rows[0]);
 }
 
 async function findByThaiFullName(firstName, lastName) {
@@ -418,7 +444,8 @@ function publicUser(u) {
     selfServiceNameEditsRemaining: Math.max(
       0,
       3 - Math.floor(Number(u.selfServiceNameEdits) || 0)
-    )
+    ),
+    linePictureUrl: sanitizeLinePictureUrl(u.linePictureUrl)
   };
 }
 
@@ -1320,6 +1347,7 @@ module.exports = {
   findByThaiFullName,
   createUser,
   createUserFromLine,
+  syncLinePictureFromLine,
   setPasswordAndRole,
   setPasswordHashOnly,
   adjustHeartsBalance,
