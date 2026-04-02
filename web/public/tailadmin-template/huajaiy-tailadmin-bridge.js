@@ -111,26 +111,47 @@
   function applyBrand() {
     var app = document.getElementById("app");
     if (!app) return;
-    var links = app.querySelectorAll('a[href="/"]');
-    links.forEach(function (a) {
+    var branded = new Set();
+
+    function brandAnchor(a) {
+      if (!a || branded.has(a)) return;
       if (a.dataset.huajaiyBrand === "1") return;
       var imgs = a.querySelectorAll("img");
       if (!imgs.length) return;
+      branded.add(a);
       a.dataset.huajaiyBrand = "1";
       var wrap = document.createElement("span");
       wrap.className = "flex items-center gap-2 min-w-0";
       var img = document.createElement("img");
       img.src = HEART;
       img.alt = "HUAJAIY";
-      img.className = "h-9 w-9 shrink-0";
+      img.className = "h-6 w-6 shrink-0";
       var title = document.createElement("span");
       title.className =
-        "text-xl font-bold tracking-tight text-gray-800 dark:text-white truncate";
+        "text-base font-bold tracking-tight text-gray-800 dark:text-white truncate";
       title.textContent = "HUAJAIY";
       wrap.appendChild(img);
       wrap.appendChild(title);
       a.innerHTML = "";
       a.appendChild(wrap);
+    }
+
+    app
+      .querySelectorAll(
+        'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
+      )
+      .forEach(function (im) {
+        brandAnchor(im.closest("a"));
+      });
+    app
+      .querySelectorAll(
+        'header img[src*="huajaiy-heart"], header img[alt="Logo"]'
+      )
+      .forEach(function (im) {
+        brandAnchor(im.closest("a"));
+      });
+    app.querySelectorAll('a[href="/"]').forEach(function (a) {
+      if (a.querySelectorAll("img").length) brandAnchor(a);
     });
   }
 
