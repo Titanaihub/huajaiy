@@ -75,6 +75,18 @@ export default function ThemeLabOrganic() {
             >
               Purdue ต้นฉบับ (เต็มจอ)
             </Link>
+            <Link
+              href="/theme-lab/tailadmin"
+              className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
+            >
+              TailAdmin Vue (หลังบ้าน)
+            </Link>
+            <Link
+              href="/theme-lab/dashui"
+              className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
+            >
+              DashUI Next (หลังบ้าน)
+            </Link>
             <a
               href="/purdue-template/sitemap.html"
               target="_blank"
@@ -90,6 +102,12 @@ export default function ThemeLabOrganic() {
               กลับหลังบ้าน
             </Link>
           </div>
+          <p className="mt-4 max-w-3xl text-sm text-hui-muted">
+            เทมเพลตหลังบ้าน <strong>TailAdmin (Vue)</strong> และ <strong>DashUI (Next.js)</strong> แสดงใน iframe
+            หลัง build และคัดลอกเข้า <code className="rounded bg-hui-pageTop px-1 text-xs">web/public</code> — จากโฟลเดอร์{" "}
+            <code className="rounded bg-hui-pageTop px-1 text-xs">web</code> รัน{" "}
+            <code className="rounded bg-hui-pageTop px-1 text-xs">npm run demo:admin-themes</code> (ต้องมี Node.js)
+          </p>
         </div>
       </section>
 

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DashUI — รอติดตั้ง build</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 36rem;
+        margin: 3rem auto;
+        padding: 0 1.25rem;
+        line-height: 1.55;
+        color: #334155;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+        font-size: 0.9em;
+      }
+      a {
+        color: #0d6efd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>DashUI (Next.js) ยังไม่ได้คัดลอก build</h1>
+    <p>
+      แก้ <code>DashUI-1.0.0/next.config.js</code> ให้ใช้ <code>output: &quot;export&quot;</code> และ
+      <code>basePath: &quot;/dashui-template&quot;</code> แล้วในโฟลเดอร์ <code>DashUI-1.0.0</code> รัน
+      <code>npm ci</code> และ <code>npm run build</code> จากนั้นใน <code>web</code> รัน
+      <code>node scripts/copy-admin-theme-demos.mjs dashui</code>
+    </p>
+    <p>หรือใช้สคริปต์รวมใน <code>web/package.json</code> (<code>demo:admin-themes</code>)</p>
+    <p><a href="/theme-lab">← กลับ Theme Lab</a></p>
+  </body>
+</html>
