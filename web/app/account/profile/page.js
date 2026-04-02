@@ -1,11 +1,11 @@
-import MemberProfileTemplateShell from "../../../components/MemberProfileTemplateShell";
+import AccountProfileTailadminEmbed from "../../../components/AccountProfileTailadminEmbed";
 
 export const metadata = {
   title: "โปรไฟล์สมาชิก | HUAJAIY",
   description:
-    "หน้าโปรไฟล์สมาชิก (เทมเพลตใหม่) — พัฒนาต่อจากโครงแดชบอร์ด ไม่ดึงข้อมูลระบบเดิมในขั้นนี้"
+    "โปรไฟล์สมาชิก — เทมเพลต TailAdmin (Vue) แบบเดียวกับ Theme Lab"
 };
 
 export default function AccountProfilePage() {
-  return <MemberProfileTemplateShell />;
+  return <AccountProfileTailadminEmbed />;
 }

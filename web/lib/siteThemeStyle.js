@@ -5,7 +5,9 @@ const THEME_LAB_FULL_EMBED_PATHS = new Set([
   "/theme-lab/tailadmin",
   "/theme-lab/dashui",
   "/theme-lab/purdue",
-  "/theme-lab/original"
+  "/theme-lab/original",
+  /** โปรไฟล์สมาชิก = TailAdmin เต็มจอ เหมือน Theme Lab */
+  "/account/profile"
 ]);
 
 export function isThemeLabFullPageEmbedPath(pathname) {
