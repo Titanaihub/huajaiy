@@ -171,10 +171,17 @@ export default function MemberNav() {
               </Link>
               <Link
                 href="/account/profile"
-                className={`${cls} ${isActivePath(p, "/account/profile") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
+                className={`${cls} ${p === "/account/profile" ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ข้อมูลส่วนตัว
+              </Link>
+              <Link
+                href="/account/profile/legacy"
+                className={`${cls} ${p === "/account/profile/legacy" ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
+                role="menuitem"
+              >
+                แก้ข้อมูลระบบ (เวอร์ชันเดิม)
               </Link>
             </>
           )}
