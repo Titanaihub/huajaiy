@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Organic Page Preview</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" type="text/css" href="css/vendor.css" />
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body style="background:#f8f9fa;">
+    <main class="container py-5">
+      <div class="mx-auto rounded-4 border bg-white p-4 p-md-5 shadow-sm" style="max-width:920px;">
+        <p class="text-uppercase fw-semibold mb-2" style="letter-spacing:.14em;color:#6c757d;">Organic Template</p>
+        <h1 id="pageTitle" class="display-5 fw-bold mb-3">Page Preview</h1>
+        <p id="pageDesc" class="lead text-secondary mb-4">
+          Preview destination for menu navigation.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="index.html" class="btn btn-dark">Back to Home</a>
+          <a href="index.html#pages" class="btn btn-outline-dark">Back to Pages Menu</a>
+        </div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        var p = new URLSearchParams(window.location.search);
+        var t = p.get("title") || "Page Preview";
+        var d = p.get("desc") || ("You are viewing: " + t);
+        document.title = "Organic - " + t;
+        document.getElementById("pageTitle").textContent = t;
+        document.getElementById("pageDesc").textContent = d;
+      })();
+    </script>
+  </body>
+</html>
