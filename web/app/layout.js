@@ -7,7 +7,12 @@ import HtmlBackgroundSync from "../components/HtmlBackgroundSync";
 import { SiteThemeProvider } from "../components/SiteThemeProvider";
 import { getPathnameForLayout } from "../lib/getPathnameForLayout";
 import { fetchSiteThemeForLayout } from "../lib/fetchSiteTheme";
-import { buildSiteRootBackgroundStyle, pickBackgroundSliceForPathname } from "../lib/siteThemeStyle";
+import {
+  buildSiteRootBackgroundStyle,
+  buildThemeLabEmbedHtmlBackgroundStyle,
+  isThemeLabFullPageEmbedPath,
+  pickBackgroundSliceForPathname
+} from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
 const prompt = Prompt({
@@ -60,11 +65,10 @@ export default async function RootLayout({ children }) {
     getPathnameForLayout()
   ]);
   const bgSlice = pickBackgroundSliceForPathname(siteTheme, pathname);
-  /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน */
-  const htmlBgStyle = {
-    ...buildSiteRootBackgroundStyle(bgSlice),
-    minHeight: "100dvh"
-  };
+  /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน; Theme Lab iframe = พื้นเรียบ ไม่ดึงธีมเดิม */
+  const htmlBgStyle = isThemeLabFullPageEmbedPath(pathname)
+    ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
+    : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
 
   return (
     <html lang="th" className={prompt.variable} style={htmlBgStyle}>

@@ -1,5 +1,29 @@
 import { normalizePathnameForTheme } from "./pathnameNormalize";
 
+/** หน้าเปิดเทมเพลตหลังบ้านแบบ iframe เต็มจอ — ไม่ใช้พื้นหลังธีมเว็บหลัก (กลาแล็กซี/ชุด inner) */
+const THEME_LAB_FULL_EMBED_PATHS = new Set([
+  "/theme-lab/tailadmin",
+  "/theme-lab/dashui",
+  "/theme-lab/purdue",
+  "/theme-lab/original"
+]);
+
+export function isThemeLabFullPageEmbedPath(pathname) {
+  return THEME_LAB_FULL_EMBED_PATHS.has(normalizePathnameForTheme(pathname));
+}
+
+/** พื้นหลังเรียบให้ `<html>` ตอนดูเทมเพลต — ไม่ดึงรูป/ไล่สีจากแอดมิน */
+export function buildThemeLabEmbedHtmlBackgroundStyle() {
+  return {
+    backgroundImage: "none",
+    backgroundColor: "#f1f5f9",
+    backgroundAttachment: "scroll",
+    backgroundSize: "auto",
+    backgroundPosition: "left top",
+    backgroundRepeat: "no-repeat"
+  };
+}
+
 function hexToRgb(hex) {
   const h = String(hex || "").replace(/^#/, "");
   if (h.length !== 6 || !/^[0-9a-fA-F]{6}$/.test(h)) return { r: 255, g: 245, b: 248 };
