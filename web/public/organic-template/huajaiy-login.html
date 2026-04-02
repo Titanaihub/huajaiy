@@ -60,6 +60,8 @@
               <div class="form-group col-lg-12 px-0">
                 <a
                   href="/login/line?auto=1"
+                  target="_top"
+                  rel="noopener"
                   class="btn hui-line-btn w-100 rounded-pill py-3 text-uppercase"
                 >
                   <i class="fa-brands fa-line me-2" aria-hidden="true"></i>
@@ -112,12 +114,14 @@
 
               <p class="mt-4 mb-0">
                 ยังไม่มีบัญชี?
-                <a href="/register">สมัครเลย</a>
+                <a href="/register" target="_top" rel="noopener">สมัครเลย</a>
               </p>
               <p class="small text-muted mt-3 mb-0">
-                <a href="/organic-template/index.html">← กลับหน้าเทมเพลต Organic</a>
-                ·
-                <a href="/hui/login">เข้าด้วยยูสเซอร์/รหัส (หน้าเดิม)</a>
+                <a href="/" target="_top" rel="noopener">← กลับหน้าแรก</a>
+                <span class="text-muted"> · </span>
+                <a href="/theme-lab/tailadmin" target="_top" rel="noopener">พื้นที่สมาชิก</a>
+                <span class="text-muted"> · </span>
+                <a href="/hui/login" target="_top" rel="noopener">เข้าด้วยยูสเซอร์/รหัส (หน้าเดิม)</a>
               </p>
             </div>
           </div>
@@ -140,7 +144,7 @@
     <script src="/purdue-template/assets/js/scripts.js"></script>
     <script>
       document.getElementById("hui-login-btn").addEventListener("click", function () {
-        window.location.href = "/hui/login";
+        window.top.location.href = "/hui/login";
       });
     </script>
   </body>
