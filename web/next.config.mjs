@@ -2,11 +2,29 @@
 const nextConfig = {
   poweredByHeader: false,
   compress: true,
+  /** TailAdmin (Vue) ใน iframe: ต้องใช้ pathname /tailadmin-template/ ไม่ใช่ .../index.html ไม่งั้น Vue Router ไม่ match route / */
+  async redirects() {
+    return [
+      {
+        source: "/tailadmin-template/index.html",
+        destination: "/tailadmin-template/",
+        permanent: false
+      }
+    ];
+  },
   async rewrites() {
     const raw =
       process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.huajaiy.com";
     const api = raw.replace(/\/$/, "");
     return [
+      {
+        source: "/tailadmin-template",
+        destination: "/tailadmin-template/index.html"
+      },
+      {
+        source: "/tailadmin-template/",
+        destination: "/tailadmin-template/index.html"
+      },
       {
         source: "/api/health",
         destination: `${api}/api/health`

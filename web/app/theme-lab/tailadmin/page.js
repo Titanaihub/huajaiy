@@ -8,7 +8,7 @@ export default function ThemeLabTailadminPage() {
     <main className="h-screen w-screen overflow-hidden bg-slate-100">
       <iframe
         title="TailAdmin Vue admin template"
-        src="/tailadmin-template/index.html"
+        src="/tailadmin-template/"
         className="h-full w-full border-0"
       />
     </main>
