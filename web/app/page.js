@@ -1,10 +1,16 @@
-import TailAdminEmbedPage from "../components/TailAdminEmbedPage";
-
 export const metadata = {
-  title: "Workspace | HUAJAIY",
-  description: "แดชบอร์ดหลัก (TailAdmin) — พัฒนาต่อทีละขั้นตอน"
+  title: "หน้าแรก | HUAJAIY",
+  description: "HUAJAIY — หน้าแรก"
 };
 
 export default function HomePage() {
-  return <TailAdminEmbedPage tailPath="" />;
+  return (
+    <main className="h-screen w-screen overflow-hidden bg-white">
+      <iframe
+        title="หน้าแรก — Organic template"
+        src="/organic-template/index.html"
+        className="h-full w-full border-0"
+      />
+    </main>
+  );
 }

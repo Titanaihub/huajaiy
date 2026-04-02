@@ -1,16 +1,10 @@
+import MemberTailadminWorkspace from "../../../components/MemberTailadminWorkspace";
+
 export const metadata = {
-  title: "Theme Lab — TailAdmin (Vue) | HUAJAIY",
-  description: "ดูเทมเพลต TailAdmin Vue สำหรับพิจารณาเป็นหลังบ้านแอดมิน/ยูสเซอร์"
+  title: "ระบบสมาชิก | HUAJAIY",
+  description: "พื้นที่สมาชิก — เทมเพลต TailAdmin (Vue)"
 };
 
 export default function ThemeLabTailadminPage() {
-  return (
-    <main className="h-screen w-screen overflow-hidden bg-slate-100">
-      <iframe
-        title="TailAdmin Vue admin template"
-        src="/tailadmin-template/"
-        className="h-full w-full border-0"
-      />
-    </main>
-  );
+  return <MemberTailadminWorkspace />;
 }

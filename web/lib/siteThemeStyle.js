@@ -4,8 +4,6 @@ import { normalizePathnameForTheme } from "./pathnameNormalize";
 /** iframe เต็มจอ — ไม่ใช้พื้นหลังธีมเว็บหลักบน <html> */
 const THEME_LAB_FULL_EMBED_PATHS = new Set([
   "/",
-  "/calendar",
-  "/profile",
   "/login",
   "/theme-lab/tailadmin",
   "/theme-lab/dashui",

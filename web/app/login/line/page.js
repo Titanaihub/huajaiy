@@ -8,6 +8,7 @@ import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
+import { MEMBER_WORKSPACE_PATH } from "../../../lib/memberWorkspacePath";
 import { safeRedirectPath } from "../../../lib/safeRedirectPath";
 
 const NEXT_AUTH_ERROR_TH = {
@@ -23,14 +24,16 @@ const NEXT_AUTH_ERROR_TH = {
   Default: "เข้าสู่ระบบไม่สำเร็จ"
 };
 
-/** หลังล็อกอิน LINE + แลก token สมาชิกแล้ว — ค่าเริ่มต้นไปหน้าโปรไฟล์ (ระบบสมาชิกใหม่); รองรับ ?next= และ ?callbackUrl= */
-const LINE_MEMBER_DEFAULT_REDIRECT = "/account/profile";
+/** หลังล็อกอิน LINE + แลก token สมาชิกแล้ว — ค่าเริ่มต้นไประบบสมาชิก (TailAdmin); รองรับ ?next= และ ?callbackUrl= */
+const LINE_MEMBER_DEFAULT_REDIRECT = MEMBER_WORKSPACE_PATH;
 
-/** เดิมหลายจุดส่งมาที่ /login?next=/account — หลัง LINE ให้เข้าโปรไฟล์แทนหน้าแดชบอร์ดเก่า */
+/** เดิมหลายจุดส่งมาที่ /account หรือ /account/profile — ให้ไป workspace เดียวกับ theme-lab/tailadmin */
 function normalizeLineMemberTarget(path) {
   if (typeof path !== "string") return path;
   const base = path.replace(/\/+$/, "") || "/";
-  if (base === "/account") return LINE_MEMBER_DEFAULT_REDIRECT;
+  if (base === "/account" || base === "/account/profile") {
+    return LINE_MEMBER_DEFAULT_REDIRECT;
+  }
   return path;
 }
 

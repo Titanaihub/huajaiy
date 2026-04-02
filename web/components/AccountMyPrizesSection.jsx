@@ -11,6 +11,7 @@ import {
   getMemberToken
 } from "../lib/memberApi";
 import PrizeWithdrawalHistoryTable from "./PrizeWithdrawalHistoryTable";
+import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const CAT_LABEL = {
@@ -520,7 +521,7 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
   const totalUnits = safeItems.reduce((s, a) => s + itemUnitsPerWin(a), 0);
 
   function goProfile() {
-    router.push("/account/profile");
+    router.push(MEMBER_WORKSPACE_PATH);
   }
 
   async function handleWinnerPickupAck(awardId) {

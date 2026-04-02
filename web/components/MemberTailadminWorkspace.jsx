@@ -2,14 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const IFRAME_SRC = "/tailadmin-template/";
 
-/**
- * โปรไฟล์สมาชิก = เปิดเทมเพลต TailAdmin (Vue) แบบเดียวกับ /theme-lab/tailadmin
- */
-export default function AccountProfileTailadminEmbed() {
+export default function MemberTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
 
@@ -17,7 +15,7 @@ export default function AccountProfileTailadminEmbed() {
     if (loading) return;
     if (!user) {
       router.replace(
-        `/login/line?next=${encodeURIComponent("/account/profile")}`
+        `/login/line?next=${encodeURIComponent(MEMBER_WORKSPACE_PATH)}`
       );
     }
   }, [loading, user, router]);
@@ -33,7 +31,7 @@ export default function AccountProfileTailadminEmbed() {
   return (
     <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
       <iframe
-        title="โปรไฟล์สมาชิก — TailAdmin"
+        title="ระบบสมาชิก — TailAdmin"
         src={IFRAME_SRC}
         className="h-full w-full border-0"
       />

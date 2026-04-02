@@ -1,11 +1,10 @@
-import AccountProfileTailadminEmbed from "../../../components/AccountProfileTailadminEmbed";
+import AccountProfileToWorkspaceRedirect from "../../../components/AccountProfileToWorkspaceRedirect";
 
 export const metadata = {
   title: "โปรไฟล์สมาชิก | HUAJAIY",
-  description:
-    "โปรไฟล์สมาชิก — เทมเพลต TailAdmin (Vue) แบบเดียวกับ Theme Lab"
+  description: "พาไประบบสมาชิก (TailAdmin)"
 };
 
 export default function AccountProfilePage() {
-  return <AccountProfileTailadminEmbed />;
+  return <AccountProfileToWorkspaceRedirect />;
 }

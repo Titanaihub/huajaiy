@@ -11,6 +11,7 @@ import {
 } from "../lib/cart";
 import { fetchMarketplaceResolve } from "../lib/marketplaceApi";
 import { postMarketplaceOrder } from "../lib/ordersApi";
+import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
@@ -254,7 +255,7 @@ export default function CartContents() {
             <p className="mt-1 text-sm text-hui-muted">
               บันทึกถาวรในออเดอร์ — แก้ค่าเริ่มต้นได้ที่{" "}
               <Link
-                href="/account/profile"
+                href={MEMBER_WORKSPACE_PATH}
                 className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 โปรไฟล์

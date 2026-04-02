@@ -9,6 +9,16 @@ const nextConfig = {
         source: "/tailadmin-template/index.html",
         destination: "/tailadmin-template/",
         permanent: false
+      },
+      {
+        source: "/calendar",
+        destination: "/theme-lab/tailadmin",
+        permanent: false
+      },
+      {
+        source: "/profile",
+        destination: "/theme-lab/tailadmin",
+        permanent: false
       }
     ];
   },

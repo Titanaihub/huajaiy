@@ -11,6 +11,7 @@ import {
   getMemberToken
 } from "../lib/memberApi";
 import PrizeWithdrawalHistoryTable from "./PrizeWithdrawalHistoryTable";
+import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const MIN_WITHDRAW_BAHT = 20;
@@ -302,7 +303,7 @@ export default function PrizeWithdrawForm() {
           </p>
           <p className="mt-1 text-sm text-hui-muted">
             ดึงจากชื่อ–นามสกุลในโปรไฟล์ — แก้ได้ที่{" "}
-            <Link href="/account/profile" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+            <Link href={MEMBER_WORKSPACE_PATH} className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
               ข้อมูลส่วนตัว
             </Link>
           </p>
