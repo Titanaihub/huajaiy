@@ -597,3 +597,16 @@ a.btn-link.text-light:after {
 	}
 }
 /* ============ mobile view .end// ============ */
+
+/* HUAJAIY organic hero: narrow phones wrap to 2+ lines; sm+ single line */
+.hero-welcome-title {
+  line-height: 1.2;
+  font-size: clamp(1.4rem, 5vw, 3.35rem);
+  white-space: normal;
+}
+@media (min-width: 576px) {
+  .hero-welcome-title {
+    white-space: nowrap;
+    font-size: clamp(1.15rem, 5.2vw, 3.35rem);
+  }
+}
