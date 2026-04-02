@@ -3,7 +3,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
@@ -54,11 +54,14 @@ function LineLoginContent() {
   const [authError, setAuthError] = useState("");
   const [memberLinkError, setMemberLinkError] = useState(null);
   const [exchangeRetry, setExchangeRetry] = useState(0);
+  const lineAutoOnce = useRef(false);
 
   const callbackUrl = useMemo(
     () => resolveMemberRedirect(searchParams),
     [searchParams]
   );
+
+  const autoStartLine = searchParams.get("auto") === "1";
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -199,16 +202,24 @@ function LineLoginContent() {
             )
           ) : (
             <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleLineSignIn}
-                className="w-full rounded-2xl bg-[#06C755] px-4 py-3.5 text-center text-base font-semibold text-white shadow-soft transition hover:brightness-95 active:scale-[0.99]"
-              >
-                เข้าสู่ระบบด้วย LINE
-              </button>
-              <p className="text-center text-sm text-hui-muted">
-                บัญชีสมาชิกจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
-              </p>
+              {autoStartLine && !authError ? (
+                <p className="py-6 text-center text-sm text-hui-muted">
+                  กำลังเปิด LINE เพื่อเข้าสู่ระบบ...
+                </p>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleLineSignIn}
+                    className="w-full rounded-2xl bg-[#06C755] px-4 py-3.5 text-center text-base font-semibold text-white shadow-soft transition hover:brightness-95 active:scale-[0.99]"
+                  >
+                    เข้าสู่ระบบด้วย LINE
+                  </button>
+                  <p className="text-center text-sm text-hui-muted">
+                    บัญชีสมาชิกจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
+                  </p>
+                </>
+              )}
             </div>
           )}
           {authError ? (
