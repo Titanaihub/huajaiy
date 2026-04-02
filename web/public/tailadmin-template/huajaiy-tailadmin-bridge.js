@@ -7,14 +7,6 @@
 (function () {
   var TOKEN_KEY = "huajaiy_member_token";
   var HEART = "/tailadmin-template/images/logo/huajaiy-heart.svg";
-  var HEART_RED = "/tailadmin-template/images/logo/huajaiy-heart-red.svg";
-
-  var HEADER_NAV = [
-    { label: "หน้าแรก", href: "/" },
-    { label: "เกมรางวัล", href: "/game" },
-    { label: "เพจร้านค้า", href: "/shop" },
-    { label: "เข้าสู่ระบบ", href: "/login" }
-  ];
 
   var lastUser = null;
   var moTimer = null;
@@ -184,8 +176,13 @@
     document.head.appendChild(st);
   }
 
-  function applyMemberHeaderBar() {
+  /** เมนูหลักอยู่ที่ SiteHeader ด้านนอก iframe แล้ว — ที่นี่ซ่อนแค่ช่องค้นหาเทมเพลต + ลบแถบเก่าใน iframe ถ้ามี */
+  function hideTemplateSearchOnly() {
     ensureBridgeStyles();
+    var legacy = document.getElementById("huajaiy-header-nav");
+    if (legacy && legacy.parentNode) {
+      legacy.parentNode.removeChild(legacy);
+    }
     var header = document.querySelector("header");
     if (!header) return;
     var inp = header.querySelector(
@@ -196,89 +193,6 @@
     if (searchHost) {
       searchHost.setAttribute("data-huajaiy-no-search", "1");
     }
-
-    var parent;
-    var refNode;
-    if (searchHost && searchHost.parentNode) {
-      parent = searchHost.parentNode;
-      refNode = searchHost;
-    } else {
-      var grow = header.querySelector("div.grow");
-      if (!grow) return;
-      parent = grow;
-      refNode = grow.children.length > 1 ? grow.children[1] : null;
-    }
-
-    var nav = document.getElementById("huajaiy-header-nav");
-    if (!nav) {
-      nav = document.createElement("div");
-      nav.id = "huajaiy-header-nav";
-      parent.insertBefore(nav, refNode);
-    } else if (nav.parentNode !== parent) {
-      parent.insertBefore(nav, refNode);
-    }
-
-    nav.className =
-      "flex flex-1 flex-wrap items-center gap-3 gap-y-2 min-w-0 py-2 px-2 sm:px-3 lg:py-3 lg:px-0";
-
-    if (
-      nav.getAttribute("data-huajaiy-header-v1") === "1" &&
-      nav.querySelector("[data-huajaiy-heart-strip]") &&
-      nav.querySelector("[data-huajaiy-nav-links]")
-    ) {
-      return;
-    }
-
-    while (nav.firstChild) {
-      nav.removeChild(nav.firstChild);
-    }
-    nav.setAttribute("data-huajaiy-header-v1", "1");
-
-    var hearts = document.createElement("div");
-    hearts.setAttribute("data-huajaiy-heart-strip", "1");
-    hearts.className =
-      "flex items-center gap-3 shrink-0 border-r border-gray-200 pr-3 dark:border-gray-800";
-    hearts.setAttribute("aria-label", "หัวใจสมาชิก");
-
-    function heartPair(imgSrc, tip) {
-      var w = document.createElement("div");
-      w.className = "flex items-center gap-1";
-      w.title = tip + " (จำนวนจะแสดงเมื่อเชื่อม API)";
-      var im = document.createElement("img");
-      im.src = imgSrc;
-      im.alt = "";
-      im.className = "h-6 w-6 shrink-0";
-      var ct = document.createElement("span");
-      ct.className =
-        "text-xs font-semibold tabular-nums text-gray-500 dark:text-gray-400 min-w-[1rem] text-center";
-      ct.textContent = "\u2013";
-      w.appendChild(im);
-      w.appendChild(ct);
-      return w;
-    }
-
-    hearts.appendChild(heartPair(HEART, "หัวใจชมพู"));
-    hearts.appendChild(heartPair(HEART_RED, "หัวใจแดง"));
-    nav.appendChild(hearts);
-
-    var linkWrap = document.createElement("nav");
-    linkWrap.setAttribute("data-huajaiy-nav-links", "1");
-    linkWrap.className =
-      "flex flex-wrap items-center justify-center gap-x-4 gap-y-1 lg:justify-start";
-    linkWrap.setAttribute("aria-label", "เมนูหลัก");
-
-    for (var hi = 0; hi < HEADER_NAV.length; hi++) {
-      var item = HEADER_NAV[hi];
-      var a = document.createElement("a");
-      a.href = item.href;
-      a.target = "_top";
-      a.rel = "noopener noreferrer";
-      a.className =
-        "text-sm font-semibold text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 whitespace-nowrap";
-      a.textContent = item.label;
-      linkWrap.appendChild(a);
-    }
-    nav.appendChild(linkWrap);
   }
 
   function applyUser(user) {
@@ -361,7 +275,7 @@
 
   function sync() {
     applyBrand();
-    applyMemberHeaderBar();
+    hideTemplateSearchOnly();
     applyThai();
     if (lastUser) {
       applyUser(lastUser);

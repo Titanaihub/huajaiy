@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
+import SiteHeader from "./SiteHeader";
 
 const IFRAME_SRC = "/tailadmin-template/";
 
@@ -53,14 +54,17 @@ export default function MemberTailadminWorkspace() {
   }
 
   return (
-    <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
-      <iframe
-        ref={iframeRef}
-        title="ระบบสมาชิก HUAJAIY"
-        src={IFRAME_SRC}
-        className="h-full w-full border-0"
-        onLoad={pushMemberToIframe}
-      />
-    </main>
+    <>
+      <SiteHeader />
+      <main className="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-slate-100">
+        <iframe
+          ref={iframeRef}
+          title="ระบบสมาชิก HUAJAIY"
+          src={IFRAME_SRC}
+          className="min-h-0 w-full flex-1 border-0"
+          onLoad={pushMemberToIframe}
+        />
+      </main>
+    </>
   );
 }

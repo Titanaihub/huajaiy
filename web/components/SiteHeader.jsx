@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import BrandLogo from "./BrandLogo";
+import GlobalPrimaryNav from "./GlobalPrimaryNav";
 import HeartsBadge from "./HeartsBadge";
 import MemberNav from "./MemberNav";
 
@@ -15,19 +14,14 @@ export default function SiteHeader() {
           </div>
         </div>
         <nav
-          className="scrollbar-hide -mx-4 flex max-w-full items-center gap-x-1 gap-y-2 overflow-x-auto px-4 pb-0.5 text-sm sm:mx-0 sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0"
+          className="scrollbar-hide -mx-4 flex max-w-full flex-wrap items-center gap-x-6 gap-y-2 overflow-x-auto px-4 pb-0.5 text-sm sm:mx-0 sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0"
           aria-label="เมนูหลัก"
         >
-          <Link href="/" className={siteNavLinkClass}>
-            หน้าแรก
-          </Link>
-          <Link href="/hui" className={siteNavLinkClass}>
-            แพลตฟอร์มเดิม
-          </Link>
-          <Link href="/game" className={siteNavLinkClass}>
-            เกม
-          </Link>
-          <span className="hidden h-4 w-px bg-hui-border/35 sm:inline-block" />
+          <GlobalPrimaryNav />
+          <span
+            className="hidden h-4 w-px shrink-0 bg-hui-border/35 sm:inline-block"
+            aria-hidden
+          />
           <MemberNav />
         </nav>
       </div>
