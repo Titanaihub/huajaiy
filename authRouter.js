@@ -416,7 +416,16 @@ router.get("/capabilities", authMiddleware, async (req, res) => {
 
 router.patch("/profile", authMiddleware, async (req, res) => {
   try {
-    const parsed = validateProfilePatch(req.body || {});
+    const cur = await userService.findById(req.userId);
+    if (!cur) {
+      return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
+    }
+    const parsed = validateProfilePatch(req.body || {}, {
+      countryCode: cur.countryCode || "TH",
+      selfServiceNameEditsUsed: cur.selfServiceNameEdits || 0,
+      currentFirstName: cur.firstName,
+      currentLastName: cur.lastName
+    });
     if (!parsed.ok) {
       return res.status(400).json({ ok: false, error: parsed.error });
     }
@@ -437,6 +446,12 @@ router.patch("/profile", authMiddleware, async (req, res) => {
         ok: false,
         error: "เบอร์โทรนี้เคยใช้สมัครสมาชิกแล้ว"
       });
+    }
+    if (e.code === "USERNAME_TAKEN" || e.code === "EMAIL_TAKEN") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NAME_EDIT_LIMIT") {
+      return res.status(400).json({ ok: false, error: e.message });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

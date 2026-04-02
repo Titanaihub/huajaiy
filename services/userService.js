@@ -14,7 +14,7 @@ const {
   MAX_FIELD,
   MAX_POSTAL
 } = require("../shippingAddress");
-const { validateUsername } = require("../authValidators");
+const { validateUsername, validateEmail } = require("../authValidators");
 
 function normalizeBirthDate(v) {
   if (v == null) return null;
@@ -102,7 +102,15 @@ function rowToUser(row) {
     lineUserId:
       row.line_user_id != null && String(row.line_user_id).trim()
         ? String(row.line_user_id).trim()
-        : null
+        : null,
+    email:
+      row.email != null && String(row.email).trim()
+        ? String(row.email).trim().toLowerCase().slice(0, 254)
+        : null,
+    selfServiceNameEdits: Math.max(
+      0,
+      Math.floor(Number(row.self_service_name_edits) || 0)
+    )
   };
 }
 
@@ -145,7 +153,15 @@ function enrichFileUserShipping(u) {
     prizeContactLine:
       u.prizeContactLine != null && String(u.prizeContactLine).trim()
         ? String(u.prizeContactLine).trim().slice(0, 500)
-        : null
+        : null,
+    email:
+      u.email != null && String(u.email).trim()
+        ? String(u.email).trim().toLowerCase()
+        : null,
+    selfServiceNameEdits: Math.max(
+      0,
+      Math.floor(Number(u.selfServiceNameEdits) || 0)
+    )
   };
 }
 
@@ -169,6 +185,21 @@ async function findByPhone(phone) {
   const r = await pool.query("SELECT * FROM users WHERE phone = $1 LIMIT 1", [
     p
   ]);
+  if (r.rows.length === 0) return null;
+  return rowToUser(r.rows[0]);
+}
+
+async function findByEmail(email) {
+  const e = String(email ?? "").trim().toLowerCase();
+  if (!e) return null;
+  const pool = getPool();
+  if (!pool) {
+    return enrichFileUserShipping(userStore.findByEmail(e));
+  }
+  const r = await pool.query(
+    `SELECT * FROM users WHERE LOWER(TRIM(COALESCE(email,''))) = $1 LIMIT 1`,
+    [e]
+  );
   if (r.rows.length === 0) return null;
   return rowToUser(r.rows[0]);
 }
@@ -377,7 +408,17 @@ function publicUser(u) {
     prizeContactLine:
       u.prizeContactLine != null && String(u.prizeContactLine).trim()
         ? String(u.prizeContactLine).trim()
-        : null
+        : null,
+    email:
+      u.email != null && String(u.email).trim() ? String(u.email).trim() : null,
+    selfServiceNameEditsUsed: Math.max(
+      0,
+      Math.floor(Number(u.selfServiceNameEdits) || 0)
+    ),
+    selfServiceNameEditsRemaining: Math.max(
+      0,
+      3 - Math.floor(Number(u.selfServiceNameEdits) || 0)
+    )
   };
 }
 
@@ -403,7 +444,14 @@ async function updateProfile(
     phone,
     updatePhone,
     prizeContactLine,
-    updatePrizeContactLine
+    updatePrizeContactLine,
+    firstName,
+    lastName,
+    updateNames,
+    username,
+    updateUsername,
+    email,
+    updateEmail
   },
   opts = {}
 ) {
@@ -411,13 +459,53 @@ async function updateProfile(
   const current = await findById(userId);
   if (!current) return null;
 
-  const pool = getPool();
+  const nextFirst = updateNames ? firstName : current.firstName;
+  const nextLast = updateNames ? lastName : current.lastName;
+  const namesChanging =
+    Boolean(updateNames) &&
+    (String(nextFirst) !== String(current.firstName || "") ||
+      String(nextLast) !== String(current.lastName || ""));
+  if (namesChanging && (current.selfServiceNameEdits || 0) >= 3) {
+    const err = new Error(
+      "แก้ชื่อ–นามสกุลเองได้ครบ 3 ครั้งแล้ว — ใช้คำขอแอดมินด้านล่าง"
+    );
+    err.code = "NAME_EDIT_LIMIT";
+    throw err;
+  }
+  const nameEditDelta = namesChanging ? 1 : 0;
+
+  let nextUsername = String(current.username || "").toLowerCase();
+  if (updateUsername) {
+    nextUsername = String(username).toLowerCase();
+    if (nextUsername !== String(current.username || "").toLowerCase()) {
+      const taken = await findByUsername(nextUsername);
+      if (taken && String(taken.id) !== String(userId)) {
+        const e = new Error("ชื่อผู้ใช้นี้ถูกใช้แล้ว");
+        e.code = "USERNAME_TAKEN";
+        throw e;
+      }
+    }
+  }
+
+  let nextEmail =
+    current.email != null && String(current.email).trim()
+      ? String(current.email).trim().toLowerCase()
+      : null;
+  if (updateEmail) {
+    nextEmail = email;
+    if (nextEmail != null) {
+      const taken = await findByEmail(nextEmail);
+      if (taken && String(taken.id) !== String(userId)) {
+        const e = new Error("อีเมลนี้ถูกใช้แล้ว");
+        e.code = "EMAIL_TAKEN";
+        throw e;
+      }
+    }
+  }
+
   const oldPhone = normPhone(current.phone);
   const newPhone = updatePhone ? normPhone(phone) : oldPhone;
   const phoneChanged = Boolean(updatePhone) && newPhone !== oldPhone;
-  const shipDb =
-    updateShipping && shippingParts ? dbValuesFromParts(shippingParts) : null;
-
   if (phoneChanged && newPhone != null) {
     const taken = await findByPhone(newPhone);
     if (taken && taken.id !== userId) {
@@ -427,12 +515,33 @@ async function updateProfile(
     }
   }
 
+  const baseShipParts = {
+    ...emptyParts(),
+    ...(current.shippingAddressParts && typeof current.shippingAddressParts === "object"
+      ? current.shippingAddressParts
+      : {})
+  };
+  const mergedShipParts =
+    updateShipping && shippingParts
+      ? { ...baseShipParts, ...shippingParts }
+      : baseShipParts;
+  const shipDb = dbValuesFromParts(mergedShipParts);
+
+  const pool = getPool();
+
   if (!pool) {
-    const patch = { gender, birthDate };
-    if (updateShipping && shipDb) {
-      patch.shippingAddress = shipDb.shipping_address;
-      patch.shippingAddressParts = { ...emptyParts(), ...shippingParts };
-    }
+    const patch = {
+      gender,
+      birthDate,
+      firstName: nextFirst,
+      lastName: nextLast,
+      username: nextUsername,
+      email: nextEmail,
+      selfServiceNameEdits:
+        (current.selfServiceNameEdits || 0) + nameEditDelta
+    };
+    patch.shippingAddress = shipDb.shipping_address;
+    patch.shippingAddressParts = { ...mergedShipParts };
     if (phoneChanged) {
       const phoneHistory = Array.isArray(current.phoneHistory)
         ? [...current.phoneHistory]
@@ -454,89 +563,45 @@ async function updateProfile(
     return findById(userId);
   }
 
-  if (phoneChanged) {
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    if (phoneChanged) {
       await phoneHistoryService.insertWithClient(client, {
         userId,
         oldPhone,
         newPhone,
         clientIp
       });
-      if (updateShipping && shipDb) {
-        await client.query(
-          `UPDATE users SET
-            gender = $2,
-            birth_date = $3,
-            shipping_address = $4,
-            shipping_house_no = $5,
-            shipping_moo = $6,
-            shipping_road = $7,
-            shipping_subdistrict = $8,
-            shipping_district = $9,
-            shipping_province = $10,
-            shipping_postal_code = $11,
-            phone = $12
-          WHERE id = $1`,
-          [
-            userId,
-            gender,
-            birthDate || null,
-            shipDb.shipping_address,
-            shipDb.shipping_house_no,
-            shipDb.shipping_moo,
-            shipDb.shipping_road,
-            shipDb.shipping_subdistrict,
-            shipDb.shipping_district,
-            shipDb.shipping_province,
-            shipDb.shipping_postal_code,
-            newPhone
-          ]
-        );
-      } else {
-        await client.query(
-          `UPDATE users SET gender = $2, birth_date = $3, phone = $4 WHERE id = $1`,
-          [userId, gender, birthDate || null, newPhone]
-        );
-      }
-      await client.query("COMMIT");
-    } catch (e) {
-      await client.query("ROLLBACK");
-      if (e.code === "23505") {
-        const d = String(e.detail || "").toLowerCase();
-        if (d.includes("(phone)")) {
-          const pe = new Error("PHONE_TAKEN");
-          pe.code = "PHONE_TAKEN";
-          throw pe;
-        }
-      }
-      throw e;
-    } finally {
-      client.release();
     }
-    await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
-    return findById(userId);
-  }
-
-  if (updateShipping && shipDb) {
-    await pool.query(
+    await client.query(
       `UPDATE users SET
         gender = $2,
         birth_date = $3,
-        shipping_address = $4,
-        shipping_house_no = $5,
-        shipping_moo = $6,
-        shipping_road = $7,
-        shipping_subdistrict = $8,
-        shipping_district = $9,
-        shipping_province = $10,
-        shipping_postal_code = $11
-      WHERE id = $1`,
+        first_name = $4,
+        last_name = $5,
+        username = $6,
+        email = $7,
+        phone = $8,
+        shipping_address = $9,
+        shipping_house_no = $10,
+        shipping_moo = $11,
+        shipping_road = $12,
+        shipping_subdistrict = $13,
+        shipping_district = $14,
+        shipping_province = $15,
+        shipping_postal_code = $16,
+        self_service_name_edits = self_service_name_edits + $17
+      WHERE id = $1::uuid`,
       [
         userId,
         gender,
         birthDate || null,
+        nextFirst,
+        nextLast,
+        nextUsername,
+        nextEmail,
+        newPhone,
         shipDb.shipping_address,
         shipDb.shipping_house_no,
         shipDb.shipping_moo,
@@ -544,17 +609,39 @@ async function updateProfile(
         shipDb.shipping_subdistrict,
         shipDb.shipping_district,
         shipDb.shipping_province,
-        shipDb.shipping_postal_code
+        shipDb.shipping_postal_code,
+        nameEditDelta
       ]
     );
-    await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
-    return findById(userId);
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    if (e.code === "23505") {
+      const d = String(e.detail || "").toLowerCase();
+      if (d.includes("(phone)")) {
+        const pe = new Error("PHONE_TAKEN");
+        pe.code = "PHONE_TAKEN";
+        throw pe;
+      }
+      if (d.includes("(username)")) {
+        const ue = new Error("ชื่อผู้ใช้นี้ถูกใช้แล้ว");
+        ue.code = "USERNAME_TAKEN";
+        throw ue;
+      }
+      if (d.includes("email")) {
+        const ee = new Error("อีเมลนี้ถูกใช้แล้ว");
+        ee.code = "EMAIL_TAKEN";
+        throw ee;
+      }
+    }
+    throw e;
+  } finally {
+    client.release();
   }
-
-  await pool.query(
-    `UPDATE users SET gender = $2, birth_date = $3 WHERE id = $1`,
-    [userId, gender, birthDate || null]
-  );
   await syncPrizeContactLineToDb(pool, userId, updatePrizeContactLine, prizeContactLine);
   return findById(userId);
 }
@@ -708,7 +795,13 @@ function adminMemberListItem(u) {
     redGiveawayBalance: g,
     heartsBalance: p + r + g,
     accountDisabled: Boolean(u.accountDisabled),
-    createdAt: createdAtIso(u)
+    createdAt: createdAtIso(u),
+    email:
+      u.email != null && String(u.email).trim() ? String(u.email).trim() : null,
+    selfServiceNameEditsUsed: Math.max(
+      0,
+      Math.floor(Number(u.selfServiceNameEdits) || 0)
+    )
   };
 }
 
@@ -725,7 +818,7 @@ function adminMemberDetail(u) {
     shippingAddress: u.shippingAddress ?? null,
     registrationIp: u.registrationIp ?? null,
     passwordNote:
-      "รหัสผ่านเก็บเป็นแฮชเท่านั้น — ไม่มีใครดูข้อความจริงได้ ใช้ปุ่มตั้งรหัสใหม่ด้านล่าง"
+      "ยูสเซอร์ล็อกอินเห็นได้ด้านบน — รหัสผ่านเก็บเป็นแฮชเท่านั้น ไม่สามารถดูตัวอักษรเดิมได้ ตั้งรหัสใหม่ให้สมาชิกได้ด้านล่าง"
   };
 }
 
@@ -886,6 +979,35 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
 
   const oldPhoneNorm = normPhone(current.phone);
   const nextPhone = has("phone") ? normPhone(b.phone) : oldPhoneNorm;
+
+  let nextEmail =
+    current.email != null && String(current.email).trim()
+      ? String(current.email).trim().toLowerCase()
+      : null;
+  if (has("email")) {
+    const ev = validateEmail(b.email, { optional: true });
+    if (!ev.ok) {
+      const e = new Error(ev.error);
+      e.code = "VALIDATION";
+      throw e;
+    }
+    nextEmail = ev.value;
+  }
+  const emailChanged =
+    has("email") &&
+    (nextEmail || null) !==
+      (current.email != null && String(current.email).trim()
+        ? String(current.email).trim().toLowerCase()
+        : null);
+  if (emailChanged && nextEmail != null) {
+    const taken = await findByEmail(nextEmail);
+    if (taken && String(taken.id) !== String(userId)) {
+      const e = new Error("อีเมลนี้ถูกใช้แล้ว");
+      e.code = "EMAIL_TAKEN";
+      throw e;
+    }
+  }
+
   const nextCc = has("countryCode")
     ? String(b.countryCode ?? "TH")
         .trim()
@@ -953,6 +1075,7 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
       firstName: nextFirst,
       lastName: nextLast,
       phone: nextPhone,
+      email: nextEmail,
       countryCode: nextCc,
       gender: nextGender,
       birthDate: nextBirth,
@@ -989,19 +1112,20 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
           first_name = $3,
           last_name = $4,
           phone = $5,
-          country_code = $6,
-          gender = $7,
-          birth_date = $8,
-          role = $9,
-          shipping_address = $10,
-          shipping_house_no = $11,
-          shipping_moo = $12,
-          shipping_road = $13,
-          shipping_subdistrict = $14,
-          shipping_district = $15,
-          shipping_province = $16,
-          shipping_postal_code = $17,
-          account_disabled = $18
+          email = $6,
+          country_code = $7,
+          gender = $8,
+          birth_date = $9,
+          role = $10,
+          shipping_address = $11,
+          shipping_house_no = $12,
+          shipping_moo = $13,
+          shipping_road = $14,
+          shipping_subdistrict = $15,
+          shipping_district = $16,
+          shipping_province = $17,
+          shipping_postal_code = $18,
+          account_disabled = $19
         WHERE id = $1::uuid`,
         [
           userId,
@@ -1009,6 +1133,7 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
           nextFirst,
           nextLast,
           newPhone,
+          nextEmail,
           nextCc,
           nextGender,
           nextBirth || null,
@@ -1031,11 +1156,12 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
           first_name = $3,
           last_name = $4,
           phone = $5,
-          country_code = $6,
-          gender = $7,
-          birth_date = $8,
-          role = $9,
-          account_disabled = $10
+          email = $6,
+          country_code = $7,
+          gender = $8,
+          birth_date = $9,
+          role = $10,
+          account_disabled = $11
         WHERE id = $1::uuid`,
         [
           userId,
@@ -1043,6 +1169,7 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
           nextFirst,
           nextLast,
           newPhone,
+          nextEmail,
           nextCc,
           nextGender,
           nextBirth || null,
@@ -1069,6 +1196,11 @@ async function adminPatchMember(userId, body = {}, opts = {}) {
         const ue = new Error("ชื่อผู้ใช้นี้ถูกใช้แล้ว");
         ue.code = "USERNAME_TAKEN";
         throw ue;
+      }
+      if (d.includes("email")) {
+        const ee = new Error("อีเมลนี้ถูกใช้แล้ว");
+        ee.code = "EMAIL_TAKEN";
+        throw ee;
       }
     }
     throw e;
@@ -1098,14 +1230,16 @@ async function listMembers({ q = "", limit = 50, offset = 0 } = {}) {
     const countR = await pool.query(
       `SELECT COUNT(*)::int AS c FROM users
        WHERE username ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1
-          OR phone ILIKE $1 OR CAST(id AS TEXT) ILIKE $1`,
+          OR phone ILIKE $1 OR COALESCE(email, '') ILIKE $1
+          OR CAST(id AS TEXT) ILIKE $1`,
       [pattern]
     );
     const total = countR.rows[0].c;
     const r = await pool.query(
       `SELECT * FROM users
        WHERE username ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1
-          OR phone ILIKE $1 OR CAST(id AS TEXT) ILIKE $1
+          OR phone ILIKE $1 OR COALESCE(email, '') ILIKE $1
+          OR CAST(id AS TEXT) ILIKE $1
        ORDER BY created_at DESC NULLS LAST
        LIMIT $2 OFFSET $3`,
       [pattern, lim, off]
@@ -1180,6 +1314,7 @@ async function listMembers({ q = "", limit = 50, offset = 0 } = {}) {
 module.exports = {
   findByUsername,
   findById,
+  findByEmail,
   findByPhone,
   findByLineUserId,
   findByThaiFullName,

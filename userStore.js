@@ -83,6 +83,16 @@ function findByPhone(phone) {
   return u ? normalizeHearts(u) : null;
 }
 
+function findByEmail(email) {
+  const e = String(email || "").trim().toLowerCase();
+  if (!e) return null;
+  const u =
+    readUsers().find(
+      (x) => String(x.email || "").trim().toLowerCase() === e
+    ) || null;
+  return u ? normalizeHearts(u) : null;
+}
+
 /** ชื่อกับนามสกุลต้องตรงคู่กันทั้งสองช่องจึงถือว่าเป็นคนเดียวกัน */
 function findByThaiFullName(firstName, lastName) {
   const fn = String(firstName || "").trim();
@@ -161,7 +171,14 @@ function publicUser(u) {
 }
 
 function rowHaystack(u) {
-  return [u.username, u.firstName, u.lastName, String(u.phone || ""), u.id]
+  return [
+    u.username,
+    u.firstName,
+    u.lastName,
+    String(u.phone || ""),
+    String(u.email || ""),
+    u.id
+  ]
     .join(" ")
     .toLowerCase();
 }
@@ -192,6 +209,7 @@ module.exports = {
   findByUsername,
   findById,
   findByPhone,
+  findByEmail,
   findByThaiFullName,
   createUser,
   updateUser,

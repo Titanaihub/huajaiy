@@ -389,6 +389,7 @@ router.patch(
       if (
         e.code === "PHONE_TAKEN" ||
         e.code === "USERNAME_TAKEN" ||
+        e.code === "EMAIL_TAKEN" ||
         e.code === "VALIDATION"
       ) {
         return res.status(400).json({ ok: false, error: e.message });

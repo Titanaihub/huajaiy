@@ -68,6 +68,7 @@ export default function AdminDashboard() {
   const [admFirstName, setAdmFirstName] = useState("");
   const [admLastName, setAdmLastName] = useState("");
   const [admPhone, setAdmPhone] = useState("");
+  const [admEmail, setAdmEmail] = useState("");
   const [admCountryCode, setAdmCountryCode] = useState("TH");
   const [admGender, setAdmGender] = useState("");
   const [admBirthDate, setAdmBirthDate] = useState("");
@@ -151,6 +152,9 @@ export default function AdminDashboard() {
     setAdmFirstName(String(u.firstName || ""));
     setAdmLastName(String(u.lastName || ""));
     setAdmPhone(String(u.phone || ""));
+    setAdmEmail(
+      u.email != null && String(u.email).trim() ? String(u.email).trim() : ""
+    );
     setAdmCountryCode(String(u.countryCode || "TH").slice(0, 8));
     setAdmGender(u.gender != null ? String(u.gender) : "");
     setAdmBirthDate(u.birthDate != null ? String(u.birthDate).slice(0, 10) : "");
@@ -163,6 +167,7 @@ export default function AdminDashboard() {
     setAdmDistrict(String(sp.district || ""));
     setAdmProvince(String(sp.province || ""));
     setAdmPostalCode(String(sp.postalCode || ""));
+    setAdmAccountDisabled(Boolean(u.accountDisabled));
   }, [memberFull?.user]);
 
   const loadRequests = useCallback(async () => {
@@ -430,6 +435,7 @@ export default function AdminDashboard() {
         firstName: admFirstName.trim(),
         lastName: admLastName.trim(),
         phone: admPhone.trim(),
+        email: admEmail.trim() === "" ? null : admEmail.trim().toLowerCase(),
         countryCode: admCountryCode.trim() || "TH",
         gender: admGender.trim() || null,
         birthDate: admBirthDate.trim() || null,
@@ -622,6 +628,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2">ยูสเซอร์</th>
                     <th className="px-3 py-2">ชื่อ–นามสกุล</th>
                     <th className="px-3 py-2">เบอร์</th>
+                    <th className="px-3 py-2">อีเมล</th>
                     <th className="px-3 py-2 text-hui-body">รหัสผ่าน</th>
                     <th className="px-3 py-2 text-rose-600">ชมพู</th>
                     <th className="px-3 py-2 text-red-700">แดงเล่น</th>
@@ -635,7 +642,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {list.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-3 py-8 text-center text-hui-muted">
+                      <td colSpan={12} className="px-3 py-8 text-center text-hui-muted">
                         ไม่มีข้อมูล
                       </td>
                     </tr>
@@ -661,6 +668,9 @@ export default function AdminDashboard() {
                           {u.firstName} {u.lastName}
                         </td>
                         <td className="px-3 py-2">{u.phone}</td>
+                        <td className="px-3 py-2 max-w-[14rem] truncate font-mono text-xs" title={u.email || ""}>
+                          {u.email || "—"}
+                        </td>
                         <td
                           className="px-3 py-2"
                           title="ระบบเก็บรหัสแบบแฮชเท่านั้น — ไม่มีข้อความจริงให้แสดง · ตั้งรหัสใหม่ได้ที่「ดูทั้งหมด」"
@@ -825,6 +835,19 @@ export default function AdminDashboard() {
                       <dd>{detail.phone}</dd>
                     </div>
                     <div>
+                      <dt className="text-hui-muted">อีเมล</dt>
+                      <dd className="break-all font-mono text-sm">
+                        {detail.email || "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-hui-muted">แก้ชื่อเอง (ครั้ง)</dt>
+                      <dd>
+                        ใช้ไป {detail.selfServiceNameEditsUsed ?? 0} / 3 — เหลือ{" "}
+                        {Math.max(0, 3 - (detail.selfServiceNameEditsUsed ?? 0))}
+                      </dd>
+                    </div>
+                    <div>
                       <dt className="text-hui-muted">รหัสประเทศ</dt>
                       <dd>{detail.countryCode || "TH"}</dd>
                     </div>
@@ -945,6 +968,18 @@ export default function AdminDashboard() {
                           value={admLastName}
                           onChange={(e) => setAdmLastName(e.target.value)}
                           className="mt-0.5 w-full rounded-lg border border-hui-border px-2 py-1.5"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-sm font-medium text-hui-body">อีเมล</label>
+                        <input
+                          type="email"
+                          inputMode="email"
+                          value={admEmail}
+                          onChange={(e) => setAdmEmail(e.target.value.slice(0, 254))}
+                          placeholder="เว้นว่างได้ — เคลียร์เพื่อลบอีเมล"
+                          className="mt-0.5 w-full max-w-md rounded-lg border border-hui-border px-2 py-1.5 font-mono text-sm"
+                          autoComplete="off"
                         />
                       </div>
                       <div>

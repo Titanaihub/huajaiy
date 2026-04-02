@@ -42,6 +42,10 @@ export default function AccountProfileForm() {
     postalCode: ""
   });
   const [phone, setPhone] = useState("");
+  const [profFirst, setProfFirst] = useState("");
+  const [profLast, setProfLast] = useState("");
+  const [profUsername, setProfUsername] = useState("");
+  const [profEmail, setProfEmail] = useState("");
   const [prizeContactLine, setPrizeContactLine] = useState("");
   const [profileMsg, setProfileMsg] = useState("");
   const [profileErr, setProfileErr] = useState("");
@@ -69,6 +73,14 @@ export default function AccountProfileForm() {
     if (!user) return;
     setGender(user.gender || "");
     setBirthDate(user.birthDate || "");
+    setProfFirst(String(user.firstName || "").trim());
+    setProfLast(String(user.lastName || "").trim());
+    setProfUsername(String(user.username || "").trim().toLowerCase());
+    setProfEmail(
+      user.email != null && String(user.email).trim()
+        ? String(user.email).trim()
+        : ""
+    );
     setPhone(String(user.phone || "").replace(/\s+/g, ""));
     setPrizeContactLine(
       user.prizeContactLine != null ? String(user.prizeContactLine) : ""
@@ -128,6 +140,8 @@ export default function AccountProfileForm() {
     setProfileSaving(true);
     try {
       const payload = {
+        firstName: profFirst.trim(),
+        lastName: profLast.trim(),
         gender: gender === "" ? null : gender,
         birthDate: birthDate === "" ? null : birthDate,
         shippingAddressParts: {
@@ -207,6 +221,15 @@ export default function AccountProfileForm() {
   }
 
   const isThai = (user.countryCode || "TH") === "TH";
+  const nameEditsUsed = Math.max(
+    0,
+    Math.floor(Number(user.selfServiceNameEditsUsed) || 0)
+  );
+  const nameEditsRemaining =
+    typeof user.selfServiceNameEditsRemaining === "number"
+      ? Math.max(0, user.selfServiceNameEditsRemaining)
+      : Math.max(0, 3 - nameEditsUsed);
+  const nameFieldsLocked = nameEditsRemaining <= 0;
 
   return (
     <div className="space-y-10 text-hui-body">
@@ -244,6 +267,16 @@ export default function AccountProfileForm() {
                 </dd>
               </div>
               <div>
+                <dt className="text-hui-muted">อีเมล</dt>
+                <dd className="font-medium text-hui-body">
+                  {user.email ? (
+                    user.email
+                  ) : (
+                    <span className="text-hui-muted">ยังไม่ได้กรอก</span>
+                  )}
+                </dd>
+              </div>
+              <div>
                 <dt className="text-hui-muted">เบอร์โทร (ปัจจุบัน)</dt>
                 <dd className="font-medium text-hui-body">
                   {user.phone ? (
@@ -265,6 +298,94 @@ export default function AccountProfileForm() {
           </div>
 
           <form onSubmit={saveProfile} className="mt-6 space-y-4">
+            <p className="rounded-lg border border-hui-border bg-hui-surface/80 px-3 py-2 text-sm text-hui-body">
+              แก้ชื่อ–นามสกุลในระบบได้เองอีก{" "}
+              <strong className="text-hui-section">{nameEditsRemaining}</strong> ครั้ง
+              {nameEditsUsed > 0 ? (
+                <span className="text-hui-muted"> (ใช้ไปแล้ว {nameEditsUsed} ครั้ง)</span>
+              ) : null}
+              {nameFieldsLocked ? (
+                <span className="block pt-1 font-medium text-amber-900">
+                  ครบโควตาแล้ว — ใช้ฟอร์ม「ขอเปลี่ยนชื่อผ่านแอดมิน」ด้านล่าง
+                </span>
+              ) : null}
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="profFirst" className="hui-label">
+                  ชื่อ (ในระบบ)
+                </label>
+                <input
+                  id="profFirst"
+                  type="text"
+                  value={profFirst}
+                  onChange={(e) => setProfFirst(e.target.value)}
+                  disabled={nameFieldsLocked}
+                  className="hui-input w-full disabled:cursor-not-allowed disabled:opacity-60"
+                  autoComplete="given-name"
+                />
+              </div>
+              <div>
+                <label htmlFor="profLast" className="hui-label">
+                  นามสกุล (ในระบบ)
+                </label>
+                <input
+                  id="profLast"
+                  type="text"
+                  value={profLast}
+                  onChange={(e) => setProfLast(e.target.value)}
+                  disabled={nameFieldsLocked}
+                  className="hui-input w-full disabled:cursor-not-allowed disabled:opacity-60"
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="profUsername" className="hui-label">
+                ชื่อผู้ใช้ (ล็อกอิน)
+              </label>
+              <input
+                id="profUsername"
+                type="text"
+                value={profUsername}
+                onChange={(e) =>
+                  setProfUsername(
+                    String(e.target.value).toLowerCase().replace(/[^a-z0-9_]/g, "")
+                  )
+                }
+                minLength={3}
+                maxLength={32}
+                autoComplete="username"
+                className="hui-input max-w-md font-mono"
+              />
+              <p className="mt-1 text-sm text-hui-muted">
+                ใช้ a–z ตัวเลข และ _ ความยาว 3–32 ตัว — แก้ได้ตลอด
+                {looksLikeLineMemberLoginCode(user.username) ? (
+                  <>
+                    {" "}
+                    · ถ้าเคยใช้รหัสสมาชิกจาก LINE เป็นทั้งยูสและรหัสผ่าน เปลี่ยนยูสแล้วอย่าลืมตั้งรหัสใหม่ด้านล่าง
+                  </>
+                ) : null}
+              </p>
+            </div>
+            <div>
+              <label htmlFor="profEmail" className="hui-label">
+                อีเมล
+              </label>
+              <input
+                id="profEmail"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={profEmail}
+                onChange={(e) => setProfEmail(e.target.value.slice(0, 254))}
+                placeholder="you@example.com"
+                className="hui-input max-w-md"
+              />
+              <p className="mt-1 text-sm text-hui-muted">
+                เว้นว่างได้ — ลบอีเมลได้โดยเคลียร์ช่องแล้วกดบันทึก
+              </p>
+            </div>
             <div>
               <label htmlFor="gender" className="hui-label">
                 เพศ
@@ -614,9 +735,11 @@ export default function AccountProfileForm() {
             ขอเปลี่ยนชื่อ–นามสกุล (ผ่านแอดมิน)
           </h3>
           <p className="mt-1 text-sm text-hui-muted">
-            {isThai
-              ? "กรอกชื่อ–นามสกุลใหม่เป็นภาษาไทยให้ถูกต้องตามบัตรประชาชน"
-              : "กรอกชื่อ–นามสกุลใหม่เป็นภาษาอังกฤษตามเอกสาร"}
+            {nameFieldsLocked
+              ? "คุณแก้ชื่อ–นามสกุลเองครบ 3 ครั้งแล้ว — ส่งคำขอที่นี่เพื่อให้แอดมินดำเนินการ"
+              : isThai
+                ? "ใช้เมื่อต้องการให้แอดมินแก้แทน (ไม่จำเป็นถ้ายังแก้เองได้ด้านบน) — ชื่อ–นามสกุลใหม่ต้องตรงบัตรประชาชน"
+                : "ใช้เมื่อต้องการให้แอดมินแก้แทน — ชื่อ–นามสกุลภาษาอังกฤษตามเอกสาร"}
           </p>
           <form onSubmit={submitNameChange} className="mt-4 space-y-4">
             <div>

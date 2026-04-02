@@ -119,6 +119,21 @@ async function initDb() {
         AND phone LIKE 'LU%'
         AND char_length(phone) <= 16;
     `);
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(254);
+    `);
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS self_service_name_edits INTEGER NOT NULL DEFAULT 0;
+    `);
+    try {
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower_unique
+        ON users (LOWER(TRIM(email)))
+        WHERE email IS NOT NULL AND TRIM(email) <> '';
+      `);
+    } catch (e) {
+      console.warn("[db] สร้าง unique index อีเมลไม่ได้:", e.message);
+    }
     /* ย้ายยอดเก่า hearts_balance → หัวใจชมพู เมื่อยังไม่เคยแยกประเภท */
     await client.query(`
       UPDATE users SET pink_hearts_balance = GREATEST(0, COALESCE(hearts_balance, 0))

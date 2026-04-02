@@ -1,4 +1,9 @@
-const { validateRegisterNames, validatePhone } = require("./authValidators");
+const {
+  validateRegisterNames,
+  validatePhone,
+  validateEmail,
+  validateUsername
+} = require("./authValidators");
 const { KEYS, MAX_FIELD, MAX_POSTAL, emptyParts } = require("./shippingAddress");
 
 const ALLOWED_GENDER = new Set(["male", "female", "other"]);
@@ -28,7 +33,15 @@ function validateBirthDate(value) {
   return { ok: true, value: s };
 }
 
-function validateProfilePatch(body) {
+/**
+ * @param {object} body
+ * @param {{ countryCode?: string, selfServiceNameEditsUsed?: number, currentFirstName?: string, currentLastName?: string }} [ctx]
+ */
+function validateProfilePatch(body, ctx = {}) {
+  const countryCode = ctx.countryCode || "TH";
+  const selfUsed = Math.max(0, Math.floor(Number(ctx.selfServiceNameEditsUsed) || 0));
+  const curFn = String(ctx.currentFirstName ?? "").trim();
+  const curLn = String(ctx.currentLastName ?? "").trim();
   const genderRaw = body?.gender;
   const gender =
     genderRaw == null || genderRaw === ""
@@ -93,6 +106,60 @@ function validateProfilePatch(body) {
     prizeContactLine = rawPl === "" ? null : rawPl;
   }
 
+  let firstName;
+  let lastName;
+  let updateNames = false;
+  if (
+    Object.prototype.hasOwnProperty.call(body, "firstName") ||
+    Object.prototype.hasOwnProperty.call(body, "lastName")
+  ) {
+    updateNames = true;
+    if (
+      !Object.prototype.hasOwnProperty.call(body, "firstName") ||
+      !Object.prototype.hasOwnProperty.call(body, "lastName")
+    ) {
+      return {
+        ok: false,
+        error: "กรุณากรอกทั้งชื่อและนามสกุลคู่กัน"
+      };
+    }
+    const names = validateRegisterNames(
+      countryCode,
+      body.firstName,
+      body.lastName
+    );
+    if (!names.ok) return names;
+    firstName = names.firstName;
+    lastName = names.lastName;
+    const changing =
+      firstName !== curFn || lastName !== curLn;
+    if (changing && selfUsed >= 3) {
+      return {
+        ok: false,
+        error:
+          "แก้ชื่อ–นามสกุลเองได้ครบ 3 ครั้งแล้ว — ใช้คำขอแอดมินด้านล่าง"
+      };
+    }
+  }
+
+  let username;
+  let updateUsername = false;
+  if (Object.prototype.hasOwnProperty.call(body, "username")) {
+    updateUsername = true;
+    const vu = validateUsername(body.username);
+    if (!vu.ok) return vu;
+    username = vu.value;
+  }
+
+  let email;
+  let updateEmail = false;
+  if (Object.prototype.hasOwnProperty.call(body, "email")) {
+    updateEmail = true;
+    const ev = validateEmail(body.email, { optional: true });
+    if (!ev.ok) return ev;
+    email = ev.value;
+  }
+
   return {
     ok: true,
     data: {
@@ -103,7 +170,14 @@ function validateProfilePatch(body) {
       phone,
       updatePhone,
       prizeContactLine,
-      updatePrizeContactLine
+      updatePrizeContactLine,
+      firstName,
+      lastName,
+      updateNames,
+      username,
+      updateUsername,
+      email,
+      updateEmail
     }
   };
 }

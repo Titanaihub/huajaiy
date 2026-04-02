@@ -117,6 +117,23 @@ function validatePhone(value, opts = {}) {
   return { ok: true, value: s };
 }
 
+/** @param {{ optional?: boolean }} [opts] */
+function validateEmail(value, opts = {}) {
+  const optional = Boolean(opts.optional);
+  const s = cleanStr(value).toLowerCase();
+  if (!s) {
+    if (optional) return { ok: true, value: null };
+    return { ok: false, error: "กรุณากรอกอีเมล" };
+  }
+  if (s.length > 254) {
+    return { ok: false, error: "อีเมลยาวเกินไป" };
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) {
+    return { ok: false, error: "รูปแบบอีเมลไม่ถูกต้อง" };
+  }
+  return { ok: true, value: s };
+}
+
 function validateUsername(value) {
   const s = cleanStr(value).toLowerCase();
   if (!s) return { ok: false, error: "กรุณาตั้งชื่อผู้ใช้" };
@@ -211,6 +228,7 @@ module.exports = {
   validatePassword,
   validatePasswordChangeBody,
   validatePhone,
+  validateEmail,
   COUNTRY_TH,
   COUNTRY_NON_TH
 };
