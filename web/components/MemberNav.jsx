@@ -170,8 +170,8 @@ export default function MemberNav() {
                 หัวใจของฉัน
               </Link>
               <Link
-                href="/theme-lab/tailadmin"
-                className={`${cls} ${p === "/theme-lab/tailadmin" ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
+                href="/member"
+                className={`${cls} ${p === "/member" ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ข้อมูลส่วนตัว

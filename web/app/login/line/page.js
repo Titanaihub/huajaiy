@@ -27,11 +27,15 @@ const NEXT_AUTH_ERROR_TH = {
 /** หลังล็อกอิน LINE + แลก token สมาชิกแล้ว — ค่าเริ่มต้นไประบบสมาชิก (TailAdmin); รองรับ ?next= และ ?callbackUrl= */
 const LINE_MEMBER_DEFAULT_REDIRECT = MEMBER_WORKSPACE_PATH;
 
-/** เดิมหลายจุดส่งมาที่ /account หรือ /account/profile — ให้ไป workspace เดียวกับ theme-lab/tailadmin */
+/** เดิมหลายจุดส่งมาที่ /account หรือ path เก่า — ให้ไป /member */
 function normalizeLineMemberTarget(path) {
   if (typeof path !== "string") return path;
   const base = path.replace(/\/+$/, "") || "/";
-  if (base === "/account" || base === "/account/profile") {
+  if (
+    base === "/account" ||
+    base === "/account/profile" ||
+    base === "/theme-lab/tailadmin"
+  ) {
     return LINE_MEMBER_DEFAULT_REDIRECT;
   }
   return path;

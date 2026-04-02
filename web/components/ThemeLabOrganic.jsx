@@ -76,7 +76,7 @@ export default function ThemeLabOrganic() {
               Purdue ต้นฉบับ (เต็มจอ)
             </Link>
             <Link
-              href="/theme-lab/tailadmin"
+              href="/member"
               className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
             >
               TailAdmin Vue (หลังบ้าน)

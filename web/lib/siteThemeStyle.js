@@ -5,7 +5,7 @@ import { normalizePathnameForTheme } from "./pathnameNormalize";
 const THEME_LAB_FULL_EMBED_PATHS = new Set([
   "/",
   "/login",
-  "/theme-lab/tailadmin",
+  "/member",
   "/theme-lab/dashui",
   "/theme-lab/purdue",
   "/theme-lab/original",

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { getApiBase } from "../lib/config";
 import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -10,6 +11,24 @@ const IFRAME_SRC = "/tailadmin-template/";
 export default function MemberTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
+  const iframeRef = useRef(null);
+
+  const pushMemberToIframe = useCallback(() => {
+    const w = iframeRef.current?.contentWindow;
+    if (!w || !user) return;
+    try {
+      w.postMessage(
+        {
+          type: "HUAJAIY_MEMBER",
+          apiBase: getApiBase(),
+          user
+        },
+        window.location.origin
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [user]);
 
   useEffect(() => {
     if (loading) return;
@@ -19,6 +38,11 @@ export default function MemberTailadminWorkspace() {
       );
     }
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    pushMemberToIframe();
+  }, [user, pushMemberToIframe]);
 
   if (loading || !user) {
     return (
@@ -31,9 +55,11 @@ export default function MemberTailadminWorkspace() {
   return (
     <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
       <iframe
-        title="ระบบสมาชิก — TailAdmin"
+        ref={iframeRef}
+        title="ระบบสมาชิก HUAJAIY"
         src={IFRAME_SRC}
         className="h-full w-full border-0"
+        onLoad={pushMemberToIframe}
       />
     </main>
   );

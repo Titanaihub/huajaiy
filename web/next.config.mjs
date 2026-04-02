@@ -12,12 +12,12 @@ const nextConfig = {
       },
       {
         source: "/calendar",
-        destination: "/theme-lab/tailadmin",
+        destination: "/member",
         permanent: false
       },
       {
         source: "/profile",
-        destination: "/theme-lab/tailadmin",
+        destination: "/member",
         permanent: false
       }
     ];

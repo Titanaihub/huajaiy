@@ -13,8 +13,8 @@ export default function AccountProfileLegacyPage() {
     <>
       <p className="mb-6 text-sm text-hui-muted">
         หน้าโปรไฟล์หลักใช้เทมเพลต TailAdmin ที่{" "}
-        <Link href="/theme-lab/tailadmin" className="font-medium text-hui-section underline">
-          /theme-lab/tailadmin
+        <Link href="/member" className="font-medium text-hui-section underline">
+          /member
         </Link>
         {" · "}
         แก้ข้อมูลในระบบ (API เดิม) ใช้ฟอร์มด้านล่าง

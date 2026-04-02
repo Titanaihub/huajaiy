@@ -1,10 +1,6 @@
-import MemberTailadminWorkspace from "../../../components/MemberTailadminWorkspace";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "ระบบสมาชิก | HUAJAIY",
-  description: "พื้นที่สมาชิก — เทมเพลต TailAdmin (Vue)"
-};
-
-export default function ThemeLabTailadminPage() {
-  return <MemberTailadminWorkspace />;
+/** เดิมใช้ path นี้ — ย้ายไป /member */
+export default function ThemeLabTailadminRedirectPage() {
+  redirect("/member");
 }
