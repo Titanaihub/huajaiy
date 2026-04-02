@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  isValidMemberLoginCode,
+  sanitizeMemberLoginCodeInput
+} from "../lib/memberLoginCode";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function LoginForm({ redirectAfterLogin = null }) {
@@ -32,9 +36,11 @@ export default function LoginForm({ redirectAfterLogin = null }) {
   async function onSubmitCode(e) {
     e.preventDefault();
     setError("");
-    const c = memberCode.trim().toLowerCase().replace(/\s+/g, "");
-    if (c.length !== 6) {
-      setError("กรอกรหัสสมาชิก 6 หลัก");
+    const c = sanitizeMemberLoginCodeInput(memberCode);
+    if (!isValidMemberLoginCode(c)) {
+      setError(
+        "รูปแบบรหัส: ตัวอักษร 2 หรือ 3 ตัวหน้า แล้วตามด้วยตัวเลข (1–9) รวม 6 หลัก — ไม่ใช้ 0 กับตัว o"
+      );
       return;
     }
     setLoading(true);
@@ -126,8 +132,8 @@ export default function LoginForm({ redirectAfterLogin = null }) {
       ) : (
         <form onSubmit={onSubmitCode} className="space-y-4">
           <p className="text-sm leading-relaxed text-hui-muted">
-            สำหรับสมาชิกที่สร้างบัญชีผ่าน LINE — ใช้รหัส 6 หลักเดียวกับที่แสดงในหน้าโปรไฟล์ (ชื่อผู้ใช้ล็อกอิน)
-            ไม่มี 0 กับตัว o เพื่อลดการสับสน
+            สำหรับสมาชิกที่สร้างบัญชีผ่าน LINE — รหัสเดียวกับชื่อผู้ใช้ในหน้าโปรไฟล์
+            รูปแบบ <strong>ตัวอักษร 2 หรือ 3 ตัวหน้า</strong> ตามด้วย <strong>ตัวเลข</strong> (รวม 6 หลัก) ไม่มี 0 กับตัว o
           </p>
           <div>
             <label htmlFor="login-member-code" className="hui-label">
@@ -137,12 +143,7 @@ export default function LoginForm({ redirectAfterLogin = null }) {
               id="login-member-code"
               value={memberCode}
               onChange={(e) =>
-                setMemberCode(
-                  String(e.target.value)
-                    .toLowerCase()
-                    .replace(/[^a-np-z1-9]/g, "")
-                    .slice(0, 6)
-                )
+                setMemberCode(sanitizeMemberLoginCodeInput(e.target.value))
               }
               className="hui-input font-mono text-lg tracking-widest"
               required
@@ -150,7 +151,7 @@ export default function LoginForm({ redirectAfterLogin = null }) {
               maxLength={6}
               inputMode="text"
               autoComplete="username"
-              placeholder="เช่น a3k7n2"
+              placeholder="เช่น ab1234 หรือ abc123"
             />
           </div>
           {error ? (

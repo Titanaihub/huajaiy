@@ -30,22 +30,30 @@ function normPhone(p) {
   return s === "" ? null : s.slice(0, 16);
 }
 
-/** รหัสเข้าระบบ 6 หลัก — ตัวอักษร a–z (ไม่มี o) + ตัวเลข 1–9 (ไม่มี 0) สลับกันอย่างน้อย 1 ตัวอักษรและ 1 ตัวเลข */
-const MEMBER_LOGIN_CODE_CHARS =
-  "abcdefghijklmnpqrstuvwxyz123456789";
+/** รหัส 6 หลัก: ตัวอักษร 2 หรือ 3 ตัวหน้า (ไม่มี o) + ตัวเลข 1–9 ท้าย (ไม่มี 0) — จำง่าย */
+const MEMBER_CODE_LETTERS = "abcdefghijklmnpqrstuvwxyz";
+const MEMBER_CODE_DIGITS = "123456789";
 
 function randomMemberLoginCode6() {
-  for (let outer = 0; outer < 40; outer++) {
-    const buf = crypto.randomBytes(8);
-    let s = "";
-    for (let i = 0; i < 6; i++) {
-      s += MEMBER_LOGIN_CODE_CHARS[buf[i] % MEMBER_LOGIN_CODE_CHARS.length];
+  const buf = crypto.randomBytes(8);
+  const threeLetters = buf[0] % 2 === 0;
+  let s = "";
+  if (threeLetters) {
+    for (let i = 0; i < 3; i++) {
+      s += MEMBER_CODE_LETTERS[buf[1 + i] % MEMBER_CODE_LETTERS.length];
     }
-    if (/[a-z]/.test(s) && /[1-9]/.test(s)) return s;
+    for (let i = 0; i < 3; i++) {
+      s += MEMBER_CODE_DIGITS[buf[4 + i] % MEMBER_CODE_DIGITS.length];
+    }
+  } else {
+    for (let i = 0; i < 2; i++) {
+      s += MEMBER_CODE_LETTERS[buf[1 + i] % MEMBER_CODE_LETTERS.length];
+    }
+    for (let i = 0; i < 4; i++) {
+      s += MEMBER_CODE_DIGITS[buf[3 + i] % MEMBER_CODE_DIGITS.length];
+    }
   }
-  const err = new Error("สร้างรหัสสมาชิกไม่สำเร็จ ลองใหม่");
-  err.code = "LOGIN_CODE_GEN_FAILED";
-  throw err;
+  return s;
 }
 
 function rowToUser(row) {

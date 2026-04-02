@@ -10,6 +10,10 @@ import {
   apiPostNameChangeRequest,
   getMemberToken
 } from "../lib/memberApi";
+import {
+  isNewFormatMemberLoginCode,
+  isValidMemberLoginCode
+} from "../lib/memberLoginCode";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function statusLabel(s) {
@@ -19,10 +23,8 @@ function statusLabel(s) {
   return s;
 }
 
-/** รหัสเข้าระบบแบบใหม่หลัง LINE (6 หลัก ไม่มี 0 กับ o) */
 function looksLikeLineMemberLoginCode(username) {
-  const u = String(username || "").toLowerCase();
-  return u.length === 6 && /^[a-np-z1-9]{6}$/.test(u);
+  return isValidMemberLoginCode(username);
 }
 
 export default function AccountProfileForm() {
@@ -222,8 +224,16 @@ export default function AccountProfileForm() {
                 </dd>
                 {looksLikeLineMemberLoginCode(user.username) ? (
                   <p className="mt-1 text-xs leading-relaxed text-hui-muted">
-                    รหัส 6 หลักนี้ใช้เข้าระบบที่หน้าเข้าสู่ระบบ — เลือกแท็บ「รหัสสมาชิก 6 หลัก」แล้วกรอกแค่ช่องเดียว
-                    (ระบบส่งค่าเดียวกันเป็นยูสเซอร์และรหัสผ่าน ไม่ต้องตั้งรหัสแยก)
+                    {isNewFormatMemberLoginCode(user.username) ? (
+                      <>
+                        รูปแบบตัวอักษร 2–3 ตัวหน้า + เลขท้าย — เข้าระบบที่หน้าเข้าสู่ระบบ แท็บ「รหัสสมาชิก 6
+                        หลัก」กรอกแค่ช่องเดียว (ค่าเดียวกับรหัสผ่าน ไม่ต้องตั้งแยก)
+                      </>
+                    ) : (
+                      <>
+                        รหัส 6 หลักนี้ใช้เข้าระบบที่หน้าเข้าสู่ระบบ แท็บ「รหัสสมาชิก 6 หลัก」กรอกแค่ช่องเดียว
+                      </>
+                    )}
                   </p>
                 ) : null}
               </div>
