@@ -23,23 +23,33 @@ const NEXT_AUTH_ERROR_TH = {
   Default: "เข้าสู่ระบบไม่สำเร็จ"
 };
 
-/** หลังล็อกอินแล้วจะพาไป path นี้ — รองรับ ?next= และ ?callbackUrl= จาก NextAuth */
+/** หลังล็อกอิน LINE + แลก token สมาชิกแล้ว — ค่าเริ่มต้นไปหน้าโปรไฟล์ (ระบบสมาชิกใหม่); รองรับ ?next= และ ?callbackUrl= */
+const LINE_MEMBER_DEFAULT_REDIRECT = "/account/profile";
+
+/** เดิมหลายจุดส่งมาที่ /login?next=/account — หลัง LINE ให้เข้าโปรไฟล์แทนหน้าแดชบอร์ดเก่า */
+function normalizeLineMemberTarget(path) {
+  if (typeof path !== "string") return path;
+  const base = path.replace(/\/+$/, "") || "/";
+  if (base === "/account") return LINE_MEMBER_DEFAULT_REDIRECT;
+  return path;
+}
+
 function resolveMemberRedirect(searchParams) {
   const direct = safeRedirectPath(searchParams.get("next"));
-  if (direct) return direct;
+  if (direct) return normalizeLineMemberTarget(direct);
   const cb = searchParams.get("callbackUrl");
-  if (!cb) return "/account";
+  if (!cb) return LINE_MEMBER_DEFAULT_REDIRECT;
   try {
     const raw = decodeURIComponent(cb);
     const u = new URL(raw);
     const inner = safeRedirectPath(u.searchParams.get("next"));
-    if (inner) return inner;
+    if (inner) return normalizeLineMemberTarget(inner);
     const pathOnly = safeRedirectPath(u.pathname);
-    if (pathOnly) return pathOnly;
+    if (pathOnly) return normalizeLineMemberTarget(pathOnly);
   } catch {
     /* ignore */
   }
-  return "/account";
+  return LINE_MEMBER_DEFAULT_REDIRECT;
 }
 
 function isLineSession(session) {
