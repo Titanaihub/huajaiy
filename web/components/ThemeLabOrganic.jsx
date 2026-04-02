@@ -67,8 +67,22 @@ export default function ThemeLabOrganic() {
               href="/theme-lab/original"
               className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
             >
-              ดู Template ต้นฉบับเต็มหน้า
+              Organic ต้นฉบับ (เต็มจอ)
             </Link>
+            <Link
+              href="/theme-lab/purdue"
+              className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
+            >
+              Purdue ต้นฉบับ (เต็มจอ)
+            </Link>
+            <a
+              href="/purdue-template/sitemap.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border border-hui-border bg-hui-surface px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-white"
+            >
+              Purdue — รายการทุกหน้า
+            </a>
             <Link
               href="/admin"
               className="rounded-2xl border border-hui-border bg-hui-surface px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-white"
