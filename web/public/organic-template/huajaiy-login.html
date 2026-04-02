@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="เข้าสู่ระบบ HUAJAIY" />
+    <title>เข้าสู่ระบบ | HUAJAIY</title>
+    <link rel="stylesheet" href="/purdue-template/assets/bootstrap/css/bootstrap.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/purdue-template/assets/webfonts/themify-icons.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/all.min.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/owlcarousel/css/owl.carousel.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/owlcarousel/css/owl.theme.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/slicknav.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/magnific-popup.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/jquery-simple-mobilemenu.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/animate.css" />
+    <link rel="stylesheet" href="/purdue-template/assets/css/style.css" />
+  </head>
+  <body class="bg-light">
+    <section
+      class="login_register section-padding"
+      style="min-height: 100vh; display: flex; align-items: center"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 offset-lg-3 col-xs-12">
+            <div class="login">
+              <h4 class="login_register_title">เป็นสมาชิกแล้ว? เข้าสู่ระบบ:</h4>
+              <div class="form-group">
+                <label for="hui-username">ชื่อผู้ใช้</label>
+                <input
+                  type="text"
+                  id="hui-username"
+                  class="form-control requiredField input-label"
+                  name="username"
+                  autocomplete="username"
+                />
+              </div>
+              <div class="form-group">
+                <label for="hui-password">รหัสผ่าน</label>
+                <input
+                  type="password"
+                  id="hui-password"
+                  class="form-control requiredField input-label"
+                  name="password"
+                  autocomplete="current-password"
+                />
+              </div>
+              <div class="form-group col-lg-12">
+                <button class="btn_one" type="button" id="hui-login-btn">
+                  Login
+                </button>
+              </div>
+              <p>
+                ยังไม่มีบัญชี?
+                <a href="/register">สมัครเลย</a>
+              </p>
+              <p class="small text-muted mt-3 mb-0">
+                <a href="index.html">← กลับหน้าเทมเพลต Organic</a>
+                ·
+                <a href="/login">เปิดหน้าเข้าสู่ระบบจริงของเว็บ</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script src="/purdue-template/assets/js/jquery-1.12.4.min.js"></script>
+    <script src="/purdue-template/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/purdue-template/assets/owlcarousel/js/owl.carousel.min.js"></script>
+    <script src="/purdue-template/assets/js/jquery-simple-mobilemenu.js"></script>
+    <script src="/purdue-template/assets/js/jquery.slicknav.js"></script>
+    <script src="/purdue-template/assets/js/jquery.magnific-popup.min.js"></script>
+    <script src="/purdue-template/assets/js/jquery.mixitup.js"></script>
+    <script src="/purdue-template/assets/js/scrolltopcontrol.js"></script>
+    <script src="/purdue-template/assets/js/gsap.min.js"></script>
+    <script src="/purdue-template/assets/js/ScrollTrigger.min.js"></script>
+    <script src="/purdue-template/assets/js/lenis.js"></script>
+    <script src="/purdue-template/assets/js/purecounter_vanilla.js"></script>
+    <script src="/purdue-template/assets/js/wow.min.js"></script>
+    <script src="/purdue-template/assets/js/scripts.js"></script>
+    <script>
+      document.getElementById("hui-login-btn").addEventListener("click", function () {
+        window.location.href = "/login";
+      });
+    </script>
+  </body>
+</html>
