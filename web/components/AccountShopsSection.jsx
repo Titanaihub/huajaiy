@@ -15,7 +15,7 @@ export default function AccountShopsSection() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login?next=/account/shops");
+      router.replace("/hui/login?next=/account/shops");
     }
   }, [loading, user, router]);
 

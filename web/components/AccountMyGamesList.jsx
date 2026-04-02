@@ -73,7 +73,7 @@ export default function AccountMyGamesList() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login?next=/account/my-games");
+      router.replace("/hui/login?next=/account/my-games");
     }
   }, [loading, user, router]);
 

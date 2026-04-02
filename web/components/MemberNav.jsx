@@ -265,7 +265,7 @@ export default function MemberNav() {
       <span className="self-center text-hui-border" aria-hidden>
         |
       </span>
-      <Link href="/login" className={siteNavLinkClass}>
+      <Link href="/hui/login" className={siteNavLinkClass}>
         เข้าด้วยยูสเซอร์
       </Link>
     </span>

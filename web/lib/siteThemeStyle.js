@@ -1,13 +1,16 @@
 import { FALLBACK_SITE_THEME } from "./siteThemeDefaults";
 import { normalizePathnameForTheme } from "./pathnameNormalize";
 
-/** หน้าเปิดเทมเพลตหลังบ้านแบบ iframe เต็มจอ — ไม่ใช้พื้นหลังธีมเว็บหลัก (กลาแล็กซี/ชุด inner) */
+/** iframe เต็มจอ — ไม่ใช้พื้นหลังธีมเว็บหลักบน <html> */
 const THEME_LAB_FULL_EMBED_PATHS = new Set([
+  "/",
+  "/calendar",
+  "/profile",
+  "/login",
   "/theme-lab/tailadmin",
   "/theme-lab/dashui",
   "/theme-lab/purdue",
   "/theme-lab/original",
-  /** โปรไฟล์สมาชิก = TailAdmin เต็มจอ เหมือน Theme Lab */
   "/account/profile"
 ]);
 

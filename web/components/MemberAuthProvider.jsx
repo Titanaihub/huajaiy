@@ -147,7 +147,7 @@ export default function MemberAuthProvider({ children }) {
     clearMemberToken();
     setUser(null);
     setImpersonation(null);
-    window.location.assign("/login?next=/admin");
+    window.location.assign("/hui/login?next=/admin");
   }, []);
 
   const patchProfile = useCallback(async (payload) => {

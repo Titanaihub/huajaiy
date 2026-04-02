@@ -223,7 +223,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
         <Link
-          href={`/login?next=${encodeURIComponent(loginNext)}`}
+          href={`/hui/login?next=${encodeURIComponent(loginNext)}`}
           className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           เข้าสู่ระบบ

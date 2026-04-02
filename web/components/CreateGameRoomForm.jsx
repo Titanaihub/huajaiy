@@ -151,7 +151,7 @@ export default function CreateGameRoomForm() {
         <p className="font-medium text-hui-section">ต้องเข้าสู่ระบบก่อน</p>
         <p className="mt-2">
           <Link
-            href="/login?next=/account/create-game"
+            href="/hui/login?next=/account/create-game"
             className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
             เข้าสู่ระบบ

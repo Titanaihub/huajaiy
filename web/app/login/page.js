@@ -1,23 +1,16 @@
-import LoginForm from "../../components/LoginForm";
-import SiteFooter from "../../components/SiteFooter";
-import SiteHeader from "../../components/SiteHeader";
-import { safeRedirectPath } from "../../lib/safeRedirectPath";
-
 export const metadata = {
   title: "เข้าสู่ระบบ | HUAJAIY",
-  description: "เข้าสู่ระบบสมาชิก HUAJAIY"
+  description: "เข้าสู่ระบบ — แนะนำ LINE (เทมเพลต Organic)"
 };
 
-export default function LoginPage({ searchParams }) {
-  const redirectAfterLogin = safeRedirectPath(searchParams?.next);
-
+export default function LoginPage() {
   return (
-    <>
-      <SiteHeader />
-      <main className="mx-auto max-w-md px-4 py-8">
-        <LoginForm redirectAfterLogin={redirectAfterLogin} />
-      </main>
-      <SiteFooter />
-    </>
+    <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
+      <iframe
+        title="เข้าสู่ระบบ HUAJAIY"
+        src="/organic-template/huajaiy-login.html"
+        className="h-full w-full border-0"
+      />
+    </main>
   );
 }

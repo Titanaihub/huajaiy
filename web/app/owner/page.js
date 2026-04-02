@@ -74,7 +74,7 @@ export default function OwnerPage() {
           <p className="mt-6 text-sm text-hui-muted">กำลังโหลด...</p>
         ) : !user ? (
           <p className="mt-6 text-sm">
-            <Link href="/login?next=/owner" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+            <Link href="/hui/login?next=/owner" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
               เข้าสู่ระบบ
             </Link>{" "}
             ก่อน แล้วค่อยลงสินค้าได้หลังแอดมินผูกร้านให้

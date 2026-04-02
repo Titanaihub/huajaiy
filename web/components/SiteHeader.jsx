@@ -19,7 +19,10 @@ export default function SiteHeader() {
           aria-label="เมนูหลัก"
         >
           <Link href="/" className={siteNavLinkClass}>
-            หน้าแรก
+            Workspace
+          </Link>
+          <Link href="/hui" className={siteNavLinkClass}>
+            แพลตฟอร์มเดิม
           </Link>
           <Link href="/game" className={siteNavLinkClass}>
             เกม

@@ -65,7 +65,7 @@ export default function AccountProfileForm() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login?next=/account/profile");
+      router.replace("/hui/login?next=/account/profile");
     }
   }, [loading, user, router]);
 

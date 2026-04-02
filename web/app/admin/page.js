@@ -14,7 +14,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login?next=/admin");
+      router.replace("/hui/login?next=/admin");
     }
   }, [loading, user, router]);
 
@@ -34,7 +34,7 @@ export default function AdminPage() {
           <p className="mt-6 text-base text-hui-body">
             กำลังพาไปหน้าเข้าสู่ระบบ… หรือ{" "}
             <Link
-              href="/login?next=/admin"
+              href="/hui/login?next=/admin"
               className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               กดที่นี่
