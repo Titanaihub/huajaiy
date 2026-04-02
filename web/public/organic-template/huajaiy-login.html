@@ -23,6 +23,27 @@
     <link rel="stylesheet" href="/purdue-template/assets/css/jquery-simple-mobilemenu.css" />
     <link rel="stylesheet" href="/purdue-template/assets/css/animate.css" />
     <link rel="stylesheet" href="/purdue-template/assets/css/style.css" />
+    <style>
+      .hui-line-btn {
+        background-color: #06c755;
+        border: 1px solid #06c755;
+        color: #fff;
+        font-weight: 600;
+      }
+      .hui-line-btn:hover {
+        background-color: #05b34c;
+        border-color: #05b34c;
+        color: #fff;
+      }
+      .hui-alt-toggle {
+        color: #0d6efd;
+        font-weight: 500;
+        text-decoration: none;
+      }
+      .hui-alt-toggle:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body class="bg-light">
     <section
@@ -33,33 +54,63 @@
         <div class="row">
           <div class="col-lg-6 offset-lg-3 col-xs-12">
             <div class="login">
-              <h4 class="login_register_title">เป็นสมาชิกแล้ว? เข้าสู่ระบบ:</h4>
-              <div class="form-group">
-                <label for="hui-username">ชื่อผู้ใช้</label>
-                <input
-                  type="text"
-                  id="hui-username"
-                  class="form-control requiredField input-label"
-                  name="username"
-                  autocomplete="username"
-                />
+              <h4 class="login_register_title">เข้าสู่ระบบ</h4>
+              <p class="text-center text-muted small mb-4">แนะนำให้เข้าด้วยบัญชี LINE</p>
+
+              <div class="form-group col-lg-12 px-0">
+                <a
+                  href="/login/line"
+                  class="btn hui-line-btn w-100 rounded-pill py-3 text-uppercase"
+                >
+                  <i class="fa-brands fa-line me-2" aria-hidden="true"></i>
+                  เข้าสู่ระบบด้วย LINE
+                </a>
               </div>
-              <div class="form-group">
-                <label for="hui-password">รหัสผ่าน</label>
-                <input
-                  type="password"
-                  id="hui-password"
-                  class="form-control requiredField input-label"
-                  name="password"
-                  autocomplete="current-password"
-                />
-              </div>
-              <div class="form-group col-lg-12">
-                <button class="btn_one" type="button" id="hui-login-btn">
-                  Login
+
+              <div class="text-center mt-3 mb-0">
+                <button
+                  type="button"
+                  class="btn btn-link hui-alt-toggle p-0 border-0"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#hui-alt-login"
+                  aria-expanded="false"
+                  aria-controls="hui-alt-login"
+                >
+                  เข้าระบบด้วยวิธีอื่น
                 </button>
               </div>
-              <p>
+
+              <div class="collapse mt-4" id="hui-alt-login">
+                <hr class="my-3" />
+                <p class="login_register_title text-center mb-3" style="font-size: 1.05rem">
+                  เป็นสมาชิกแล้ว? เข้าสู่ระบบ:
+                </p>
+                <div class="form-group">
+                  <label for="hui-username">ชื่อผู้ใช้ <span class="text-muted fw-normal">(Username)</span></label>
+                  <input
+                    type="text"
+                    id="hui-username"
+                    class="form-control requiredField input-label"
+                    name="username"
+                    autocomplete="username"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="hui-password">รหัสผ่าน <span class="text-muted fw-normal">(Password)</span></label>
+                  <input
+                    type="password"
+                    id="hui-password"
+                    class="form-control requiredField input-label"
+                    name="password"
+                    autocomplete="current-password"
+                  />
+                </div>
+                <div class="form-group col-lg-12">
+                  <button class="btn_one" type="button" id="hui-login-btn">Login</button>
+                </div>
+              </div>
+
+              <p class="mt-4 mb-0">
                 ยังไม่มีบัญชี?
                 <a href="/register">สมัครเลย</a>
               </p>
