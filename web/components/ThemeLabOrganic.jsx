@@ -64,6 +64,12 @@ export default function ThemeLabOrganic() {
               ไปหน้าร้านค้า
             </Link>
             <Link
+              href="/theme-lab/original"
+              className="rounded-2xl border border-hui-border bg-white px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
+            >
+              ดู Template ต้นฉบับเต็มหน้า
+            </Link>
+            <Link
               href="/admin"
               className="rounded-2xl border border-hui-border bg-hui-surface px-5 py-2.5 text-sm font-semibold text-hui-section hover:bg-white"
             >
