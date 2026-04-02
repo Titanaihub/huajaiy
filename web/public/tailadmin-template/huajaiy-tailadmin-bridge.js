@@ -111,6 +111,11 @@
   function applyBrand() {
     var app = document.getElementById("app");
     if (!app) return;
+    app.querySelectorAll('a[data-huajaiy-brand="1"]').forEach(function (a) {
+      if (!a.querySelector(".huajaiy-brand-wrap")) {
+        a.removeAttribute("data-huajaiy-brand");
+      }
+    });
     var branded = new Set();
 
     function brandAnchor(a) {
@@ -121,7 +126,7 @@
       branded.add(a);
       a.dataset.huajaiyBrand = "1";
       var wrap = document.createElement("span");
-      wrap.className = "flex items-center gap-2 min-w-0";
+      wrap.className = "huajaiy-brand-wrap flex items-center gap-2 min-w-0";
       var img = document.createElement("img");
       img.src = HEART;
       img.alt = "HUAJAIY";
@@ -152,6 +157,13 @@
       });
     app.querySelectorAll('a[href="/"]').forEach(function (a) {
       if (a.querySelectorAll("img").length) brandAnchor(a);
+    });
+
+    /* Vue จะ patch router-link แล้วใส่ <img> โลโก้เทมเพลตกลับมาเป็นลูกของ <a> คู่กับ span ของเรา — ลบเฉพาะ img ระดับลูกโดยตรง (หัวใจจริงอยู่ใน .huajaiy-brand-wrap) */
+    app.querySelectorAll('a[data-huajaiy-brand="1"]').forEach(function (a) {
+      Array.prototype.slice.call(a.children).forEach(function (child) {
+        if (child.tagName === "IMG") child.remove();
+      });
     });
   }
 
