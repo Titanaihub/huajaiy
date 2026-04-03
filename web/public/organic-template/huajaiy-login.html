@@ -212,7 +212,8 @@
                 return;
               }
               var role = data.user && data.user.role;
-              window.top.location.href = role === "admin" ? "/admin" : "/member";
+              window.top.location.href =
+                role === "admin" ? "/admin/panel" : "/member";
             } catch (e) {
               showErr("เครือข่ายผิดพลาด — ลองอีกครั้ง");
             } finally {

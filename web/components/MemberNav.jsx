@@ -10,6 +10,7 @@ import {
   useRef,
   useState
 } from "react";
+import { ADMIN_HOME_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const dropItem =
@@ -236,7 +237,7 @@ export default function MemberNav() {
         </NavDropdown>
 
         {user.role === "admin" ? (
-          <Link href="/admin" className={siteNavLinkClass}>
+          <Link href={ADMIN_HOME_PATH} className={siteNavLinkClass}>
             แอดมิน
           </Link>
         ) : null}

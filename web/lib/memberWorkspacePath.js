@@ -1,6 +1,9 @@
 /** ระบบสมาชิกหลัก (iframe TailAdmin) — หลังล็อกอิน LINE */
 export const MEMBER_WORKSPACE_PATH = "/member";
 
+/** แผงแอดมิน React เดิม — หลังล็อกอินแอดมิน / ลิงก์ «แอดมิน» ในเมนูเว็บหลัก */
+export const ADMIN_HOME_PATH = "/admin/panel";
+
 /** แดชบอร์ดร้านค้าในเทมเพลต TailAdmin (Vue path `/` = Ecommerce) */
 export const TAILADMIN_SHOP_DASHBOARD_START = "/";
 

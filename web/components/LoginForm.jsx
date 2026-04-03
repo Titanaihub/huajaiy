@@ -7,9 +7,10 @@ import {
   isValidMemberLoginCode,
   sanitizeMemberLoginCodeInput
 } from "../lib/memberLoginCode";
+import { ADMIN_HOME_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-/** หลังล็อกอินสำเร็จไป `/member` หรือ `/admin` ตาม role (ไม่ใช้ ?next=) */
+/** หลังล็อกอินสำเร็จไป `/member` หรือแผงแอดมินเดิมตาม role (ไม่ใช้ ?next=) */
 export default function LoginForm() {
   const router = useRouter();
   const { login } = useMemberAuth();
@@ -26,7 +27,7 @@ export default function LoginForm() {
     setLoading(true);
     try {
       const data = await login(username, password);
-      router.push(data.user?.role === "admin" ? "/admin" : "/member");
+      router.push(data.user?.role === "admin" ? ADMIN_HOME_PATH : "/member");
     } catch (err) {
       setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
     } finally {
@@ -47,7 +48,7 @@ export default function LoginForm() {
     setLoading(true);
     try {
       const data = await login(c, c);
-      router.push(data.user?.role === "admin" ? "/admin" : "/member");
+      router.push(data.user?.role === "admin" ? ADMIN_HOME_PATH : "/member");
     } catch (err) {
       setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
     } finally {

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import HomeStylePublicHeader from "../../../components/HomeStylePublicHeader";
 import PublicLegalFooter from "../../../components/PublicLegalFooter";
+import { ADMIN_HOME_PATH } from "../../../lib/memberWorkspacePath";
 import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 
 const NEXT_AUTH_ERROR_TH = {
@@ -22,7 +23,7 @@ const NEXT_AUTH_ERROR_TH = {
 };
 
 function workspacePathAfterLineLink(user) {
-  return user?.role === "admin" ? "/admin" : "/member";
+  return user?.role === "admin" ? ADMIN_HOME_PATH : "/member";
 }
 
 function isLineSession(session) {

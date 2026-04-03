@@ -20,6 +20,7 @@ import {
   IMPERSONATION_RETURN_TOKEN_KEY,
   setMemberToken
 } from "../lib/memberApi";
+import { ADMIN_HOME_PATH } from "../lib/memberWorkspacePath";
 
 const MemberAuthContext = createContext(null);
 
@@ -148,7 +149,7 @@ export default function MemberAuthProvider({ children }) {
       }
       setMemberToken(back);
       setImpersonation(null);
-      window.location.assign("/admin");
+      window.location.assign(ADMIN_HOME_PATH);
       return;
     }
     clearMemberToken();
