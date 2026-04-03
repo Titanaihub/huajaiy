@@ -3,10 +3,21 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
+import {
+  TAILADMIN_PROFILE_START,
+  TAILADMIN_SHOP_DASHBOARD_START
+} from "../lib/memberWorkspacePath";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-const IFRAME_SRC = "/tailadmin-template/";
+function normalizeHuajaiyStartAdmin(raw) {
+  if (raw == null || String(raw).trim() === "") {
+    return TAILADMIN_SHOP_DASHBOARD_START;
+  }
+  const s = String(raw).trim().split("?")[0].slice(0, 200);
+  if (s === "/") return TAILADMIN_SHOP_DASHBOARD_START;
+  return s.startsWith("/") ? s : `/${s}`;
+}
 
 /**
  * Production: เชลล์แอดมิน = หัวเว็บ + TailAdmin iframe (เทียบเท่า /member)
@@ -19,6 +30,11 @@ export default function AdminTailadminWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const iframeRef = useRef(null);
+
+  const iframeSrc = useMemo(() => {
+    const start = normalizeHuajaiyStartAdmin(searchParams.get("huajaiy_start"));
+    return `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
+  }, [searchParams]);
 
   const panelUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -95,11 +111,12 @@ export default function AdminTailadminWorkspace() {
       />
       <main className="relative min-h-0 flex-1 overflow-hidden bg-slate-100">
         <iframe
+          key={iframeSrc}
           ref={iframeRef}
           title={
             isAdmin ? "ระบบแอดมิน HUAJAIY" : "พื้นที่ผู้ดูแลระบบ — จำกัดสิทธิ์"
           }
-          src={IFRAME_SRC}
+          src={iframeSrc}
           className="h-full w-full border-0"
           onLoad={syncIframe}
         />

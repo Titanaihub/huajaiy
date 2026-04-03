@@ -5,7 +5,27 @@ import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
+import {
+  TAILADMIN_PROFILE_START,
+  TAILADMIN_SHOP_DASHBOARD_START,
+  workspaceShellUrl
+} from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+/** เมนูเพิ่มเติมหลังล็อกอิน — รายการที่ไม่ใช่โปรไฟล์ชั่วคราวเปิดแดชบอร์ดร้านค้าเทมเพลต */
+const LOGGED_IN_MORE_MENU = [
+  { label: "ภาพรวมบัญชี", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "โปรไฟล์", path: TAILADMIN_PROFILE_START },
+  { label: "รางวัลของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "หัวใจของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "เกมของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "ร้านค้าของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "เพจของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "คำสั่งซื้อ", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "คำขอรับรางวัล", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "เติมหัวใจแดง", path: TAILADMIN_SHOP_DASHBOARD_START },
+  { label: "แจกหัวใจ", path: TAILADMIN_SHOP_DASHBOARD_START }
+];
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
@@ -44,8 +64,9 @@ export default function HomeStylePublicHeader({
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
-  const accountHref =
-    memberUser?.role === "admin" ? "/admin" : "/member";
+  const accountHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
+    : "/login";
 
   let pinkShown = 0;
   let redShown = 0;
@@ -195,57 +216,66 @@ export default function HomeStylePublicHeader({
               </button>
               {moreOpen ? (
                 <ul
-                  className="absolute right-0 z-[1100] mt-1 min-w-[13rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  className="absolute right-0 z-[1100] mt-1 min-w-[14rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
                   role="menu"
                 >
-                  {!memberUser ? (
-                    <li>
-                      <Link
-                        href="/login?expand=1"
-                        className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                        role="menuitem"
-                        onClick={() => setMoreOpen(false)}
-                      >
-                        เข้าด้วยยูสเซอร์ / รหัส
-                      </Link>
-                    </li>
-                  ) : null}
-                  <li>
-                    <Link
-                      href={
-                        memberUser
-                          ? memberUser.role === "admin"
-                            ? "/admin"
-                            : "/member"
-                          : "/account"
-                      }
-                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                      role="menuitem"
-                      onClick={() => setMoreOpen(false)}
-                    >
-                      ภาพรวมบัญชี
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/register"
-                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                      role="menuitem"
-                      onClick={() => setMoreOpen(false)}
-                    >
-                      สมัครสมาชิก
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/contact"
-                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                      role="menuitem"
-                      onClick={() => setMoreOpen(false)}
-                    >
-                      ติดต่อ
-                    </Link>
-                  </li>
+                  {memberUser ? (
+                    LOGGED_IN_MORE_MENU.map((item) => (
+                      <li key={item.label}>
+                        <Link
+                          href={workspaceShellUrl(item.path, memberUser.role)}
+                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))
+                  ) : (
+                    <>
+                      <li>
+                        <Link
+                          href="/login?expand=1"
+                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          เข้าด้วยยูสเซอร์ / รหัส
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/account"
+                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          ภาพรวมบัญชี
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/register"
+                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          สมัครสมาชิก
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/contact"
+                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                          role="menuitem"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          ติดต่อ
+                        </Link>
+                      </li>
+                    </>
+                  )}
                 </ul>
               ) : null}
             </div>

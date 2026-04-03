@@ -1,19 +1,33 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
+import {
+  TAILADMIN_PROFILE_START,
+  TAILADMIN_SHOP_DASHBOARD_START
+} from "../lib/memberWorkspacePath";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-/** เปิด TailAdmin ที่หน้าโปรไฟล์ (bridge อ่าน huajaiy_start) */
-const IFRAME_SRC = "/tailadmin-template/?huajaiy_start=/profile";
+function normalizeHuajaiyStart(raw) {
+  if (raw == null || String(raw).trim() === "") return TAILADMIN_PROFILE_START;
+  const s = String(raw).trim().split("?")[0].slice(0, 200);
+  if (s === "/") return TAILADMIN_SHOP_DASHBOARD_START;
+  return s.startsWith("/") ? s : `/${s}`;
+}
 
 /** พื้นที่สมาชิก production — หัวเว็บ + TailAdmin iframe */
 export default function MemberTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const iframeRef = useRef(null);
+
+  const iframeSrc = useMemo(() => {
+    const start = normalizeHuajaiyStart(searchParams.get("huajaiy_start"));
+    return `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
+  }, [searchParams]);
 
   const postToIframe = useCallback((payload) => {
     const w = iframeRef.current?.contentWindow;
@@ -71,9 +85,10 @@ export default function MemberTailadminWorkspace() {
       />
       <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
         <iframe
+          key={iframeSrc}
           ref={iframeRef}
           title="ระบบสมาชิก HUAJAIY"
-          src={IFRAME_SRC}
+          src={iframeSrc}
           className="h-full w-full border-0"
           onLoad={pushMemberToIframe}
         />
