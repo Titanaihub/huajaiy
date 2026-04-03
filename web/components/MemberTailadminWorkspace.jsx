@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
+import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const IFRAME_SRC = "/tailadmin-template/";
@@ -13,22 +14,29 @@ export default function MemberTailadminWorkspace() {
   const router = useRouter();
   const iframeRef = useRef(null);
 
-  const pushMemberToIframe = useCallback(() => {
+  const postToIframe = useCallback((payload) => {
     const w = iframeRef.current?.contentWindow;
-    if (!w || !user) return;
+    if (!w) return;
     try {
-      w.postMessage(
-        {
-          type: "HUAJAIY_MEMBER",
-          apiBase: getApiBase(),
-          user
-        },
-        window.location.origin
-      );
+      w.postMessage(payload, window.location.origin);
     } catch {
       /* ignore */
     }
-  }, [user]);
+  }, []);
+
+  const toggleIframeSidebar = useCallback(() => {
+    postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
+  }, [postToIframe]);
+
+  const pushMemberToIframe = useCallback(() => {
+    if (!user) return;
+    postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
+    postToIframe({
+      type: "HUAJAIY_MEMBER",
+      apiBase: getApiBase(),
+      user
+    });
+  }, [user, postToIframe]);
 
   useEffect(() => {
     if (loading) return;
@@ -53,14 +61,17 @@ export default function MemberTailadminWorkspace() {
   }
 
   return (
-    <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
-      <iframe
-        ref={iframeRef}
-        title="ระบบสมาชิก HUAJAIY"
-        src={IFRAME_SRC}
-        className="h-full w-full border-0"
-        onLoad={pushMemberToIframe}
-      />
-    </main>
+    <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
+      <HomeStylePublicHeader onHamburgerClick={toggleIframeSidebar} />
+      <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
+        <iframe
+          ref={iframeRef}
+          title="ระบบสมาชิก HUAJAIY"
+          src={IFRAME_SRC}
+          className="h-full w-full border-0"
+          onLoad={pushMemberToIframe}
+        />
+      </main>
+    </div>
   );
 }

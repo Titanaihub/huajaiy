@@ -176,6 +176,16 @@
     document.head.appendChild(st);
   }
 
+  function ensureMemberChromeStyles() {
+    if (document.getElementById("huajaiy-member-chrome-css")) return;
+    var st = document.createElement("style");
+    st.id = "huajaiy-member-chrome-css";
+    st.textContent =
+      "html.huajaiy-member-chrome #app header{display:none!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}";
+    document.head.appendChild(st);
+  }
+
   /** เมนูหลักอยู่ที่ SiteHeader ด้านนอก iframe แล้ว — ที่นี่ซ่อนแค่ช่องค้นหาเทมเพลต + ลบแถบเก่าใน iframe ถ้ามี */
   function hideTemplateSearchOnly() {
     ensureBridgeStyles();
@@ -294,7 +304,24 @@
   window.addEventListener("message", function (ev) {
     if (ev.origin !== window.location.origin) return;
     var d = ev.data;
-    if (!d || d.type !== "HUAJAIY_MEMBER") return;
+    if (!d || !d.type) return;
+
+    if (d.type === "HUAJAIY_TOGGLE_SIDEBAR" && ev.source === window.parent) {
+      var hdr = document.querySelector("header");
+      if (hdr) {
+        var btn = hdr.querySelector("button");
+        if (btn) btn.click();
+      }
+      return;
+    }
+
+    if (d.type === "HUAJAIY_MEMBER_CHROME") {
+      document.documentElement.classList.add("huajaiy-member-chrome");
+      ensureMemberChromeStyles();
+      return;
+    }
+
+    if (d.type !== "HUAJAIY_MEMBER") return;
     if (d.apiBase) window.__HUAJAIY_API_BASE__ = d.apiBase;
     if (d.user) applyUser(d.user);
     scheduleSync();
