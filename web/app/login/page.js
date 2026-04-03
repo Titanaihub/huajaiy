@@ -1,6 +1,6 @@
 export const metadata = {
   title: "เข้าสู่ระบบ | HUAJAIY",
-  description: "เข้าสู่ระบบ — แนะนำ LINE (เทมเพลต Organic)"
+  description: "เข้าสู่ระบบสมาชิกและผู้ดูแลระบบ — LINE หรือยูสเซอร์/รหัส"
 };
 
 export default function LoginPage({ searchParams }) {

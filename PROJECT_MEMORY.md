@@ -40,6 +40,20 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 
 - กติกาต่อชุด, หักหัวใจชมพู/แดงแยกสี, จบรอบแพ้ (none), overlay ผลลัพธ์, รายละเอียดเกม, รูปหน้าปก (`game_cover_url`), ค่าเริ่มต้นหน้าปก = SVG หัวใจชมพูใน `web/public/`
 
+## เชลล์หลัก production — หน้าแรก / ล็อกอิน / สมาชิก / แอดมิน
+
+ชุดนี้เป็น **UI หลักที่ใช้งานจริงบน production** (ไม่ใช่เพจทดลอง) — พัฒนาฟีเจอร์ต่อบนฐานนี้
+
+| เส้นทาง | โค้ดหลัก | หมายเหตุ |
+|--------|-----------|----------|
+| **`/`** | `web/components/HomeOrganicChrome.jsx` | `HomeStylePublicHeader` + iframe `organic-template/index.html?huajaiy_chrome=1` (ซ่อนแถบซ้ำใน iframe; สถานะล็อกอินตรงกับ `/member`) |
+| **`/login`** | `web/app/login/page.js` | iframe `organic-template/huajaiy-login.html` (LINE + ยูสเซอร์/รหัส) |
+| **`/login/line`** | `web/app/login/line/page.js` | LINE OAuth → แลกโทเค็นสมาชิก |
+| **`/member`** | `web/components/MemberTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe + `postMessage` ข้อมูลสมาชิก |
+| **`/admin`** | `web/components/AdminTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe เหมือนสมาชิก; แผง React เก่า **`/admin/panel`** (`AdminDashboard`) ฝังใน iframe ได้เมื่อตั้ง **`SHOW_LEGACY_ADMIN_PANEL_EMBED = true`** ในไฟล์นี้ (ใช้เฉพาะเมื่อต้องการแผงเดิม) |
+
+**สถานะล็อกอิน:** `MemberAuthProvider` + `localStorage` (`huajaiy_member_token`) · เมนูสาธารณะ: `HomeStylePublicHeader` หรือ `SiteHeader` / `GlobalPrimaryNav`
+
 ---
 
-*อัปเดตล่าสุด: มีนาคม 2026 — ระบุ GitHub + Render + Cloudinary เป็นชุดใช้งานจริง*
+*อัปเดตล่าสุด: เมษายน 2026 — เพิ่มเชลล์ production หลัก; GitHub + Render + Cloudinary เป็นชุดใช้งานจริง*

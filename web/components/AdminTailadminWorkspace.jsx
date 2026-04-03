@@ -9,8 +9,8 @@ import { useMemberAuth } from "./MemberAuthProvider";
 const IFRAME_SRC = "/tailadmin-template/";
 
 /**
- * แอดมินใช้ shell เดียวกับสมาชิก (หัวเว็บ + iframe TailAdmin)
- * ตัวนี้ควบคุมเฉพาะการฝัง React แผงเก่า (/admin/panel = AdminDashboard) — ค่า false = ไม่ดึงข้อมูล/แท็บเดิม
+ * Production: เชลล์แอดมิน = หัวเว็บ + TailAdmin iframe (เทียบเท่า /member)
+ * ตั้ง true เฉพาะเมื่อต้องการฝังแผง React เก่า (/admin/panel = AdminDashboard) ใน iframe
  */
 const SHOW_LEGACY_ADMIN_PANEL_EMBED = false;
 
@@ -40,7 +40,7 @@ export default function AdminTailadminWorkspace() {
     postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
   }, [postToIframe]);
 
-  /** แอดมิน: ฝังแผง React — ไม่ใช่แอดมิน: ล้างฝังให้เห็นหน้าตัวอย่าง TailAdmin (กราฟ/ตาราง) */
+  /** แอดมิน: ส่ง URL แผงเก่าเข้า iframe ตาม flag — ไม่ใช่แอดมิน: ล้างฝัง */
   const syncIframe = useCallback(() => {
     if (!user) return;
     postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
@@ -97,9 +97,7 @@ export default function AdminTailadminWorkspace() {
         <iframe
           ref={iframeRef}
           title={
-            isAdmin
-              ? "ระบบแอดมิน HUAJAIY"
-              : "ตัวอย่างเทมเพลตแดชบอร์ด (TailAdmin)"
+            isAdmin ? "ระบบแอดมิน HUAJAIY" : "พื้นที่ผู้ดูแลระบบ — จำกัดสิทธิ์"
           }
           src={IFRAME_SRC}
           className="h-full w-full border-0"
@@ -109,13 +107,19 @@ export default function AdminTailadminWorkspace() {
         {!isAdmin && (
           <div className="pointer-events-none absolute inset-0 flex justify-center overflow-y-auto pt-6 pb-10 sm:pt-10">
             <div className="pointer-events-auto mx-4 w-full max-w-2xl shrink-0 rounded-xl border border-amber-200/90 bg-amber-50/95 p-4 text-sm text-amber-950 shadow-lg shadow-amber-900/10 backdrop-blur-sm sm:p-5">
-              <h1 className="text-lg font-bold text-slate-900">แอดมิน</h1>
+              <h1 className="text-lg font-bold text-slate-900">พื้นที่ผู้ดูแลระบบ</h1>
               <p className="mt-1 text-slate-600">
-                ด้านหลังเป็นหน้าตัวอย่างของเทมเพลต (กราฟ แผนที่ ตาราง) — คลิกนอกกล่องนี้เพื่อลองเล่นเมนูได้
+                บัญชีของคุณยังไม่มีสิทธิ์ <strong className="text-slate-800">admin</strong>
+                — ด้านหลังเป็นเทมเพลตแดชบอร์ด (แสดงเมื่อไม่มีสิทธิ์เข้าจัดการ)
               </p>
               <p className="mt-2 text-slate-600">
-                พื้นที่จัดการจริงสำหรับบัญชีที่มีบทบาท{" "}
-                <strong className="text-slate-800">admin</strong> เท่านั้น
+                ถ้าคุณเป็นสมาชิก ให้ใช้{" "}
+                <a
+                  href="/member"
+                  className="font-semibold text-rose-700 underline decoration-rose-300 underline-offset-2 hover:text-rose-800"
+                >
+                  พื้นที่สมาชิก
+                </a>
               </p>
               <div className="mt-4 border-t border-amber-200/80 pt-4">
                 <p className="font-medium text-amber-950">บัญชีนี้ยังไม่ใช่แอดมิน</p>

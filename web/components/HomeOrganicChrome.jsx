@@ -5,8 +5,8 @@ import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 /**
- * หน้าแรก: หัวเว็บเดียวกับ /member /admin (สถานะล็อกอินจาก MemberAuthProvider)
- * + iframe เทมเพลต organic แบบซ่อนแถบด้านใน (?huajaiy_chrome=1)
+ * หน้าแรก production: หัวเว็บเดียวกับ /member /admin (MemberAuthProvider)
+ * + iframe organic (?huajaiy_chrome=1 ซ่อนแถบซ้ำใน iframe)
  */
 export default function HomeOrganicChrome() {
   const iframeRef = useRef(null);

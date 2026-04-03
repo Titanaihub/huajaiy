@@ -34,6 +34,14 @@ alwaysApply: true
 - แอดมินตั้งเกมส่วนกลาง (`central_games`), รูปชุด, กติกา/รางวัล, หักหัวใจชมพู-แดงแยกสี, รายละเอียดเกม, **รูปหน้าปก** (`game_cover_url`), หน้าเล่น + overlay ชนะ/แพ้
 - ไฟล์สำคัญ: `services/centralGameService.js`, `centralGameSession.js`, `web/components/AdminCentralGamePanel.jsx`, `web/components/FlipGameDemo.jsx`, `server.js`
 
+## เชลล์หลัก production (หน้าแรก / ล็อกอิน / สมาชิก / แอดมิน)
+
+- **`/`** → `HomeOrganicChrome` (หัว React + organic iframe `?huajaiy_chrome=1`)
+- **`/login`**, **`/login/line`** → เทมเพลต organic + LINE
+- **`/member`**, **`/admin`** → `MemberTailadminWorkspace` / `AdminTailadminWorkspace` (หัว `HomeStylePublicHeader` + TailAdmin iframe)
+- แผงแอดมินแบบ React เก่า: **`/admin/panel`** — ฝังใน iframe เฉพาะเมื่อ **`SHOW_LEGACY_ADMIN_PANEL_EMBED`** ใน `AdminTailadminWorkspace.jsx` เป็น `true`
+- รายละเอียดตารางและไฟล์: **`PROJECT_MEMORY.md`**
+
 ## เอกสารเพิ่มเติมใน repo
 
 - อ่าน **`PROJECT_MEMORY.md`** ที่รากโปรเจกต์สำหรับสรุปภาษาไทยและอัปเดตมือเมื่อสถานะ production เปลี่ยน

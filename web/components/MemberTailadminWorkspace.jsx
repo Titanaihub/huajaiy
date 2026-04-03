@@ -8,6 +8,7 @@ import { useMemberAuth } from "./MemberAuthProvider";
 
 const IFRAME_SRC = "/tailadmin-template/";
 
+/** พื้นที่สมาชิก production — หัวเว็บ + TailAdmin iframe */
 export default function MemberTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
