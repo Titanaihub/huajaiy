@@ -9,8 +9,8 @@ import { useMemberAuth } from "./MemberAuthProvider";
 const IFRAME_SRC = "/tailadmin-template/";
 
 /**
- * ปิดการฝัง AdminDashboard เดิม (ข้อมูลสมาชิก/แท็บเก่า) — แอดมินเห็นเฉพาะโครงหัวเว็บ + พื้นที่ว่างให้ต่อทีละขั้น
- * ตั้งเป็น true เมื่อต้องการดึงแผงเดิมกลับมาใน iframe
+ * แอดมินใช้ shell เดียวกับสมาชิก (หัวเว็บ + iframe TailAdmin)
+ * ตัวนี้ควบคุมเฉพาะการฝัง React แผงเก่า (/admin/panel = AdminDashboard) — ค่า false = ไม่ดึงข้อมูล/แท็บเดิม
  */
 const SHOW_LEGACY_ADMIN_PANEL_EMBED = false;
 
@@ -89,41 +89,22 @@ export default function AdminTailadminWorkspace() {
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
       <HomeStylePublicHeader
-        onHamburgerClick={
-          isAdmin && !SHOW_LEGACY_ADMIN_PANEL_EMBED ? undefined : toggleIframeSidebar
-        }
+        onHamburgerClick={toggleIframeSidebar}
         lineProfileImageUrl={user.linePictureUrl || undefined}
         profileDisplayName={displayName}
       />
       <main className="relative min-h-0 flex-1 overflow-hidden bg-slate-100">
-        {isAdmin && !SHOW_LEGACY_ADMIN_PANEL_EMBED ? (
-          <div className="flex h-full flex-col items-center justify-start overflow-y-auto px-4 py-10 sm:py-14">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-              <h1 className="text-lg font-semibold text-slate-900">แอดมิน HUAJAIY</h1>
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                แผงจัดการแบบเดิม (ตารางสมาชิกและแท็บเครื่องมือ) <strong className="text-slate-800">ปิดการโหลดชั่วคราว</strong>
-                — จะต่อฟีเจอร์ใหม่ทีละส่วนตามที่ออกแบบ
-              </p>
-              <p className="mt-2 text-xs text-slate-500">
-                ในโค้ด: <code className="rounded bg-slate-100 px-1">AdminTailadminWorkspace.jsx</code> →{" "}
-                <code className="rounded bg-slate-100 px-1">SHOW_LEGACY_ADMIN_PANEL_EMBED = true</code>{" "}
-                เมื่อต้องการฝังแผงเดิมกลับ
-              </p>
-            </div>
-          </div>
-        ) : (
-          <iframe
-            ref={iframeRef}
-            title={
-              isAdmin
-                ? "ระบบแอดมิน HUAJAIY"
-                : "ตัวอย่างเทมเพลตแดชบอร์ด (TailAdmin)"
-            }
-            src={IFRAME_SRC}
-            className="h-full w-full border-0"
-            onLoad={syncIframe}
-          />
-        )}
+        <iframe
+          ref={iframeRef}
+          title={
+            isAdmin
+              ? "ระบบแอดมิน HUAJAIY"
+              : "ตัวอย่างเทมเพลตแดชบอร์ด (TailAdmin)"
+          }
+          src={IFRAME_SRC}
+          className="h-full w-full border-0"
+          onLoad={syncIframe}
+        />
 
         {!isAdmin && (
           <div className="pointer-events-none absolute inset-0 flex justify-center overflow-y-auto pt-6 pb-10 sm:pt-10">
