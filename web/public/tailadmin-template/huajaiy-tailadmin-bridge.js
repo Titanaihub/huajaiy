@@ -144,13 +144,15 @@
       a.appendChild(wrap);
     }
 
-    app
-      .querySelectorAll(
-        'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
-      )
-      .forEach(function (im) {
-        brandAnchor(im.closest("a"));
-      });
+    if (!memberChrome) {
+      app
+        .querySelectorAll(
+          'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
+        )
+        .forEach(function (im) {
+          brandAnchor(im.closest("a"));
+        });
+    }
 
     app
       .querySelectorAll(
@@ -201,7 +203,8 @@
       "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed{font-family:Prompt,ui-sans-serif,system-ui,sans-serif!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{box-sizing:border-box!important;margin-right:-1.25rem!important;width:calc(100% + 1.25rem)!important;padding-right:0!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{display:none!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){padding-top:1rem!important;}" +
       "@media(min-width:1024px){" +
       "html.huajaiy-member-chrome #app aside.fixed{width:290px!important;min-width:290px!important;max-width:290px!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed~div.flex-1{margin-left:290px!important;}" +

@@ -40,11 +40,11 @@ export default function HomeStylePublicHeader({
       <div className="w-full px-3 sm:px-4">
         <div className="flex flex-wrap items-center gap-3 py-3">
           {/* คอลัมน์ซ้าย: โลโก้ + เมนูแฮมเบอร์เกอร์ (เทียบ col-sm-auto ในเทมเพลต) */}
-          <div className="flex w-full flex-none items-center justify-center gap-2 sm:w-auto sm:justify-start sm:gap-3 lg:w-[290px] lg:min-w-[290px] lg:max-w-[290px] lg:justify-between lg:border-r lg:border-gray-200 lg:pr-2 lg:shrink-0">
+          <div className="flex w-full flex-none items-center justify-center gap-2 sm:w-auto sm:justify-start sm:gap-3">
             <BrandLogo variant="header" tone="organic" />
             <button
               type="button"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100 lg:-mr-0.5"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
               aria-label="เปิดเมนูด้านข้าง"
               onClick={onHamburgerClick}
             >
