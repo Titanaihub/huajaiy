@@ -128,6 +128,7 @@ export default function MemberAuthProvider({ children }) {
       } catch {
         /* ignore — ไม่มีเซสชัน NextAuth (ล็อกอินแค่ยูส/รหัส) */
       }
+      window.location.assign("/");
     }
   }, []);
 
