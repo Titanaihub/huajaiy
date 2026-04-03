@@ -201,7 +201,12 @@
       "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed{font-family:Prompt,ui-sans-serif,system-ui,sans-serif!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{box-sizing:border-box!important;margin-right:-1.25rem!important;width:calc(100% + 1.25rem)!important;padding-right:0!important;}";
+      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{box-sizing:border-box!important;margin-right:-1.25rem!important;width:calc(100% + 1.25rem)!important;padding-right:0!important;}" +
+      "@media(min-width:1024px){" +
+      "html.huajaiy-member-chrome #app aside.fixed{width:290px!important;min-width:290px!important;max-width:290px!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1{margin-left:290px!important;}" +
+      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed>div:nth-child(2){display:none!important;}" +
+      "}";
     document.head.appendChild(st);
   }
 
@@ -326,6 +331,17 @@
     if (!d || !d.type) return;
 
     if (d.type === "HUAJAIY_TOGGLE_SIDEBAR" && ev.source === window.parent) {
+      /* เดสก์ท็อปโหมดสมาชิก: พับเฉพาะเมนูด้านล่าง แถบโลโก้คงที่ — ไม่คลิกปุ่มเทมเพลตที่ยุบทั้ง aside */
+      if (
+        document.documentElement.classList.contains("huajaiy-member-chrome") &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(min-width:1024px)").matches
+      ) {
+        document.documentElement.classList.toggle(
+          "huajaiy-member-nav-collapsed"
+        );
+        return;
+      }
       var hdr = document.querySelector("header");
       if (hdr) {
         var btn = hdr.querySelector("button");
