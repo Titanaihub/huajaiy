@@ -65,26 +65,16 @@
       </p>
     </div>
 
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/30"
-    >
-      <iframe
-        :key="studioIframeSrc"
-        :src="studioIframeSrc"
-        :title="pageTitle"
-        class="block min-h-[min(88vh,960px)] w-full border-0 bg-white"
-        referrerpolicy="same-origin"
-      />
-    </div>
+    <MemberGameStudioEditor v-else :game-id="gameId" />
   </admin-layout>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import MemberGameStudioEditor from '@/components/huajaiy/MemberGameStudioEditor.vue'
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -106,7 +96,7 @@ function memberToken(): string | null {
 function syncGameIdFromSearch() {
   try {
     const q = new URLSearchParams(window.location.search)
-    const g = q.get('member_game')
+    const g = q.get('game') || q.get('member_game')
     if (g && UUID_RE.test(String(g).trim())) {
       gameId.value = String(g).trim()
     } else {
@@ -116,12 +106,6 @@ function syncGameIdFromSearch() {
     gameId.value = null
   }
 }
-
-const studioIframeSrc = computed(() => {
-  const id = gameId.value
-  if (!id) return ''
-  return `/account/game-studio?member_embed=1&game=${encodeURIComponent(id)}`
-})
 
 function refreshAuthState() {
   const t = memberToken()
