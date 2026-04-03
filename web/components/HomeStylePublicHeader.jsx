@@ -87,60 +87,61 @@ export default function HomeStylePublicHeader({
             {authPage ? (
               <span className="h-10 w-10 shrink-0 sm:w-0" aria-hidden />
             ) : (
-              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                <button
-                  type="button"
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
-                  aria-label="เปิดเมนูด้านข้าง"
-                  onClick={onHamburgerClick}
-                >
-                  <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden>
-                    <path
-                      fill="currentColor"
-                      d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2H3z"
-                    />
-                  </svg>
-                </button>
-                <Link
-                  href={heartsHref}
-                  className="flex items-center gap-2.5 rounded-md py-1 pl-0.5 pr-1 hover:bg-gray-50 sm:gap-3 sm:pr-2"
-                  title={heartsTitle}
-                  aria-label={
-                    heartsLoading
-                      ? "กำลังโหลดยอดหัวใจ"
-                      : `หัวใจชมพู ${pinkShown} หัวใจแดง ${redShown}`
-                  }
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={HEART_PINK_SRC}
-                      alt=""
-                      width={22}
-                      height={22}
-                      className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
-                    />
-                    <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-pink-600 sm:text-base">
-                      {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
-                    </span>
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={HEART_RED_SRC}
-                      alt=""
-                      width={22}
-                      height={22}
-                      className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
-                    />
-                    <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-600 sm:text-base">
-                      {heartsLoading ? "…" : redShown.toLocaleString("th-TH")}
-                    </span>
-                  </span>
-                </Link>
-              </div>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
+                aria-label="เปิดเมนูด้านข้าง"
+                onClick={onHamburgerClick}
+              >
+                <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden>
+                  <path
+                    fill="currentColor"
+                    d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2H3z"
+                  />
+                </svg>
+              </button>
             )}
           </div>
+
+          {!authPage ? (
+            <Link
+              href={heartsHref}
+              className="flex w-full shrink-0 items-center justify-center gap-2.5 rounded-md py-1 hover:bg-gray-50 sm:w-auto sm:justify-start sm:gap-3 sm:px-1 lg:px-0"
+              title={heartsTitle}
+              aria-label={
+                heartsLoading
+                  ? "กำลังโหลดยอดหัวใจ"
+                  : `หัวใจชมพู ${pinkShown} หัวใจแดง ${redShown}`
+              }
+            >
+              <span className="inline-flex items-center gap-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={HEART_PINK_SRC}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
+                />
+                <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-pink-600 sm:text-base">
+                  {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
+                </span>
+              </span>
+              <span className="inline-flex items-center gap-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={HEART_RED_SRC}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
+                />
+                <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-600 sm:text-base">
+                  {heartsLoading ? "…" : redShown.toLocaleString("th-TH")}
+                </span>
+              </span>
+            </Link>
+          ) : null}
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
           <nav
