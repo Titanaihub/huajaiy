@@ -6,26 +6,10 @@ import BrandLogo from "./BrandLogo";
 import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import {
-  TAILADMIN_PROFILE_START,
-  TAILADMIN_SHOP_DASHBOARD_START,
-  workspaceShellUrl
-} from "../lib/memberWorkspacePath";
+  MEMBER_PROFILE_PAGE_HREF,
+  MEMBER_SIDEBAR_NAV_ITEMS
+} from "../lib/memberSidebarNav";
 import { useMemberAuth } from "./MemberAuthProvider";
-
-/** เมนูเพิ่มเติมหลังล็อกอิน — รายการที่ไม่ใช่โปรไฟล์ชั่วคราวเปิดแดชบอร์ดร้านค้าเทมเพลต */
-const LOGGED_IN_MORE_MENU = [
-  { label: "ภาพรวมบัญชี", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "โปรไฟล์", path: TAILADMIN_PROFILE_START },
-  { label: "รางวัลของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "หัวใจของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "เกมของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "ร้านค้าของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "เพจของฉัน", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "คำสั่งซื้อ", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "คำขอรับรางวัล", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "เติมหัวใจแดง", path: TAILADMIN_SHOP_DASHBOARD_START },
-  { label: "แจกหัวใจ", path: TAILADMIN_SHOP_DASHBOARD_START }
-];
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
@@ -64,9 +48,7 @@ export default function HomeStylePublicHeader({
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
-  const accountHref = memberUser
-    ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
-    : "/login";
+  const accountHref = memberUser ? MEMBER_PROFILE_PAGE_HREF : "/login";
 
   let pinkShown = 0;
   let redShown = 0;
@@ -220,16 +202,26 @@ export default function HomeStylePublicHeader({
                   role="menu"
                 >
                   {memberUser ? (
-                    LOGGED_IN_MORE_MENU.map((item) => (
-                      <li key={item.label}>
-                        <Link
-                          href={workspaceShellUrl(item.path, memberUser.role)}
-                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                          role="menuitem"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          {item.label}
-                        </Link>
+                    MEMBER_SIDEBAR_NAV_ITEMS.map((item) => (
+                      <li key={item.key}>
+                        {item.kind === "empty" ? (
+                          <span
+                            className="block cursor-default px-3 py-2 text-sm text-gray-400"
+                            role="menuitem"
+                            aria-disabled="true"
+                          >
+                            {item.label}
+                          </span>
+                        ) : (
+                          <Link
+                            href={item.href}
+                            className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                            role="menuitem"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            {item.label}
+                          </Link>
+                        )}
                       </li>
                     ))
                   ) : (

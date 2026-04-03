@@ -51,58 +51,68 @@
     }
   }
 
-  /** เมนูซ้ายสมาชิก — ตรงกับเมนู «เพิ่มเติม» บน header (เทมเพลตเดิมซ่อนไว้) */
+  /**
+   * เมนูซ้ายสมาชิก — ชี้หน้าเว็บเดิม (/account/…) ตรงกับ web/lib/memberSidebarNav.js
+   * kind: "path" | "empty"
+   */
   var MEMBER_SIDEBAR_MENU = [
-    { label: "ภาพรวมบัญชี", start: "/" },
-    { label: "โปรไฟล์", start: "/profile" },
-    { label: "รางวัลของฉัน", start: "/" },
-    { label: "หัวใจของฉัน", start: "/" },
-    { label: "เกมของฉัน", start: "/" },
-    { label: "ร้านค้าของฉัน", start: "/" },
-    { label: "เพจของฉัน", start: "/" },
-    { label: "คำสั่งซื้อ", start: "/" },
-    { label: "คำขอรับรางวัล", start: "/" },
-    { label: "เติมหัวใจแดง", start: "/" },
-    { label: "แจกหัวใจ", start: "/" }
+    { key: "overview", label: "ภาพรวมบัญชี", kind: "path", href: "/account" },
+    { key: "profile", label: "โปรไฟล์", kind: "path", href: "/account/profile" },
+    { key: "prizes", label: "รางวัลของฉัน", kind: "path", href: "/account/prizes" },
+    { key: "hearts", label: "หัวใจของฉัน", kind: "path", href: "/account/my-hearts" },
+    { key: "games", label: "เกมของฉัน", kind: "path", href: "/account/my-games" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "path", href: "/account/shops" },
+    { key: "page", label: "เพจของฉัน", kind: "empty" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "path", href: "/account/orders" },
+    {
+      key: "prizeWithdraw",
+      label: "คำขอรับรางวัล",
+      kind: "path",
+      href: "/account/prize-withdraw"
+    },
+    {
+      key: "heartsShop",
+      label: "เติมหัวใจแดง",
+      kind: "path",
+      href: "/account/hearts-shop"
+    },
+    { key: "giveHearts", label: "แจกหัวใจ", kind: "path", href: "/account/give-hearts" }
   ];
 
-  function parentWorkspaceBase() {
+  function parentPathname() {
     try {
-      if (
-        window.parent &&
-        window.parent.location &&
-        window.parent.location.pathname
-      ) {
-        var p = String(window.parent.location.pathname);
-        if (p.indexOf("/admin") === 0) return "/admin";
+      if (window.parent && window.parent.location) {
+        var p = String(window.parent.location.pathname || "");
+        return p.replace(/\/$/, "") || "/";
       }
     } catch (e) {
       /* cross-origin */
     }
-    return "/member";
+    return "";
   }
 
-  function memberShellHref(tailStart) {
-    var s = tailStart === "/" ? "/" : tailStart;
-    return (
-      parentWorkspaceBase() +
-      "?huajaiy_start=" +
-      encodeURIComponent(s)
-    );
+  function pathMatchesMenuHref(href, pp) {
+    var h = String(href || "").replace(/\/$/, "") || "/";
+    pp = String(pp || "").replace(/\/$/, "") || "/";
+    if (pp === h) return true;
+    if (h === "/account") return false;
+    return pp.indexOf(h + "/") === 0;
   }
 
   function updateMemberSidebarActive() {
-    var path = window.location.pathname || "";
-    var onProfile = path.indexOf("/profile") !== -1;
-    document
-      .querySelectorAll("a.huajaiy-member-sidebar-link")
-      .forEach(function (a) {
-        var st = a.getAttribute("data-huajaiy-start") || "/";
-        var isProfile = st === "/profile";
-        var active = isProfile ? onProfile : !onProfile;
-        a.classList.toggle("menu-item-active", active);
-        a.classList.toggle("menu-item-inactive", !active);
-      });
+    var nav = document.getElementById("huajaiy-member-sidebar-nav");
+    if (!nav) return;
+    var pp = parentPathname();
+    MEMBER_SIDEBAR_MENU.forEach(function (item) {
+      var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
+      if (!el) return;
+      var active =
+        item.kind === "path" &&
+        item.href &&
+        pathMatchesMenuHref(item.href, pp);
+      el.classList.toggle("menu-item-active", active);
+      el.classList.toggle("menu-item-inactive", !active);
+    });
   }
 
   function installHuajaiyMemberSidebarNav() {
@@ -130,26 +140,41 @@
       ul.className = "flex flex-col gap-4";
       MEMBER_SIDEBAR_MENU.forEach(function (item) {
         var li = document.createElement("li");
-        var a = document.createElement("a");
-        a.className =
-          "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
-        a.setAttribute("data-huajaiy-start", item.start);
-        a.href = memberShellHref(item.start);
-        a.target = "_parent";
-        a.rel = "noopener noreferrer";
-        var span = document.createElement("span");
-        span.className = "menu-item-text";
-        span.textContent = item.label;
-        a.appendChild(span);
-        li.appendChild(a);
+        if (item.kind === "empty") {
+          var dis = document.createElement("span");
+          dis.className =
+            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start cursor-default opacity-50";
+          dis.setAttribute("data-huajaiy-key", item.key);
+          dis.setAttribute("aria-disabled", "true");
+          dis.title = "ยังไม่เปิดใช้งาน";
+          var sp0 = document.createElement("span");
+          sp0.className = "menu-item-text";
+          sp0.textContent = item.label;
+          dis.appendChild(sp0);
+          li.appendChild(dis);
+        } else {
+          var a = document.createElement("a");
+          a.className =
+            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
+          a.setAttribute("data-huajaiy-key", item.key);
+          a.href = item.href;
+          a.target = "_parent";
+          a.rel = "noopener noreferrer";
+          var span = document.createElement("span");
+          span.className = "menu-item-text";
+          span.textContent = item.label;
+          a.appendChild(span);
+          li.appendChild(a);
+        }
         ul.appendChild(li);
       });
       nav.appendChild(ul);
       scrollHost.insertBefore(nav, scrollHost.firstChild);
     } else {
-      nav.querySelectorAll("a.huajaiy-member-sidebar-link").forEach(function (a) {
-        var st = a.getAttribute("data-huajaiy-start") || "/";
-        a.href = memberShellHref(st);
+      MEMBER_SIDEBAR_MENU.forEach(function (item) {
+        if (item.kind !== "path" || !item.href) return;
+        var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
+        if (el && el.tagName === "A") el.setAttribute("href", item.href);
       });
     }
     updateMemberSidebarActive();
