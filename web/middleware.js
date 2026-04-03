@@ -20,6 +20,13 @@ export function middleware(request) {
   }
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-huajaiy-pathname", pathname);
+  /** ฝังในสมาชิก TailAdmin — ไม่ครอบ SiteHeader / หลังบ้านเก่า */
+  if (
+    pathname === "/account/create-game" &&
+    request.nextUrl.searchParams.get("member_embed") === "1"
+  ) {
+    requestHeaders.set("x-huajaiy-account-minimal-shell", "1");
+  }
   return NextResponse.next({
     request: { headers: requestHeaders }
   });

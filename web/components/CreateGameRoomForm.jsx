@@ -55,6 +55,7 @@ export default function CreateGameRoomForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
+  const isMemberEmbed = searchParams.get("member_embed") === "1";
   const managingExisting =
     typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim());
 
@@ -124,7 +125,13 @@ export default function CreateGameRoomForm() {
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
-      const nextUrl = `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
+      const nextUrl = isMemberEmbed
+        ? `/member/create-game?game=${encodeURIComponent(gid)}#game-studio`
+        : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
+      if (isMemberEmbed && typeof window !== "undefined") {
+        window.top.location.assign(nextUrl);
+        return;
+      }
       router.replace(nextUrl);
       // บางเครื่อง/บางเบราว์เซอร์ไม่รีเฟรช query ทันที จึงบังคับเปลี่ยนหน้าเป็น fallback
       if (typeof window !== "undefined") {
@@ -307,18 +314,41 @@ export default function CreateGameRoomForm() {
                 ? "สร้างห้องแล้ว"
                 : "เปิดสร้างห้องเกม"}
           </button>
-          <Link
-            href="/account"
-            className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-          >
-            ← กลับหลังบ้าน
-          </Link>
-          <Link
-            href="/account/my-games"
-            className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-          >
-            เกมของฉัน
-          </Link>
+          {isMemberEmbed ? (
+            <>
+              <a
+                href="/member"
+                target="_top"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                ← ภาพรวมสมาชิก
+              </a>
+              <a
+                href="/member/game"
+                target="_top"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                เกมของฉัน
+              </a>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/account"
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                ← กลับหลังบ้าน
+              </Link>
+              <Link
+                href="/account/my-games"
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                เกมของฉัน
+              </Link>
+            </>
+          )}
         </div>
       </form>
   );
@@ -351,6 +381,7 @@ export default function CreateGameRoomForm() {
             <AdminCentralGamePanel
               key={studioGameId || "my-games-studio"}
               embedded
+              memberShellEmbed={isMemberEmbed}
               focusGameId={studioGameId || null}
             />
           </div>

@@ -1,6 +1,9 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+const MEMBER_GAME_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import {
@@ -66,8 +69,13 @@ export default function MemberTailadminWorkspace() {
       tailForIframe == null
         ? TAILADMIN_SHOP_DASHBOARD_START
         : normalizeMemberTailPath(tailForIframe);
-    return `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
-  }, [tailForIframe]);
+    let src = `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
+    const gameQ = searchParams.get("game");
+    if (gameQ && MEMBER_GAME_UUID_RE.test(String(gameQ).trim())) {
+      src += `&member_game=${encodeURIComponent(String(gameQ).trim())}`;
+    }
+    return src;
+  }, [tailForIframe, searchParams]);
 
   const postToIframe = useCallback((payload) => {
     const w = iframeRef.current?.contentWindow;

@@ -356,6 +356,8 @@ function RuleEditorRow({
 
 export default function AdminCentralGamePanel({
   embedded = false,
+  /** ฝังใน /member + TailAdmin — หลังเผยแพร่ไปหน้าเกมของฉันในเชลล์สมาชิก */
+  memberShellEmbed = false,
   focusGameId = null
 }) {
   const [games, setGames] = useState([]);
@@ -804,7 +806,11 @@ export default function AdminCentralGamePanel({
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === id ? null : p));
       if (embedded) {
-        window.location.assign("/account/my-games?published=1");
+        if (memberShellEmbed) {
+          window.top.location.assign("/member/game?published=1");
+        } else {
+          window.location.assign("/account/my-games?published=1");
+        }
         return;
       }
       setMsg("เผยแพร่แล้ว — เกมนี้เป็นเกมหลักบนเว็บ และแสดงในรายการหน้า /game");
@@ -840,7 +846,11 @@ export default function AdminCentralGamePanel({
       setLobbyVisible(true);
       setPublishPrompt((p) => (p?.id === selectedId ? null : p));
       if (embedded) {
-        window.location.assign("/account/my-games?published=1");
+        if (memberShellEmbed) {
+          window.top.location.assign("/member/game?published=1");
+        } else {
+          window.location.assign("/account/my-games?published=1");
+        }
         return;
       }
       setMsg("เผยแพร่แล้ว — เกมหลักบนเว็บ และแสดงในรายการหน้า /game");
@@ -873,7 +883,11 @@ export default function AdminCentralGamePanel({
       await apiAdminCentralGameDeactivate(token, selectedId);
       setLobbyVisible(false);
       if (embedded) {
-        window.location.assign("/account/my-games?published=0");
+        if (memberShellEmbed) {
+          window.top.location.assign("/member/game?published=0");
+        } else {
+          window.location.assign("/account/my-games?published=0");
+        }
         return;
       }
       setMsg("หยุดการเผยแพร่แล้ว — ซ่อนจากรายการหน้า /game ด้วย");
