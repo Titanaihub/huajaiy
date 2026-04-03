@@ -17,12 +17,12 @@
             ซื้อหัวใจแดง
           </a>
           <a
-            href="/account/heart-history/purchases"
+            href="/account/heart-history/giveaway"
             target="_parent"
             rel="noopener noreferrer"
             class="font-semibold text-rose-600 underline decoration-gray-300 underline-offset-2 dark:text-rose-400"
           >
-            ประวัติหัวใจแดง
+            ประวัติแดงสำหรับแจก
           </a>
           <a
             href="/member/hearts"

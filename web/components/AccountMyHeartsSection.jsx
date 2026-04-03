@@ -227,7 +227,7 @@ export default function AccountMyHeartsSection() {
               href="/account/heart-history/play"
               className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
-              ประวัติหัวใจ (เล่นเกม)
+              ประวัติหัวใจชมพู
             </Link>
             <Link
               href="/account/hearts-shop"

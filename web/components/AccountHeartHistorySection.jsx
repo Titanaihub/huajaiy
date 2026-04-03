@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiGetMyHeartLedger, getMemberToken } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
-import InlineHeart from "./InlineHeart";
 
 const KIND_HINT = {
   game_start: "เล่นเกม",
@@ -14,16 +13,8 @@ const KIND_HINT = {
   adjustment: "ปรับยอด",
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
   room_red_code_refund: "ลบรหัสห้อง · คืนแดง",
-  room_red_code_redeem: "แลกรหัสห้อง · ได้แดง"
+  room_red_code_redeem: "แลกรหัสห้อง"
 };
-
-const PLAY_KINDS = new Set(["game_start"]);
-const PURCHASE_KINDS = new Set([
-  "heart_purchase_approved",
-  "room_red_code_issue",
-  "room_red_code_refund",
-  "room_red_code_redeem"
-]);
 
 function formatWhen(iso) {
   if (!iso) return "—";
@@ -37,143 +28,291 @@ function formatWhen(iso) {
   }
 }
 
-function giveawayLedgerNote(entry) {
-  const m = entry.meta;
-  if (!m || typeof m !== "object") return null;
-  if (entry.kind === "heart_purchase_approved") {
-    if (m.redGrantedToGiveaway == null) return null;
-    const toGive = Number(m.redGrantedToGiveaway) || 0;
-    if (toGive > 0) {
-      const after =
-        m.redGiveawayBalanceAfter != null
-          ? Number(m.redGiveawayBalanceAfter)
-          : null;
-      return (
-        <p className="mt-1 text-sm text-red-900/90">
-          แดงแจกผู้เล่น +{toGive.toLocaleString("th-TH")}
-          {after != null && Number.isFinite(after)
-            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
-            : ""}
-        </p>
-      );
-    }
+function sumRoomGiftDeductions(meta) {
+  const m = meta?.redFromRoomGifts;
+  if (!m || typeof m !== "object" || Array.isArray(m)) return 0;
+  let s = 0;
+  for (const v of Object.values(m)) {
+    s += Math.max(0, Math.floor(Number(v) || 0));
   }
-  if (entry.kind === "room_red_code_issue") {
-    const gd = Number(m.giveawayDeducted) || 0;
-    const pd = Number(m.playableRedDeducted) || 0;
-    if (gd > 0 || pd > 0) {
-      const after =
-        m.redGiveawayBalanceAfter != null
-          ? Number(m.redGiveawayBalanceAfter)
-          : null;
-      return (
-        <p className="mt-1 text-sm text-red-900/90">
-          หักแดงแจก {gd.toLocaleString("th-TH")} · หักแดงเล่นได้ {pd.toLocaleString("th-TH")}
-          {after != null && Number.isFinite(after)
-            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
-            : ""}
-        </p>
-      );
-    }
-  }
-  if (entry.kind === "room_red_code_refund") {
-    const gr = Number(m.giveawayRefunded) || 0;
-    const pr = Number(m.playableRefunded) || 0;
-    if (gr > 0 || pr > 0) {
-      const after =
-        m.redGiveawayBalanceAfter != null
-          ? Number(m.redGiveawayBalanceAfter)
-          : null;
-      return (
-        <p className="mt-1 text-sm text-emerald-900/90">
-          คืนแดงแจก {gr.toLocaleString("th-TH")} · คืนแดงเล่นได้ {pr.toLocaleString("th-TH")}
-          {after != null && Number.isFinite(after)
-            ? ` · คงเหลือแจก ${after.toLocaleString("th-TH")}`
-            : ""}
-        </p>
-      );
-    }
-  }
-  if (entry.kind === "room_red_code_redeem") {
-    const add = Number(m.roomRedAdded) || 0;
-    const after = m.roomRedBalanceAfter != null ? Number(m.roomRedBalanceAfter) : null;
-    const code = m.code != null ? String(m.code).trim().toUpperCase() : "";
-    const creator =
-      m.creatorUsername != null ? String(m.creatorUsername).trim().replace(/^@+/, "") : "";
-    if (add > 0) {
-      return (
-        <p className="mt-1 text-sm text-emerald-900/90">
-          แลกรหัส {code || "—"} · ได้แดง {add.toLocaleString("th-TH")}
-          {creator ? ` · จาก @${creator}` : ""}
-          {after != null && Number.isFinite(after)
-            ? ` · ยอดแดงห้องนี้ ${after.toLocaleString("th-TH")}`
-            : ""}
-        </p>
-      );
-    }
-  }
-  return null;
-}
-
-function deltaLine(pinkDelta, redDelta) {
-  const chunks = [];
-  if (pinkDelta !== 0) {
-    chunks.push(
-      <span key="p" className="inline-flex items-center gap-1 tabular-nums text-rose-700">
-        {pinkDelta > 0 ? "+" : ""}
-        {pinkDelta.toLocaleString("th-TH")}
-        <InlineHeart className="text-rose-400" size="sm" />
-        <span className="text-sm font-medium text-rose-800">ชมพู</span>
-      </span>
-    );
-  }
-  if (redDelta !== 0) {
-    chunks.push(
-      <span key="r" className="inline-flex items-center gap-1 tabular-nums text-red-800">
-        {redDelta > 0 ? "+" : ""}
-        {redDelta.toLocaleString("th-TH")}
-        <InlineHeart className="text-red-600" size="sm" />
-        <span className="text-sm font-medium text-red-900">แดง</span>
-      </span>
-    );
-  }
-  if (chunks.length === 0) return <span className="text-hui-muted">0</span>;
-  return <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{chunks}</div>;
+  return s;
 }
 
 /**
- * @param {{ variant?: "play" | "purchase" | "all" }} props
+ * @param {string} mode
+ * @param {Array<Record<string, unknown>>} entries
  */
-export default function AccountHeartHistorySection({ variant = "all" }) {
+function buildTableRows(mode, entries) {
+  const rows = [];
+
+  if (mode === "pink") {
+    for (const e of entries) {
+      const pinkDelta = Math.floor(Number(e.pinkDelta) || 0);
+      if (pinkDelta === 0) continue;
+      const hint = KIND_HINT[e.kind] || e.kind || "";
+      rows.push({
+        id: e.id,
+        createdAt: e.createdAt,
+        item: (
+          <div className="space-y-1">
+            <p className="font-medium text-slate-800">{e.label || "—"}</p>
+            {hint ? (
+              <p className="text-xs font-medium text-slate-500">{hint}</p>
+            ) : null}
+            {e.kind === "game_start" && e.meta?.gameId ? (
+              <Link
+                href={`/game/${encodeURIComponent(String(e.meta.gameId))}`}
+                className="inline-block text-xs font-semibold text-rose-600 underline decoration-rose-200 underline-offset-2 hover:text-rose-800"
+              >
+                เปิดหน้าเกมนี้
+              </Link>
+            ) : null}
+          </div>
+        ),
+        amountDisplay: null,
+        amountNumeric: pinkDelta,
+        balanceDisplay: Math.max(0, Math.floor(Number(e.pinkBalanceAfter) || 0)).toLocaleString("th-TH")
+      });
+    }
+    return rows;
+  }
+
+  if (mode === "red") {
+    for (const e of entries) {
+      if (e.kind === "room_red_code_redeem") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const add = Math.max(0, Math.floor(Number(m.roomRedAdded) || 0));
+        if (add <= 0) continue;
+        const cu =
+          m.creatorUsername != null
+            ? String(m.creatorUsername).trim().replace(/^@+/, "").toLowerCase()
+            : "";
+        const code = m.code != null ? String(m.code).trim().toUpperCase() : "";
+        const roomAfter = Math.max(0, Math.floor(Number(m.roomRedBalanceAfter) || 0));
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">แลกรหัสห้อง · ได้แดงห้อง</p>
+              <p className="text-sm text-slate-600">
+                รหัส {code || "—"}
+                {cu ? ` · จาก @${cu}` : ""}
+              </p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: add,
+          balanceDisplay: `แดงห้อง${cu ? ` @${cu}` : ""}: ${roomAfter.toLocaleString("th-TH")}`
+        });
+        continue;
+      }
+
+      if (e.kind === "game_start") {
+        const walletRed = Math.floor(Number(e.redDelta) || 0);
+        const roomTotal = sumRoomGiftDeductions(e.meta);
+        if (walletRed === 0 && roomTotal === 0) continue;
+        const parts = [];
+        if (walletRed !== 0) {
+          parts.push(
+            walletRed > 0
+              ? `กระเป๋า +${walletRed.toLocaleString("th-TH")}`
+              : `กระเป๋า ${walletRed.toLocaleString("th-TH")}`
+          );
+        }
+        if (roomTotal > 0) {
+          parts.push(`ห้อง -${roomTotal.toLocaleString("th-TH")}`);
+        }
+        const gid = e.meta?.gameId;
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "เริ่มเล่นเกม"}</p>
+              <p className="text-xs font-medium text-slate-500">{KIND_HINT.game_start}</p>
+              {gid ? (
+                <Link
+                  href={`/game/${encodeURIComponent(String(gid))}`}
+                  className="inline-block text-xs font-semibold text-rose-600 underline decoration-rose-200 underline-offset-2 hover:text-rose-800"
+                >
+                  เปิดหน้าเกมนี้
+                </Link>
+              ) : null}
+            </div>
+          ),
+          amountDisplay: parts.join(" · "),
+          amountNumeric: null,
+          balanceDisplay: `กระเป๋าแดง ${Math.max(0, Math.floor(Number(e.redBalanceAfter) || 0)).toLocaleString("th-TH")}`
+        });
+        continue;
+      }
+
+      const redDelta = Math.floor(Number(e.redDelta) || 0);
+      if (redDelta === 0) continue;
+      const hint = KIND_HINT[e.kind] || e.kind || "";
+      rows.push({
+        id: e.id,
+        createdAt: e.createdAt,
+        item: (
+          <div className="space-y-1">
+            <p className="font-medium text-slate-800">{e.label || "—"}</p>
+            {hint ? <p className="text-xs font-medium text-slate-500">{hint}</p> : null}
+          </div>
+        ),
+        amountDisplay: null,
+        amountNumeric: redDelta,
+        balanceDisplay: `กระเป๋าแดง ${Math.max(0, Math.floor(Number(e.redBalanceAfter) || 0)).toLocaleString("th-TH")}`
+      });
+    }
+    return rows;
+  }
+
+  if (mode === "giveaway") {
+    for (const e of entries) {
+      if (e.kind === "heart_purchase_approved") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const g = Math.max(0, Math.floor(Number(m.redGrantedToGiveaway) || 0));
+        if (g <= 0) continue;
+        const after = m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "เติมแดงแจก"}</p>
+              <p className="text-xs font-medium text-slate-500">{KIND_HINT.heart_purchase_approved}</p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: g,
+          balanceDisplay:
+            after != null && Number.isFinite(after)
+              ? after.toLocaleString("th-TH")
+              : "—"
+        });
+        continue;
+      }
+      if (e.kind === "room_red_code_issue") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const gd = Math.max(0, Math.floor(Number(m.giveawayDeducted) || 0));
+        if (gd <= 0) continue;
+        const after = m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "—"}</p>
+              <p className="text-xs font-medium text-slate-500">หักแดงสำหรับแจก (สร้างรหัสห้อง)</p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: -gd,
+          balanceDisplay:
+            after != null && Number.isFinite(after)
+              ? after.toLocaleString("th-TH")
+              : "—"
+        });
+        continue;
+      }
+      if (e.kind === "room_red_code_refund") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const gr = Math.max(0, Math.floor(Number(m.giveawayRefunded) || 0));
+        if (gr <= 0) continue;
+        const after = m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "—"}</p>
+              <p className="text-xs font-medium text-slate-500">คืนแดงแจก (ลบรหัสห้อง)</p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: gr,
+          balanceDisplay:
+            after != null && Number.isFinite(after)
+              ? after.toLocaleString("th-TH")
+              : "—"
+        });
+      }
+    }
+    return rows;
+  }
+
+  return rows;
+}
+
+function AmountCell({ amountNumeric, amountDisplay }) {
+  if (amountDisplay != null) {
+    return (
+      <span className="whitespace-pre-wrap tabular-nums text-sm font-semibold text-slate-800">
+        {amountDisplay}
+      </span>
+    );
+  }
+  const n = Math.floor(Number(amountNumeric) || 0);
+  const cls =
+    n > 0 ? "text-emerald-600" : n < 0 ? "text-red-600" : "text-slate-500";
+  const sign = n > 0 ? "+" : "";
+  return (
+    <span className={`tabular-nums text-sm font-semibold ${cls}`}>
+      {sign}
+      {Math.abs(n).toLocaleString("th-TH")}
+    </span>
+  );
+}
+
+const TABS = [
+  { mode: "pink", href: "/account/heart-history/play", label: "หัวใจชมพู" },
+  { mode: "red", href: "/account/heart-history/purchases", label: "หัวใจแดง" },
+  { mode: "giveaway", href: "/account/heart-history/giveaway", label: "แดงสำหรับแจก" }
+];
+
+/**
+ * @param {{ variant?: "play" | "purchase" | "giveaway" | "pink" | "red" | "all" }} props
+ */
+export default function AccountHeartHistorySection({ variant = "play" }) {
   const { user, loading: authLoading } = useMemberAuth();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [dbRequired, setDbRequired] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (variant === "play") {
-      return entries.filter((e) => PLAY_KINDS.has(e.kind));
-    }
-    if (variant === "purchase") {
-      return entries.filter((e) => PURCHASE_KINDS.has(e.kind));
-    }
-    return entries;
-  }, [entries, variant]);
+  const mode =
+    variant === "giveaway"
+      ? "giveaway"
+      : variant === "red" || variant === "purchase"
+        ? "red"
+        : variant === "all"
+          ? "pink"
+          : "pink";
 
   const heading =
-    variant === "play"
-      ? "ประวัติหัวใจ (การเล่นเกม)"
-      : variant === "purchase"
-        ? "ประวัติหัวใจแดง"
-        : "ประวัติหัวใจ";
+    mode === "pink"
+      ? "ประวัติหัวใจชมพู"
+      : mode === "red"
+        ? "ประวัติหัวใจแดง (กระเป๋าและห้อง)"
+        : "ประวัติหัวใจแดงสำหรับแจก";
 
   const blurb =
-    variant === "play"
-      ? "เฉพาะรายการที่หักหัวใจตอนเริ่มเล่นเกมส่วนกลาง (และโหมดที่บันทึกแบบเดียวกัน)"
-      : variant === "purchase"
-        ? "รวมการซื้อแพ็กหัวใจแดงแจกที่อนุมัติแล้ว และการหัก/คืนแดงเมื่อสร้างหรือลบรหัสแจกห้อง"
-        : "บันทึกเมื่อมีการเพิ่มหรือหักหัวใจชมพู/แดงบนเซิร์ฟเวอร์";
+    mode === "pink"
+      ? "รายการรับหรือหักหัวใจชมพูจากระบบ เช่น เริ่มเล่นเกมส่วนกลาง"
+      : mode === "red"
+        ? "รวมหัก/รับแดงในกระเป๋า แลกรหัสได้แดงห้อง และหักแดงตอนเริ่มเกม (กระเป๋า/ห้อง)"
+        : "เติมแดงแจกจากแพ็กที่อนุมัติ และหัก/คืนแดงแจกเมื่อสร้างหรือลบรหัสแจกห้อง";
+
+  const tableRows = useMemo(() => {
+    const raw = buildTableRows(mode, entries);
+    raw.sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    });
+    return raw;
+  }, [entries, mode]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -192,7 +331,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
       setLoading(true);
       setErr("");
       try {
-        const data = await apiGetMyHeartLedger(token, { limit: 200 });
+        const data = await apiGetMyHeartLedger(token, { limit: 300, offset: 0 });
         if (cancelled) return;
         setEntries(Array.isArray(data.entries) ? data.entries : []);
         setDbRequired(Boolean(data.dbRequired));
@@ -208,16 +347,16 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
   }, [user, authLoading]);
 
   if (authLoading) {
-    return <p className="text-sm text-hui-muted">กำลังโหลด…</p>;
+    return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
   }
 
   if (!user) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
-        <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
+      <div className="rounded-2xl border border-amber-200/90 bg-amber-50/90 px-5 py-5 text-sm text-amber-950 shadow-sm">
+        <p className="font-semibold">ต้องเข้าสู่ระบบก่อน</p>
         <Link
           href="/login"
-          className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+          className="mt-3 inline-block font-semibold text-rose-700 underline decoration-rose-300 underline-offset-2 hover:text-rose-900"
         >
           เข้าสู่ระบบ
         </Link>
@@ -226,110 +365,102 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
   }
 
   return (
-    <section>
-      <h2 className="text-lg font-semibold text-hui-section">{heading}</h2>
-      <p className="mt-1 text-sm text-hui-body">{blurb}</p>
-      {variant !== "all" ? (
-        <p className="mt-2 text-sm text-hui-muted">
-          {variant === "play" ? (
-            <>
-              ดูประวัติหัวใจแดงได้ที่{" "}
-              <Link
-                href="/account/heart-history/purchases"
-                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                ประวัติหัวใจแดง
-              </Link>
-            </>
-          ) : (
-            <>
-              ดูการหักตอนเล่นเกมได้ที่{" "}
-              <Link
-                href="/account/heart-history/play"
-                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                ประวัติหัวใจ (เล่นเกม)
-              </Link>
-            </>
-          )}
-        </p>
-      ) : null}
+    <section className="space-y-6">
+      <nav
+        className="flex flex-wrap gap-2 rounded-2xl border border-slate-200/90 bg-white/80 p-2 shadow-sm backdrop-blur-sm"
+        aria-label="เลือกประเภทประวัติหัวใจ"
+      >
+        {TABS.map((t) => {
+          const active = mode === t.mode;
+          return (
+            <Link
+              key={t.mode}
+              href={t.href}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                active
+                  ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <header className="space-y-1">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">{heading}</h2>
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{blurb}</p>
+      </header>
 
       {err ? (
-        <p className="mt-4 text-sm text-red-700" role="alert">
+        <p className="text-sm font-medium text-red-600" role="alert">
           {err}
         </p>
       ) : null}
 
       {dbRequired ? (
-        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           ระบบยังไม่เชื่อมฐานข้อมูล — ไม่มีประวัติให้แสดง
         </p>
       ) : null}
 
-      {loading ? (
-        <p className="mt-6 text-sm text-hui-muted">กำลังโหลดรายการ…</p>
-      ) : filtered.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
-          <p>
-            {variant === "play"
-              ? "ยังไม่มีประวัติการหักหัวใจจากการเริ่มเล่นเกม"
-              : variant === "purchase"
-                ? "ยังไม่มีประวัติการซื้อหัวใจหรือทุนรหัสแจกห้องในช่วงที่แสดง"
-                : "ยังไม่มีรายการในประวัติ"}
-          </p>
-          <p className="mt-2 text-sm text-hui-muted">
-            รายการจะปรากฏหลังมีการหัก/เพิ่มหัวใจ — ข้อมูลก่อนอัปเดตระบบนี้อาจไม่ย้อนหลัง
-          </p>
-        </div>
-      ) : (
-        <ul className="mt-6 space-y-3">
-          {filtered.map((e) => (
-            <li
-              key={e.id}
-              className="rounded-xl border border-hui-border bg-white p-4 text-sm shadow-sm"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-sm font-semibold text-hui-body">
-                  {KIND_HINT[e.kind] || e.kind || "รายการ"}
-                </span>
-                <time
-                  className="text-sm text-hui-muted tabular-nums"
-                  dateTime={e.createdAt ? new Date(e.createdAt).toISOString() : undefined}
-                >
-                  {formatWhen(e.createdAt)}
-                </time>
-              </div>
-              <p className="mt-2 font-medium leading-snug text-hui-section">
-                {e.label || "—"}
-              </p>
-              <div className="mt-2">{deltaLine(e.pinkDelta, e.redDelta)}</div>
-              {giveawayLedgerNote(e)}
-              <p className="mt-2 text-sm text-hui-muted">
-                คงเหลือหลังรายการนี้: ชมพู{" "}
-                <span className="font-semibold tabular-nums text-hui-body">
-                  {e.pinkBalanceAfter.toLocaleString("th-TH")}
-                </span>
-                {" · "}
-                แดง{" "}
-                <span className="font-semibold tabular-nums text-hui-body">
-                  {e.redBalanceAfter.toLocaleString("th-TH")}
-                </span>
-              </p>
-              {e.meta?.gameId && e.kind === "game_start" ? (
-                <p className="mt-2">
-                  <Link
-                    href={`/game/${encodeURIComponent(String(e.meta.gameId))}`}
-                    className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white via-white to-slate-50/90 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.18)]">
+        {loading ? (
+          <p className="px-6 py-10 text-center text-sm text-slate-500">กำลังโหลดรายการ…</p>
+        ) : tableRows.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <p className="text-sm font-medium text-slate-700">ยังไม่มีรายการในช่วงที่แสดง</p>
+            <p className="mt-2 text-sm text-slate-500">
+              ข้อมูลก่อนเปิดใช้บันทึกประวัติอาจไม่ย้อนหลัง
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-100/95 text-slate-700">
+                  <th className="whitespace-nowrap px-4 py-3.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+                    วันที่
+                  </th>
+                  <th className="px-4 py-3.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+                    รายการ
+                  </th>
+                  <th className="whitespace-nowrap px-4 py-3.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+                    จำนวน
+                  </th>
+                  <th className="whitespace-nowrap px-4 py-3.5 text-xs font-bold uppercase tracking-wide text-slate-600">
+                    คงเหลือ
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.map((row, i) => (
+                  <tr
+                    key={row.id}
+                    className={`border-b border-slate-100 transition-colors hover:bg-rose-50/50 ${
+                      i % 2 === 1 ? "bg-slate-50/40" : ""
+                    }`}
                   >
-                    เปิดหน้าเกมนี้
-                  </Link>
-                </p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
+                    <td className="whitespace-nowrap px-4 py-3.5 align-top text-slate-600 tabular-nums">
+                      <time dateTime={row.createdAt ? new Date(row.createdAt).toISOString() : undefined}>
+                        {formatWhen(row.createdAt)}
+                      </time>
+                    </td>
+                    <td className="max-w-md px-4 py-3.5 align-top text-slate-700">{row.item}</td>
+                    <td className="whitespace-nowrap px-4 py-3.5 align-top">
+                      <AmountCell amountNumeric={row.amountNumeric} amountDisplay={row.amountDisplay} />
+                    </td>
+                    <td className="whitespace-pre-wrap px-4 py-3.5 align-top font-semibold tabular-nums text-slate-800">
+                      {row.balanceDisplay}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
