@@ -9,10 +9,10 @@ const iconWrap =
   "inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100";
 
 /**
- * แถบบนแบบหน้าแรก (Organic): โลโก้หรือรูป LINE + เมนูไทย + เพิ่มเติม + ไอคอน
+ * แถบบนแบบหน้าแรก (Organic): โลโก้หัวใจ + HUAJAIY, เมนูไทย, รูป LINE มุมขวาบน
  * ใช้บนหน้าสมาชิก (เหนือ iframe TailAdmin)
  *
- * @param {string} [lineProfileImageUrl] — รูปจาก LINE (`user.linePictureUrl`) แทนโลโก้หัวใจซ้ายบน
+ * @param {string} [lineProfileImageUrl] — รูปจาก LINE (`user.linePictureUrl`) มุมขวาบน
  * @param {string} [profileDisplayName] — ชื่อสำหรับ alt ของรูป
  */
 export default function HomeStylePublicHeader({
@@ -38,25 +38,7 @@ export default function HomeStylePublicHeader({
     <header className="sticky top-0 z-[200] shrink-0 border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex w-full max-w-[100%] flex-wrap items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          {lineProfileImageUrl ? (
-            <Link
-              href="/member"
-              className="shrink-0 rounded-full ring-2 ring-gray-100 transition hover:ring-rose-200"
-              title={profileDisplayName || "บัญชีสมาชิก"}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={lineProfileImageUrl}
-                alt={profileDisplayName || "โปรไฟล์ LINE"}
-                className="h-10 w-10 rounded-full object-cover"
-                width={40}
-                height={40}
-                referrerPolicy="no-referrer"
-              />
-            </Link>
-          ) : (
-            <BrandLogo variant="header" />
-          )}
+          <BrandLogo variant="header" layout="stacked" />
           <button
             type="button"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
@@ -149,7 +131,7 @@ export default function HomeStylePublicHeader({
         </nav>
 
         <div className="flex items-center gap-0.5 sm:gap-1">
-          {lineProfileImageUrl ? null : (
+          {!lineProfileImageUrl ? (
             <Link
               href="/login"
               className={iconWrap}
@@ -173,7 +155,7 @@ export default function HomeStylePublicHeader({
                 />
               </svg>
             </Link>
-          )}
+          ) : null}
           <button
             type="button"
             className={iconWrap}
@@ -208,6 +190,24 @@ export default function HomeStylePublicHeader({
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 13v4m8-4v4m-4-4v4" />
             </svg>
           </Link>
+          {lineProfileImageUrl ? (
+            <Link
+              href="/member"
+              className="ml-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-2 ring-gray-100 transition hover:ring-rose-200"
+              title={profileDisplayName || "บัญชีสมาชิก"}
+              aria-label={profileDisplayName || "โปรไฟล์ LINE"}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lineProfileImageUrl}
+                alt={profileDisplayName || "โปรไฟล์ LINE"}
+                className="h-10 w-10 rounded-full object-cover"
+                width={40}
+                height={40}
+                referrerPolicy="no-referrer"
+              />
+            </Link>
+          ) : null}
         </div>
       </div>
     </header>
