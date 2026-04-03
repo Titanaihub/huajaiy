@@ -101,6 +101,36 @@ export default function HomeStylePublicHeader({
                   </li>
                   <li>
                     <Link
+                      href="/admin"
+                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                      role="menuitem"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      แอดมิน
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/hui/login"
+                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                      role="menuitem"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      เข้าด้วยยูสเซอร์ / รหัส
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/hui/login?next=/admin"
+                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                      role="menuitem"
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      เข้าแอดมิน (ยูสเซอร์ / รหัส)
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
                       href="/account"
                       className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                       role="menuitem"

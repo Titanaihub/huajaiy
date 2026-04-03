@@ -186,6 +186,17 @@ export default function LoginForm({ redirectAfterLogin = null }) {
           เข้าสู่ระบบด้วย LINE
         </Link>
       </p>
+      <p className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-hui-border/60 pt-4 text-center text-xs text-hui-muted">
+        <Link href="/" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
+          หน้าแรก
+        </Link>
+        <Link href="/member" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
+          สมาชิก
+        </Link>
+        <Link href="/admin" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
+          แอดมิน
+        </Link>
+      </p>
     </>
   );
 }

@@ -36,6 +36,13 @@ services:
       # แลก LINE Login เป็น JWT สมาชิก — ต้องตรงกับค่าบน huajaiy-web
       - key: LINE_LINK_SECRET
         sync: false
+      # (ไม่บังคับ) สร้าง/อัปเดตแอดมินครั้งเดียวตอน API สตาร์ท — ดูค่าตัวอย่างใน .env.example ที่ราก repo
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PHONE
+        sync: false
 
   # --- เว็บ: Next.js (รากโฟลเดอร์ web/) ---
   - type: web
