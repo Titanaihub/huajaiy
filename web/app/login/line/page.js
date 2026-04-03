@@ -136,12 +136,6 @@ function LineLoginContent() {
         </Link>
 
         <h1 className="mt-6 text-xl font-bold text-slate-900">เข้าสู่ระบบด้วย LINE</h1>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          ยืนยันตัวตนด้วย LINE แล้วระบบสร้างหรือผูกบัญชีให้อัตโนมัติ — ต้องมี{" "}
-          <strong className="text-slate-800">PostgreSQL</strong> และตั้ง{" "}
-          <code className="rounded bg-slate-100 px-1 text-xs text-slate-800">LINE_LINK_SECRET</code>{" "}
-          ให้<strong className="text-slate-800">เหมือนกันทั้งเว็บและ API</strong>
-        </p>
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           {status === "loading" ? (
@@ -174,11 +168,6 @@ function LineLoginContent() {
                   <>
                     <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
                       {memberLinkError}
-                    </p>
-                    <p className="text-xs leading-relaxed text-slate-600">
-                      เช็กที่ Render: ค่า <code className="rounded bg-slate-100 px-1">LINE_LINK_SECRET</code> บน{" "}
-                      <strong>huajaiy-web</strong> และ <strong>huajaiy-api</strong> ต้องเหมือนกันทุกตัวอักษร · API ต้องมี{" "}
-                      <code className="rounded bg-slate-100 px-1">DATABASE_URL</code>
                     </p>
                     <button
                       type="button"
