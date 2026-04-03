@@ -93,15 +93,32 @@ function memberToken(): string | null {
   }
 }
 
+function pickGameIdFromString(s: string | null | undefined): string | null {
+  if (!s || !UUID_RE.test(String(s).trim())) return null
+  return String(s).trim()
+}
+
 function syncGameIdFromSearch() {
   try {
     const q = new URLSearchParams(window.location.search)
-    const g = q.get('game') || q.get('member_game')
-    if (g && UUID_RE.test(String(g).trim())) {
-      gameId.value = String(g).trim()
-    } else {
-      gameId.value = null
+    let g = pickGameIdFromString(q.get('game') || q.get('member_game'))
+    if (!g) {
+      const rqGame = route.query.game
+      const rqMember = route.query.member_game
+      const raw = (Array.isArray(rqGame) ? rqGame[0] : rqGame) || (Array.isArray(rqMember) ? rqMember[0] : rqMember)
+      g = pickGameIdFromString(raw != null ? String(raw) : null)
     }
+    if (!g) {
+      try {
+        if (window.parent && window.parent !== window) {
+          const pq = new URLSearchParams(window.parent.location.search)
+          g = pickGameIdFromString(pq.get('game') || pq.get('member_game'))
+        }
+      } catch {
+        /* cross-origin */
+      }
+    }
+    gameId.value = g
   } catch {
     gameId.value = null
   }
@@ -128,7 +145,7 @@ onUnmounted(() => {
 })
 
 watch(
-  () => route.fullPath,
+  () => [route.fullPath, route.query.game, route.query.member_game] as const,
   () => {
     syncGameIdFromSearch()
   }

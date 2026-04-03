@@ -29,6 +29,24 @@
     }
   })();
 
+  /** เก็บรหัสเกมจาก query ตอนย้ายจาก ?huajaiy_start=… — Next ใส่ member_game ใน iframe */
+  function memberGamePassthroughQuery() {
+    try {
+      var existing = new URLSearchParams(window.location.search);
+      var q = new URLSearchParams();
+      var mg = existing.get("member_game");
+      var g = existing.get("game");
+      if (mg != null && String(mg).trim() !== "")
+        q.set("member_game", String(mg).trim());
+      if (g != null && String(g).trim() !== "")
+        q.set("game", String(g).trim());
+      var s = q.toString();
+      return s ? "?" + s : "";
+    } catch (e) {
+      return "";
+    }
+  }
+
   function tryHuajaiyStartRoute() {
     if (!huajaiyStartTarget) return;
     var t = huajaiyStartTarget;
@@ -39,10 +57,13 @@
         huajaiyStartTarget = null;
         return;
       }
+      var qs = memberGamePassthroughQuery();
+      var hash = window.location.hash || "";
+      var url = tgt + qs + hash;
       window.history.replaceState(
         window.history.state,
         "",
-        t + window.location.hash
+        url
       );
       window.dispatchEvent(
         new PopStateEvent("popstate", { state: window.history.state })
