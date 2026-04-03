@@ -206,9 +206,29 @@
       "html.huajaiy-member-chrome #app aside.fixed>div:first-child{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){padding-top:1rem!important;}" +
       "@media(min-width:1024px){" +
-      "html.huajaiy-member-chrome #app aside.fixed{width:290px!important;min-width:290px!important;max-width:290px!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1{margin-left:290px!important;}" +
-      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed>div:nth-child(2){display:none!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed{" +
+      "width:290px!important;min-width:290px!important;max-width:290px!important;" +
+      "overflow:hidden!important;" +
+      "transition:width .32s ease,min-width .32s ease,max-width .32s ease,border-color .32s ease,padding-left .32s ease,padding-right .32s ease!important;" +
+      "}" +
+      "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){" +
+      "box-sizing:border-box!important;width:290px!important;min-width:290px!important;" +
+      "transform:translateX(0);transition:transform .32s ease!important;will-change:transform;" +
+      "}" +
+      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed>div:nth-child(2){" +
+      "transform:translateX(-100%)!important;" +
+      "}" +
+      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed{" +
+      "width:0!important;min-width:0!important;max-width:0!important;" +
+      "border-right-width:0!important;padding-left:0!important;padding-right:0!important;" +
+      "overflow:hidden!important;pointer-events:none!important;" +
+      "}" +
+      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1{" +
+      "margin-left:290px!important;transition:margin-left .32s ease!important;" +
+      "}" +
+      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed~div.flex-1{" +
+      "margin-left:0!important;" +
+      "}" +
       "}";
     document.head.appendChild(st);
   }

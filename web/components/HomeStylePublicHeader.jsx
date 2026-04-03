@@ -37,10 +37,10 @@ export default function HomeStylePublicHeader({
 
   return (
     <header className="sticky top-0 z-[1040] shrink-0 border-b border-gray-200 bg-white">
-      <div className="w-full px-3 sm:px-4">
-        <div className="flex flex-wrap items-center gap-3 py-3">
-          {/* คอลัมน์ซ้าย: โลโก้ + เมนูแฮมเบอร์เกอร์ (เทียบ col-sm-auto ในเทมเพลต) */}
-          <div className="flex w-full flex-none items-center justify-center gap-2 sm:w-auto sm:justify-start sm:gap-3">
+      {/* lg: คอลัมน์ 290px ชิดซ้ายสุดให้ขอบขวาตรงเส้น sidebar ใน iframe (ไม่มีเส้นแบ่งใน header) */}
+      <div className="w-full px-3 sm:px-4 lg:px-0">
+        <div className="flex flex-wrap items-center gap-3 py-3 lg:gap-y-3">
+          <div className="flex w-full flex-none items-center justify-center gap-2 sm:w-auto sm:justify-start sm:gap-3 lg:box-border lg:w-[290px] lg:min-w-[290px] lg:max-w-[290px] lg:justify-between lg:gap-2 lg:pl-5 lg:pr-0">
             <BrandLogo variant="header" tone="organic" />
             <button
               type="button"
@@ -59,7 +59,7 @@ export default function HomeStylePublicHeader({
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
           <nav
-            className="order-last flex w-full flex-wrap items-center justify-center gap-3 text-sm font-semibold text-gray-900 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 xl:gap-6"
+            className="order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6"
             aria-label="เมนูหลัก"
           >
             {GLOBAL_PRIMARY_NAV.map((item) => (
@@ -135,7 +135,7 @@ export default function HomeStylePublicHeader({
           </nav>
 
           {/* คอลัมน์ขวา: โปรไฟล์ → โปรด → ตะกร้า (ลำดับเดียวกับเทมเพลต) */}
-          <div className="flex w-full list-none items-center justify-center gap-0 sm:ms-auto sm:w-auto sm:justify-end">
+          <div className="flex w-full list-none items-center justify-center gap-0 sm:ms-auto sm:w-auto sm:justify-end lg:pr-4">
             {lineProfileImageUrl ? (
               <Link
                 href="/member"
