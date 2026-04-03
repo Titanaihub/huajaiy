@@ -104,7 +104,7 @@
       slug: "hearts-top-up",
       start: "/hearts-top-up"
     },
-    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
+    { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
   ];
 
   function parentWorkspaceBase() {

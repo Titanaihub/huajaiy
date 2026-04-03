@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/my-prizes',
       name: 'MyPrizes',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
+      component: () => import('../views/huajaiy/MemberMyPrizesPage.vue'),
       meta: { title: 'รางวัลของฉัน', huajaiyMember: true },
     },
     {
@@ -77,20 +77,20 @@ const router = createRouter({
     {
       path: '/prize-withdraw-request',
       name: 'PrizeWithdrawRequest',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
+      component: () => import('../views/huajaiy/MemberCreatorWithdrawalsPage.vue'),
       meta: { title: 'คำขอรับรางวัล', huajaiyMember: true },
     },
     {
       path: '/hearts-top-up',
       name: 'HeartsTopUp',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
+      component: () => import('../views/huajaiy/MemberHeartsTopUpPage.vue'),
       meta: { title: 'เติมหัวใจแดง', huajaiyMember: true },
     },
     {
       path: '/give-hearts',
       name: 'GiveHearts',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
-      meta: { title: 'แจกหัวใจ', huajaiyMember: true },
+      component: () => import('../views/huajaiy/MemberGiveHeartsPage.vue'),
+      meta: { title: 'แจกหัวใจแดง', huajaiyMember: true },
     },
     {
       path: '/form-elements',

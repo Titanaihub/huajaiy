@@ -26,6 +26,7 @@ export interface HuajaiyPublicUser {
   role?: string
   selfServiceNameEditsRemaining?: number
   lineLoginLinked?: boolean
+  redGiveawayBalance?: number
 }
 
 export function useHuajaiyMemberProfile() {

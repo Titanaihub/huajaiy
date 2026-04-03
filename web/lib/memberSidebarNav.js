@@ -44,5 +44,5 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     kind: "shell",
     tailStart: TAILADMIN_HEARTS_TOP_UP_START
   },
-  { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
+  { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
 ];
