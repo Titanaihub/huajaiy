@@ -15,7 +15,7 @@ import {
  * เมนูสมาชิก — เชลล์ `/member` หรือ `/admin` + iframe TailAdmin
  *
  * tailStart: path ใน Vue — URL สาธารณะ `/member/...` (MEMBER_SLUG_TO_TAIL)
- * kind: "shell" | "empty" | "legacy" (legacy = หน้า React ที่ `/account/...` ยังไม่ย้าย)
+ * kind: "shell" | "empty" | "legacy" | "publicPage"
  */
 export const MEMBER_SHELL_MENU_ITEMS = [
   {
@@ -25,11 +25,17 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
   { key: "profile", label: "โปรไฟล์", kind: "shell", tailStart: TAILADMIN_PROFILE_START },
+  {
+    key: "profileLegacy",
+    label: "แก้โปรไฟล์แบบเต็ม",
+    kind: "legacy",
+    href: "/account/profile/legacy"
+  },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
   { key: "hearts", label: "หัวใจของฉัน", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
   { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", tailStart: TAILADMIN_MY_SHOPS_START },
-  { key: "page", label: "เพจของฉัน", kind: "empty" },
+  { key: "page", label: "เพจของฉัน (สาธารณะ)", kind: "publicPage" },
   { key: "orders", label: "คำสั่งซื้อ", kind: "shell", tailStart: TAILADMIN_MY_ORDERS_START },
   {
     key: "prizeWithdraw",

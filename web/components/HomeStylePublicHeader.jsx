@@ -218,6 +218,29 @@ export default function HomeStylePublicHeader({
                           >
                             {item.label}
                           </span>
+                        ) : item.kind === "publicPage" ? (
+                          /^[a-z0-9_]{3,32}$/.test(
+                            String(memberUser.username || "").trim().toLowerCase()
+                          ) ? (
+                            <Link
+                              href={`/u/${encodeURIComponent(
+                                String(memberUser.username).trim().toLowerCase()
+                              )}`}
+                              className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                              role="menuitem"
+                              onClick={() => setMoreOpen(false)}
+                            >
+                              {item.label}
+                            </Link>
+                          ) : (
+                            <span
+                              className="block cursor-default px-3 py-2 text-sm text-gray-400"
+                              role="menuitem"
+                              title="ตั้งชื่อผู้ใช้ในโปรไฟล์ก่อน"
+                            >
+                              {item.label}
+                            </span>
+                          )
                         ) : item.kind === "legacy" && item.href ? (
                           <Link
                             href={item.href}

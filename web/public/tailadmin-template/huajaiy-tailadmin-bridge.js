@@ -84,11 +84,17 @@
   var MEMBER_SIDEBAR_MENU = [
     { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", slug: "", start: "/" },
     { key: "profile", label: "โปรไฟล์", kind: "shell", slug: "profile", start: "/profile" },
+    {
+      key: "profileLegacy",
+      label: "แก้โปรไฟล์แบบเต็ม",
+      kind: "legacy",
+      href: "/account/profile/legacy"
+    },
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
     { key: "hearts", label: "หัวใจของฉัน", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
     { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
-    { key: "page", label: "เพจของฉัน", kind: "empty" },
+    { key: "page", label: "เพจของฉัน (สาธารณะ)", kind: "publicPage" },
     { key: "orders", label: "คำสั่งซื้อ", kind: "shell", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
@@ -118,6 +124,8 @@
       href: "/account/prize-payouts"
     }
   ];
+
+  var PUBLIC_PAGE_USER_RE = /^[a-z0-9_]{3,32}$/;
 
   function parentWorkspaceBase() {
     try {
@@ -235,6 +243,22 @@
         } catch (e) {
           /* cross-origin */
         }
+      } else if (item.kind === "publicPage") {
+        try {
+          var rawP =
+            lastUser && lastUser.username != null
+              ? String(lastUser.username).trim().toLowerCase()
+              : "";
+          if (PUBLIC_PAGE_USER_RE.test(rawP) && window.parent && window.parent.location) {
+            var ppU = String(window.parent.location.pathname || "")
+              .split("?")[0]
+              .replace(/\/+/g, "/")
+              .replace(/\/$/, "") || "/";
+            active = ppU === "/u/" + rawP;
+          }
+        } catch (e1) {
+          /* cross-origin */
+        }
       }
       el.classList.toggle("menu-item-active", active);
       el.classList.toggle("menu-item-inactive", !active);
@@ -292,6 +316,20 @@
           lsp.textContent = item.label;
           la.appendChild(lsp);
           li.appendChild(la);
+        } else if (item.kind === "publicPage") {
+          var ppa = document.createElement("a");
+          ppa.className =
+            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
+          ppa.setAttribute("data-huajaiy-key", item.key);
+          ppa.setAttribute("data-huajaiy-public-page", "1");
+          ppa.href = "#";
+          ppa.target = "_parent";
+          ppa.rel = "noopener noreferrer";
+          var psp = document.createElement("span");
+          psp.className = "menu-item-text";
+          psp.textContent = item.label;
+          ppa.appendChild(psp);
+          li.appendChild(ppa);
         } else {
           var a = document.createElement("a");
           a.className =
@@ -655,6 +693,36 @@
     }
   }
 
+  function patchMemberPublicPageNav() {
+    var nav = document.getElementById("huajaiy-member-sidebar-nav");
+    if (!nav) return;
+    var el = nav.querySelector("[data-huajaiy-public-page=\"1\"]");
+    if (!el || el.tagName !== "A") return;
+    var raw =
+      lastUser && lastUser.username != null
+        ? String(lastUser.username).trim().toLowerCase()
+        : "";
+    var ok = PUBLIC_PAGE_USER_RE.test(raw);
+    if (ok) {
+      el.setAttribute("href", "/u/" + encodeURIComponent(raw));
+      el.removeAttribute("aria-disabled");
+      el.removeAttribute("title");
+      el.classList.remove("opacity-50", "cursor-default", "pointer-events-none");
+      el.onclick = null;
+    } else {
+      el.setAttribute("href", "#");
+      el.setAttribute("aria-disabled", "true");
+      el.setAttribute(
+        "title",
+        "ตั้งชื่อผู้ใช้ (a-z 0-9 _) 3–32 ตัวในโปรไฟล์ก่อน"
+      );
+      el.classList.add("opacity-50", "cursor-default");
+      el.onclick = function (e) {
+        e.preventDefault();
+      };
+    }
+  }
+
   function removeAdminEmbed() {
     document.documentElement.classList.remove("huajaiy-admin-embed-active");
     document.querySelectorAll(".huajaiy-admin-embed-root").forEach(function (el) {
@@ -703,6 +771,8 @@
       patchHeaderName(lastUser);
     }
     installHuajaiyMemberSidebarNav();
+    patchMemberPublicPageNav();
+    updateMemberSidebarActive();
     ensureAdminEmbed();
   }
 
