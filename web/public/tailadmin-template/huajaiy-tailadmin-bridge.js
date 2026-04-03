@@ -12,6 +12,67 @@
   var moTimer = null;
   /** @type {string | null} */
   var adminEmbedUrl = null;
+  /** เป้าหมาย path เต็ม เช่น /tailadmin-template/profile จาก ?huajaiy_start=/profile */
+  var huajaiyStartTarget = null;
+
+  (function captureHuajaiyStartFromQuery() {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      var raw = q.get("huajaiy_start");
+      if (!raw || !String(raw).trim()) return;
+      var path = String(raw).trim();
+      if (!path.startsWith("/")) path = "/" + path;
+      huajaiyStartTarget = "/tailadmin-template" + path;
+    } catch (e) {
+      /* ignore */
+    }
+  })();
+
+  function tryHuajaiyStartRoute() {
+    if (!huajaiyStartTarget) return;
+    var t = huajaiyStartTarget;
+    try {
+      var cur = window.location.pathname.replace(/\/$/, "") || "/";
+      var tgt = t.replace(/\/$/, "") || "/";
+      if (cur === tgt) {
+        huajaiyStartTarget = null;
+        return;
+      }
+      window.history.replaceState(
+        window.history.state,
+        "",
+        t + window.location.hash
+      );
+      window.dispatchEvent(
+        new PopStateEvent("popstate", { state: window.history.state })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  /** สมาชิก: ย้ายรายการเมนูโปรไฟล์ขึ้นบนสุดของ ul หลักใน sidebar */
+  function reorderProfileMenuFirst() {
+    if (!document.documentElement.classList.contains("huajaiy-member-chrome"))
+      return;
+    var aside = document.querySelector("#app aside.fixed");
+    if (!aside) return;
+    var a = aside.querySelector('a[href*="/profile"]');
+    if (!a) return;
+    var li = a.closest("li");
+    if (!li) return;
+    var ul = li.parentElement;
+    while (ul && ul.tagName !== "UL") ul = ul.parentElement;
+    if (!ul || ul.tagName !== "UL") return;
+    var topLi = li;
+    while (topLi.parentElement && topLi.parentElement !== ul) {
+      var parentLi = topLi.parentElement.closest("li");
+      if (!parentLi) break;
+      topLi = parentLi;
+    }
+    if (ul.firstElementChild === topLi) return;
+    ul.insertBefore(topLi, ul.firstElementChild);
+  }
 
   function apiBase() {
     if (window.__HUAJAIY_API_BASE__) {
@@ -372,6 +433,7 @@
   }
 
   function sync() {
+    tryHuajaiyStartRoute();
     applyBrand();
     hideTemplateSearchOnly();
     applyThai();
@@ -379,6 +441,7 @@
       applyUser(lastUser);
       patchHeaderName(lastUser);
     }
+    reorderProfileMenuFirst();
     ensureAdminEmbed();
   }
 
@@ -459,6 +522,10 @@
   }
 
   window.addEventListener("load", function () {
+    tryHuajaiyStartRoute();
+    [50, 200, 600, 1500].forEach(function (ms) {
+      setTimeout(tryHuajaiyStartRoute, ms);
+    });
     var app = document.getElementById("app");
     if (app) {
       var obs = new MutationObserver(scheduleSync);

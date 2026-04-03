@@ -198,19 +198,27 @@ export default function HomeStylePublicHeader({
                   className="absolute right-0 z-[1100] mt-1 min-w-[13rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
                   role="menu"
                 >
+                  {!memberUser ? (
+                    <li>
+                      <Link
+                        href="/login?expand=1"
+                        className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                        role="menuitem"
+                        onClick={() => setMoreOpen(false)}
+                      >
+                        เข้าด้วยยูสเซอร์ / รหัส
+                      </Link>
+                    </li>
+                  ) : null}
                   <li>
                     <Link
-                      href="/login?expand=1"
-                      className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                      role="menuitem"
-                      onClick={() => setMoreOpen(false)}
-                    >
-                      เข้าด้วยยูสเซอร์ / รหัส
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/account"
+                      href={
+                        memberUser
+                          ? memberUser.role === "admin"
+                            ? "/admin"
+                            : "/member"
+                          : "/account"
+                      }
                       className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                       role="menuitem"
                       onClick={() => setMoreOpen(false)}

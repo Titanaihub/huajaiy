@@ -6,7 +6,8 @@ import { getApiBase } from "../lib/config";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-const IFRAME_SRC = "/tailadmin-template/";
+/** เปิด TailAdmin ที่หน้าโปรไฟล์ (bridge อ่าน huajaiy_start) */
+const IFRAME_SRC = "/tailadmin-template/?huajaiy_start=/profile";
 
 /** พื้นที่สมาชิก production — หัวเว็บ + TailAdmin iframe */
 export default function MemberTailadminWorkspace() {
