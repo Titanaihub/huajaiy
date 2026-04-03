@@ -84,12 +84,6 @@
   var MEMBER_SIDEBAR_MENU = [
     { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", slug: "", start: "/" },
     { key: "profile", label: "โปรไฟล์", kind: "shell", slug: "profile", start: "/profile" },
-    {
-      key: "profileLegacy",
-      label: "แก้โปรไฟล์แบบเต็ม",
-      kind: "legacy",
-      href: "/account/profile/legacy"
-    },
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
     { key: "hearts", label: "หัวใจของฉัน", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
@@ -110,19 +104,7 @@
       slug: "hearts-top-up",
       start: "/hearts-top-up"
     },
-    { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" },
-    {
-      key: "heartHistory",
-      label: "ประวัติหัวใจ",
-      kind: "legacy",
-      href: "/account/heart-history"
-    },
-    {
-      key: "prizePayouts",
-      label: "จ่ายรางวัล (เกมส่วนกลาง)",
-      kind: "legacy",
-      href: "/account/prize-payouts"
-    }
+    { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
   ];
 
   var PUBLIC_PAGE_USER_RE = /^[a-z0-9_]{3,32}$/;

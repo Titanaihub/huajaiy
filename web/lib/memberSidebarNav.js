@@ -25,12 +25,6 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
   { key: "profile", label: "โปรไฟล์", kind: "shell", tailStart: TAILADMIN_PROFILE_START },
-  {
-    key: "profileLegacy",
-    label: "แก้โปรไฟล์แบบเต็ม",
-    kind: "legacy",
-    href: "/account/profile/legacy"
-  },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
   { key: "hearts", label: "หัวใจของฉัน", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
@@ -49,17 +43,5 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     kind: "shell",
     tailStart: TAILADMIN_HEARTS_TOP_UP_START
   },
-  { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START },
-  {
-    key: "heartHistory",
-    label: "ประวัติหัวใจ",
-    kind: "legacy",
-    href: "/account/heart-history"
-  },
-  {
-    key: "prizePayouts",
-    label: "จ่ายรางวัล (เกมส่วนกลาง)",
-    kind: "legacy",
-    href: "/account/prize-payouts"
-  }
+  { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
 ];
