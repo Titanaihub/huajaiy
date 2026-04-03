@@ -183,25 +183,26 @@
     document.head.appendChild(st);
   }
 
-  function ensureHuajaiyPromptFont() {
-    if (document.getElementById("huajaiy-prompt-font")) return;
+  /** ตรงกับหน้าแรก organic-template (Inter ตัวหนา — เดียวกับ --bs-font-sans-serif) */
+  function ensureHuajaiyOrganicNavFont() {
+    if (document.getElementById("huajaiy-inter-nav-font")) return;
     var link = document.createElement("link");
-    link.id = "huajaiy-prompt-font";
+    link.id = "huajaiy-inter-nav-font";
     link.rel = "stylesheet";
     link.href =
-      "https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&subset=latin,thai&display=swap";
+      "https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap";
     document.head.appendChild(link);
   }
 
   function ensureMemberChromeStyles() {
-    ensureHuajaiyPromptFont();
+    ensureHuajaiyOrganicNavFont();
     if (document.getElementById("huajaiy-member-chrome-css")) return;
     var st = document.createElement("style");
     st.id = "huajaiy-member-chrome-css";
     st.textContent =
       "html.huajaiy-member-chrome #app header{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed{font-family:Prompt,ui-sans-serif,system-ui,sans-serif!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed>div:first-child{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){padding-top:1rem!important;}" +
@@ -375,7 +376,7 @@
 
     if (d.type === "HUAJAIY_MEMBER_CHROME") {
       document.documentElement.classList.add("huajaiy-member-chrome");
-      ensureHuajaiyPromptFont();
+      ensureHuajaiyOrganicNavFont();
       ensureMemberChromeStyles();
       return;
     }

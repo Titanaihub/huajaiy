@@ -1,9 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { Inter } from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import { GLOBAL_PRIMARY_NAV } from "../lib/globalPrimaryNav";
+
+/** ตรงกับ organic-template (style.css: --bs-font-sans-serif / Inter) */
+const organicNavFont = Inter({
+  subsets: ["latin", "latin-ext"],
+  weight: ["600", "700"],
+  display: "swap"
+});
 
 /** สไตล์ไอคอนขวาให้ใกล้เคียง organic-template/index.html (p-2 mx-1) */
 const iconLinkClass =
@@ -59,7 +67,7 @@ export default function HomeStylePublicHeader({
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
           <nav
-            className="order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6"
+            className={`${organicNavFont.className} order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6`}
             aria-label="เมนูหลัก"
           >
             {GLOBAL_PRIMARY_NAV.map((item) => (
