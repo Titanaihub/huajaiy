@@ -20,21 +20,8 @@
         — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
       </div>
 
-      <p class="text-base leading-relaxed text-gray-600 dark:text-gray-400">
-        แต่ละชุด =
-        <strong class="text-gray-800 dark:text-white/90">จำนวนป้าย + รูป + กติกาของชุดนั้น</strong>
-        ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด
-        <strong class="text-gray-800 dark:text-white/90">บันทึกข้อมูล</strong>
-        แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
-      </p>
-
       <form class="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900/30 lg:p-6" @submit.prevent>
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">โครงชุดและรูปภาพ</h3>
-          <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
-            รวม <span class="font-mono text-gray-800 dark:text-gray-200">{{ tileCount }}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
-          </p>
-        </div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">โครงชุดและรูปภาพ</h3>
 
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
@@ -67,19 +54,6 @@
               placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
             />
           </div>
-          <div
-            class="sm:col-span-2 rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-base leading-relaxed text-rose-950 dark:border-rose-900/60 dark:bg-rose-950/25 dark:text-rose-100"
-          >
-            ผู้สร้างยืนยันว่ารับทราบกฎของแพลตฟอร์ม
-            <strong>ห้าม</strong>เชื่อมโยงการพนันหรือเนื้อหาลามก และรับผิดชอบในการจ่ายรางวัลตามที่ประกาศไว้ต่อผู้เล่น
-          </div>
-          <div class="sm:col-span-2 rounded-xl border border-gray-200 bg-gray-50/90 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-            <p class="text-base leading-relaxed text-gray-800 dark:text-gray-200">
-              <span class="font-semibold">สถานะการแสดงในรายการหน้า /game:</span>
-              {{ lobbyVisible ? 'แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)' : 'ยังไม่แสดง' }}
-              — เปิด/ปิดด้วยปุ่ม「เผยแพร่บนเว็บ」หรือ「หยุดการเผยแพร่」ด้านล่าง
-            </p>
-          </div>
           <div class="sm:col-span-2 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
             <input
               id="allow-gift-red"
@@ -109,10 +83,6 @@
 
           <div class="sm:col-span-2 rounded-xl border border-rose-100 bg-rose-50/50 p-5 dark:border-rose-900/40 dark:bg-rose-950/20">
             <p class="text-lg font-semibold text-gray-900 dark:text-white">การหักหัวใจต่อรอบ</p>
-            <p class="mt-2 text-base leading-relaxed text-gray-700 dark:text-gray-300">
-              เลือกโหมดชำระ: หักทั้งชมพูและแดงในรอบเดียวกัน · เฉพาะชมพู · เฉพาะแดง ·
-              หรือให้ผู้เล่นเลือกจ่ายชมพูหรือแดงอย่างใดอย่างหนึ่ง (ใส่สองช่องให้เท่ากัน)
-            </p>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
               <div class="sm:col-span-2">
                 <label class="text-base text-gray-700 dark:text-gray-300">โหมดชำระหัวใจ</label>
