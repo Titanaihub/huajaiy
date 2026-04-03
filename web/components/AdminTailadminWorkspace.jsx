@@ -34,15 +34,20 @@ export default function AdminTailadminWorkspace() {
     postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
   }, [postToIframe]);
 
-  const pushAdminToIframe = useCallback(() => {
-    if (!user || user.role !== "admin" || !panelUrl) return;
+  /** แอดมิน: ฝังแผง React — ไม่ใช่แอดมิน: ล้างฝังให้เห็นหน้าตัวอย่าง TailAdmin (กราฟ/ตาราง) */
+  const syncIframe = useCallback(() => {
+    if (!user) return;
     postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
     postToIframe({
       type: "HUAJAIY_MEMBER",
       apiBase: getApiBase(),
       user
     });
-    postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: panelUrl });
+    if (user.role === "admin" && panelUrl) {
+      postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: panelUrl });
+    } else {
+      postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: "" });
+    }
   }, [user, panelUrl, postToIframe]);
 
   useEffect(() => {
@@ -53,9 +58,9 @@ export default function AdminTailadminWorkspace() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (!user || user.role !== "admin" || !panelUrl) return;
-    pushAdminToIframe();
-  }, [user, panelUrl, pushAdminToIframe]);
+    if (!user || loading) return;
+    syncIframe();
+  }, [user, loading, panelUrl, syncIframe]);
 
   if (loading || !user) {
     return (
@@ -65,68 +70,68 @@ export default function AdminTailadminWorkspace() {
     );
   }
 
-  if (user.role !== "admin") {
-    return (
-      <div className="flex min-h-dvh flex-col overflow-hidden bg-white">
-        <HomeStylePublicHeader
-          lineProfileImageUrl={user.linePictureUrl || undefined}
-          profileDisplayName={
-            [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-            user.username ||
-            "สมาชิก"
-          }
-        />
-        <main className="mx-auto w-full max-w-2xl flex-1 overflow-auto px-4 py-8">
-          <h1 className="text-xl font-bold text-slate-900">แอดมิน</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            พื้นที่นี้สำหรับบัญชีที่มีบทบาท <strong className="text-slate-800">admin</strong> เท่านั้น
-          </p>
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
-            <p className="font-medium">บัญชีนี้ยังไม่ใช่แอดมิน</p>
-            <p className="mt-2 text-amber-900/90">
-              <strong>วิธีที่ 1 — ยังไม่เคยสมัคร:</strong> ที่{" "}
-              <code className="rounded bg-white/80 px-1">huajaiy-api</code> → Environment ใส่{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_USERNAME</code> (ชื่อล็อกอิน),{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PASSWORD</code> (รหัสที่ต้องการ),{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PHONE</code> (เบอร์ 10 หลัก 0xxxxxxxxx)
-              → Deploy → ล็อกอินด้วย username/รหัสนั้น → แล้ว<strong>ลบ env ทั้งสามทิ้ง</strong>
-            </p>
-            <p className="mt-2 text-amber-900/90">
-              <strong>วิธีที่ 2 — สมัครแล้ว:</strong>{" "}
-              <code className="rounded bg-white/80 px-1">PROMOTE_ADMIN_USERNAME</code> = ยูสเซอร์ที่สมัคร → Deploy
-              (ไม่เปลี่ยนรหัส — ใช้รหัสตอนสมัครล็อกอิน)
-            </p>
-            <p className="mt-2 text-amber-900/90">
-              หรือรัน SQL:{" "}
-              <code className="rounded bg-white/80 px-1 break-all">
-                UPDATE users SET role = &apos;admin&apos; WHERE username = &apos;...&apos;;
-              </code>
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const isAdmin = user.role === "admin";
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+    user.username ||
+    (isAdmin ? "แอดมิน" : "สมาชิก");
 
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
       <HomeStylePublicHeader
         onHamburgerClick={toggleIframeSidebar}
         lineProfileImageUrl={user.linePictureUrl || undefined}
-        profileDisplayName={
-          [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-          user.username ||
-          "แอดมิน"
-        }
+        profileDisplayName={displayName}
       />
-      <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
+      <main className="relative min-h-0 flex-1 overflow-hidden bg-slate-100">
         <iframe
           ref={iframeRef}
-          title="ระบบแอดมิน HUAJAIY"
+          title={
+            isAdmin
+              ? "ระบบแอดมิน HUAJAIY"
+              : "ตัวอย่างเทมเพลตแดชบอร์ด (TailAdmin)"
+          }
           src={IFRAME_SRC}
           className="h-full w-full border-0"
-          onLoad={pushAdminToIframe}
+          onLoad={syncIframe}
         />
+
+        {!isAdmin && (
+          <div className="pointer-events-none absolute inset-0 flex justify-center overflow-y-auto pt-6 pb-10 sm:pt-10">
+            <div className="pointer-events-auto mx-4 w-full max-w-2xl shrink-0 rounded-xl border border-amber-200/90 bg-amber-50/95 p-4 text-sm text-amber-950 shadow-lg shadow-amber-900/10 backdrop-blur-sm sm:p-5">
+              <h1 className="text-lg font-bold text-slate-900">แอดมิน</h1>
+              <p className="mt-1 text-slate-600">
+                ด้านหลังเป็นหน้าตัวอย่างของเทมเพลต (กราฟ แผนที่ ตาราง) — คลิกนอกกล่องนี้เพื่อลองเล่นเมนูได้
+              </p>
+              <p className="mt-2 text-slate-600">
+                พื้นที่จัดการจริงสำหรับบัญชีที่มีบทบาท{" "}
+                <strong className="text-slate-800">admin</strong> เท่านั้น
+              </p>
+              <div className="mt-4 border-t border-amber-200/80 pt-4">
+                <p className="font-medium text-amber-950">บัญชีนี้ยังไม่ใช่แอดมิน</p>
+                <p className="mt-2 text-amber-900/90">
+                  <strong>วิธีที่ 1 — ยังไม่เคยสมัคร:</strong> ที่{" "}
+                  <code className="rounded bg-white/80 px-1">huajaiy-api</code> → Environment ใส่{" "}
+                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_USERNAME</code> (ชื่อล็อกอิน),{" "}
+                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PASSWORD</code> (รหัสที่ต้องการ),{" "}
+                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PHONE</code> (เบอร์ 10 หลัก 0xxxxxxxxx)
+                  → Deploy → ล็อกอินด้วย username/รหัสนั้น → แล้ว<strong>ลบ env ทั้งสามทิ้ง</strong>
+                </p>
+                <p className="mt-2 text-amber-900/90">
+                  <strong>วิธีที่ 2 — สมัครแล้ว:</strong>{" "}
+                  <code className="rounded bg-white/80 px-1">PROMOTE_ADMIN_USERNAME</code> = ยูสเซอร์ที่สมัคร → Deploy
+                  (ไม่เปลี่ยนรหัส — ใช้รหัสตอนสมัครล็อกอิน)
+                </p>
+                <p className="mt-2 text-amber-900/90">
+                  หรือรัน SQL:{" "}
+                  <code className="rounded bg-white/80 px-1 break-all">
+                    UPDATE users SET role = &apos;admin&apos; WHERE username = &apos;...&apos;;
+                  </code>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
