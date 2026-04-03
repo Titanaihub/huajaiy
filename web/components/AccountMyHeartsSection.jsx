@@ -93,7 +93,7 @@ export default function AccountMyHeartsSection() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/hui/login?next=/account/my-hearts");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

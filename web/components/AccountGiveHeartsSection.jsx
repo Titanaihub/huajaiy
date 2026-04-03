@@ -12,7 +12,7 @@ export default function AccountGiveHeartsSection() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/hui/login?next=/account/give-hearts");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

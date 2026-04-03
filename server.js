@@ -11,7 +11,11 @@ const {
   flip: flipGame,
   abandonSession
 } = require("./gameSession");
-const { router: authRouter, optionalAuthMiddleware } = require("./authRouter");
+const {
+  router: authRouter,
+  optionalAuthMiddleware,
+  postLoginLine
+} = require("./authRouter");
 const userService = require("./services/userService");
 const { router: ordersRouter } = require("./ordersRouter");
 const { router: adminRouter } = require("./adminRouter");
@@ -34,11 +38,17 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: true,
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-HUAJAIY-Line-Link-Secret"
+    ]
   })
 );
 app.use(express.json({ limit: "2mb" }));
 app.use("/api/auth", authRouter);
+/** ระบบเก่า / แอปมือถือที่ยิง POST /api/v1/member/login-line — logic เดียวกับ /api/auth/login-line */
+app.post("/api/v1/member/login-line", postLoginLine);
 app.use("/api/orders", ordersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/owner", ownerRouter);

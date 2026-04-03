@@ -111,7 +111,7 @@ export default function HeartShopClient() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace("/hui/login?next=/account/hearts-shop");
+      router.replace("/login");
       return;
     }
     loadAll();

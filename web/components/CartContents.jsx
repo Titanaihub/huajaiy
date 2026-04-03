@@ -283,7 +283,7 @@ export default function CartContents() {
           {!user ? (
             <p className="text-sm text-hui-body">
               <Link
-                href="/hui/login?next=/cart"
+                href="/login"
                 className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 เข้าสู่ระบบ

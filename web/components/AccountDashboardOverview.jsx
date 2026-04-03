@@ -12,7 +12,7 @@ export default function AccountDashboardOverview() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/hui/login?next=/account");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

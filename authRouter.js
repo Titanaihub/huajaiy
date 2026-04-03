@@ -83,7 +83,10 @@ async function publicUserWithRoomGiftRed(user) {
   try {
     roomGiftRed = await roomRedGiftService.listRoomGiftBalancesForUser(user.id);
   } catch (e) {
-    if (e.code !== "DB_REQUIRED") throw e;
+    /** อย่าให้ล็อกอิน LINE/ลงทะเบียนล้มเพราะตารางย่อย (เช่น user_room_red_balance ยังไม่ migrate) */
+    if (e.code !== "DB_REQUIRED") {
+      console.error("[publicUserWithRoomGiftRed] roomGiftRed skipped:", e.message);
+    }
   }
   return { ...base, roomGiftRed };
 }
@@ -308,8 +311,9 @@ router.post("/login", async (req, res) => {
 
 /**
  * แลก LINE identity เป็น JWT สมาชิก — เรียกได้เฉพาะจากเว็บ (Next) ที่ส่ง X-HUAJAIY-Line-Link-Secret ตรงกับ LINE_LINK_SECRET
+ * รองรับ body แบบเก่า: line_user_id, display_name, picture_url (เส้นทาง /api/v1/member/login-line)
  */
-router.post("/login-line", async (req, res) => {
+async function postLoginLine(req, res) {
   try {
     const secret = process.env.LINE_LINK_SECRET;
     if (!secret || String(secret).length < 16) {
@@ -326,10 +330,21 @@ router.post("/login-line", async (req, res) => {
       });
     }
 
-    const lineUserId = String(req.body?.lineUserId || "").trim();
-    const displayName = String(req.body?.displayName || "").trim().slice(0, 100);
+    const b = req.body && typeof req.body === "object" ? req.body : {};
+    const lineUserId = String(
+      b.lineUserId || b.line_user_id || ""
+    ).trim();
+    const displayName = String(
+      b.displayName || b.display_name || ""
+    ).trim().slice(0, 100);
+    const pictureUrlRaw =
+      b.pictureUrl != null
+        ? b.pictureUrl
+        : b.picture_url != null
+          ? b.picture_url
+          : null;
     const pictureUrl =
-      req.body?.pictureUrl != null ? String(req.body.pictureUrl) : null;
+      pictureUrlRaw != null ? String(pictureUrlRaw) : null;
 
     if (!lineUserId) {
       return res.status(400).json({ ok: false, error: "ไม่มี LINE user id" });
@@ -351,6 +366,7 @@ router.post("/login-line", async (req, res) => {
         if (e.code === "DB_REQUIRED") {
           return res.status(503).json({ ok: false, error: e.message });
         }
+        console.error("[login-line] createUserFromLine:", e);
         throw e;
       }
     }
@@ -358,12 +374,16 @@ router.post("/login-line", async (req, res) => {
     if (!user) {
       return res.status(500).json({ ok: false, error: "สร้างบัญชีไม่สำเร็จ" });
     }
-    const picSynced = await userService.syncLinePictureFromLine(
-      user.id,
-      pictureUrl
-    );
-    if (picSynced) {
-      user = picSynced;
+    try {
+      const picSynced = await userService.syncLinePictureFromLine(
+        user.id,
+        pictureUrl
+      );
+      if (picSynced) {
+        user = picSynced;
+      }
+    } catch (e) {
+      console.error("[login-line] syncLinePictureFromLine:", e.message);
     }
     if (user.accountDisabled) {
       return res.status(403).json({
@@ -381,9 +401,12 @@ router.post("/login-line", async (req, res) => {
       ...capabilitiesPayloadForUser(user)
     });
   } catch (e) {
+    console.error("[login-line]", e);
     return res.status(500).json({ ok: false, error: e.message });
   }
-});
+}
+
+router.post("/login-line", postLoginLine);
 
 router.get("/me", authMiddleware, async (req, res) => {
   try {
@@ -833,5 +856,6 @@ module.exports = {
   requireRole,
   optionalAuthMiddleware,
   signImpersonationToken,
-  publicUserWithRoomGiftRed
+  publicUserWithRoomGiftRed,
+  postLoginLine
 };

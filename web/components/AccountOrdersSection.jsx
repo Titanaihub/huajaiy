@@ -12,7 +12,7 @@ export default function AccountOrdersSection() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/hui/login?next=/account/orders");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

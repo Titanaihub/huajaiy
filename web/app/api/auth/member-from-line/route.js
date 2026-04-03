@@ -64,13 +64,23 @@ export async function POST() {
     body: JSON.stringify(body)
   });
 
-  const data = await r.json().catch(() => ({}));
+  const raw = await r.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = {
+      error: raw
+        ? raw.slice(0, 280)
+        : `API ตอบ ${r.status} — ตรวจ NEXT_PUBLIC_API_BASE_URL และว่า huajaiy-api ทำงาน`
+    };
+  }
   if (!r.ok || !data.ok) {
     const status = r.status === 403 ? 403 : r.status === 503 ? 503 : 502;
-    return NextResponse.json(
-      { ok: false, error: data.error || "แลกโทเค็นสมาชิกไม่สำเร็จ" },
-      { status }
-    );
+    const msg =
+      data.error ||
+      `แลกโทเค็นไม่สำเร็จ (HTTP ${r.status}) — ตรวจ LINE_LINK_SECRET คู่กับ API และ DATABASE_URL`;
+    return NextResponse.json({ ok: false, error: msg }, { status });
   }
 
   return NextResponse.json(data);

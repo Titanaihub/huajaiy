@@ -53,7 +53,7 @@ export default function ShopProductsManager({ shopId }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace(`/hui/login?next=/account/shops/${shopId}/products`);
+      router.replace("/login");
     }
   }, [loading, user, router, shopId]);
 

@@ -14,7 +14,6 @@ import {
   isNewFormatMemberLoginCode,
   isValidMemberLoginCode
 } from "../lib/memberLoginCode";
-import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function statusLabel(s) {
@@ -66,9 +65,7 @@ export default function AccountProfileForm() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace(
-        `/hui/login?next=${encodeURIComponent(MEMBER_WORKSPACE_PATH)}`
-      );
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

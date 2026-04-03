@@ -151,13 +151,6 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
   const [err, setErr] = useState("");
   const [dbRequired, setDbRequired] = useState(false);
 
-  const loginNext =
-    variant === "purchase"
-      ? "/account/heart-history/purchases"
-      : variant === "play"
-        ? "/account/heart-history/play"
-        : "/account/heart-history/play";
-
   const filtered = useMemo(() => {
     if (variant === "play") {
       return entries.filter((e) => PLAY_KINDS.has(e.kind));
@@ -223,7 +216,7 @@ export default function AccountHeartHistorySection({ variant = "all" }) {
       <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-4 text-sm text-amber-950">
         <p className="font-medium">ต้องเข้าสู่ระบบก่อน</p>
         <Link
-          href={`/hui/login?next=${encodeURIComponent(loginNext)}`}
+          href="/login"
           className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
           เข้าสู่ระบบ
