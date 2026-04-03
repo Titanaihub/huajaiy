@@ -125,7 +125,7 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
 }
 
 export default function MemberNav() {
-  const { user, loading, logout } = useMemberAuth();
+  const { user, loading } = useMemberAuth();
   const [openMenu, setOpenMenu] = useState(null);
 
   if (loading) {
@@ -245,14 +245,6 @@ export default function MemberNav() {
             เจ้าของร้าน
           </Link>
         ) : null}
-
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="text-sm font-medium text-hui-cta underline decoration-hui-cta/40 underline-offset-2 hover:brightness-95"
-        >
-          ออกจากระบบ
-        </button>
       </span>
     );
   }

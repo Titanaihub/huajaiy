@@ -1,7 +1,12 @@
-/** เมนูหลัก — สมาชิก/แอดมินเข้าหลังล็อกอินเท่านั้น (ไม่โชว์ลิงก์ตรงนี้) */
-export const GLOBAL_PRIMARY_NAV = [
+/** เมนูหลักก่อนช่องเข้า/ออกระบบ — ช่องสุดท้ายสลับใน GlobalPrimaryNav / HomeStylePublicHeader */
+export const GLOBAL_PRIMARY_NAV_BASE = [
   { href: "/", label: "หน้าแรก" },
   { href: "/game", label: "เกมรางวัล" },
-  { href: "/shop", label: "เพจชุมชน" },
+  { href: "/shop", label: "เพจชุมชน" }
+];
+
+/** @deprecated ใช้ GLOBAL_PRIMARY_NAV_BASE + ปุ่มเข้า/ออก แยก */
+export const GLOBAL_PRIMARY_NAV = [
+  ...GLOBAL_PRIMARY_NAV_BASE,
   { href: "/login", label: "เข้าสู่ระบบ" }
 ];

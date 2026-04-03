@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
-import { GLOBAL_PRIMARY_NAV } from "../lib/globalPrimaryNav";
+import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
+import { useMemberAuth } from "./MemberAuthProvider";
 
 /** สไตล์ไอคอนขวาให้ใกล้เคียง organic-template/index.html (p-2 mx-1) */
 const iconLinkClass =
@@ -23,8 +24,11 @@ export default function HomeStylePublicHeader({
   profileDisplayName,
   authPage = false
 }) {
+  const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
+  const accountHref =
+    memberUser?.role === "admin" ? "/admin" : "/member";
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -68,7 +72,7 @@ export default function HomeStylePublicHeader({
             className="order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 font-sans text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6"
             aria-label="เมนูหลัก"
           >
-            {GLOBAL_PRIMARY_NAV.map((item) => (
+            {GLOBAL_PRIMARY_NAV_BASE.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -77,6 +81,29 @@ export default function HomeStylePublicHeader({
                 {item.label}
               </Link>
             ))}
+            {memberLoading ? (
+              <span
+                className="whitespace-nowrap rounded-md px-2 py-1 text-slate-400"
+                aria-hidden
+              >
+                …
+              </span>
+            ) : memberUser ? (
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="whitespace-nowrap rounded-md border-0 bg-transparent px-2 py-1 font-sans text-sm font-semibold text-gray-900 hover:text-rose-600"
+              >
+                ออกจากระบบ
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="whitespace-nowrap rounded-md px-2 py-1 hover:text-rose-600"
+              >
+                เข้าสู่ระบบ
+              </Link>
+            )}
             <div className="relative" ref={moreRef}>
               <button
                 type="button"
@@ -144,20 +171,44 @@ export default function HomeStylePublicHeader({
             <div className="flex w-full list-none items-center justify-center gap-0 sm:ms-auto sm:w-auto sm:justify-end lg:pr-4">
               {lineProfileImageUrl ? (
                 <Link
-                  href="/member"
+                  href={accountHref}
                   className={`${iconLinkClass} rounded-full`}
-                  title={profileDisplayName || "บัญชีสมาชิก"}
-                  aria-label={profileDisplayName || "โปรไฟล์ LINE"}
+                  title={profileDisplayName || "บัญชี"}
+                  aria-label={profileDisplayName || "โปรไฟล์"}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={lineProfileImageUrl}
-                    alt={profileDisplayName || "โปรไฟล์ LINE"}
+                    alt={profileDisplayName || "โปรไฟล์"}
                     className="h-9 w-9 rounded-full object-cover"
                     width={36}
                     height={36}
                     referrerPolicy="no-referrer"
                   />
+                </Link>
+              ) : memberUser ? (
+                <Link
+                  href={accountHref}
+                  className={iconLinkClass}
+                  title="บัญชีของฉัน"
+                  aria-label="บัญชีของฉัน"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    aria-hidden
+                  >
+                    <circle cx="12" cy="9" r="3" />
+                    <circle cx="12" cy="12" r="10" />
+                    <path
+                      strokeLinecap="round"
+                      d="M17.97 20c-.16-2.892-1.045-5-5.97-5s-5.81 2.108-5.97 5"
+                    />
+                  </svg>
                 </Link>
               ) : (
                 <Link

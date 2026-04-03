@@ -8,6 +8,7 @@ import {
   useMemo,
   useState
 } from "react";
+import { signOut } from "next-auth/react";
 import { deriveCapabilitiesForRole, hasCapability } from "../lib/capabilities";
 import {
   apiLogin,
@@ -111,7 +112,7 @@ export default function MemberAuthProvider({ children }) {
     return data;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     clearMemberToken();
     setUser(null);
     setCapabilities(null);
@@ -121,6 +122,11 @@ export default function MemberAuthProvider({ children }) {
         window.sessionStorage.removeItem(IMPERSONATION_RETURN_TOKEN_KEY);
       } catch {
         /* ignore */
+      }
+      try {
+        await signOut({ redirect: false });
+      } catch {
+        /* ignore — ไม่มีเซสชัน NextAuth (ล็อกอินแค่ยูส/รหัส) */
       }
     }
   }, []);

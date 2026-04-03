@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
+import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
@@ -96,20 +97,22 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="th" className={inter.variable} style={htmlBgStyle}>
       <body className={`${inter.className} hui-root flex flex-col bg-transparent font-sans`}>
-        <SiteThemeProvider value={siteTheme}>
-          <HtmlBackgroundSync />
-          <MemberAuthProvider>
-            <ImpersonationBanner />
-            <HeartsProvider>
-              {/* sticky footer: middle row grows so footer stays at viewport bottom */}
-              <div className="flex min-h-0 flex-1 flex-col">
-                <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
-                  {children}
+        <Providers>
+          <SiteThemeProvider value={siteTheme}>
+            <HtmlBackgroundSync />
+            <MemberAuthProvider>
+              <ImpersonationBanner />
+              <HeartsProvider>
+                {/* sticky footer: middle row grows so footer stays at viewport bottom */}
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
+                    {children}
+                  </div>
                 </div>
-              </div>
-            </HeartsProvider>
-          </MemberAuthProvider>
-        </SiteThemeProvider>
+              </HeartsProvider>
+            </MemberAuthProvider>
+          </SiteThemeProvider>
+        </Providers>
       </body>
     </html>
   );
