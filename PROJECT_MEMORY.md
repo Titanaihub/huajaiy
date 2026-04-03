@@ -54,6 +54,8 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 
 **สถานะล็อกอิน:** `MemberAuthProvider` + `localStorage` (`huajaiy_member_token`) · เมนูสาธารณะ: `HomeStylePublicHeader` หรือ `SiteHeader` / `GlobalPrimaryNav`
 
+**ไอคอนหัวใจใน `HomeStylePublicHeader`:** รูปต้นฉบับจากโฟลเดอร์ราก `หัวใจ` (`Pink Heart.png`, `Red Heart.png`) — สำเนาที่เว็บเสิร์ฟคือ `web/public/hearts/pink-heart.png` และ `red-heart.png` (อัปเดตรูปได้โดยแทนที่ไฟล์ใน `public/hearts/`)
+
 ---
 
 *อัปเดตล่าสุด: เมษายน 2026 — เพิ่มเชลล์ production หลัก; GitHub + Render + Cloudinary เป็นชุดใช้งานจริง*

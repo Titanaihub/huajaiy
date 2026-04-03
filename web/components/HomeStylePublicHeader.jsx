@@ -3,8 +3,24 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
+import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+/** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
+const HEART_PINK_SRC = "/hearts/pink-heart.png";
+const HEART_RED_SRC = "/hearts/red-heart.png";
+
+function serverHeartTotalsForHeader(user) {
+  const pink = Math.max(0, Math.floor(Number(user.pinkHeartsBalance) || 0));
+  const walletRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
+  const rows = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
+  const roomRed = rows.reduce(
+    (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
+    0
+  );
+  return { pink, red: walletRed + roomRed };
+}
 
 /** สไตล์ไอคอนขวาให้ใกล้เคียง organic-template/index.html (p-2 mx-1) */
 const iconLinkClass =
@@ -25,10 +41,30 @@ export default function HomeStylePublicHeader({
   authPage = false
 }) {
   const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
+  const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
   const accountHref =
     memberUser?.role === "admin" ? "/admin" : "/member";
+
+  let pinkShown = 0;
+  let redShown = 0;
+  let heartsLoading = false;
+  if (memberLoading) {
+    heartsLoading = true;
+  } else if (memberUser) {
+    const t = serverHeartTotalsForHeader(memberUser);
+    pinkShown = t.pink;
+    redShown = t.red;
+  } else if (heartsReady) {
+    pinkShown = pinkHearts;
+    redShown = redHearts;
+  }
+
+  const heartsHref = memberUser ? "/account/my-hearts" : "/login";
+  const heartsTitle = memberUser
+    ? "หัวใจชมพู / แดง — แตะเพื่อหน้าหัวใจของฉัน"
+    : "เข้าสู่ระบบเพื่อดูยอดหัวใจจากเซิร์ฟเวอร์";
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -51,19 +87,58 @@ export default function HomeStylePublicHeader({
             {authPage ? (
               <span className="h-10 w-10 shrink-0 sm:w-0" aria-hidden />
             ) : (
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
-                aria-label="เปิดเมนูด้านข้าง"
-                onClick={onHamburgerClick}
-              >
-                <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden>
-                  <path
-                    fill="currentColor"
-                    d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2H3z"
-                  />
-                </svg>
-              </button>
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
+                  aria-label="เปิดเมนูด้านข้าง"
+                  onClick={onHamburgerClick}
+                >
+                  <svg width={24} height={24} viewBox="0 0 24 24" aria-hidden>
+                    <path
+                      fill="currentColor"
+                      d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2H3z"
+                    />
+                  </svg>
+                </button>
+                <Link
+                  href={heartsHref}
+                  className="flex items-center gap-2.5 rounded-md py-1 pl-0.5 pr-1 hover:bg-gray-50 sm:gap-3 sm:pr-2"
+                  title={heartsTitle}
+                  aria-label={
+                    heartsLoading
+                      ? "กำลังโหลดยอดหัวใจ"
+                      : `หัวใจชมพู ${pinkShown} หัวใจแดง ${redShown}`
+                  }
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={HEART_PINK_SRC}
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
+                    />
+                    <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-pink-600 sm:text-base">
+                      {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
+                    </span>
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={HEART_RED_SRC}
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
+                    />
+                    <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-600 sm:text-base">
+                      {heartsLoading ? "…" : redShown.toLocaleString("th-TH")}
+                    </span>
+                  </span>
+                </Link>
+              </div>
             )}
           </div>
 
