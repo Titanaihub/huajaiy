@@ -26,12 +26,10 @@
         {{ fmt(pink) }}
       </p>
       <div class="mt-auto pt-2">
-        <a
-          :href="hrefPlayHistory"
-          target="_parent"
-          rel="noopener noreferrer"
-          class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >ประวัติ</a
+        <span
+          class="text-sm text-gray-400 dark:text-gray-500"
+          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
+          >ประวัติ</span
         >
       </div>
     </div>
@@ -62,12 +60,10 @@
         {{ fmt(red) }}
       </p>
       <div class="mt-auto pt-2">
-        <a
-          :href="hrefPlayHistory"
-          target="_parent"
-          rel="noopener noreferrer"
-          class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >ประวัติ</a
+        <span
+          class="text-sm text-gray-400 dark:text-gray-500"
+          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
+          >ประวัติ</span
         >
       </div>
     </div>
@@ -98,19 +94,15 @@
         {{ fmt(giveaway) }}
       </p>
       <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
-        <a
-          :href="hrefHeartsShop"
-          target="_parent"
-          rel="noopener noreferrer"
-          class="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-500"
-          >เติมหัวใจ</a
+        <span
+          class="text-sm font-medium text-red-600/70 dark:text-red-500/70"
+          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าเติมหัวใจ"
+          >เติมหัวใจ</span
         >
-        <a
-          :href="hrefPurchaseHistory"
-          target="_parent"
-          rel="noopener noreferrer"
-          class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >ประวัติ</a
+        <span
+          class="text-sm text-gray-400 dark:text-gray-500"
+          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
+          >ประวัติ</span
         >
       </div>
     </div>
@@ -123,10 +115,6 @@ import { onMounted, onUnmounted, ref } from 'vue'
 const pink = ref(0)
 const red = ref(0)
 const giveaway = ref(0)
-
-const hrefPlayHistory = '/account/heart-history/play'
-const hrefPurchaseHistory = '/account/heart-history/purchases'
-const hrefHeartsShop = '/account/hearts-shop'
 
 function fmt(n: number) {
   return Math.max(0, Math.floor(Number(n) || 0)).toLocaleString('th-TH')

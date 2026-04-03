@@ -52,64 +52,89 @@
   }
 
   /**
-   * เมนูซ้ายสมาชิก — ชี้หน้าเว็บเดิม (/account/…) ตรงกับ web/lib/memberSidebarNav.js
-   * kind: "path" | "empty"
+   * เมนูซ้ายสมาชิก — คงเชลล์ /member|/admin + iframe เทมเพลต (huajaiy_start)
+   * ตรงกับ web/lib/memberSidebarNav.js · kind: "shell" | "empty"
    */
   var MEMBER_SIDEBAR_MENU = [
-    { key: "overview", label: "ภาพรวมบัญชี", kind: "path", href: "/account" },
-    { key: "profile", label: "โปรไฟล์", kind: "path", href: "/account/profile" },
-    { key: "prizes", label: "รางวัลของฉัน", kind: "path", href: "/account/prizes" },
-    { key: "hearts", label: "หัวใจของฉัน", kind: "path", href: "/account/my-hearts" },
-    { key: "games", label: "เกมของฉัน", kind: "path", href: "/account/my-games" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "path", href: "/account/shops" },
+    { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", start: "/" },
+    { key: "profile", label: "โปรไฟล์", kind: "shell", start: "/profile" },
+    { key: "prizes", label: "รางวัลของฉัน", kind: "shell", start: "/" },
+    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", start: "/" },
+    { key: "games", label: "เกมของฉัน", kind: "shell", start: "/" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", start: "/" },
     { key: "page", label: "เพจของฉัน", kind: "empty" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "path", href: "/account/orders" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", start: "/" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",
-      kind: "path",
-      href: "/account/prize-withdraw"
+      kind: "shell",
+      start: "/"
     },
-    {
-      key: "heartsShop",
-      label: "เติมหัวใจแดง",
-      kind: "path",
-      href: "/account/hearts-shop"
-    },
-    { key: "giveHearts", label: "แจกหัวใจ", kind: "path", href: "/account/give-hearts" }
+    { key: "heartsShop", label: "เติมหัวใจแดง", kind: "shell", start: "/" },
+    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", start: "/" }
   ];
 
-  function parentPathname() {
+  function parentWorkspaceBase() {
     try {
-      if (window.parent && window.parent.location) {
-        var p = String(window.parent.location.pathname || "");
-        return p.replace(/\/$/, "") || "/";
+      if (
+        window.parent &&
+        window.parent.location &&
+        window.parent.location.pathname
+      ) {
+        var p = String(window.parent.location.pathname);
+        if (p.indexOf("/admin") === 0) return "/admin";
       }
     } catch (e) {
       /* cross-origin */
     }
-    return "";
+    return "/member";
   }
 
-  function pathMatchesMenuHref(href, pp) {
-    var h = String(href || "").replace(/\/$/, "") || "/";
-    pp = String(pp || "").replace(/\/$/, "") || "/";
-    if (pp === h) return true;
-    if (h === "/account") return false;
-    return pp.indexOf(h + "/") === 0;
+  function memberShellHref(tailStart) {
+    var s = tailStart === "/" ? "/" : tailStart;
+    return (
+      parentWorkspaceBase() +
+      "?huajaiy_start=" +
+      encodeURIComponent(s)
+    );
+  }
+
+  function parentHuajaiyStart() {
+    try {
+      if (window.parent && window.parent.location) {
+        var q = new URLSearchParams(window.parent.location.search || "");
+        var raw = q.get("huajaiy_start");
+        if (raw == null || String(raw).trim() === "") return "/";
+        var path = String(raw).trim().split("?")[0];
+        if (!path.startsWith("/")) path = "/" + path;
+        return path.replace(/\/$/, "") || "/";
+      }
+    } catch (e) {
+      /* cross-origin */
+    }
+    return "/";
   }
 
   function updateMemberSidebarActive() {
     var nav = document.getElementById("huajaiy-member-sidebar-nav");
     if (!nav) return;
-    var pp = parentPathname();
+    var parentStart = parentHuajaiyStart();
+    var ip = window.location.pathname || "";
+    var inProfile = ip.indexOf("/profile") !== -1;
     MEMBER_SIDEBAR_MENU.forEach(function (item) {
       var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
       if (!el) return;
-      var active =
-        item.kind === "path" &&
-        item.href &&
-        pathMatchesMenuHref(item.href, pp);
+      var active = false;
+      if (item.kind === "shell") {
+        var st = String(item.start || "/").replace(/\/$/, "") || "/";
+        if (st === "/profile") {
+          active = parentStart === "/profile" || inProfile;
+        } else if (st === "/") {
+          active = parentStart === "/" && !inProfile;
+        } else {
+          active = parentStart === st;
+        }
+      }
       el.classList.toggle("menu-item-active", active);
       el.classList.toggle("menu-item-inactive", !active);
     });
@@ -146,7 +171,7 @@
             "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start cursor-default opacity-50";
           dis.setAttribute("data-huajaiy-key", item.key);
           dis.setAttribute("aria-disabled", "true");
-          dis.title = "ยังไม่เปิดใช้งาน";
+          dis.title = "ยังไม่มีหน้าในเทมเพลต";
           var sp0 = document.createElement("span");
           sp0.className = "menu-item-text";
           sp0.textContent = item.label;
@@ -157,7 +182,8 @@
           a.className =
             "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
           a.setAttribute("data-huajaiy-key", item.key);
-          a.href = item.href;
+          a.setAttribute("data-huajaiy-start", item.start);
+          a.href = memberShellHref(item.start);
           a.target = "_parent";
           a.rel = "noopener noreferrer";
           var span = document.createElement("span");
@@ -172,9 +198,11 @@
       scrollHost.insertBefore(nav, scrollHost.firstChild);
     } else {
       MEMBER_SIDEBAR_MENU.forEach(function (item) {
-        if (item.kind !== "path" || !item.href) return;
+        if (item.kind !== "shell") return;
         var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
-        if (el && el.tagName === "A") el.setAttribute("href", item.href);
+        if (el && el.tagName === "A") {
+          el.setAttribute("href", memberShellHref(item.start));
+        }
       });
     }
     updateMemberSidebarActive();

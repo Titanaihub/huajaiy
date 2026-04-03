@@ -1,25 +1,41 @@
+import {
+  TAILADMIN_PROFILE_START,
+  TAILADMIN_SHOP_DASHBOARD_START
+} from "./memberWorkspacePath";
+
 /**
- * เมนูสมาชิก (sidebar iframe + หัวเว็บ «เพิ่มเติม») — ชี้หน้าเว็บเดิมที่มีข้อมูลจริง
- * kind: "path" = ลิงก์ได้ | "empty" = ยังไม่มีหน้า (แสดงเป็นปิดใช้งาน)
+ * เมนูสมาชิก — คงเชลล์ Next `/member` หรือ `/admin` + iframe เทมเพลตใหม่เท่านั้น
+ * (ข้อมูลแสดงในหน้า Vue จาก API — ไม่ลิงก์ไปหน้า `/account/*` เก่า)
+ *
+ * tailStart: เส้นทางใน TailAdmin (Vue router) หลัง `huajaiy_start=`
+ * kind: "shell" = เปลี่ยนหน้าใน iframe | "empty" = ยังไม่มีหน้าในเทมเพลต
  */
-export const MEMBER_SIDEBAR_NAV_ITEMS = [
-  { key: "overview", label: "ภาพรวมบัญชี", kind: "path", href: "/account" },
-  { key: "profile", label: "โปรไฟล์", kind: "path", href: "/account/profile" },
-  { key: "prizes", label: "รางวัลของฉัน", kind: "path", href: "/account/prizes" },
-  { key: "hearts", label: "หัวใจของฉัน", kind: "path", href: "/account/my-hearts" },
-  { key: "games", label: "เกมของฉัน", kind: "path", href: "/account/my-games" },
-  { key: "shops", label: "ร้านค้าของฉัน", kind: "path", href: "/account/shops" },
+export const MEMBER_SHELL_MENU_ITEMS = [
+  {
+    key: "overview",
+    label: "ภาพรวมบัญชี",
+    kind: "shell",
+    tailStart: TAILADMIN_SHOP_DASHBOARD_START
+  },
+  { key: "profile", label: "โปรไฟล์", kind: "shell", tailStart: TAILADMIN_PROFILE_START },
+  /* รายการด้านล่าง: ยังใช้แดชบอร์ด `/` ชั่วคราว จนกว่าจะมี route+ดึงข้อมูลใน Vue */
+  { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
+  { key: "hearts", label: "หัวใจของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
+  { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
+  { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
   { key: "page", label: "เพจของฉัน", kind: "empty" },
-  { key: "orders", label: "คำสั่งซื้อ", kind: "path", href: "/account/orders" },
+  { key: "orders", label: "คำสั่งซื้อ", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
   {
     key: "prizeWithdraw",
     label: "คำขอรับรางวัล",
-    kind: "path",
-    href: "/account/prize-withdraw"
+    kind: "shell",
+    tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
-  { key: "heartsShop", label: "เติมหัวใจแดง", kind: "path", href: "/account/hearts-shop" },
-  { key: "giveHearts", label: "แจกหัวใจ", kind: "path", href: "/account/give-hearts" }
+  {
+    key: "heartsShop",
+    label: "เติมหัวใจแดง",
+    kind: "shell",
+    tailStart: TAILADMIN_SHOP_DASHBOARD_START
+  },
+  { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START }
 ];
-
-/** ลิงก์ไอคอนโปรไฟล์หัวเว็บ — หน้าโปรไฟล์เดิม */
-export const MEMBER_PROFILE_PAGE_HREF = "/account/profile";

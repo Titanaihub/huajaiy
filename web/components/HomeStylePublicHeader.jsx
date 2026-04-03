@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
+import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
 import {
-  MEMBER_PROFILE_PAGE_HREF,
-  MEMBER_SIDEBAR_NAV_ITEMS
-} from "../lib/memberSidebarNav";
+  TAILADMIN_SHOP_DASHBOARD_START,
+  TAILADMIN_PROFILE_START,
+  workspaceShellUrl
+} from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
@@ -48,7 +50,9 @@ export default function HomeStylePublicHeader({
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
-  const accountHref = memberUser ? MEMBER_PROFILE_PAGE_HREF : "/login";
+  const accountHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
+    : "/login";
 
   let pinkShown = 0;
   let redShown = 0;
@@ -64,7 +68,9 @@ export default function HomeStylePublicHeader({
     redShown = redHearts;
   }
 
-  const heartsHref = memberUser ? "/account/my-hearts" : "/login";
+  const heartsHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_SHOP_DASHBOARD_START, memberUser.role)
+    : "/login";
   const heartsTitle = memberUser
     ? "หัวใจชมพู / แดง — แตะเพื่อหน้าหัวใจของฉัน"
     : "เข้าสู่ระบบเพื่อดูยอดหัวใจจากเซิร์ฟเวอร์";
@@ -202,7 +208,7 @@ export default function HomeStylePublicHeader({
                   role="menu"
                 >
                   {memberUser ? (
-                    MEMBER_SIDEBAR_NAV_ITEMS.map((item) => (
+                    MEMBER_SHELL_MENU_ITEMS.map((item) => (
                       <li key={item.key}>
                         {item.kind === "empty" ? (
                           <span
@@ -214,7 +220,10 @@ export default function HomeStylePublicHeader({
                           </span>
                         ) : (
                           <Link
-                            href={item.href}
+                            href={workspaceShellUrl(
+                              item.tailStart,
+                              memberUser.role
+                            )}
                             className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                             role="menuitem"
                             onClick={() => setMoreOpen(false)}
