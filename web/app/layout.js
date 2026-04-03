@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Prompt } from "next/font/google";
+import { Inter } from "next/font/google";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
 import MemberAuthProvider from "../components/MemberAuthProvider";
@@ -18,11 +18,12 @@ import {
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
-const prompt = Prompt({
+/** ชุดเดียวกับหน้าแรก organic-template (Inter — style.css / Bootstrap) */
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
-  subsets: ["latin", "thai"],
   display: "swap",
-  variable: "--font-prompt"
+  variable: "--font-inter"
 });
 
 const site = getSiteUrl();
@@ -93,8 +94,8 @@ export default async function RootLayout({ children }) {
   }
 
   return (
-    <html lang="th" className={prompt.variable} style={htmlBgStyle}>
-      <body className={`${prompt.className} hui-root flex flex-col bg-transparent`}>
+    <html lang="th" className={inter.variable} style={htmlBgStyle}>
+      <body className={`${inter.className} hui-root flex flex-col bg-transparent font-sans`}>
         <SiteThemeProvider value={siteTheme}>
           <HtmlBackgroundSync />
           <MemberAuthProvider>

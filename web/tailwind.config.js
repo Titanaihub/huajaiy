@@ -6,6 +6,20 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        /** ตรง organic + fallback ไทยเมื่อ Inter ไม่มี glyph */
+        sans: [
+          "var(--font-inter)",
+          "ui-sans-serif",
+          "system-ui",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "Sarabun",
+          "sans-serif"
+        ]
+      },
       colors: {
         /** ชุดหลักตามสไตล์ HUAJAIY (burgundy / CTA / ข้อความ) */
         hui: {

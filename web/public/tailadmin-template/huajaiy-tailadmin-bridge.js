@@ -190,7 +190,7 @@
     link.id = "huajaiy-inter-nav-font";
     link.rel = "stylesheet";
     link.href =
-      "https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap";
+      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
     document.head.appendChild(link);
   }
 

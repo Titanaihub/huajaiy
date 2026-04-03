@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply scroll-smooth;
+    @apply scroll-smooth font-sans;
     /* พื้นหลังธีมใส่ที่ layout (inline) — ไม่ใส่สีทึบที่นี่เพื่อไม่บังรูป/ไล่สี */
     background-color: transparent;
   }
@@ -12,7 +12,7 @@
 
 /** พื้นหลังตั้งจาก API ที่ `<body style=…>` — คลาสนี้คุมสีตัวหนังสือและความสูงขั้นต่ำ */
 .hui-root {
-  @apply min-h-screen text-base text-hui-body antialiased;
+  @apply min-h-screen font-sans text-base text-hui-body antialiased;
   line-height: 1.5;
 }
 
