@@ -1,16 +1,19 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import {
-  TAILADMIN_PROFILE_START,
+  adminAppPathForTail,
+  memberTailPathFromSlug,
+  normalizeMemberTailPath,
+  parseAdminAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-function normalizeHuajaiyStartAdmin(raw) {
+function legacyTailFromQuery(raw) {
   if (raw == null || String(raw).trim() === "") {
     return TAILADMIN_SHOP_DASHBOARD_START;
   }
@@ -20,21 +23,60 @@ function normalizeHuajaiyStartAdmin(raw) {
 }
 
 /**
- * Production: เชลล์แอดมิน = หัวเว็บ + TailAdmin iframe (เทียบเท่า /member)
- * ตั้ง true เฉพาะเมื่อต้องการฝังแผง React เก่า (/admin/panel = AdminDashboard) ใน iframe
+ * ฝังแผง React เดิม (/admin/panel) เฉพาะหน้า «ภาพรวม» (/admin) — หน้าย่อยใช้ Vue เต็มพื้นที่
  */
-const SHOW_LEGACY_ADMIN_PANEL_EMBED = false;
+const SHOW_LEGACY_ADMIN_PANEL_EMBED = true;
 
 export default function AdminTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const iframeRef = useRef(null);
 
+  const parsed = useMemo(() => parseAdminAppPath(pathname), [pathname]);
+
+  const tailForIframe = useMemo(() => {
+    if (!parsed) return TAILADMIN_SHOP_DASHBOARD_START;
+    if (parsed.segments.length === 0) return TAILADMIN_SHOP_DASHBOARD_START;
+    if (parsed.segments.length > 1) return null;
+    return memberTailPathFromSlug(parsed.segments[0]);
+  }, [parsed]);
+
+  const legacyStart = searchParams.get("huajaiy_start");
+  const hasLegacyQuery =
+    legacyStart != null && String(legacyStart).trim() !== "";
+
+  useEffect(() => {
+    if (!hasLegacyQuery) return;
+    const tail = legacyTailFromQuery(legacyStart);
+    const dest = adminAppPathForTail(tail);
+    router.replace(dest);
+  }, [hasLegacyQuery, legacyStart, router]);
+
+  useEffect(() => {
+    if (!parsed || !user) return;
+    if (parsed.segments.length > 1) {
+      router.replace("/admin");
+      return;
+    }
+    if (parsed.segments.length === 1 && tailForIframe === null) {
+      router.replace("/admin");
+    }
+  }, [parsed, tailForIframe, user, router]);
+
   const iframeSrc = useMemo(() => {
-    const start = normalizeHuajaiyStartAdmin(searchParams.get("huajaiy_start"));
+    const start =
+      tailForIframe == null
+        ? TAILADMIN_SHOP_DASHBOARD_START
+        : normalizeMemberTailPath(tailForIframe);
     return `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
-  }, [searchParams]);
+  }, [tailForIframe]);
+
+  const showLegacyEmbed = useMemo(() => {
+    if (!parsed || parsed.segments.length !== 0) return false;
+    return SHOW_LEGACY_ADMIN_PANEL_EMBED;
+  }, [parsed]);
 
   const panelUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -56,7 +98,6 @@ export default function AdminTailadminWorkspace() {
     postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
   }, [postToIframe]);
 
-  /** แอดมิน: ส่ง URL แผงเก่าเข้า iframe ตาม flag — ไม่ใช่แอดมิน: ล้างฝัง */
   const syncIframe = useCallback(() => {
     if (!user) return;
     postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
@@ -67,14 +108,14 @@ export default function AdminTailadminWorkspace() {
     });
     if (
       user.role === "admin" &&
-      SHOW_LEGACY_ADMIN_PANEL_EMBED &&
+      showLegacyEmbed &&
       panelUrl
     ) {
       postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: panelUrl });
     } else {
       postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: "" });
     }
-  }, [user, panelUrl, postToIframe]);
+  }, [user, panelUrl, postToIframe, showLegacyEmbed]);
 
   useEffect(() => {
     if (loading) return;
@@ -86,7 +127,7 @@ export default function AdminTailadminWorkspace() {
   useEffect(() => {
     if (!user || loading) return;
     syncIframe();
-  }, [user, loading, panelUrl, syncIframe]);
+  }, [user, loading, panelUrl, syncIframe, iframeSrc]);
 
   if (loading || !user) {
     return (

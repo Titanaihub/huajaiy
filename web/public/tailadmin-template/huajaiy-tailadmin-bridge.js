@@ -132,20 +132,28 @@
     return base + "/" + slug;
   }
 
-  /** slug ปัจจุบันจาก parent URL (/member/shops → "shops", /member → "") */
-  function parentMemberSlug() {
+  /** slug ปัจจุบันจาก parent URL (/member/shops หรือ /admin/shops → "shops") */
+  function parentShellSlug() {
     try {
       if (window.parent && window.parent.location) {
         var path = String(window.parent.location.pathname || "")
           .split("?")[0]
           .replace(/\/+/g, "/")
           .replace(/\/$/, "") || "/";
-        if (path === "/member") return "";
-        var prefix = "/member/";
-        if (path.indexOf(prefix) !== 0) return "";
-        var rest = path.slice(prefix.length);
-        var seg = rest.split("/").filter(Boolean)[0];
-        return seg ? String(seg).toLowerCase() : "";
+        var pairs = [
+          ["/member", "/member/"],
+          ["/admin", "/admin/"]
+        ];
+        for (var i = 0; i < pairs.length; i++) {
+          var exact = pairs[i][0];
+          var prefix = pairs[i][1];
+          if (path === exact) return "";
+          if (path.indexOf(prefix) === 0) {
+            var rest = path.slice(prefix.length);
+            var seg = rest.split("/").filter(Boolean)[0];
+            return seg ? String(seg).toLowerCase() : "";
+          }
+        }
       }
     } catch (e) {
       /* cross-origin */
@@ -185,7 +193,7 @@
   function updateMemberSidebarActive() {
     var nav = document.getElementById("huajaiy-member-sidebar-nav");
     if (!nav) return;
-    var parentSlug = parentMemberSlug();
+    var parentSlug = parentShellSlug();
     var ip = iframeTailPath();
     var fromIframe = slugForVueTail(ip);
     var effectiveSlug =

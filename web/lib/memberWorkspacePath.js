@@ -1,8 +1,14 @@
 /** ระบบสมาชิกหลัก (iframe TailAdmin) — หลังล็อกอิน LINE */
 export const MEMBER_WORKSPACE_PATH = "/member";
 
-/** แผงแอดมิน React เดิม — หลังล็อกอินแอดมิน / ลิงก์ «แอดมิน» ในเมนูเว็บหลัก */
-export const ADMIN_HOME_PATH = "/admin/panel";
+/** เชลล์แอดมิน (TailAdmin iframe + แผง React ฝังเมื่ออยู่ภาพรวม) */
+export const ADMIN_WORKSPACE_PATH = "/admin";
+
+/** หลังล็อกอินแอดมิน — ใช้เทมเพลตใหม่ที่ `/admin` (ข้อมูลแผงเดิมฝังจาก `/admin/panel`) */
+export const ADMIN_HOME_PATH = "/admin";
+
+/** แผง React เต็มหน้าจอ (ลิงก์ตรง / บุ๊กมาร์กเก่า) */
+export const ADMIN_LEGACY_PANEL_PATH = "/admin/panel";
 
 /** แดชบอร์ดร้านค้าในเทมเพลต TailAdmin (Vue path `/` = Ecommerce) */
 export const TAILADMIN_SHOP_DASHBOARD_START = "/";
@@ -111,17 +117,51 @@ export function parseMemberAppPath(pathname) {
 }
 
 /**
+ * แยก segment หลัง `/admin` (`/admin` → [] , `/admin/shops` → ['shops'])
+ * @returns {{ segments: string[] } | null}
+ */
+export function parseAdminAppPath(pathname) {
+  const p =
+    ((pathname || "").split("?")[0] || "/").replace(/\/+/g, "/").replace(/\/$/, "") ||
+    "/";
+  if (p === "/admin") return { segments: [] };
+  if (!p.startsWith("/admin/")) return null;
+  const rest = p.slice("/admin/".length);
+  const segments = rest.split("/").filter(Boolean).map((s) => s.trim().toLowerCase());
+  return { segments };
+}
+
+/** `/admin` หรือ `/admin/profile` — ใช้ slug เดียวกับสมาชิก */
+export function adminAppPathFromSlug(slug) {
+  if (slug == null) return ADMIN_WORKSPACE_PATH;
+  const raw = String(slug).trim().toLowerCase();
+  if (raw === "") return ADMIN_WORKSPACE_PATH;
+  const first = raw.split("/").filter(Boolean)[0];
+  if (!first || !(first in MEMBER_SLUG_TO_TAIL)) return ADMIN_WORKSPACE_PATH;
+  return `${ADMIN_WORKSPACE_PATH}/${first}`;
+}
+
+/** จาก tail ใน Vue → URL `/admin/{slug}` */
+export function adminAppPathForTail(tailPath) {
+  const t = normalizeMemberTailPath(tailPath);
+  const slug = MEMBER_TAIL_TO_SLUG[t];
+  if (slug === undefined) return ADMIN_WORKSPACE_PATH;
+  if (slug === "") return ADMIN_WORKSPACE_PATH;
+  const seg = String(slug).replace(/^\/+/, "").replace(/\/+$/, "");
+  return `${ADMIN_WORKSPACE_PATH}/${seg}`;
+}
+
+/**
  * URL หน้าเชลล์สมาชิก/แอดมิน
- * - สมาชิก: path สวย `/member/shops` (ไม่ใช้ query)
- * - แอดมิน: ยังใช้ `/admin?huajaiy_start=…` ให้สอดคล้องแผงเดิม
+ * - สมาชิก: `/member/shops`
+ * - แอดมิน: `/admin/shops` (path สวย — ไม่ใช้ query)
  * @param {string} tailPath เช่น "/" หรือ "/profile"
  * @param {"admin"|"member"|"owner"|string} [role]
  */
 export function workspaceShellUrl(tailPath, role) {
   const path = normalizeMemberTailPath(tailPath);
   if (role === "admin") {
-    const q = `huajaiy_start=${encodeURIComponent(path)}`;
-    return `/admin?${q}`;
+    return adminAppPathForTail(path);
   }
   return memberAppPathForTail(path);
 }

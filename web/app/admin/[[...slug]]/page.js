@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import AdminTailadminWorkspace from "../../components/AdminTailadminWorkspace";
+import AdminTailadminWorkspace from "../../../components/AdminTailadminWorkspace";
 
 export const metadata = {
   title: "แอดมิน | HUAJAIY",
   description: "พื้นที่จัดการระบบสำหรับผู้ดูแล"
 };
 
-export default function AdminPage() {
+export default function AdminWorkspacePage() {
   return (
     <Suspense
       fallback={

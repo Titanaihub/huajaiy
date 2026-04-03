@@ -24,6 +24,39 @@ export function middleware(request) {
   }
   pathname = collapsedPath;
 
+  /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้น prize-withdraw = ฟอร์มถอนเงินผู้เล่น React) */
+  const isAccountPrizeWithdraw =
+    pathname === "/account/prize-withdraw" ||
+    pathname.startsWith("/account/prize-withdraw/");
+  if (
+    !isAccountPrizeWithdraw &&
+    (pathname === "/account" || pathname.startsWith("/account/"))
+  ) {
+    const url = request.nextUrl.clone();
+    let nextPath;
+    if (pathname === "/account") {
+      nextPath = "/member";
+    } else if (pathname.startsWith("/account/creator-withdrawals")) {
+      nextPath = pathname.replace(
+        /^\/account\/creator-withdrawals/,
+        "/member/prize-withdraw"
+      );
+    } else if (pathname.startsWith("/account/hearts-shop")) {
+      nextPath = pathname.replace(
+        /^\/account\/hearts-shop/,
+        "/member/hearts-top-up"
+      );
+    } else if (pathname.startsWith("/account/my-hearts")) {
+      nextPath = pathname.replace(/^\/account\/my-hearts/, "/member/hearts");
+    } else if (pathname.startsWith("/account/my-games")) {
+      nextPath = pathname.replace(/^\/account\/my-games/, "/member/game");
+    } else {
+      nextPath = pathname.replace(/^\/account/, "/member");
+    }
+    url.pathname = nextPath;
+    return NextResponse.redirect(url, 308);
+  }
+
   /** ตั้งค่าเกม = หน้า /member/game-studio — ลิงก์เก่า ?game= บน create-game ส่งต่อมาที่นี่ */
   if (pathname === "/member/create-game") {
     const gameQ = request.nextUrl.searchParams.get("game");
