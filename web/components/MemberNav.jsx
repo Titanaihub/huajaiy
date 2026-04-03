@@ -171,8 +171,8 @@ export default function MemberNav() {
                 หัวใจของฉัน
               </Link>
               <Link
-                href="/member"
-                className={`${cls} ${p === "/member" ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
+                href="/member/profile"
+                className={`${cls} ${isActivePath(p, "/member/profile") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
                 ข้อมูลส่วนตัว

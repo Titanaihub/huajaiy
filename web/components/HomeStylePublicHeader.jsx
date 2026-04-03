@@ -7,7 +7,7 @@ import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
 import {
-  TAILADMIN_SHOP_DASHBOARD_START,
+  TAILADMIN_MY_HEARTS_START,
   TAILADMIN_PROFILE_START,
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
@@ -69,7 +69,7 @@ export default function HomeStylePublicHeader({
   }
 
   const heartsHref = memberUser
-    ? workspaceShellUrl(TAILADMIN_SHOP_DASHBOARD_START, memberUser.role)
+    ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
     : "/login";
   const heartsTitle = memberUser
     ? "หัวใจชมพู / แดง — แตะเพื่อหน้าหัวใจของฉัน"

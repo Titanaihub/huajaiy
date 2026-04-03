@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import MemberTailadminWorkspace from "../../components/MemberTailadminWorkspace";
+import MemberTailadminWorkspace from "../../../components/MemberTailadminWorkspace";
 
 export const metadata = {
   title: "ระบบสมาชิก | HUAJAIY",

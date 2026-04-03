@@ -55,23 +55,34 @@
    * เมนูซ้ายสมาชิก — คงเชลล์ /member|/admin + iframe เทมเพลต (huajaiy_start)
    * ตรงกับ web/lib/memberSidebarNav.js · kind: "shell" | "empty"
    */
+  /**
+   * slug = path หลัง /member (ว่าง = ภาพรวม) · start = path ใน Vue iframe
+   * ตรงกับ web/lib/memberWorkspacePath.js (MEMBER_SLUG_TO_TAIL)
+   */
   var MEMBER_SIDEBAR_MENU = [
-    { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", start: "/" },
-    { key: "profile", label: "โปรไฟล์", kind: "shell", start: "/profile" },
-    { key: "prizes", label: "รางวัลของฉัน", kind: "shell", start: "/my-prizes" },
-    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", start: "/my-hearts" },
-    { key: "games", label: "เกมของฉัน", kind: "shell", start: "/my-games" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", start: "/my-shops" },
+    { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", slug: "", start: "/" },
+    { key: "profile", label: "โปรไฟล์", kind: "shell", slug: "profile", start: "/profile" },
+    { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
+    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", slug: "hearts", start: "/my-hearts" },
+    { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน", kind: "empty" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", start: "/my-orders" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",
       kind: "shell",
+      slug: "prize-withdraw",
       start: "/prize-withdraw-request"
     },
-    { key: "heartsShop", label: "เติมหัวใจแดง", kind: "shell", start: "/hearts-top-up" },
-    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", start: "/give-hearts" }
+    {
+      key: "heartsShop",
+      label: "เติมหัวใจแดง",
+      kind: "shell",
+      slug: "hearts-top-up",
+      start: "/hearts-top-up"
+    },
+    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
   ];
 
   function parentWorkspaceBase() {
@@ -90,29 +101,32 @@
     return "/member";
   }
 
-  function memberShellHref(tailStart) {
-    var s = tailStart === "/" ? "/" : tailStart;
-    return (
-      parentWorkspaceBase() +
-      "?huajaiy_start=" +
-      encodeURIComponent(s)
-    );
+  function memberShellHref(item) {
+    var base = parentWorkspaceBase();
+    if (item.kind !== "shell") return base;
+    var slug = item.slug != null ? String(item.slug) : "";
+    if (slug === "") return base;
+    return base + "/" + slug;
   }
 
-  function parentHuajaiyStart() {
+  /** slug ปัจจุบันจาก parent URL (/member/shops → "shops", /member → "") */
+  function parentMemberSlug() {
     try {
       if (window.parent && window.parent.location) {
-        var q = new URLSearchParams(window.parent.location.search || "");
-        var raw = q.get("huajaiy_start");
-        if (raw == null || String(raw).trim() === "") return "/";
-        var path = String(raw).trim().split("?")[0];
-        if (!path.startsWith("/")) path = "/" + path;
-        return path.replace(/\/$/, "") || "/";
+        var path = String(window.parent.location.pathname || "")
+          .split("?")[0]
+          .replace(/\/$/, "") || "/";
+        if (path === "/member") return "";
+        var prefix = "/member/";
+        if (path.indexOf(prefix) !== 0) return "";
+        var rest = path.slice(prefix.length);
+        var seg = rest.split("/").filter(Boolean)[0];
+        return seg ? String(seg).toLowerCase() : "";
       }
     } catch (e) {
       /* cross-origin */
     }
-    return "/";
+    return "";
   }
 
   function iframeTailPath() {
@@ -125,20 +139,40 @@
     return ip.replace(/\/$/, "") || "/";
   }
 
+  function slugForVueTail(tail) {
+    var st = String(tail || "/").replace(/\/$/, "") || "/";
+    var map = {
+      "/": "",
+      "/profile": "profile",
+      "/my-prizes": "prizes",
+      "/my-hearts": "hearts",
+      "/my-games": "game",
+      "/my-shops": "shops",
+      "/my-orders": "orders",
+      "/prize-withdraw-request": "prize-withdraw",
+      "/hearts-top-up": "hearts-top-up",
+      "/give-hearts": "give-hearts"
+    };
+    return map[st] !== undefined ? map[st] : null;
+  }
+
   function updateMemberSidebarActive() {
     var nav = document.getElementById("huajaiy-member-sidebar-nav");
     if (!nav) return;
-    var parentStart = parentHuajaiyStart();
+    var parentSlug = parentMemberSlug();
     var ip = iframeTailPath();
-    var effective =
-      parentStart === "/" && ip !== "/" ? ip : parentStart;
+    var fromIframe = slugForVueTail(ip);
+    var effectiveSlug =
+      parentSlug === "" && fromIframe != null && fromIframe !== ""
+        ? fromIframe
+        : parentSlug;
     MEMBER_SIDEBAR_MENU.forEach(function (item) {
       var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
       if (!el) return;
       var active = false;
       if (item.kind === "shell") {
-        var st = String(item.start || "/").replace(/\/$/, "") || "/";
-        active = effective === st;
+        var slug = item.slug != null ? String(item.slug) : "";
+        active = effectiveSlug === slug;
       }
       el.classList.toggle("menu-item-active", active);
       el.classList.toggle("menu-item-inactive", !active);
@@ -188,7 +222,8 @@
             "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
           a.setAttribute("data-huajaiy-key", item.key);
           a.setAttribute("data-huajaiy-start", item.start);
-          a.href = memberShellHref(item.start);
+          a.setAttribute("data-huajaiy-slug", item.slug != null ? item.slug : "");
+          a.href = memberShellHref(item);
           a.target = "_parent";
           a.rel = "noopener noreferrer";
           var span = document.createElement("span");
@@ -206,7 +241,7 @@
         if (item.kind !== "shell") return;
         var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
         if (el && el.tagName === "A") {
-          el.setAttribute("href", memberShellHref(item.start));
+          el.setAttribute("href", memberShellHref(item));
         }
       });
     }
