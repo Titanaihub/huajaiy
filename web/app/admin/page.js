@@ -1,91 +1,21 @@
-"use client";
+import { Suspense } from "react";
+import AdminTailadminWorkspace from "../../components/AdminTailadminWorkspace";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
-import AdminDashboard from "../../components/AdminDashboard";
-import SiteFooter from "../../components/SiteFooter";
-import SiteHeader from "../../components/SiteHeader";
-import { useMemberAuth } from "../../components/MemberAuthProvider";
+export const metadata = {
+  title: "แอดมิน | HUAJAIY",
+  description: "พื้นที่จัดการระบบสำหรับผู้ดูแล"
+};
 
 export default function AdminPage() {
-  const router = useRouter();
-  const { user, loading } = useMemberAuth();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/hui/login?next=/admin");
-    }
-  }, [loading, user, router]);
-
   return (
-    <>
-      <SiteHeader />
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-8">
-        <h1 className="hui-h2 font-bold">แอดมิน</h1>
-        <p className="mt-2 text-base text-hui-body">
-          ดูรายชื่อสมาชิก ค้นหา และจัดการคำขอเปลี่ยนชื่อ–นามสกุล (ต้องล็อกอินด้วยบัญชีที่มีบทบาท{" "}
-          <strong className="text-hui-section">admin</strong>)
-        </p>
-
-        {loading ? (
-          <p className="mt-6 text-sm text-hui-muted">กำลังโหลด...</p>
-        ) : !user ? (
-          <p className="mt-6 text-base text-hui-body">
-            กำลังพาไปหน้าเข้าสู่ระบบ… หรือ{" "}
-            <Link
-              href="/hui/login?next=/admin"
-              className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-            >
-              กดที่นี่
-            </Link>
-          </p>
-        ) : user.role !== "admin" ? (
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
-            <p className="font-medium">บัญชีนี้ยังไม่ใช่แอดมิน</p>
-            <p className="mt-2 text-amber-900/90">
-              <strong>วิธีที่ 1 — ยังไม่เคยสมัคร:</strong> ที่{" "}
-              <code className="rounded bg-white/80 px-1">huajaiy-api</code> → Environment ใส่{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_USERNAME</code> (ชื่อล็อกอิน),{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PASSWORD</code> (รหัสที่ต้องการ),{" "}
-              <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PHONE</code> (เบอร์ 10 หลัก 0xxxxxxxxx)
-              → Deploy → ล็อกอินด้วย username/รหัสนั้น → แล้ว<strong>ลบ env ทั้งสามทิ้ง</strong>
-            </p>
-            <p className="mt-2 text-amber-900/90">
-              <strong>วิธีที่ 2 — สมัครแล้ว:</strong>{" "}
-              <code className="rounded bg-white/80 px-1">PROMOTE_ADMIN_USERNAME</code> = ยูสเซอร์ที่สมัคร → Deploy
-              (ไม่เปลี่ยนรหัส — ใช้รหัสตอนสมัครล็อกอิน)
-            </p>
-            <p className="mt-2 text-amber-900/90">
-              หรือรัน SQL:{" "}
-              <code className="rounded bg-white/80 px-1 break-all">
-                UPDATE users SET role = &apos;admin&apos; WHERE username = &apos;...&apos;;
-              </code>
-            </p>
-          </div>
-        ) : (
-          <div className="mt-8">
-            <p className="mb-2 text-base text-hui-body">
-              สวัสดี <strong className="text-hui-section">{user.username}</strong>
-            </p>
-            <p className="mb-6 text-sm text-hui-body">
-              <Link
-                href="/admin?tab=siteTheme"
-                className="font-semibold text-hui-cta underline decoration-hui-border/70 underline-offset-2 hover:text-hui-burgundy"
-              >
-                ตั้งค่าพื้นหลังเว็บไซต์
-              </Link>
-              <span className="text-hui-muted"> — ไล่สีหรือรูปภาพทั้งเว็บ</span>
-            </p>
-            <Suspense
-              fallback={<p className="text-sm text-hui-muted">กำลังโหลดแผงแอดมิน…</p>}
-            >
-              <AdminDashboard />
-            </Suspense>
-          </div>
-        )}
-      </main>
-      <SiteFooter />
-    </>
+    <Suspense
+      fallback={
+        <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+          กำลังโหลด…
+        </main>
+      }
+    >
+      <AdminTailadminWorkspace />
+    </Suspense>
   );
 }

@@ -10,6 +10,8 @@
 
   var lastUser = null;
   var moTimer = null;
+  /** @type {string | null} */
+  var adminEmbedUrl = null;
 
   function apiBase() {
     if (window.__HUAJAIY_API_BASE__) {
@@ -331,6 +333,44 @@
     }
   }
 
+  function removeAdminEmbed() {
+    document.documentElement.classList.remove("huajaiy-admin-embed-active");
+    document.querySelectorAll(".huajaiy-admin-embed-root").forEach(function (el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+  }
+
+  function ensureAdminEmbed() {
+    if (!adminEmbedUrl) {
+      removeAdminEmbed();
+      return;
+    }
+    document.documentElement.classList.add("huajaiy-admin-embed-active");
+    var host = document.querySelector("#app aside.fixed ~ div.flex-1");
+    if (!host) return;
+    host.style.position = "relative";
+    host.style.minHeight = "100dvh";
+    var root = host.querySelector(".huajaiy-admin-embed-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.className = "huajaiy-admin-embed-root";
+      root.style.cssText =
+        "position:absolute;inset:0;z-index:40;background:#f1f5f9;overflow:hidden;";
+      var iframe = document.createElement("iframe");
+      iframe.className = "huajaiy-admin-embed-iframe";
+      iframe.title = "แผงจัดการแอดมิน";
+      iframe.style.cssText = "border:0;width:100%;height:100%;display:block;";
+      iframe.setAttribute("src", adminEmbedUrl);
+      root.appendChild(iframe);
+      host.appendChild(root);
+      return;
+    }
+    var iframe = root.querySelector("iframe");
+    if (iframe && iframe.getAttribute("src") !== adminEmbedUrl) {
+      iframe.setAttribute("src", adminEmbedUrl);
+    }
+  }
+
   function sync() {
     applyBrand();
     hideTemplateSearchOnly();
@@ -339,6 +379,7 @@
       applyUser(lastUser);
       patchHeaderName(lastUser);
     }
+    ensureAdminEmbed();
   }
 
   function scheduleSync() {
@@ -381,10 +422,24 @@
       return;
     }
 
-    if (d.type !== "HUAJAIY_MEMBER") return;
-    if (d.apiBase) window.__HUAJAIY_API_BASE__ = d.apiBase;
-    if (d.user) applyUser(d.user);
-    scheduleSync();
+    if (d.type === "HUAJAIY_ADMIN_EMBED") {
+      document.documentElement.classList.add("huajaiy-member-chrome");
+      ensureHuajaiyOrganicNavFont();
+      ensureMemberChromeStyles();
+      adminEmbedUrl =
+        d.url != null && String(d.url).trim() !== ""
+          ? String(d.url).trim()
+          : null;
+      if (!adminEmbedUrl) removeAdminEmbed();
+      scheduleSync();
+      return;
+    }
+
+    if (d.type === "HUAJAIY_MEMBER") {
+      if (d.apiBase) window.__HUAJAIY_API_BASE__ = d.apiBase;
+      if (d.user) applyUser(d.user);
+      scheduleSync();
+    }
   });
 
   async function fetchMe() {
