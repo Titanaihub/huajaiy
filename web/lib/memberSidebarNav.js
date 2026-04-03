@@ -1,5 +1,13 @@
 import {
+  TAILADMIN_GIVE_HEARTS_START,
+  TAILADMIN_HEARTS_TOP_UP_START,
+  TAILADMIN_MY_GAMES_START,
+  TAILADMIN_MY_HEARTS_START,
+  TAILADMIN_MY_ORDERS_START,
+  TAILADMIN_MY_PRIZES_START,
+  TAILADMIN_MY_SHOPS_START,
   TAILADMIN_PROFILE_START,
+  TAILADMIN_PRIZE_WITHDRAW_START,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "./memberWorkspacePath";
 
@@ -18,24 +26,23 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
   { key: "profile", label: "โปรไฟล์", kind: "shell", tailStart: TAILADMIN_PROFILE_START },
-  /* รายการด้านล่าง: ยังใช้แดชบอร์ด `/` ชั่วคราว จนกว่าจะมี route+ดึงข้อมูลใน Vue */
-  { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
-  { key: "hearts", label: "หัวใจของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
-  { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
-  { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
+  { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
+  { key: "hearts", label: "หัวใจของฉัน", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
+  { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
+  { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", tailStart: TAILADMIN_MY_SHOPS_START },
   { key: "page", label: "เพจของฉัน", kind: "empty" },
-  { key: "orders", label: "คำสั่งซื้อ", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START },
+  { key: "orders", label: "คำสั่งซื้อ", kind: "shell", tailStart: TAILADMIN_MY_ORDERS_START },
   {
     key: "prizeWithdraw",
     label: "คำขอรับรางวัล",
     kind: "shell",
-    tailStart: TAILADMIN_SHOP_DASHBOARD_START
+    tailStart: TAILADMIN_PRIZE_WITHDRAW_START
   },
   {
     key: "heartsShop",
     label: "เติมหัวใจแดง",
     kind: "shell",
-    tailStart: TAILADMIN_SHOP_DASHBOARD_START
+    tailStart: TAILADMIN_HEARTS_TOP_UP_START
   },
-  { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", tailStart: TAILADMIN_SHOP_DASHBOARD_START }
+  { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
 ];

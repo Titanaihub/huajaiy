@@ -58,20 +58,20 @@
   var MEMBER_SIDEBAR_MENU = [
     { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", start: "/" },
     { key: "profile", label: "โปรไฟล์", kind: "shell", start: "/profile" },
-    { key: "prizes", label: "รางวัลของฉัน", kind: "shell", start: "/" },
-    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", start: "/" },
-    { key: "games", label: "เกมของฉัน", kind: "shell", start: "/" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", start: "/" },
+    { key: "prizes", label: "รางวัลของฉัน", kind: "shell", start: "/my-prizes" },
+    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", start: "/my-hearts" },
+    { key: "games", label: "เกมของฉัน", kind: "shell", start: "/my-games" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน", kind: "empty" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", start: "/" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", start: "/my-orders" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",
       kind: "shell",
-      start: "/"
+      start: "/prize-withdraw-request"
     },
-    { key: "heartsShop", label: "เติมหัวใจแดง", kind: "shell", start: "/" },
-    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", start: "/" }
+    { key: "heartsShop", label: "เติมหัวใจแดง", kind: "shell", start: "/hearts-top-up" },
+    { key: "giveHearts", label: "แจกหัวใจ", kind: "shell", start: "/give-hearts" }
   ];
 
   function parentWorkspaceBase() {
@@ -115,25 +115,30 @@
     return "/";
   }
 
+  function iframeTailPath() {
+    var ip = window.location.pathname || "";
+    var prefix = "/tailadmin-template";
+    if (ip.indexOf(prefix) === 0) {
+      ip = ip.slice(prefix.length) || "/";
+    }
+    if (!ip.startsWith("/")) ip = "/" + ip;
+    return ip.replace(/\/$/, "") || "/";
+  }
+
   function updateMemberSidebarActive() {
     var nav = document.getElementById("huajaiy-member-sidebar-nav");
     if (!nav) return;
     var parentStart = parentHuajaiyStart();
-    var ip = window.location.pathname || "";
-    var inProfile = ip.indexOf("/profile") !== -1;
+    var ip = iframeTailPath();
+    var effective =
+      parentStart === "/" && ip !== "/" ? ip : parentStart;
     MEMBER_SIDEBAR_MENU.forEach(function (item) {
       var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
       if (!el) return;
       var active = false;
       if (item.kind === "shell") {
         var st = String(item.start || "/").replace(/\/$/, "") || "/";
-        if (st === "/profile") {
-          active = parentStart === "/profile" || inProfile;
-        } else if (st === "/") {
-          active = parentStart === "/" && !inProfile;
-        } else {
-          active = parentStart === st;
-        }
+        active = effective === st;
       }
       el.classList.toggle("menu-item-active", active);
       el.classList.toggle("menu-item-inactive", !active);
