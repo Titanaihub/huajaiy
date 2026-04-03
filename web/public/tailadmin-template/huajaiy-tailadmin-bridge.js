@@ -210,12 +210,7 @@
     ["Address", "ที่อยู่"],
     ["Phone", "โทรศัพท์"],
     ["Bio", "คำอธิบาย"],
-    ["Country", "ประเทศ"],
-    ["#1 Tailwind CSS Dashboard", "ระบบสมาชิก HUAJAIY"],
-    [
-      "Leading Tailwind CSS Admin Template with 400+ UI Component and Pages.",
-      "พื้นที่สมาชิกหลังล็อกอิน LINE"
-    ]
+    ["Country", "ประเทศ"]
   ];
 
   function roleLabel(role) {
@@ -377,6 +372,8 @@
       /* ซ่อนเมนูเทมเพลต TailAdmin — ใช้เมนูสมาชิกแทน */
       "html.huajaiy-member-chrome #app aside.fixed div.flex.flex-col.overflow-y-auto>nav.mb-6:not(#huajaiy-member-sidebar-nav){display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed #huajaiy-member-sidebar-nav .huajaiy-member-sidebar-link{padding-left:0.75rem;padding-right:0.75rem;}" +
+      /* การ์ดโปรโมทเทมเพลต (SidebarWidget) — ซ่อนถ้ายังเหลือใน bundle เก่า */
+      "html.huajaiy-member-chrome #app aside.fixed div.flex.flex-col.overflow-y-auto>div.mx-auto.mb-10.max-w-60.rounded-2xl.bg-gray-50{display:none!important;}" +
       "}";
     document.head.appendChild(st);
   }
