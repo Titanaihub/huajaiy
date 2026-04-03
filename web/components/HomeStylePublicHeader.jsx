@@ -9,10 +9,17 @@ const iconWrap =
   "inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100";
 
 /**
- * แถบบนแบบหน้าแรก (Organic): โลโก้ + เมนูไทย + เพิ่มเติม + ไอคอน
+ * แถบบนแบบหน้าแรก (Organic): โลโก้หรือรูป LINE + เมนูไทย + เพิ่มเติม + ไอคอน
  * ใช้บนหน้าสมาชิก (เหนือ iframe TailAdmin)
+ *
+ * @param {string} [lineProfileImageUrl] — รูปจาก LINE (`user.linePictureUrl`) แทนโลโก้หัวใจซ้ายบน
+ * @param {string} [profileDisplayName] — ชื่อสำหรับ alt ของรูป
  */
-export default function HomeStylePublicHeader({ onHamburgerClick }) {
+export default function HomeStylePublicHeader({
+  onHamburgerClick,
+  lineProfileImageUrl,
+  profileDisplayName
+}) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
 
@@ -31,7 +38,25 @@ export default function HomeStylePublicHeader({ onHamburgerClick }) {
     <header className="sticky top-0 z-[200] shrink-0 border-b border-gray-200 bg-white shadow-sm">
       <div className="mx-auto flex w-full max-w-[100%] flex-wrap items-center justify-between gap-3 px-3 py-2.5 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <BrandLogo variant="header" />
+          {lineProfileImageUrl ? (
+            <Link
+              href="/member"
+              className="shrink-0 rounded-full ring-2 ring-gray-100 transition hover:ring-rose-200"
+              title={profileDisplayName || "บัญชีสมาชิก"}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={lineProfileImageUrl}
+                alt={profileDisplayName || "โปรไฟล์ LINE"}
+                className="h-10 w-10 rounded-full object-cover"
+                width={40}
+                height={40}
+                referrerPolicy="no-referrer"
+              />
+            </Link>
+          ) : (
+            <BrandLogo variant="header" />
+          )}
           <button
             type="button"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
@@ -124,29 +149,31 @@ export default function HomeStylePublicHeader({ onHamburgerClick }) {
         </nav>
 
         <div className="flex items-center gap-0.5 sm:gap-1">
-          <Link
-            href="/login"
-            className={iconWrap}
-            title="เข้าสู่ระบบ"
-            aria-label="เข้าสู่ระบบ"
-          >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden
+          {lineProfileImageUrl ? null : (
+            <Link
+              href="/login"
+              className={iconWrap}
+              title="เข้าสู่ระบบ"
+              aria-label="เข้าสู่ระบบ"
             >
-              <circle cx="12" cy="9" r="3" />
-              <circle cx="12" cy="12" r="10" />
-              <path
-                strokeLinecap="round"
-                d="M17.97 20c-.16-2.892-1.045-5-5.97-5s-5.81 2.108-5.97 5"
-              />
-            </svg>
-          </Link>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden
+              >
+                <circle cx="12" cy="9" r="3" />
+                <circle cx="12" cy="12" r="10" />
+                <path
+                  strokeLinecap="round"
+                  d="M17.97 20c-.16-2.892-1.045-5-5.97-5s-5.81 2.108-5.97 5"
+                />
+              </svg>
+            </Link>
+          )}
           <button
             type="button"
             className={iconWrap}

@@ -111,6 +111,9 @@
   function applyBrand() {
     var app = document.getElementById("app");
     if (!app) return;
+    var memberChrome = document.documentElement.classList.contains(
+      "huajaiy-member-chrome"
+    );
     app.querySelectorAll('a[data-huajaiy-brand="1"]').forEach(function (a) {
       if (!a.querySelector(".huajaiy-brand-wrap")) {
         a.removeAttribute("data-huajaiy-brand");
@@ -141,13 +144,16 @@
       a.appendChild(wrap);
     }
 
-    app
-      .querySelectorAll(
-        'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
-      )
-      .forEach(function (im) {
-        brandAnchor(im.closest("a"));
-      });
+    if (!memberChrome) {
+      app
+        .querySelectorAll(
+          'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
+        )
+        .forEach(function (im) {
+          brandAnchor(im.closest("a"));
+        });
+    }
+
     app
       .querySelectorAll(
         'header img[src*="huajaiy-heart"], header img[alt="Logo"]'
@@ -156,6 +162,7 @@
         brandAnchor(im.closest("a"));
       });
     app.querySelectorAll('a[href="/"]').forEach(function (a) {
+      if (memberChrome && a.closest("aside")) return;
       if (a.querySelectorAll("img").length) brandAnchor(a);
     });
 
@@ -182,7 +189,8 @@
     st.id = "huajaiy-member-chrome-css";
     st.textContent =
       "html.huajaiy-member-chrome #app header{display:none!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}";
+      "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
+      "html.huajaiy-member-chrome #app aside>div:first-child{display:none!important;}";
     document.head.appendChild(st);
   }
 

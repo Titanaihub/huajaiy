@@ -62,7 +62,14 @@ export default function MemberTailadminWorkspace() {
 
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
-      <HomeStylePublicHeader onHamburgerClick={toggleIframeSidebar} />
+      <HomeStylePublicHeader
+        onHamburgerClick={toggleIframeSidebar}
+        lineProfileImageUrl={user.linePictureUrl || undefined}
+        profileDisplayName={
+          [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+          "สมาชิก"
+        }
+      />
       <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
         <iframe
           ref={iframeRef}
