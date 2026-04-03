@@ -51,27 +51,108 @@
     }
   }
 
-  /** สมาชิก: ย้ายรายการเมนูโปรไฟล์ขึ้นบนสุดของ ul หลักใน sidebar */
-  function reorderProfileMenuFirst() {
+  /** เมนูซ้ายสมาชิก — ตรงกับเมนู «เพิ่มเติม» บน header (เทมเพลตเดิมซ่อนไว้) */
+  var MEMBER_SIDEBAR_MENU = [
+    { label: "ภาพรวมบัญชี", start: "/" },
+    { label: "โปรไฟล์", start: "/profile" },
+    { label: "รางวัลของฉัน", start: "/" },
+    { label: "หัวใจของฉัน", start: "/" },
+    { label: "เกมของฉัน", start: "/" },
+    { label: "ร้านค้าของฉัน", start: "/" },
+    { label: "เพจของฉัน", start: "/" },
+    { label: "คำสั่งซื้อ", start: "/" },
+    { label: "คำขอรับรางวัล", start: "/" },
+    { label: "เติมหัวใจแดง", start: "/" },
+    { label: "แจกหัวใจ", start: "/" }
+  ];
+
+  function parentWorkspaceBase() {
+    try {
+      if (
+        window.parent &&
+        window.parent.location &&
+        window.parent.location.pathname
+      ) {
+        var p = String(window.parent.location.pathname);
+        if (p.indexOf("/admin") === 0) return "/admin";
+      }
+    } catch (e) {
+      /* cross-origin */
+    }
+    return "/member";
+  }
+
+  function memberShellHref(tailStart) {
+    var s = tailStart === "/" ? "/" : tailStart;
+    return (
+      parentWorkspaceBase() +
+      "?huajaiy_start=" +
+      encodeURIComponent(s)
+    );
+  }
+
+  function updateMemberSidebarActive() {
+    var path = window.location.pathname || "";
+    var onProfile = path.indexOf("/profile") !== -1;
+    document
+      .querySelectorAll("a.huajaiy-member-sidebar-link")
+      .forEach(function (a) {
+        var st = a.getAttribute("data-huajaiy-start") || "/";
+        var isProfile = st === "/profile";
+        var active = isProfile ? onProfile : !onProfile;
+        a.classList.toggle("menu-item-active", active);
+        a.classList.toggle("menu-item-inactive", !active);
+      });
+  }
+
+  function installHuajaiyMemberSidebarNav() {
     if (!document.documentElement.classList.contains("huajaiy-member-chrome"))
       return;
     var aside = document.querySelector("#app aside.fixed");
     if (!aside) return;
-    var a = aside.querySelector('a[href*="/profile"]');
-    if (!a) return;
-    var li = a.closest("li");
-    if (!li) return;
-    var ul = li.parentElement;
-    while (ul && ul.tagName !== "UL") ul = ul.parentElement;
-    if (!ul || ul.tagName !== "UL") return;
-    var topLi = li;
-    while (topLi.parentElement && topLi.parentElement !== ul) {
-      var parentLi = topLi.parentElement.closest("li");
-      if (!parentLi) break;
-      topLi = parentLi;
+    var scrollHost =
+      aside.querySelector("div.flex.flex-col.overflow-y-auto") ||
+      aside.children[1];
+    if (!scrollHost) return;
+
+    var nav = document.getElementById("huajaiy-member-sidebar-nav");
+    if (!nav) {
+      nav = document.createElement("nav");
+      nav.id = "huajaiy-member-sidebar-nav";
+      nav.className = "huajaiy-member-sidebar-nav mb-6";
+      nav.setAttribute("aria-label", "เมนูสมาชิก");
+      var h2 = document.createElement("h2");
+      h2.className =
+        "mb-4 text-xs uppercase leading-[20px] text-gray-400 justify-start";
+      h2.textContent = "เมนู";
+      nav.appendChild(h2);
+      var ul = document.createElement("ul");
+      ul.className = "flex flex-col gap-4";
+      MEMBER_SIDEBAR_MENU.forEach(function (item) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.className =
+          "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
+        a.setAttribute("data-huajaiy-start", item.start);
+        a.href = memberShellHref(item.start);
+        a.target = "_parent";
+        a.rel = "noopener noreferrer";
+        var span = document.createElement("span");
+        span.className = "menu-item-text";
+        span.textContent = item.label;
+        a.appendChild(span);
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      nav.appendChild(ul);
+      scrollHost.insertBefore(nav, scrollHost.firstChild);
+    } else {
+      nav.querySelectorAll("a.huajaiy-member-sidebar-link").forEach(function (a) {
+        var st = a.getAttribute("data-huajaiy-start") || "/";
+        a.href = memberShellHref(st);
+      });
     }
-    if (ul.firstElementChild === topLi) return;
-    ul.insertBefore(topLi, ul.firstElementChild);
+    updateMemberSidebarActive();
   }
 
   function apiBase() {
@@ -293,6 +374,9 @@
       "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed~div.flex-1{" +
       "margin-left:0!important;" +
       "}" +
+      /* ซ่อนเมนูเทมเพลต TailAdmin — ใช้เมนูสมาชิกแทน */
+      "html.huajaiy-member-chrome #app aside.fixed div.flex.flex-col.overflow-y-auto>nav.mb-6:not(#huajaiy-member-sidebar-nav){display:none!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed #huajaiy-member-sidebar-nav .huajaiy-member-sidebar-link{padding-left:0.75rem;padding-right:0.75rem;}" +
       "}";
     document.head.appendChild(st);
   }
@@ -441,7 +525,7 @@
       applyUser(lastUser);
       patchHeaderName(lastUser);
     }
-    reorderProfileMenuFirst();
+    installHuajaiyMemberSidebarNav();
     ensureAdminEmbed();
   }
 
