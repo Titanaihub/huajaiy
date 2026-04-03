@@ -112,6 +112,22 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS line_picture_url VARCHAR(1024);
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS profile_picture_url VARCHAR(1024);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS social_facebook_url VARCHAR(500);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS social_line_url VARCHAR(500);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS social_tiktok_url VARCHAR(500);
+    `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */
     await client.query(`
       ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;

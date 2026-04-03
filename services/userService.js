@@ -23,6 +23,15 @@ function sanitizeLinePictureUrl(v) {
   return s;
 }
 
+/** ลิงก์ https เท่านั้น — ว่างเป็น null */
+function sanitizeHttpsUrlOptional(v, maxLen) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (s === "") return null;
+  if (!/^https:\/\//i.test(s)) return null;
+  return s.slice(0, maxLen);
+}
+
 function normalizeBirthDate(v) {
   if (v == null) return null;
   if (v instanceof Date) return v.toISOString().slice(0, 10);
@@ -111,6 +120,10 @@ function rowToUser(row) {
         ? String(row.line_user_id).trim()
         : null,
     linePictureUrl: sanitizeLinePictureUrl(row.line_picture_url),
+    profilePictureUrl: sanitizeHttpsUrlOptional(row.profile_picture_url, 1024),
+    socialFacebookUrl: sanitizeHttpsUrlOptional(row.social_facebook_url, 500),
+    socialLineUrl: sanitizeHttpsUrlOptional(row.social_line_url, 500),
+    socialTiktokUrl: sanitizeHttpsUrlOptional(row.social_tiktok_url, 500),
     email:
       row.email != null && String(row.email).trim()
         ? String(row.email).trim().toLowerCase().slice(0, 254)
@@ -169,7 +182,11 @@ function enrichFileUserShipping(u) {
     selfServiceNameEdits: Math.max(
       0,
       Math.floor(Number(u.selfServiceNameEdits) || 0)
-    )
+    ),
+    profilePictureUrl: sanitizeHttpsUrlOptional(u.profilePictureUrl, 1024),
+    socialFacebookUrl: sanitizeHttpsUrlOptional(u.socialFacebookUrl, 500),
+    socialLineUrl: sanitizeHttpsUrlOptional(u.socialLineUrl, 500),
+    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500)
   };
 }
 
@@ -445,7 +462,11 @@ function publicUser(u) {
       0,
       3 - Math.floor(Number(u.selfServiceNameEdits) || 0)
     ),
-    linePictureUrl: sanitizeLinePictureUrl(u.linePictureUrl)
+    linePictureUrl: sanitizeLinePictureUrl(u.linePictureUrl),
+    profilePictureUrl: sanitizeHttpsUrlOptional(u.profilePictureUrl, 1024),
+    socialFacebookUrl: sanitizeHttpsUrlOptional(u.socialFacebookUrl, 500),
+    socialLineUrl: sanitizeHttpsUrlOptional(u.socialLineUrl, 500),
+    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500)
   };
 }
 
@@ -465,7 +486,9 @@ async function updateProfile(
   userId,
   {
     gender,
+    updateGender,
     birthDate,
+    updateBirthDate,
     shippingParts,
     updateShipping,
     phone,
@@ -478,13 +501,26 @@ async function updateProfile(
     username,
     updateUsername,
     email,
-    updateEmail
+    updateEmail,
+    profilePictureUrl,
+    updateProfilePicture,
+    socialFacebookUrl,
+    updateSocialFacebook,
+    socialLineUrl,
+    updateSocialLine,
+    socialTiktokUrl,
+    updateSocialTiktok
   },
   opts = {}
 ) {
   const clientIp = opts.clientIp ?? null;
   const current = await findById(userId);
   if (!current) return null;
+
+  const nextGender = updateGender ? gender : current.gender ?? null;
+  const nextBirthDate = updateBirthDate
+    ? birthDate || null
+    : current.birthDate ?? null;
 
   const nextFirst = updateNames ? firstName : current.firstName;
   const nextLast = updateNames ? lastName : current.lastName;
@@ -554,18 +590,43 @@ async function updateProfile(
       : baseShipParts;
   const shipDb = dbValuesFromParts(mergedShipParts);
 
+  let nextProfilePictureUrl = sanitizeHttpsUrlOptional(
+    current.profilePictureUrl,
+    1024
+  );
+  if (updateProfilePicture) nextProfilePictureUrl = profilePictureUrl;
+
+  let nextSocialFacebook = sanitizeHttpsUrlOptional(
+    current.socialFacebookUrl,
+    500
+  );
+  if (updateSocialFacebook) nextSocialFacebook = socialFacebookUrl;
+
+  let nextSocialLine = sanitizeHttpsUrlOptional(current.socialLineUrl, 500);
+  if (updateSocialLine) nextSocialLine = socialLineUrl;
+
+  let nextSocialTiktok = sanitizeHttpsUrlOptional(
+    current.socialTiktokUrl,
+    500
+  );
+  if (updateSocialTiktok) nextSocialTiktok = socialTiktokUrl;
+
   const pool = getPool();
 
   if (!pool) {
     const patch = {
-      gender,
-      birthDate,
+      gender: nextGender,
+      birthDate: nextBirthDate,
       firstName: nextFirst,
       lastName: nextLast,
       username: nextUsername,
       email: nextEmail,
       selfServiceNameEdits:
-        (current.selfServiceNameEdits || 0) + nameEditDelta
+        (current.selfServiceNameEdits || 0) + nameEditDelta,
+      profilePictureUrl: nextProfilePictureUrl,
+      socialFacebookUrl: nextSocialFacebook,
+      socialLineUrl: nextSocialLine,
+      socialTiktokUrl: nextSocialTiktok
     };
     patch.shippingAddress = shipDb.shipping_address;
     patch.shippingAddressParts = { ...mergedShipParts };
@@ -618,12 +679,16 @@ async function updateProfile(
         shipping_district = $14,
         shipping_province = $15,
         shipping_postal_code = $16,
-        self_service_name_edits = self_service_name_edits + $17
+        profile_picture_url = $17,
+        social_facebook_url = $18,
+        social_line_url = $19,
+        social_tiktok_url = $20,
+        self_service_name_edits = self_service_name_edits + $21
       WHERE id = $1::uuid`,
       [
         userId,
-        gender,
-        birthDate || null,
+        nextGender,
+        nextBirthDate || null,
         nextFirst,
         nextLast,
         nextUsername,
@@ -637,6 +702,10 @@ async function updateProfile(
         shipDb.shipping_district,
         shipDb.shipping_province,
         shipDb.shipping_postal_code,
+        nextProfilePictureUrl,
+        nextSocialFacebook,
+        nextSocialLine,
+        nextSocialTiktok,
         nameEditDelta
       ]
     );

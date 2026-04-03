@@ -8,6 +8,30 @@ const { KEYS, MAX_FIELD, MAX_POSTAL, emptyParts } = require("./shippingAddress")
 
 const ALLOWED_GENDER = new Set(["male", "female", "other"]);
 
+/**
+ * @returns {null | { update: true, value: string | null } | { error: string }}
+ */
+function optionalHttpsUrlField(body, key, maxLen) {
+  if (!Object.prototype.hasOwnProperty.call(body, key)) return null;
+  const raw = body[key];
+  if (raw == null || String(raw).trim() === "") {
+    return { update: true, value: null };
+  }
+  const s = String(raw).trim();
+  if (!/^https:\/\//i.test(s)) {
+    return { error: "ลิงก์ต้องขึ้นต้นด้วย https://" };
+  }
+  if (s.length > maxLen) {
+    return {
+      error:
+        maxLen >= 1024
+          ? "ลิงก์รูปโปรไฟล์ยาวเกินกำหนด"
+          : "ลิงก์โซเชียลยาวเกิน 500 ตัวอักษร"
+    };
+  }
+  return { update: true, value: s };
+}
+
 function cleanStr(v) {
   if (v == null) return "";
   return String(v).trim();
@@ -42,19 +66,32 @@ function validateProfilePatch(body, ctx = {}) {
   const selfUsed = Math.max(0, Math.floor(Number(ctx.selfServiceNameEditsUsed) || 0));
   const curFn = String(ctx.currentFirstName ?? "").trim();
   const curLn = String(ctx.currentLastName ?? "").trim();
-  const genderRaw = body?.gender;
-  const gender =
-    genderRaw == null || genderRaw === ""
-      ? null
-      : String(genderRaw).toLowerCase().trim();
-  if (gender !== null && gender !== "" && !ALLOWED_GENDER.has(gender)) {
-    return {
-      ok: false,
-      error: "เพศต้องเป็น ชาย / หญิง / อื่นๆ หรือเว้นว่าง"
-    };
+  let updateGender = false;
+  let gender = null;
+  if (Object.prototype.hasOwnProperty.call(body, "gender")) {
+    updateGender = true;
+    const genderRaw = body.gender;
+    const genderStr =
+      genderRaw == null || genderRaw === ""
+        ? null
+        : String(genderRaw).toLowerCase().trim();
+    if (genderStr !== null && genderStr !== "" && !ALLOWED_GENDER.has(genderStr)) {
+      return {
+        ok: false,
+        error: "เพศต้องเป็น ชาย / หญิง / อื่นๆ หรือเว้นว่าง"
+      };
+    }
+    gender = genderStr === null || genderStr === "" ? null : genderStr;
   }
-  const birth = validateBirthDate(body?.birthDate);
-  if (!birth.ok) return birth;
+
+  let updateBirthDate = false;
+  let birthDate = null;
+  if (Object.prototype.hasOwnProperty.call(body, "birthDate")) {
+    updateBirthDate = true;
+    const birth = validateBirthDate(body.birthDate);
+    if (!birth.ok) return birth;
+    birthDate = birth.value;
+  }
 
   let shippingParts = null;
   let updateShipping = false;
@@ -83,8 +120,6 @@ function validateProfilePatch(body, ctx = {}) {
     shippingParts = out;
   }
 
-  const g =
-    gender === null || gender === "" ? null : gender;
   let phone;
   let updatePhone = false;
   if (Object.prototype.hasOwnProperty.call(body, "phone")) {
@@ -160,11 +195,49 @@ function validateProfilePatch(body, ctx = {}) {
     email = ev.value;
   }
 
+  let profilePictureUrl = null;
+  let updateProfilePicture = false;
+  const picRes = optionalHttpsUrlField(body, "profilePictureUrl", 1024);
+  if (picRes && picRes.error) return { ok: false, error: picRes.error };
+  if (picRes && picRes.update) {
+    updateProfilePicture = true;
+    profilePictureUrl = picRes.value;
+  }
+
+  let socialFacebookUrl = null;
+  let updateSocialFacebook = false;
+  const fbRes = optionalHttpsUrlField(body, "socialFacebookUrl", 500);
+  if (fbRes && fbRes.error) return { ok: false, error: fbRes.error };
+  if (fbRes && fbRes.update) {
+    updateSocialFacebook = true;
+    socialFacebookUrl = fbRes.value;
+  }
+
+  let socialLineUrl = null;
+  let updateSocialLine = false;
+  const lineRes = optionalHttpsUrlField(body, "socialLineUrl", 500);
+  if (lineRes && lineRes.error) return { ok: false, error: lineRes.error };
+  if (lineRes && lineRes.update) {
+    updateSocialLine = true;
+    socialLineUrl = lineRes.value;
+  }
+
+  let socialTiktokUrl = null;
+  let updateSocialTiktok = false;
+  const ttRes = optionalHttpsUrlField(body, "socialTiktokUrl", 500);
+  if (ttRes && ttRes.error) return { ok: false, error: ttRes.error };
+  if (ttRes && ttRes.update) {
+    updateSocialTiktok = true;
+    socialTiktokUrl = ttRes.value;
+  }
+
   return {
     ok: true,
     data: {
-      gender: g,
-      birthDate: birth.value,
+      gender,
+      updateGender,
+      birthDate,
+      updateBirthDate,
       shippingParts,
       updateShipping,
       phone,
@@ -177,7 +250,15 @@ function validateProfilePatch(body, ctx = {}) {
       username,
       updateUsername,
       email,
-      updateEmail
+      updateEmail,
+      profilePictureUrl,
+      updateProfilePicture,
+      socialFacebookUrl,
+      updateSocialFacebook,
+      socialLineUrl,
+      updateSocialLine,
+      socialTiktokUrl,
+      updateSocialTiktok
     }
   };
 }
