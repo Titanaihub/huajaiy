@@ -16,6 +16,14 @@ export function isThemeLabFullPageEmbedPath(pathname) {
   return THEME_LAB_FULL_EMBED_PATHS.has(normalizePathnameForTheme(pathname));
 }
 
+/** ประวัติหัวใจ — พื้น `<html>` เรียบ + เชลล์ใหม่ (ไม่ใช้ธีม inner ม่วง/ของขวัญ) */
+export function isHeartHistoryFlatBackgroundPath(pathname) {
+  const p = normalizePathnameForTheme(pathname);
+  return (
+    p === "/account/heart-history" || p.startsWith("/account/heart-history/")
+  );
+}
+
 /** พื้นหลังเรียบให้ `<html>` ตอนดูเทมเพลต — ไม่ดึงรูป/ไล่สีจากแอดมิน */
 export function buildThemeLabEmbedHtmlBackgroundStyle() {
   return {

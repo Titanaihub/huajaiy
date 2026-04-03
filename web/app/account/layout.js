@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import AccountBackOfficeShell from "../../components/AccountBackOfficeShell";
+import AccountHeartHistoryPageShell from "../../components/AccountHeartHistoryPageShell";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import { normalizePathnameForTheme } from "../../lib/pathnameNormalize";
@@ -21,6 +22,14 @@ export default async function AccountLayout({ children }) {
   } catch {
     pathname = "/";
   }
+  /** ประวัติหัวใจ = เชลล์ใหม่ + พื้นรากเรียบ (ดู siteThemeStyle / root layout) */
+  if (
+    pathname === "/account/heart-history" ||
+    pathname.startsWith("/account/heart-history/")
+  ) {
+    return <AccountHeartHistoryPageShell>{children}</AccountHeartHistoryPageShell>;
+  }
+
   /** โปรไฟล์ = TailAdmin เต็มจอ — ไม่ครอบด้วยหัวเว็บ/ฟุตเตอร์/ชั้นกล่องเดิม */
   if (pathname === "/account/profile" || minimalShell) {
     return <>{children}</>;

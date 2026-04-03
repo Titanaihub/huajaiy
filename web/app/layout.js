@@ -14,6 +14,7 @@ import {
 import {
   buildSiteRootBackgroundStyle,
   buildThemeLabEmbedHtmlBackgroundStyle,
+  isHeartHistoryFlatBackgroundPath,
   isThemeLabFullPageEmbedPath,
   pickBackgroundSliceForPathname
 } from "../lib/siteThemeStyle";
@@ -83,10 +84,12 @@ export default async function RootLayout({ children }) {
   let htmlBgStyle;
   try {
     const bgSlice = pickBackgroundSliceForPathname(siteTheme, pathname);
-    /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน; Theme Lab iframe = พื้นเรียบ ไม่ดึงธีมเดิม */
-    htmlBgStyle = isThemeLabFullPageEmbedPath(pathname)
-      ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
-      : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
+    /** วางที่ <html> — หน้าแรก (/) กับหน้าอื่นใช้ชุดพื้นหลังคนละชุดตามแอดมิน; Theme Lab / ประวัติหัวใจ = พื้นเรียบ */
+    htmlBgStyle =
+      isThemeLabFullPageEmbedPath(pathname) ||
+      isHeartHistoryFlatBackgroundPath(pathname)
+        ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
+        : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
   } catch {
     htmlBgStyle = {
       ...buildThemeLabEmbedHtmlBackgroundStyle(),

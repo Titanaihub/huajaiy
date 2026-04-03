@@ -5,6 +5,7 @@ import { useLayoutEffect } from "react";
 import {
   buildSiteRootBackgroundStyle,
   buildThemeLabEmbedHtmlBackgroundStyle,
+  isHeartHistoryFlatBackgroundPath,
   isThemeLabFullPageEmbedPath,
   pickBackgroundSliceForPathname
 } from "../lib/siteThemeStyle";
@@ -20,7 +21,10 @@ export default function HtmlBackgroundSync() {
 
   useLayoutEffect(() => {
     const el = document.documentElement;
-    if (isThemeLabFullPageEmbedPath(pathname)) {
+    if (
+      isThemeLabFullPageEmbedPath(pathname) ||
+      isHeartHistoryFlatBackgroundPath(pathname)
+    ) {
       Object.assign(el.style, buildThemeLabEmbedHtmlBackgroundStyle());
       el.style.minHeight = "100dvh";
       return;
