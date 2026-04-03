@@ -11,7 +11,15 @@ export function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
 
-  const pathname = request.nextUrl.pathname;
+  let pathname = request.nextUrl.pathname;
+  /** เช่น /member//create-game → /member/create-game (slash ซ้ำจากลิงก์ผิดหรือ paste) */
+  const collapsedPath = pathname.replace(/\/+/g, "/");
+  if (collapsedPath !== pathname) {
+    const url = request.nextUrl.clone();
+    url.pathname = collapsedPath;
+    return NextResponse.redirect(url, 308);
+  }
+  pathname = collapsedPath;
   /** NextAuth เคยใช้ pages.signIn = /auth — ส่งต่อทันที (เก็บ query) ก่อนโหลดหน้าเก่า */
   if (pathname === "/auth") {
     const url = request.nextUrl.clone();
@@ -22,7 +30,8 @@ export function middleware(request) {
   requestHeaders.set("x-huajaiy-pathname", pathname);
   /** ฝังในสมาชิก TailAdmin — ไม่ครอบ SiteHeader / หลังบ้านเก่า */
   if (
-    pathname === "/account/create-game" &&
+    (pathname === "/account/create-game" ||
+      pathname === "/account/game-studio") &&
     request.nextUrl.searchParams.get("member_embed") === "1"
   ) {
     requestHeaders.set("x-huajaiy-account-minimal-shell", "1");

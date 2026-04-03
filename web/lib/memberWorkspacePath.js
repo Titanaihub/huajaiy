@@ -52,6 +52,7 @@ export function normalizeMemberTailPath(tailPath) {
   if (tailPath == null || String(tailPath).trim() === "") return "/";
   let s = String(tailPath).trim().split("?")[0].slice(0, 200);
   if (!s.startsWith("/")) s = `/${s}`;
+  s = s.replace(/\/+/g, "/");
   if (s.length > 1) s = s.replace(/\/$/, "");
   return s || "/";
 }
@@ -71,7 +72,9 @@ export function memberAppPathForTail(tailPath) {
   const t = normalizeMemberTailPath(tailPath);
   const slug = MEMBER_TAIL_TO_SLUG[t];
   if (slug === undefined) return MEMBER_WORKSPACE_PATH;
-  return slug === "" ? MEMBER_WORKSPACE_PATH : `${MEMBER_WORKSPACE_PATH}/${slug}`;
+  if (slug === "") return MEMBER_WORKSPACE_PATH;
+  const seg = String(slug).replace(/^\/+/, "").replace(/\/+$/, "");
+  return `${MEMBER_WORKSPACE_PATH}/${seg}`;
 }
 
 /** slug เดียวจาก URL → tail สำหรับ iframe; ไม่รู้จัก → null */
@@ -93,7 +96,9 @@ export function memberTailPathFromSlug(slug) {
  * @returns {{ segments: string[] } | null} null = ไม่ใช่เส้นทางใต้ /member
  */
 export function parseMemberAppPath(pathname) {
-  const p = (pathname || "").split("?")[0].replace(/\/$/, "") || "/";
+  const p =
+    ((pathname || "").split("?")[0] || "/").replace(/\/+/g, "/").replace(/\/$/, "") ||
+    "/";
   if (p === "/member") return { segments: [] };
   if (!p.startsWith("/member/")) return null;
   const rest = p.slice("/member/".length);

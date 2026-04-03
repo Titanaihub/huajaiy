@@ -6,9 +6,23 @@ import { defineConfig } from 'vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
-export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/tailadmin-template/' : '/',
-  plugins: [vue(), vueJsx(), vueDevTools()],
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/tailadmin-template/' : '/',
+  plugins: [
+    vue(),
+    vueJsx(),
+    vueDevTools(),
+    {
+      name: 'huajaiy-tailadmin-bridge',
+      transformIndexHtml(html) {
+        if (command !== 'build') return html
+        return html.replace(
+          '</body>',
+          '    <script src="/tailadmin-template/huajaiy-tailadmin-bridge.js" defer></script>\n  </body>'
+        )
+      }
+    }
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -21,4 +35,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

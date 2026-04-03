@@ -22,6 +22,7 @@
       if (!raw || !String(raw).trim()) return;
       var path = String(raw).trim();
       if (!path.startsWith("/")) path = "/" + path;
+      path = path.replace(/\/+/g, "/");
       huajaiyStartTarget = "/tailadmin-template" + path;
     } catch (e) {
       /* ignore */
@@ -105,6 +106,7 @@
     var base = parentWorkspaceBase();
     if (item.kind !== "shell") return base;
     var slug = item.slug != null ? String(item.slug) : "";
+    slug = slug.replace(/^\/+/g, "").replace(/\/+$/g, "");
     if (slug === "") return base;
     return base + "/" + slug;
   }
@@ -115,6 +117,7 @@
       if (window.parent && window.parent.location) {
         var path = String(window.parent.location.pathname || "")
           .split("?")[0]
+          .replace(/\/+/g, "/")
           .replace(/\/$/, "") || "/";
         if (path === "/member") return "";
         var prefix = "/member/";
