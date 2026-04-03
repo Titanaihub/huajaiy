@@ -128,10 +128,23 @@ function fmt(n: number) {
   return Math.max(0, Math.floor(Number(n) || 0)).toLocaleString('th-TH')
 }
 
+/** แดงจากผู้เล่น = กระเป๋า + ยอดในห้อง (roomGiftRed) — ตรงกับหัวเว็บ Next */
+function redFromUsersTotal(u: Record<string, unknown>): number {
+  const wallet = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0))
+  const rows = Array.isArray(u.roomGiftRed)
+    ? (u.roomGiftRed as { balance?: unknown }[])
+    : []
+  const room = rows.reduce(
+    (s, x) => s + Math.max(0, Math.floor(Number(x?.balance) || 0)),
+    0,
+  )
+  return wallet + room
+}
+
 function applyFromUser(u: Record<string, unknown> | null | undefined) {
   if (!u || typeof u !== 'object') return
   pink.value = Math.max(0, Math.floor(Number(u.pinkHeartsBalance) || 0))
-  red.value = Math.max(0, Math.floor(Number(u.redHeartsBalance) || 0))
+  red.value = redFromUsersTotal(u)
   giveaway.value = Math.max(0, Math.floor(Number(u.redGiveawayBalance) || 0))
 }
 

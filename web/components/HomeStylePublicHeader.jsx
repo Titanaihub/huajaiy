@@ -12,21 +12,11 @@ import {
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
-
-function serverHeartTotalsForHeader(user) {
-  const pink = Math.max(0, Math.floor(Number(user.pinkHeartsBalance) || 0));
-  const walletRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
-  const rows = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
-  const roomRed = rows.reduce(
-    (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
-    0
-  );
-  return { pink, red: walletRed + roomRed };
-}
 
 /** สไตล์ไอคอนขวาให้ใกล้เคียง organic-template/index.html (p-2 mx-1) */
 const iconLinkClass =
@@ -55,24 +45,27 @@ export default function HomeStylePublicHeader({
     : "/login";
 
   let pinkShown = 0;
-  let redShown = 0;
+  let redFromUsersShown = 0;
+  let giveawayRedShown = 0;
   let heartsLoading = false;
   if (memberLoading) {
     heartsLoading = true;
   } else if (memberUser) {
-    const t = serverHeartTotalsForHeader(memberUser);
+    const t = heartTotalsFromPublicUser(memberUser);
     pinkShown = t.pink;
-    redShown = t.red;
+    redFromUsersShown = t.redFromUsers;
+    giveawayRedShown = t.giveawayRed;
   } else if (heartsReady) {
     pinkShown = pinkHearts;
-    redShown = redHearts;
+    redFromUsersShown = redHearts;
+    giveawayRedShown = 0;
   }
 
   const heartsHref = memberUser
     ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
     : "/login";
   const heartsTitle = memberUser
-    ? "หัวใจชมพู / แดง — แตะเพื่อหน้าหัวใจของฉัน"
+    ? "หัวใจชมพู (ระบบส่วนกลาง) · แดงจากผู้เล่น · แดงสำหรับแจก — แตะเพื่อหน้าหัวใจของฉัน"
     : "เข้าสู่ระบบเพื่อดูยอดหัวใจจากเซิร์ฟเวอร์";
 
   useEffect(() => {
@@ -120,10 +113,13 @@ export default function HomeStylePublicHeader({
               aria-label={
                 heartsLoading
                   ? "กำลังโหลดยอดหัวใจ"
-                  : `หัวใจชมพู ${pinkShown} หัวใจแดง ${redShown}`
+                  : `หัวใจชมพู ${pinkShown} แดงจากผู้เล่น ${redFromUsersShown} แดงแจก ${giveawayRedShown}`
               }
             >
-              <span className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex items-center gap-1"
+                title="หัวใจชมพู — ยอดจากระบบส่วนกลาง"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={HEART_PINK_SRC}
@@ -136,7 +132,10 @@ export default function HomeStylePublicHeader({
                   {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
                 </span>
               </span>
-              <span className="inline-flex items-center gap-1">
+              <span
+                className="inline-flex items-center gap-1"
+                title="หัวใจแดง — กระเป๋า + จากผู้เล่นในห้องเกม"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={HEART_RED_SRC}
@@ -146,7 +145,23 @@ export default function HomeStylePublicHeader({
                   className="h-[22px] w-[22px] shrink-0 object-contain sm:h-6 sm:w-6"
                 />
                 <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-600 sm:text-base">
-                  {heartsLoading ? "…" : redShown.toLocaleString("th-TH")}
+                  {heartsLoading ? "…" : redFromUsersShown.toLocaleString("th-TH")}
+                </span>
+              </span>
+              <span
+                className="inline-flex items-center gap-1"
+                title="หัวใจแดงสำหรับแจก"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={HEART_RED_SRC}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] shrink-0 object-contain ring-2 ring-red-200 ring-offset-1 rounded-full sm:ring-offset-0"
+                />
+                <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-700 sm:text-base">
+                  {heartsLoading ? "…" : giveawayRedShown.toLocaleString("th-TH")}
                 </span>
               </span>
             </Link>
