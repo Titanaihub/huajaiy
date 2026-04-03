@@ -20,6 +20,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).get("huajaiy_chrome") === "1") {
+            document.documentElement.classList.add("huajaiy-chrome-hide");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      /* โหลดใน iframe ใต้ HomeStylePublicHeader — ไม่ให้ซ้ำแถบเมนู (สถานะล็อกอินอยู่ที่ parent) */
+      html.huajaiy-chrome-hide header.sticky-top.border-bottom {
+        display: none !important;
+      }
+    </style>
+
   </head>
   <body>
 
@@ -2294,5 +2310,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
+    <script>
+      (function () {
+        window.addEventListener("message", function (ev) {
+          if (ev.origin !== window.location.origin) return;
+          var d = ev.data;
+          if (!d || d.type !== "HUAJAIY_TOGGLE_ORGANIC_NAV") return;
+          var el = document.getElementById("offcanvasNavbar");
+          if (!el || typeof bootstrap === "undefined") return;
+          try {
+            bootstrap.Offcanvas.getOrCreateInstance(el).toggle();
+          } catch (e) {}
+        });
+      })();
+    </script>
   </body>
 </html>
