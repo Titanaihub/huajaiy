@@ -1,23 +1,11 @@
 <template>
   <admin-layout>
-    <PageBreadcrumb :pageTitle="pageTitle" />
+    <PageBreadcrumb :page-title="pageTitle" prominent />
 
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div class="min-w-0">
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-white/90">
-          {{ managingLabel }}
-        </h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{
-            gameId
-              ? 'ด้านล่างคือแผงตั้งค่าเกมของคุณ'
-              : 'เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน'
-          }}
-        </p>
-      </div>
+    <div class="mb-8 flex flex-wrap items-center justify-end gap-3">
       <router-link
         to="/my-games"
-        class="shrink-0 text-sm font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
+        class="shrink-0 text-base font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
       >
         ← กลับเกมของฉัน
       </router-link>
@@ -25,7 +13,7 @@
 
     <p
       v-if="authLoading"
-      class="text-sm text-gray-500 dark:text-gray-400"
+      class="text-base text-gray-500 dark:text-gray-400"
       aria-live="polite"
     >
       กำลังโหลด…
@@ -33,9 +21,9 @@
 
     <div
       v-else-if="!hasToken"
-      class="rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300"
+      class="rounded-2xl border border-gray-200 bg-white p-6 text-base text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900/40 dark:text-gray-300"
     >
-      <p class="font-medium text-gray-800 dark:text-white/90">ต้องเข้าสู่ระบบก่อน</p>
+      <p class="text-lg font-semibold text-gray-800 dark:text-white/90">ต้องเข้าสู่ระบบก่อน</p>
       <p class="mt-2">
         <a
           href="/login"
@@ -49,57 +37,18 @@
     </div>
 
     <template v-else>
-      <form v-if="!gameId" class="space-y-6" @submit.prevent="onSubmit">
+      <form v-if="!gameId" class="space-y-8" @submit.prevent="onSubmit">
+        <!-- การ์ด 1: ข้อห้ามใช้งาน -->
         <div
-          class="rounded-2xl border border-gray-200 bg-white p-4 pt-5 shadow-sm dark:border-gray-800 dark:bg-gray-900/40"
-        >
-          <div class="-mx-1 border-b border-gray-200 pb-3 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-              วัตถุประสงค์ในการเปิดห้องเกม
-            </h3>
-            <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-              เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
-            </p>
-          </div>
-          <ul class="mt-4 w-full max-w-none space-y-3">
-            <li v-for="p in PURPOSES" :key="p.id" class="w-full">
-              <label
-                class="flex w-full min-w-0 cursor-pointer items-start gap-3 text-sm leading-snug text-gray-700 dark:text-gray-200"
-              >
-                <input
-                  v-model="purpose"
-                  type="radio"
-                  name="purpose"
-                  :value="p.id"
-                  class="mt-1 shrink-0"
-                />
-                <span class="min-w-0 flex-1">{{ p.label }}</span>
-              </label>
-            </li>
-          </ul>
-          <div v-if="purpose === 'other'" class="mt-4">
-            <label
-              for="otherReason"
-              class="block text-sm font-medium text-gray-800 dark:text-white/90"
-            >
-              เหตุผล (อื่นๆ) <span class="text-red-600">*</span>
-            </label>
-            <textarea
-              id="otherReason"
-              v-model="otherReason"
-              rows="3"
-              placeholder="อธิบายวัตถุประสงค์ให้ชัดเจน"
-              class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-            />
-          </div>
-        </div>
-
-        <div
-          class="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-100"
+          class="rounded-2xl border-2 border-rose-200 bg-rose-50/95 p-6 shadow-sm md:p-8 dark:border-rose-800/55 dark:bg-rose-950/35"
           role="note"
         >
-          <p class="font-semibold text-rose-900 dark:text-rose-100">ข้อห้ามใช้งาน</p>
-          <ul class="mt-2 list-inside list-disc space-y-1 text-rose-900/95 dark:text-rose-100/90">
+          <p class="text-xl font-bold text-rose-950 md:text-2xl dark:text-rose-50">
+            ข้อห้ามใช้งาน
+          </p>
+          <ul
+            class="mt-4 list-disc space-y-4 pl-6 text-base leading-relaxed text-rose-950 md:text-lg dark:text-rose-100/95"
+          >
             <li>
               <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>
               หรือชักจูงให้เล่นพนัน
@@ -110,11 +59,16 @@
           </ul>
         </div>
 
+        <!-- การ์ด 2: กฎระเบียบ -->
         <div
-          class="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-100"
+          class="rounded-2xl border-2 border-amber-200 bg-amber-50/95 p-6 shadow-sm md:p-8 dark:border-amber-800/45 dark:bg-amber-950/30"
         >
-          <p class="font-semibold text-amber-900 dark:text-amber-100">กฎระเบียบสำหรับผู้สร้างเกม</p>
-          <ul class="mt-2 list-inside list-disc space-y-1">
+          <p class="text-xl font-bold text-amber-950 md:text-2xl dark:text-amber-50">
+            กฎระเบียบสำหรับผู้สร้างเกม
+          </p>
+          <ul
+            class="mt-4 list-disc space-y-4 pl-6 text-base leading-relaxed text-amber-950 md:text-lg dark:text-amber-100"
+          >
             <li>
               ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
             </li>
@@ -125,94 +79,136 @@
           </ul>
         </div>
 
+        <!-- การ์ด 3: วัตถุประสงค์ + ฟอร์ม -->
         <div
-          class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900/40"
+          class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 dark:border-gray-800 dark:bg-gray-900/40"
         >
-          <label for="roomTitle" class="block text-sm font-medium text-gray-800 dark:text-white/90">
-            ชื่อห้อง / ชื่อเกม (ไม่บังคับ)
-          </label>
-          <input
-            id="roomTitle"
-            v-model="roomTitle"
-            type="text"
-            maxlength="200"
-            placeholder="เช่น ลดราคาเดือนมีนา — เกมพลิกการ์ด"
-            class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-          />
-        </div>
+          <div class="border-b border-gray-200 pb-5 dark:border-gray-700">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white/90 md:text-2xl">
+              วัตถุประสงค์ในการเปิดห้องเกม
+            </h3>
+            <p class="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-400 md:text-lg">
+              เลือกข้อที่ตรงกับการใช้งานของคุณมากที่สุด
+            </p>
+          </div>
 
-        <div
-          class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900/40"
-        >
+          <ul class="mt-6 w-full max-w-none space-y-4 md:space-y-5">
+            <li v-for="p in PURPOSES" :key="p.id" class="w-full">
+              <label
+                class="flex w-full min-w-0 cursor-pointer items-start gap-4 text-base leading-snug text-gray-800 md:text-lg dark:text-gray-100"
+              >
+                <input
+                  v-model="purpose"
+                  type="radio"
+                  name="purpose"
+                  :value="p.id"
+                  class="mt-1.5 h-5 w-5 shrink-0 accent-rose-600"
+                />
+                <span class="min-w-0 flex-1">{{ p.label }}</span>
+              </label>
+            </li>
+          </ul>
+
+          <div v-if="purpose === 'other'" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <label
+              for="otherReason"
+              class="block text-base font-semibold text-gray-800 dark:text-white/90 md:text-lg"
+            >
+              เหตุผล (อื่นๆ) <span class="text-red-600">*</span>
+            </label>
+            <textarea
+              id="otherReason"
+              v-model="otherReason"
+              rows="3"
+              placeholder="อธิบายวัตถุประสงค์ให้ชัดเจน"
+              class="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 md:text-lg"
+            />
+          </div>
+
+          <div class="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700">
+            <label
+              for="roomTitle"
+              class="block text-base font-semibold text-gray-800 dark:text-white/90 md:text-lg"
+            >
+              ชื่อห้อง / ชื่อเกม (ไม่บังคับ)
+            </label>
+            <input
+              id="roomTitle"
+              v-model="roomTitle"
+              type="text"
+              maxlength="200"
+              placeholder="เช่น ลดราคาเดือนมีนา — เกมพลิกการ์ด"
+              class="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 md:text-lg"
+            />
+          </div>
+
+          <div class="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700">
+            <label
+              for="prizeConditions"
+              class="block text-base font-semibold text-gray-800 dark:text-white/90 md:text-lg"
+            >
+              เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span class="text-red-600">*</span>
+            </label>
+            <p class="mt-2 text-base leading-relaxed text-gray-600 dark:text-gray-400 md:text-lg">
+              ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
+            </p>
+            <textarea
+              id="prizeConditions"
+              v-model="prizeConditions"
+              rows="6"
+              required
+              class="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 md:text-lg"
+              placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
+            />
+          </div>
+
           <label
-            for="prizeConditions"
-            class="block text-sm font-medium text-gray-800 dark:text-white/90"
+            class="mt-8 flex cursor-pointer items-start gap-4 rounded-xl border border-gray-200 bg-gray-50/80 p-5 text-base leading-relaxed text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200 md:text-lg"
           >
-            เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span class="text-red-600">*</span>
+            <input
+              v-model="agreeRules"
+              type="checkbox"
+              class="mt-1 h-5 w-5 shrink-0 accent-rose-600"
+            />
+            <span>
+              ข้าพเจ้า<strong>รับทราบและยินยอม</strong>ตามกฎระเบียบข้างต้น รวมถึงข้อห้ามเรื่องการพนันและสื่อลามก
+              และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
+            </span>
           </label>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
+
+          <p
+            v-if="err"
+            class="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-base text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-100"
+            role="alert"
+          >
+            {{ err }}
           </p>
-          <textarea
-            id="prizeConditions"
-            v-model="prizeConditions"
-            rows="6"
-            required
-            class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-            placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
-          />
-        </div>
 
-        <label
-          class="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 bg-white/90 p-4 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200"
-        >
-          <input v-model="agreeRules" type="checkbox" class="mt-1" />
-          <span>
-            ข้าพเจ้า<strong>รับทราบและยินยอม</strong>ตามกฎระเบียบข้างต้น รวมถึงข้อห้ามเรื่องการพนันและสื่อลามก
-            และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
-          </span>
-        </label>
-
-        <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-          หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น
-          <strong class="font-medium text-gray-800 dark:text-white/90">หักหัวใจแดง 1 ต่อรอบ</strong>
-          <span class="text-gray-500 dark:text-gray-500">
-            (ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)
-          </span>
-        </p>
-
-        <p
-          v-if="err"
-          class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-100"
-          role="alert"
-        >
-          {{ err }}
-        </p>
-
-        <div class="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            :disabled="busy"
-            class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-gray-900"
-          >
-            {{ busy ? 'กำลังเปิดห้อง…' : 'เปิดสร้างห้องเกม' }}
-          </button>
-          <a
-            href="/member"
-            target="_top"
-            rel="noopener noreferrer"
-            class="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400"
-          >
-            ← ภาพรวมสมาชิก
-          </a>
-          <a
-            href="/member/game"
-            target="_top"
-            rel="noopener noreferrer"
-            class="text-sm font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400"
-          >
-            เกมของฉัน
-          </a>
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <button
+              type="submit"
+              :disabled="busy"
+              class="inline-flex min-h-[3rem] items-center justify-center rounded-xl bg-rose-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-gray-900 md:text-lg"
+            >
+              {{ busy ? 'กำลังเปิดห้อง…' : 'เปิดสร้างห้องเกม' }}
+            </button>
+            <a
+              href="/member"
+              target="_top"
+              rel="noopener noreferrer"
+              class="text-base font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400"
+            >
+              ← ภาพรวมสมาชิก
+            </a>
+            <a
+              href="/member/game"
+              target="_top"
+              rel="noopener noreferrer"
+              class="text-base font-medium text-gray-700 underline decoration-gray-300 underline-offset-2 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400"
+            >
+              เกมของฉัน
+            </a>
+          </div>
         </div>
       </form>
 
@@ -221,7 +217,7 @@
         id="game-studio"
         class="scroll-mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"
       >
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">ตั้งค่าห้องเกม</h3>
+        <h3 class="text-xl font-bold text-gray-800 dark:text-white/90 md:text-2xl">ตั้งค่าห้องเกม</h3>
         <div
           class="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/30"
         >
@@ -329,8 +325,6 @@ const studioIframeSrc = computed(() => {
   if (!id) return ''
   return `/account/game-studio?member_embed=1&game=${encodeURIComponent(id)}`
 })
-
-const managingLabel = computed(() => (gameId.value ? 'จัดการห้องเกม' : 'เปิดห้องเกม'))
 
 function refreshAuthState() {
   const t = memberToken()

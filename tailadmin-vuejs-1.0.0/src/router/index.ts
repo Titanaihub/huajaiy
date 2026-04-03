@@ -205,7 +205,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.huajaiyMember && typeof to.meta.title === 'string') {
     document.title = `${to.meta.title} | HUAJAIY`
   } else {
-    document.title = `Vue.js ${to.meta.title || 'Page'} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
+    document.title = `${to.meta.title || 'Page'} | HUAJAIY`
   }
   next()
 })
