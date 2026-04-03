@@ -161,10 +161,10 @@ export default function ProductGrid() {
             <li>
               <strong>เจ้าของร้าน</strong> ล็อกอิน →{" "}
               <Link
-                href="/account/shops"
+                href="/member/shops"
                 className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
-                บัญชี → ร้านของฉัน
+                พื้นที่สมาชิก → ร้านค้าของฉัน
               </Link>{" "}
               → <strong>จัดการสินค้า</strong> → เพิ่มสินค้า
             </li>

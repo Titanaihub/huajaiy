@@ -112,7 +112,7 @@ export default function AccountShopsSection() {
                   ไปหน้าร้านค้า
                 </Link>
                 <Link
-                  href={`/account/shops/${s.id}/products`}
+                  href={`/member/shops/${s.id}/products`}
                   className="font-medium text-hui-cta hover:underline"
                 >
                   จัดการสินค้า

@@ -24,6 +24,16 @@ export function middleware(request) {
   }
   pathname = collapsedPath;
 
+  /** /member/shops/{uuid}/products → หน้าจัดการสินค้า React (ลิงก์จากเทมเพลตสมาชิก) */
+  const shopProductsMatch = pathname.match(
+    /^\/member\/shops\/([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/products\/?$/i
+  );
+  if (shopProductsMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/account/shops/${shopProductsMatch[1]}/products`;
+    return NextResponse.redirect(url, 308);
+  }
+
   /**
    * หน้า React ที่ยังไม่มีใน Vue / มี path ซ้อน — คงที่ /account ไม่ redirect ไป /member
    * (ไม่งั้น middleware ส่งไป /member/... แล้วเชลล์ยอมแค่ slug เดียว → โดนเตะกลับ /member)

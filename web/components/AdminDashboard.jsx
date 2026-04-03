@@ -1365,10 +1365,10 @@ export default function AdminDashboard() {
           <p className="text-sm text-hui-body">
             ร้านที่ลงทะเบียนในฐานข้อมูล — สร้างร้านด้านล่างได้เลย จากนั้นให้เจ้าของร้านไป{" "}
             <Link
-              href="/account/shops"
+              href="/member/shops"
               className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
-              ร้านของฉัน → จัดการสินค้า
+              พื้นที่สมาชิก → ร้านค้าของฉัน
             </Link>
           </p>
 
@@ -1480,7 +1480,7 @@ export default function AdminDashboard() {
                       <td className="px-3 py-2">{s.ownerUsername || "—"}</td>
                       <td className="px-3 py-2">
                         <Link
-                          href={`/account/shops/${s.id}/products`}
+                          href={`/member/shops/${s.id}/products`}
                           className="text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
                         >
                           จัดการสินค้า

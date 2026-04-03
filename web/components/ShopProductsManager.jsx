@@ -137,7 +137,7 @@ export default function ShopProductsManager({ shopId }) {
             </p>
           ) : null}
         </div>
-        <Link href="/account/shops" className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+        <Link href="/member/shops" className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
           ← ร้านของฉัน
         </Link>
       </div>

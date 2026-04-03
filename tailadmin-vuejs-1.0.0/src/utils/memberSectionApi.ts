@@ -240,5 +240,25 @@ export async function apiDeleteRoomRedGiftCode(token: string, codeId: string): P
   if (!r.ok || !data.ok) throw new Error(data.error || 'ลบรหัสไม่สำเร็จ')
 }
 
+export interface MyShopRow {
+  id: string
+  slug?: string
+  name?: string
+  createdAt?: string
+}
+
+export async function apiGetMyShops(token: string): Promise<MyShopRow[]> {
+  const r = await fetch(`${root()}/api/auth/shops/mine`, {
+    headers: authHeaders(token)
+  })
+  const data = (await r.json().catch(() => ({}))) as {
+    ok?: boolean
+    shops?: MyShopRow[]
+    error?: string
+  }
+  if (!r.ok || !data.ok) throw new Error(data.error || 'โหลดร้านของฉันไม่สำเร็จ')
+  return Array.isArray(data.shops) ? data.shops : []
+}
+
 /** Re-export token helper for pages */
 export { huajaiyMemberToken }

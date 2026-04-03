@@ -23,10 +23,10 @@ export default function ShopPage() {
           <p className="mt-1 text-emerald-900/90">
             เจ้าของร้านลงสินค้าได้ที่{" "}
             <Link
-              href="/account/shops"
+              href="/member/shops"
               className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
-              บัญชี → ร้านของฉัน → จัดการสินค้า
+              พื้นที่สมาชิก → ร้านค้าของฉัน → จัดการสินค้า
             </Link>
             · แอดมินสร้างร้านและผูกบัญชีคุณที่{" "}
             <Link

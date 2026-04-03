@@ -65,7 +65,7 @@ const router = createRouter({
     {
       path: '/my-shops',
       name: 'MyShops',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
+      component: () => import('../views/huajaiy/MemberMyShopsPage.vue'),
       meta: { title: 'ร้านค้าของฉัน', huajaiyMember: true },
     },
     {
