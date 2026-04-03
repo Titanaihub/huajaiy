@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 
@@ -166,12 +166,15 @@ function memberToken(): string | null {
   }
 }
 
-async function fetchGames() {
-  listLoading.value = true
-  listErr.value = ''
+async function fetchGames(opts?: { silent?: boolean }) {
+  const silent = Boolean(opts?.silent)
+  if (!silent) {
+    listLoading.value = true
+    listErr.value = ''
+  }
   const token = memberToken()
   if (!token) {
-    listLoading.value = false
+    if (!silent) listLoading.value = false
     games.value = []
     return
   }
@@ -182,11 +185,12 @@ async function fetchGames() {
     const data = (await r.json().catch(() => ({}))) as { games?: CentralGameRow[]; error?: string }
     if (!r.ok) throw new Error(data.error || 'โหลดรายการเกมไม่สำเร็จ')
     games.value = Array.isArray(data.games) ? data.games : []
+    if (silent) listErr.value = ''
   } catch (e: unknown) {
     listErr.value = e instanceof Error ? e.message : 'โหลดรายการไม่สำเร็จ'
     games.value = []
   } finally {
-    listLoading.value = false
+    if (!silent) listLoading.value = false
   }
 }
 
@@ -247,7 +251,7 @@ async function togglePublish(g: CentralGameRow) {
     )
     const data = (await r.json().catch(() => ({}))) as { error?: string }
     if (!r.ok) throw new Error(data.error || 'อัปเดตสถานะเกมไม่สำเร็จ')
-    await fetchGames()
+    await fetchGames({ silent: true })
   } catch (e: unknown) {
     listErr.value = e instanceof Error ? e.message : 'อัปเดตสถานะเกมไม่สำเร็จ'
   } finally {
@@ -256,7 +260,8 @@ async function togglePublish(g: CentralGameRow) {
 }
 
 function onMemberUser() {
-  fetchGames()
+  /* bridge ยิง event บ่อยจาก MutationObserver — อย่า set listLoading จะได้ไม่กระพริบ */
+  fetchGames({ silent: true })
 }
 
 onMounted(() => {

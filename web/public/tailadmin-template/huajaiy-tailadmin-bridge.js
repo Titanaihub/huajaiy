@@ -492,12 +492,15 @@
 
   function applyUser(user) {
     if (!user) return;
+    var prevSig = lastUser ? JSON.stringify(lastUser) : "";
     lastUser = user;
     try {
       window.__HUAJAIY_USER__ = user;
-      window.dispatchEvent(
-        new CustomEvent("huajaiy-member-user", { detail: user })
-      );
+      if (prevSig !== JSON.stringify(user)) {
+        window.dispatchEvent(
+          new CustomEvent("huajaiy-member-user", { detail: user })
+        );
+      }
     } catch (e) {
       /* ignore */
     }
