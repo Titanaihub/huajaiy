@@ -1,16 +1,12 @@
 import LoginForm from "../../../components/LoginForm";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
-import { safeRedirectPath } from "../../../lib/safeRedirectPath";
-
 export const metadata = {
   title: "เข้าสู่ระบบ (ยูสเซอร์/รหัส) | HUAJAIY",
   description: "เข้าสู่ระบบสมาชิกแบบเดิม — ยูสเซอร์และรหัสผ่าน"
 };
 
-export default function HuiLoginPage({ searchParams }) {
-  const redirectAfterLogin = safeRedirectPath(searchParams?.next);
-
+export default function HuiLoginPage() {
   return (
     <>
       <SiteHeader />
@@ -22,18 +18,16 @@ export default function HuiLoginPage({ searchParams }) {
           </a>
           {" "}— หน้านี้ใช้ <strong className="text-hui-body">ยูสเซอร์ + รหัสผ่าน</strong> (รวมบัญชีแอดมินที่สร้างจาก API)
         </p>
-        <p className="mb-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-hui-muted">
+        <p className="mb-4 text-xs text-hui-muted">
           <a href="/" className="font-medium text-hui-section underline">
             หน้าแรก
           </a>
-          <a href="/member" className="font-medium text-hui-section underline">
-            สมาชิก
-          </a>
-          <a href="/admin" className="font-medium text-hui-section underline">
-            แอดมิน
+          <span className="text-hui-muted"> · </span>
+          <a href="/login" className="font-medium text-hui-section underline">
+            เข้าสู่ระบบ (LINE)
           </a>
         </p>
-        <LoginForm redirectAfterLogin={redirectAfterLogin} />
+        <LoginForm />
       </main>
       <SiteFooter />
     </>

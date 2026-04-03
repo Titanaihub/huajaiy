@@ -3,13 +3,11 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import SiteFooter from "../../../components/SiteFooter";
 import SiteHeader from "../../../components/SiteHeader";
 import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
-import { MEMBER_WORKSPACE_PATH } from "../../../lib/memberWorkspacePath";
-import { safeRedirectPath } from "../../../lib/safeRedirectPath";
 
 const NEXT_AUTH_ERROR_TH = {
   Configuration: "การตั้งค่า NextAuth ไม่สมบูรณ์ — ตรวจสอบ NEXTAUTH_URL / NEXTAUTH_SECRET",
@@ -24,39 +22,8 @@ const NEXT_AUTH_ERROR_TH = {
   Default: "เข้าสู่ระบบไม่สำเร็จ"
 };
 
-/** หลังล็อกอิน LINE + แลก token สมาชิกแล้ว — ค่าเริ่มต้นไประบบสมาชิก (TailAdmin); รองรับ ?next= และ ?callbackUrl= */
-const LINE_MEMBER_DEFAULT_REDIRECT = MEMBER_WORKSPACE_PATH;
-
-/** เดิมหลายจุดส่งมาที่ /account หรือ path เก่า — ให้ไป /member */
-function normalizeLineMemberTarget(path) {
-  if (typeof path !== "string") return path;
-  const base = path.replace(/\/+$/, "") || "/";
-  if (
-    base === "/account" ||
-    base === "/account/profile" ||
-    base === "/theme-lab/tailadmin"
-  ) {
-    return LINE_MEMBER_DEFAULT_REDIRECT;
-  }
-  return path;
-}
-
-function resolveMemberRedirect(searchParams) {
-  const direct = safeRedirectPath(searchParams.get("next"));
-  if (direct) return normalizeLineMemberTarget(direct);
-  const cb = searchParams.get("callbackUrl");
-  if (!cb) return LINE_MEMBER_DEFAULT_REDIRECT;
-  try {
-    const raw = decodeURIComponent(cb);
-    const u = new URL(raw);
-    const inner = safeRedirectPath(u.searchParams.get("next"));
-    if (inner) return normalizeLineMemberTarget(inner);
-    const pathOnly = safeRedirectPath(u.pathname);
-    if (pathOnly) return normalizeLineMemberTarget(pathOnly);
-  } catch {
-    /* ignore */
-  }
-  return LINE_MEMBER_DEFAULT_REDIRECT;
+function workspacePathAfterLineLink(user) {
+  return user?.role === "admin" ? "/admin" : "/member";
 }
 
 function isLineSession(session) {
@@ -71,14 +38,8 @@ function LineLoginContent() {
   const [authError, setAuthError] = useState("");
   const [memberLinkError, setMemberLinkError] = useState(null);
   const [exchangeRetry, setExchangeRetry] = useState(0);
-  const lineAutoOnce = useRef(false);
-
-  const callbackUrl = useMemo(
-    () => resolveMemberRedirect(searchParams),
-    [searchParams]
-  );
-
   const autoStartLine = searchParams.get("auto") === "1";
+  const lineAutoOnce = useRef(false);
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -106,7 +67,7 @@ function LineLoginContent() {
           return;
         }
         setMemberToken(data.token);
-        window.location.assign(callbackUrl);
+        window.location.assign(workspacePathAfterLineLink(data.user));
       } catch (e) {
         if (e.name === "AbortError") return;
         if (!ac.signal.aborted) {
@@ -115,11 +76,11 @@ function LineLoginContent() {
       }
     })();
     return () => ac.abort();
-  }, [status, session, callbackUrl, exchangeRetry]);
+  }, [status, session, exchangeRetry]);
 
-  async function handleLineSignIn() {
+  const handleLineSignIn = useCallback(async () => {
     setAuthError("");
-    const returnTo = `/login/line?next=${encodeURIComponent(callbackUrl)}`;
+    const returnTo = "/login/line";
     const result = await signIn("line", {
       callbackUrl: returnTo,
       redirect: false
@@ -131,7 +92,15 @@ function LineLoginContent() {
     } else if (result?.url) {
       window.location.href = result.url;
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!autoStartLine || authError) return;
+    if (status !== "unauthenticated") return;
+    if (lineAutoOnce.current) return;
+    lineAutoOnce.current = true;
+    handleLineSignIn();
+  }, [autoStartLine, authError, status, handleLineSignIn]);
 
   function handleSignOutLine() {
     clearMemberToken();
@@ -194,7 +163,7 @@ function LineLoginContent() {
                   </>
                 ) : (
                   <p className="text-sm text-hui-muted">
-                    กำลังเชื่อมกับบัญชีสมาชิกและพาไปยังหน้าเป้าหมาย...
+                    กำลังเชื่อมบัญชีและพาไปหน้าสมาชิกหรือแอดมิน...
                   </p>
                 )}
                 <button

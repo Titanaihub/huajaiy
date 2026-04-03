@@ -9,7 +9,8 @@ import {
 } from "../lib/memberLoginCode";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-export default function LoginForm({ redirectAfterLogin = null }) {
+/** หลังล็อกอินสำเร็จไป `/member` หรือ `/admin` ตาม role (ไม่ใช้ ?next=) */
+export default function LoginForm() {
   const router = useRouter();
   const { login } = useMemberAuth();
   const [mode, setMode] = useState("password");
@@ -24,8 +25,8 @@ export default function LoginForm({ redirectAfterLogin = null }) {
     setError("");
     setLoading(true);
     try {
-      await login(username, password);
-      router.push(redirectAfterLogin || "/");
+      const data = await login(username, password);
+      router.push(data.user?.role === "admin" ? "/admin" : "/member");
     } catch (err) {
       setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
     } finally {
@@ -45,8 +46,8 @@ export default function LoginForm({ redirectAfterLogin = null }) {
     }
     setLoading(true);
     try {
-      await login(c, c);
-      router.push(redirectAfterLogin || "/");
+      const data = await login(c, c);
+      router.push(data.user?.role === "admin" ? "/admin" : "/member");
     } catch (err) {
       setError(err.message || "เข้าสู่ระบบไม่สำเร็จ");
     } finally {
@@ -171,7 +172,7 @@ export default function LoginForm({ redirectAfterLogin = null }) {
 
       <p className="mt-6 text-center text-sm text-hui-body">
         <Link
-          href={redirectAfterLogin ? `/login/line?next=${encodeURIComponent(redirectAfterLogin)}` : "/login/line"}
+          href="/login/line"
           className="font-semibold text-[#06C755] underline decoration-[#06C755]/40 underline-offset-2 hover:brightness-95"
         >
           เข้าสู่ระบบด้วย LINE
@@ -180,21 +181,15 @@ export default function LoginForm({ redirectAfterLogin = null }) {
       <p className="mt-3 text-center text-sm text-hui-muted">
         บัญชีใหม่ไม่ต้องสมัคร — ใช้{" "}
         <Link
-          href={redirectAfterLogin ? `/login/line?next=${encodeURIComponent(redirectAfterLogin)}` : "/login/line"}
+          href="/login/line"
           className="font-semibold text-[#06C755] underline decoration-[#06C755]/40 underline-offset-2 hover:brightness-95"
         >
           เข้าสู่ระบบด้วย LINE
         </Link>
       </p>
-      <p className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-hui-border/60 pt-4 text-center text-xs text-hui-muted">
+      <p className="mt-4 border-t border-hui-border/60 pt-4 text-center text-xs text-hui-muted">
         <Link href="/" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
           หน้าแรก
-        </Link>
-        <Link href="/member" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
-          สมาชิก
-        </Link>
-        <Link href="/admin" className="text-hui-section underline decoration-hui-border/70 underline-offset-2">
-          แอดมิน
         </Link>
       </p>
     </>

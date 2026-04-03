@@ -53,7 +53,7 @@ export default function AdminTailadminWorkspace() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/hui/login?next=/admin");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

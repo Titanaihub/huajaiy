@@ -12,7 +12,7 @@ function AdminPanelBody() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/hui/login?next=/admin");
+      router.replace("/login");
     }
   }, [loading, user, router]);
 

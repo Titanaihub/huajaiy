@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { getApiBase } from "../lib/config";
-import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -41,9 +40,7 @@ export default function MemberTailadminWorkspace() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace(
-        `/login/line?next=${encodeURIComponent(MEMBER_WORKSPACE_PATH)}`
-      );
+      router.replace("/login");
     }
   }, [loading, user, router]);
 
