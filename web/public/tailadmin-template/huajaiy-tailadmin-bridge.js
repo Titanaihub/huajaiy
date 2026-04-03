@@ -144,15 +144,13 @@
       a.appendChild(wrap);
     }
 
-    if (!memberChrome) {
-      app
-        .querySelectorAll(
-          'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
-        )
-        .forEach(function (im) {
-          brandAnchor(im.closest("a"));
-        });
-    }
+    app
+      .querySelectorAll(
+        'aside img[alt="Logo"], aside img[src*="huajaiy-heart"]'
+      )
+      .forEach(function (im) {
+        brandAnchor(im.closest("a"));
+      });
 
     app
       .querySelectorAll(
@@ -183,14 +181,27 @@
     document.head.appendChild(st);
   }
 
+  function ensureHuajaiyPromptFont() {
+    if (document.getElementById("huajaiy-prompt-font")) return;
+    var link = document.createElement("link");
+    link.id = "huajaiy-prompt-font";
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&subset=latin,thai&display=swap";
+    document.head.appendChild(link);
+  }
+
   function ensureMemberChromeStyles() {
+    ensureHuajaiyPromptFont();
     if (document.getElementById("huajaiy-member-chrome-css")) return;
     var st = document.createElement("style");
     st.id = "huajaiy-member-chrome-css";
     st.textContent =
       "html.huajaiy-member-chrome #app header{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
-      "html.huajaiy-member-chrome #app aside>div:first-child{display:none!important;}";
+      "html.huajaiy-member-chrome #app aside.fixed{font-family:Prompt,ui-sans-serif,system-ui,sans-serif!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{box-sizing:border-box!important;margin-right:-1.25rem!important;width:calc(100% + 1.25rem)!important;padding-right:0!important;}";
     document.head.appendChild(st);
   }
 
@@ -325,6 +336,7 @@
 
     if (d.type === "HUAJAIY_MEMBER_CHROME") {
       document.documentElement.classList.add("huajaiy-member-chrome");
+      ensureHuajaiyPromptFont();
       ensureMemberChromeStyles();
       return;
     }
