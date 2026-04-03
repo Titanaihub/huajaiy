@@ -6,7 +6,8 @@ const {
   validateRegisterBody,
   validateLoginBody,
   validateRegisterNames,
-  validatePasswordChangeBody
+  validatePasswordChangeBody,
+  validateNewPasswordOnlyBody
 } = require("./authValidators");
 const userService = require("./services/userService");
 const phoneHistoryService = require("./services/phoneHistoryService");
@@ -490,7 +491,11 @@ router.patch("/profile", authMiddleware, async (req, res) => {
   }
 });
 
-/** สมาชิกเปลี่ยนรหัสผ่าน — ห้ามใช้ขณะแอดมินดูในนามสมาชิก */
+/**
+ * สมาชิกเปลี่ยนรหัสผ่าน — ห้ามใช้ขณะแอดมินดูในนามสมาชิก
+ * - มีรหัสเดิม: ส่ง currentPassword + newPassword + newPasswordConfirm
+ * - บัญชีผูก LINE (ยังไม่เคยตั้งรหัสที่จำได้): ไม่ส่ง currentPassword ได้ — ตั้ง newPassword + newPasswordConfirm อย่างเดียว
+ */
 router.patch("/password", authMiddleware, async (req, res) => {
   try {
     if (req.impersonation && req.impersonation.adminUserId) {
@@ -500,21 +505,42 @@ router.patch("/password", authMiddleware, async (req, res) => {
           "ไม่สามารถเปลี่ยนรหัสผ่านขณะดูในนามสมาชิก — ออกจากโหมดดูก่อน"
       });
     }
-    const parsed = validatePasswordChangeBody(req.body || {});
-    if (!parsed.ok) {
-      return res.status(400).json({ ok: false, error: parsed.error });
-    }
     const user = await userService.findById(req.userId);
     if (!user || !user.passwordHash) {
       return res.status(404).json({ ok: false, error: "ไม่พบบัญชี" });
     }
-    if (!bcrypt.compareSync(parsed.data.currentPassword, user.passwordHash)) {
+    const body = req.body || {};
+    const rawCurrent = String(body.currentPassword ?? "").trim();
+    const lineLinked =
+      user.lineUserId != null && String(user.lineUserId).trim() !== "";
+
+    let newPassword;
+    if (rawCurrent.length > 0) {
+      const parsed = validatePasswordChangeBody(body);
+      if (!parsed.ok) {
+        return res.status(400).json({ ok: false, error: parsed.error });
+      }
+      if (!bcrypt.compareSync(parsed.data.currentPassword, user.passwordHash)) {
+        return res.status(400).json({
+          ok: false,
+          error: "รหัสผ่านปัจจุบันไม่ถูกต้อง"
+        });
+      }
+      newPassword = parsed.data.newPassword;
+    } else if (lineLinked) {
+      const parsed = validateNewPasswordOnlyBody(body);
+      if (!parsed.ok) {
+        return res.status(400).json({ ok: false, error: parsed.error });
+      }
+      newPassword = parsed.data.newPassword;
+    } else {
       return res.status(400).json({
         ok: false,
-        error: "รหัสผ่านปัจจุบันไม่ถูกต้อง"
+        error: "กรุณากรอกรหัสผ่านปัจจุบัน"
       });
     }
-    if (bcrypt.compareSync(parsed.data.newPassword, user.passwordHash)) {
+
+    if (bcrypt.compareSync(newPassword, user.passwordHash)) {
       return res.status(400).json({
         ok: false,
         error: "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม"
@@ -522,7 +548,7 @@ router.patch("/password", authMiddleware, async (req, res) => {
     }
     await userService.setPasswordHashOnly(
       req.userId,
-      bcrypt.hashSync(parsed.data.newPassword, 10)
+      bcrypt.hashSync(newPassword, 10)
     );
     return res.json({ ok: true });
   } catch (e) {

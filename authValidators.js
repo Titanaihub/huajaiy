@@ -219,6 +219,17 @@ function validatePasswordChangeBody(body) {
   };
 }
 
+/** ตั้งรหัสผ่านใหม่เท่านั้น (ยืนยัน) — ใช้เมื่อยืนยันตัวตนผ่าน LINE แล้ว */
+function validateNewPasswordOnlyBody(body) {
+  const newP = validatePassword(body?.newPassword);
+  if (!newP.ok) return newP;
+  const confirm = String(body?.newPasswordConfirm ?? "");
+  if (confirm !== newP.value) {
+    return { ok: false, error: "รหัสผ่านยืนยันไม่ตรงกัน" };
+  }
+  return { ok: true, data: { newPassword: newP.value } };
+}
+
 module.exports = {
   validateRegisterBody,
   validateLoginBody,
@@ -227,6 +238,7 @@ module.exports = {
   validateUsername,
   validatePassword,
   validatePasswordChangeBody,
+  validateNewPasswordOnlyBody,
   validatePhone,
   validateEmail,
   COUNTRY_TH,

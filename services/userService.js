@@ -466,7 +466,10 @@ function publicUser(u) {
     profilePictureUrl: sanitizeHttpsUrlOptional(u.profilePictureUrl, 1024),
     socialFacebookUrl: sanitizeHttpsUrlOptional(u.socialFacebookUrl, 500),
     socialLineUrl: sanitizeHttpsUrlOptional(u.socialLineUrl, 500),
-    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500)
+    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500),
+    lineLoginLinked: Boolean(
+      u.lineUserId != null && String(u.lineUserId).trim() !== ""
+    )
   };
 }
 
