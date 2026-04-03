@@ -400,6 +400,14 @@
   function applyUser(user) {
     if (!user) return;
     lastUser = user;
+    try {
+      window.__HUAJAIY_USER__ = user;
+      window.dispatchEvent(
+        new CustomEvent("huajaiy-member-user", { detail: user })
+      );
+    } catch (e) {
+      /* ignore */
+    }
     var full = displayName(user);
     var sub =
       (user.username ? "@" + user.username + " · " : "") + roleLabel(user.role);
