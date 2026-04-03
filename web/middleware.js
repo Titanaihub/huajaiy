@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+const MEMBER_GAME_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /** ให้ root layout รู้ path ปัจจุบันเพื่อเลือกพื้นหลัง (หน้าแรก vs หน้าอื่น) */
 export function middleware(request) {
   const host = (request.headers.get("host") || "").split(":")[0].toLowerCase();
@@ -20,6 +23,17 @@ export function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
   pathname = collapsedPath;
+
+  /** ตั้งค่าเกม = หน้า /member/game-studio — ลิงก์เก่า ?game= บน create-game ส่งต่อมาที่นี่ */
+  if (pathname === "/member/create-game") {
+    const gameQ = request.nextUrl.searchParams.get("game");
+    if (gameQ && MEMBER_GAME_UUID_RE.test(String(gameQ).trim())) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/member/game-studio";
+      return NextResponse.redirect(url, 308);
+    }
+  }
+
   /** NextAuth เคยใช้ pages.signIn = /auth — ส่งต่อทันที (เก็บ query) ก่อนโหลดหน้าเก่า */
   if (pathname === "/auth") {
     const url = request.nextUrl.clone();

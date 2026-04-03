@@ -37,7 +37,7 @@
     </div>
 
     <template v-else>
-      <form v-if="!gameId" class="space-y-8" @submit.prevent="onSubmit">
+      <form class="space-y-8" @submit.prevent="onSubmit">
         <!-- การ์ด 1: ข้อห้ามใช้งาน -->
         <div
           class="rounded-2xl border-2 border-rose-200 bg-rose-50/95 p-6 shadow-sm md:p-8 dark:border-rose-800/55 dark:bg-rose-950/35"
@@ -190,7 +190,7 @@
               :disabled="busy"
               class="inline-flex min-h-[3rem] items-center justify-center rounded-xl bg-rose-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-gray-900 md:text-lg"
             >
-              {{ busy ? 'กำลังเปิดห้อง…' : 'เปิดสร้างห้องเกม' }}
+              {{ busy ? 'กำลังสร้างห้อง…' : 'ถัดไป — ตั้งค่าเกม' }}
             </button>
             <a
               href="/member"
@@ -211,32 +211,12 @@
           </div>
         </div>
       </form>
-
-      <div
-        v-if="gameId"
-        id="game-studio"
-        class="scroll-mt-8 border-t border-gray-200 pt-8 dark:border-gray-800"
-      >
-        <h3 class="text-xl font-bold text-gray-800 dark:text-white/90 md:text-2xl">ตั้งค่าห้องเกม</h3>
-        <div
-          class="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/30"
-        >
-          <iframe
-            :key="studioIframeSrc"
-            :src="studioIframeSrc"
-            title="ตั้งค่าห้องเกม"
-            class="block min-h-[min(88vh,960px)] w-full border-0 bg-white"
-            referrerpolicy="same-origin"
-          />
-        </div>
-      </div>
     </template>
   </admin-layout>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, onUnmounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 
@@ -260,9 +240,6 @@ const DEFAULT_NEW_ROOM_HEART_PRESET = {
 } as const
 
 const pageTitle = 'สร้างเกมใหม่'
-const route = useRoute()
-
-const gameId = ref<string | null>(null)
 const purpose = ref<PurposeId>('shop_sales')
 const otherReason = ref('')
 const prizeConditions = ref('')
@@ -306,25 +283,20 @@ function memberToken(): string | null {
   }
 }
 
-function syncGameIdFromSearch() {
+/** ลิงก์เก่า /member/create-game?game= ที่ยังโหลด iframe นี้ — ส่งไปหน้าตั้งค่า */
+function redirectToGameStudioIfMemberGameInQuery() {
   try {
     const q = new URLSearchParams(window.location.search)
     const g = q.get('member_game')
-    if (g && UUID_RE.test(String(g).trim())) {
-      gameId.value = String(g).trim()
-    } else {
-      gameId.value = null
+    if (g && UUID_RE.test(String(g).trim()) && window.top) {
+      window.top.location.replace(
+        `/member/game-studio?game=${encodeURIComponent(String(g).trim())}`
+      )
     }
   } catch {
-    gameId.value = null
+    /* ignore */
   }
 }
-
-const studioIframeSrc = computed(() => {
-  const id = gameId.value
-  if (!id) return ''
-  return `/account/game-studio?member_embed=1&game=${encodeURIComponent(id)}`
-})
 
 function refreshAuthState() {
   const t = memberToken()
@@ -388,7 +360,7 @@ async function onSubmit() {
     if (!gid) {
       throw new Error('สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า')
     }
-    const nextUrl = `/member/create-game?game=${encodeURIComponent(gid)}#game-studio`
+    const nextUrl = `/member/game-studio?game=${encodeURIComponent(gid)}`
     if (window.top) {
       window.top.location.assign(nextUrl)
     } else {
@@ -406,7 +378,7 @@ function onMemberUser() {
 }
 
 onMounted(() => {
-  syncGameIdFromSearch()
+  redirectToGameStudioIfMemberGameInQuery()
   refreshAuthState()
   window.addEventListener('huajaiy-member-user', onMemberUser)
 })
@@ -414,11 +386,4 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('huajaiy-member-user', onMemberUser)
 })
-
-watch(
-  () => route.fullPath,
-  () => {
-    syncGameIdFromSearch()
-  }
-)
 </script>

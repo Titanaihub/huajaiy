@@ -57,6 +57,12 @@ const router = createRouter({
       meta: { title: 'สร้างเกมใหม่', huajaiyMember: true },
     },
     {
+      path: '/game-studio',
+      name: 'MemberGameStudio',
+      component: () => import('../views/huajaiy/MemberGameStudioPage.vue'),
+      meta: { title: 'ตั้งค่าห้องเกม', huajaiyMember: true },
+    },
+    {
       path: '/my-shops',
       name: 'MyShops',
       component: () => import('../views/huajaiy/MemberSectionPage.vue'),

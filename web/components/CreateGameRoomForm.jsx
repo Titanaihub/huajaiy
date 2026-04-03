@@ -126,7 +126,7 @@ export default function CreateGameRoomForm() {
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
       const nextUrl = isMemberEmbed
-        ? `/member/create-game?game=${encodeURIComponent(gid)}#game-studio`
+        ? `/member/game-studio?game=${encodeURIComponent(gid)}`
         : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
       if (isMemberEmbed && typeof window !== "undefined") {
         window.top.location.assign(nextUrl);

@@ -155,7 +155,8 @@
       "/prize-withdraw-request": "prize-withdraw",
       "/hearts-top-up": "hearts-top-up",
       "/give-hearts": "give-hearts",
-      "/create-game": "create-game"
+      "/create-game": "create-game",
+      "/game-studio": "game-studio"
     };
     return map[st] !== undefined ? map[st] : null;
   }

@@ -204,11 +204,11 @@ function playHref(id: string) {
 }
 
 function manageHref(id: string) {
-  return `/member/create-game?game=${encodeURIComponent(id)}`
+  return `/member/game-studio?game=${encodeURIComponent(id)}`
 }
 
 function addPrizeHref(id: string) {
-  return `/member/create-game?game=${encodeURIComponent(id)}#game-studio`
+  return `/member/game-studio?game=${encodeURIComponent(id)}`
 }
 
 function statusLabel(g: CentralGameRow): string {

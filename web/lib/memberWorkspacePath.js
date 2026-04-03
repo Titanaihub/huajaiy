@@ -23,6 +23,9 @@ export const TAILADMIN_GIVE_HEARTS_START = "/give-hearts";
 /** สร้างเกม (ฝังฟอร์ม React ใน Vue สมาชิก) */
 export const TAILADMIN_CREATE_GAME_START = "/create-game";
 
+/** ตั้งค่าห้องเกมหลังสร้าง — ฝัง AdminCentralGamePanel (React) ในเชลล์สมาชิก */
+export const TAILADMIN_GAME_STUDIO_START = "/game-studio";
+
 /**
  * slug ใน URL สาธารณะ (เช่น /member/shops, /member/game) → path ใน Vue iframe
  * @type {Readonly<Record<string, string>>}
@@ -37,7 +40,8 @@ export const MEMBER_SLUG_TO_TAIL = Object.freeze({
   "prize-withdraw": TAILADMIN_PRIZE_WITHDRAW_START,
   "hearts-top-up": TAILADMIN_HEARTS_TOP_UP_START,
   "give-hearts": TAILADMIN_GIVE_HEARTS_START,
-  "create-game": TAILADMIN_CREATE_GAME_START
+  "create-game": TAILADMIN_CREATE_GAME_START,
+  "game-studio": TAILADMIN_GAME_STUDIO_START
 });
 
 /** tail (Vue) → slug สำหรับ URL /member/{slug} — ยกเว้นแดชบอร์ด = "" */
