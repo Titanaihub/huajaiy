@@ -12,11 +12,10 @@ import {
 } from "./memberWorkspacePath";
 
 /**
- * เมนูสมาชิก — คงเชลล์ Next `/member` หรือ `/admin` + iframe เทมเพลตใหม่เท่านั้น
- * (ข้อมูลแสดงในหน้า Vue จาก API — ไม่ลิงก์ไปหน้า `/account/*` เก่า)
+ * เมนูสมาชิก — เชลล์ `/member` หรือ `/admin` + iframe TailAdmin
  *
- * tailStart: เส้นทางใน TailAdmin (Vue) — URL สมาชิกสาธารณะเป็น `/member/...` (ดู MEMBER_SLUG_TO_TAIL)
- * kind: "shell" = เปลี่ยนหน้าใน iframe | "empty" = ยังไม่มีหน้าในเทมเพลต
+ * tailStart: path ใน Vue — URL สาธารณะ `/member/...` (MEMBER_SLUG_TO_TAIL)
+ * kind: "shell" | "empty" | "legacy" (legacy = หน้า React ที่ `/account/...` ยังไม่ย้าย)
  */
 export const MEMBER_SHELL_MENU_ITEMS = [
   {
@@ -44,5 +43,17 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     kind: "shell",
     tailStart: TAILADMIN_HEARTS_TOP_UP_START
   },
-  { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
+  { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START },
+  {
+    key: "heartHistory",
+    label: "ประวัติหัวใจ",
+    kind: "legacy",
+    href: "/account/heart-history"
+  },
+  {
+    key: "prizePayouts",
+    label: "จ่ายรางวัล (เกมส่วนกลาง)",
+    kind: "legacy",
+    href: "/account/prize-payouts"
+  }
 ];

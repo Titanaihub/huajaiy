@@ -24,12 +24,24 @@ export function middleware(request) {
   }
   pathname = collapsedPath;
 
-  /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้น prize-withdraw = ฟอร์มถอนเงินผู้เล่น React) */
-  const isAccountPrizeWithdraw =
+  /**
+   * หน้า React ที่ยังไม่มีใน Vue / มี path ซ้อน — คงที่ /account ไม่ redirect ไป /member
+   * (ไม่งั้น middleware ส่งไป /member/... แล้วเชลล์ยอมแค่ slug เดียว → โดนเตะกลับ /member)
+   */
+  const stayOnLegacyAccount =
     pathname === "/account/prize-withdraw" ||
-    pathname.startsWith("/account/prize-withdraw/");
+    pathname.startsWith("/account/prize-withdraw/") ||
+    pathname === "/account/prize-payouts" ||
+    pathname.startsWith("/account/prize-payouts/") ||
+    pathname === "/account/heart-history" ||
+    pathname.startsWith("/account/heart-history/") ||
+    pathname === "/account/profile/legacy" ||
+    pathname.startsWith("/account/profile/legacy/") ||
+    pathname.startsWith("/account/shops/");
+
+  /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้นหน้าที่ต้องคง React ด้านบน) */
   if (
-    !isAccountPrizeWithdraw &&
+    !stayOnLegacyAccount &&
     (pathname === "/account" || pathname.startsWith("/account/"))
   ) {
     const url = request.nextUrl.clone();

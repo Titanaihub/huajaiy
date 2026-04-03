@@ -104,7 +104,19 @@
       slug: "hearts-top-up",
       start: "/hearts-top-up"
     },
-    { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
+    { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" },
+    {
+      key: "heartHistory",
+      label: "ประวัติหัวใจ",
+      kind: "legacy",
+      href: "/account/heart-history"
+    },
+    {
+      key: "prizePayouts",
+      label: "จ่ายรางวัล (เกมส่วนกลาง)",
+      kind: "legacy",
+      href: "/account/prize-payouts"
+    }
   ];
 
   function parentWorkspaceBase() {
@@ -207,6 +219,22 @@
       if (item.kind === "shell") {
         var slug = item.slug != null ? String(item.slug) : "";
         active = effectiveSlug === slug;
+      } else if (item.kind === "legacy" && item.href) {
+        try {
+          if (window.parent && window.parent.location) {
+            var pp = String(window.parent.location.pathname || "")
+              .split("?")[0]
+              .replace(/\/+/g, "/")
+              .replace(/\/$/, "") || "/";
+            var h = String(item.href)
+              .split("?")[0]
+              .replace(/\/+/g, "/")
+              .replace(/\/$/, "") || "/";
+            active = pp === h || pp.indexOf(h + "/") === 0;
+          }
+        } catch (e) {
+          /* cross-origin */
+        }
       }
       el.classList.toggle("menu-item-active", active);
       el.classList.toggle("menu-item-inactive", !active);
@@ -250,6 +278,20 @@
           sp0.textContent = item.label;
           dis.appendChild(sp0);
           li.appendChild(dis);
+        } else if (item.kind === "legacy" && item.href) {
+          var la = document.createElement("a");
+          la.className =
+            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
+          la.setAttribute("data-huajaiy-key", item.key);
+          la.href = String(item.href);
+          la.target = "_parent";
+          la.rel = "noopener noreferrer";
+          la.title = "หน้าเดิมบนเว็บหลัก";
+          var lsp = document.createElement("span");
+          lsp.className = "menu-item-text";
+          lsp.textContent = item.label;
+          la.appendChild(lsp);
+          li.appendChild(la);
         } else {
           var a = document.createElement("a");
           a.className =
@@ -719,6 +761,13 @@
 
     if (d.type === "HUAJAIY_MEMBER") {
       if (d.apiBase) window.__HUAJAIY_API_BASE__ = d.apiBase;
+      if (d.token != null && String(d.token).trim() !== "") {
+        try {
+          localStorage.setItem(TOKEN_KEY, String(d.token).trim());
+        } catch (e) {
+          /* ignore */
+        }
+      }
       if (d.user) applyUser(d.user);
       scheduleSync();
     }

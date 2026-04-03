@@ -26,7 +26,12 @@ export interface HuajaiyPublicUser {
   role?: string
   selfServiceNameEditsRemaining?: number
   lineLoginLinked?: boolean
+  /** ตรงกับ userService.publicUser — สมาชิกใหม่/เก่าได้ชุดเดียวกันจาก GET /api/auth/me */
+  pinkHeartsBalance?: number
+  redHeartsBalance?: number
   redGiveawayBalance?: number
+  heartsBalance?: number
+  roomGiftRed?: unknown[]
 }
 
 export function useHuajaiyMemberProfile() {

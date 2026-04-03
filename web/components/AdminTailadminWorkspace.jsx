@@ -10,6 +10,7 @@ import {
   parseAdminAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
+import { getMemberToken } from "../lib/memberApi";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -101,10 +102,12 @@ export default function AdminTailadminWorkspace() {
   const syncIframe = useCallback(() => {
     if (!user) return;
     postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
+    const token = typeof window !== "undefined" ? getMemberToken() : null;
     postToIframe({
       type: "HUAJAIY_MEMBER",
       apiBase: getApiBase(),
-      user
+      user,
+      ...(token ? { token } : {})
     });
     if (
       user.role === "admin" &&

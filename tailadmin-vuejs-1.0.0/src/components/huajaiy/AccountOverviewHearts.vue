@@ -26,10 +26,12 @@
         {{ fmt(pink) }}
       </p>
       <div class="mt-auto pt-2">
-        <span
-          class="text-sm text-gray-400 dark:text-gray-500"
-          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
-          >ประวัติ</span
+        <a
+          class="text-sm font-medium text-pink-600 underline-offset-2 hover:underline dark:text-pink-400"
+          href="/account/heart-history/play"
+          target="_parent"
+          rel="noopener noreferrer"
+          >ประวัติการเล่น</a
         >
       </div>
     </div>
@@ -60,10 +62,12 @@
         {{ fmt(red) }}
       </p>
       <div class="mt-auto pt-2">
-        <span
-          class="text-sm text-gray-400 dark:text-gray-500"
-          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
-          >ประวัติ</span
+        <a
+          class="text-sm font-medium text-red-600 underline-offset-2 hover:underline dark:text-red-400"
+          href="/account/heart-history/purchases"
+          target="_parent"
+          rel="noopener noreferrer"
+          >ประวัติการซื้อ/ใช้</a
         >
       </div>
     </div>
@@ -94,15 +98,19 @@
         {{ fmt(giveaway) }}
       </p>
       <div class="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
-        <span
-          class="text-sm font-medium text-red-600/70 dark:text-red-500/70"
-          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าเติมหัวใจ"
-          >เติมหัวใจ</span
+        <a
+          class="text-sm font-medium text-red-600 underline-offset-2 hover:underline dark:text-red-400"
+          href="/member/hearts-top-up"
+          target="_parent"
+          rel="noopener noreferrer"
+          >เติมหัวใจ</a
         >
-        <span
-          class="text-sm text-gray-400 dark:text-gray-500"
-          title="จะเปิดในเทมเพลตใหม่เมื่อมีหน้าประวัติ"
-          >ประวัติ</span
+        <a
+          class="text-sm font-medium text-gray-600 underline-offset-2 hover:underline dark:text-gray-400"
+          href="/account/heart-history/purchases"
+          target="_parent"
+          rel="noopener noreferrer"
+          >ประวัติ</a
         >
       </div>
     </div>

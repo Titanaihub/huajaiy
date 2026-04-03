@@ -1,1 +1,0 @@
-import{_ as o}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{b as s,c as t,e as a,h as n}from"./index-8qkkYsuD.js";const d="/tailadmin-template/images/logo/auth-logo.svg",r={},c={class:"min-h-screen"};function l(e,_){return s(),t("div",c,[a("main",null,[n(e.$slots,"default")])])}const f=o(r,[["render",l]]);export{f as F,d as _};

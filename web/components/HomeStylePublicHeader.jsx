@@ -218,6 +218,15 @@ export default function HomeStylePublicHeader({
                           >
                             {item.label}
                           </span>
+                        ) : item.kind === "legacy" && item.href ? (
+                          <Link
+                            href={item.href}
+                            className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                            role="menuitem"
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            {item.label}
+                          </Link>
                         ) : (
                           <Link
                             href={workspaceShellUrl(
