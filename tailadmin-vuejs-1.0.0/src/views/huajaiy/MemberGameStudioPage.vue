@@ -3,12 +3,14 @@
     <PageBreadcrumb :page-title="pageTitle" prominent />
 
     <div class="mb-8 flex flex-wrap items-center justify-end gap-3">
-      <router-link
-        to="/my-games"
+      <a
+        href="/member/game"
+        target="_parent"
+        rel="noopener noreferrer"
         class="shrink-0 text-base font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
       >
         ← กลับเกมของฉัน
-      </router-link>
+      </a>
     </div>
 
     <p
@@ -43,13 +45,23 @@
     >
       <p class="font-semibold">ไม่พบรหัสเกมในลิงก์</p>
       <p class="mt-2">
-        <router-link to="/create-game" class="font-semibold text-rose-600 underline dark:text-rose-400">
+        <a
+          href="/member/create-game"
+          target="_parent"
+          rel="noopener noreferrer"
+          class="font-semibold text-rose-600 underline dark:text-rose-400"
+        >
           ไปสร้างเกมใหม่
-        </router-link>
+        </a>
         หรือ
-        <router-link to="/my-games" class="font-semibold text-rose-600 underline dark:text-rose-400">
+        <a
+          href="/member/game"
+          target="_parent"
+          rel="noopener noreferrer"
+          class="font-semibold text-rose-600 underline dark:text-rose-400"
+        >
           เกมของฉัน
-        </router-link>
+        </a>
       </p>
     </div>
 

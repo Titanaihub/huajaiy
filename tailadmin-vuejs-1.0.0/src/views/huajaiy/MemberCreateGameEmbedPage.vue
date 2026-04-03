@@ -3,12 +3,14 @@
     <PageBreadcrumb :page-title="pageTitle" prominent />
 
     <div class="mb-8 flex flex-wrap items-center justify-end gap-3">
-      <router-link
-        to="/my-games"
+      <a
+        href="/member/game"
+        target="_parent"
+        rel="noopener noreferrer"
         class="shrink-0 text-base font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
       >
         ← กลับเกมของฉัน
-      </router-link>
+      </a>
     </div>
 
     <p
@@ -288,10 +290,15 @@ function redirectToGameStudioIfMemberGameInQuery() {
   try {
     const q = new URLSearchParams(window.location.search)
     const g = q.get('member_game')
-    if (g && UUID_RE.test(String(g).trim()) && window.top) {
-      window.top.location.replace(
-        `/member/game-studio?game=${encodeURIComponent(String(g).trim())}`
-      )
+    if (g && UUID_RE.test(String(g).trim())) {
+      const u = `/member/game-studio?game=${encodeURIComponent(String(g).trim())}`
+      try {
+        if (window.top && window.top !== window) window.top.location.replace(u)
+        else if (window.parent && window.parent !== window) window.parent.location.replace(u)
+        else window.location.replace(u)
+      } catch {
+        window.location.replace(u)
+      }
     }
   } catch {
     /* ignore */
@@ -361,9 +368,15 @@ async function onSubmit() {
       throw new Error('สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า')
     }
     const nextUrl = `/member/game-studio?game=${encodeURIComponent(gid)}`
-    if (window.top) {
-      window.top.location.assign(nextUrl)
-    } else {
+    try {
+      if (window.top && window.top !== window) {
+        window.top.location.assign(nextUrl)
+      } else if (window.parent && window.parent !== window) {
+        window.parent.location.assign(nextUrl)
+      } else {
+        window.location.assign(nextUrl)
+      }
+    } catch {
       window.location.assign(nextUrl)
     }
   } catch (e: unknown) {

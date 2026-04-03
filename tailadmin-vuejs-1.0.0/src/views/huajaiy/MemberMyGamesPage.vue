@@ -16,12 +16,14 @@
             เกมที่สร้างจากบัญชีนี้ — จัดการเผยแพร่และแก้ไขได้จากที่นี่
           </p>
         </div>
-        <router-link
-          to="/create-game"
+        <a
+          href="/member/create-game"
+          target="_parent"
+          rel="noopener noreferrer"
           class="inline-flex shrink-0 items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           สร้างเกมใหม่
-        </router-link>
+        </a>
       </div>
 
       <p v-if="listErr" class="mb-4 text-sm text-red-600 dark:text-red-400" role="alert">
@@ -42,12 +44,14 @@
       >
         <p class="text-sm text-gray-600 dark:text-gray-400">ยังไม่มีเกมที่สร้างจากบัญชีนี้</p>
         <p class="mt-3">
-          <router-link
-            to="/create-game"
+          <a
+            href="/member/create-game"
+            target="_parent"
+            rel="noopener noreferrer"
             class="text-sm font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400"
           >
             ไปหน้าสร้างเกม
-          </router-link>
+          </a>
         </p>
       </div>
 

@@ -129,7 +129,17 @@ export default function CreateGameRoomForm() {
         ? `/member/game-studio?game=${encodeURIComponent(gid)}`
         : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
       if (isMemberEmbed && typeof window !== "undefined") {
-        window.top.location.assign(nextUrl);
+        try {
+          if (window.top && window.top !== window) {
+            window.top.location.assign(nextUrl);
+          } else if (window.parent && window.parent !== window) {
+            window.parent.location.assign(nextUrl);
+          } else {
+            window.location.assign(nextUrl);
+          }
+        } catch {
+          window.location.assign(nextUrl);
+        }
         return;
       }
       router.replace(nextUrl);
