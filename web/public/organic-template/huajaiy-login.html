@@ -78,7 +78,7 @@
                   aria-expanded="false"
                   aria-controls="hui-alt-login"
                 >
-                  เข้าระบบด้วยวิธีอื่น
+                  เข้าสู่ระบบด้วยวิธีอื่น
                 </button>
               </div>
 
@@ -86,6 +86,15 @@
                 <hr class="my-3" />
                 <p class="login_register_title text-center mb-3" style="font-size: 1.05rem">
                   เป็นสมาชิกแล้ว? เข้าสู่ระบบ:
+                </p>
+                <p
+                  id="hui-login-err"
+                  class="text-danger small mb-3"
+                  style="display: none"
+                  role="alert"
+                ></p>
+                <p class="small text-muted mb-3">
+                  สมาชิกรหัส 6 หลัก: กรอกรหัสเดียวกันในช่องชื่อผู้ใช้และรหัสผ่าน
                 </p>
                 <div class="form-group">
                   <label for="hui-username">ชื่อผู้ใช้ <span class="text-muted fw-normal">(Username)</span></label>
@@ -108,7 +117,7 @@
                   />
                 </div>
                 <div class="form-group col-lg-12">
-                  <button class="btn_one" type="button" id="hui-login-btn">Login</button>
+                  <button class="btn_one" type="button" id="hui-login-btn">เข้าสู่ระบบ</button>
                 </div>
               </div>
 
@@ -119,7 +128,16 @@
               <p class="small text-muted mt-3 mb-0">
                 <a href="/" target="_top" rel="noopener">← หน้าแรก</a>
                 <span class="text-muted"> · </span>
-                <a href="/login/password" target="_top" rel="noopener">เข้าด้วยยูสเซอร์ / รหัส</a>
+                <button
+                  type="button"
+                  class="btn btn-link hui-alt-toggle p-0 align-baseline border-0"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#hui-alt-login"
+                  aria-expanded="false"
+                  aria-controls="hui-alt-login"
+                >
+                  เข้าด้วยยูสเซอร์ / รหัส
+                </button>
               </p>
             </div>
           </div>
@@ -141,9 +159,68 @@
     <script src="/purdue-template/assets/js/wow.min.js"></script>
     <script src="/purdue-template/assets/js/scripts.js"></script>
     <script>
-      document.getElementById("hui-login-btn").addEventListener("click", function () {
-        window.top.location.href = "/login/password";
-      });
+      (function () {
+        var TOKEN_KEY = "huajaiy_member_token";
+        var errEl = document.getElementById("hui-login-err");
+        function showErr(msg) {
+          if (!errEl) return;
+          errEl.textContent = msg || "";
+          errEl.style.display = msg ? "block" : "none";
+        }
+        function expandAltLogin() {
+          var el = document.getElementById("hui-alt-login");
+          if (!el) return;
+          el.classList.add("show");
+          document.querySelectorAll('[data-bs-target="#hui-alt-login"]').forEach(function (b) {
+            b.setAttribute("aria-expanded", "true");
+          });
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+          try {
+            var p = new URLSearchParams(window.location.search);
+            if (p.get("expand") === "1" || p.get("expand") === "user") expandAltLogin();
+          } catch (e) {}
+        });
+        var btn = document.getElementById("hui-login-btn");
+        if (btn) {
+          btn.addEventListener("click", async function () {
+            showErr("");
+            var u = (document.getElementById("hui-username").value || "").trim().toLowerCase();
+            var pw = document.getElementById("hui-password").value || "";
+            if (!u || !pw) {
+              showErr("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
+              return;
+            }
+            btn.disabled = true;
+            try {
+              var res = await fetch("/api/auth/member-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: u, password: pw })
+              });
+              var data = await res.json().catch(function () {
+                return {};
+              });
+              if (!res.ok || !data.ok) {
+                showErr(data.error || "เข้าสู่ระบบไม่สำเร็จ");
+                return;
+              }
+              try {
+                window.localStorage.setItem(TOKEN_KEY, data.token);
+              } catch (e) {
+                showErr("ไม่สามารถบันทึกเซสชันในเบราว์เซอร์ได้");
+                return;
+              }
+              var role = data.user && data.user.role;
+              window.top.location.href = role === "admin" ? "/admin" : "/member";
+            } catch (e) {
+              showErr("เครือข่ายผิดพลาด — ลองอีกครั้ง");
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        }
+      })();
     </script>
   </body>
 </html>

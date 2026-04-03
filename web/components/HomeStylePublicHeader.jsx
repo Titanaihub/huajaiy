@@ -124,7 +124,7 @@ export default function HomeStylePublicHeader({
                 >
                   <li>
                     <Link
-                      href="/login/password"
+                      href="/login?expand=1"
                       className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                       role="menuitem"
                       onClick={() => setMoreOpen(false)}
