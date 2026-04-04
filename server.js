@@ -625,6 +625,21 @@ app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
           }
           if (Object.keys(patch).length) {
             await heartLedgerService.mergeMetaJsonByPlaySession(sessionId, patch);
+            if (req.userId) {
+              try {
+                await heartLedgerService.recordCentralRoundOutcome({
+                  userId: req.userId,
+                  playSessionId: sessionId,
+                  outcome: String(patch.roundOutcome || ""),
+                  summary:
+                    patch.roundPrizeSummary != null
+                      ? String(patch.roundPrizeSummary)
+                      : null
+                });
+              } catch (e2) {
+                console.error("[central_game_round_outcomes]", e2.message);
+              }
+            }
           }
         } catch (err) {
           console.error("[heart_ledger round meta]", err.message);

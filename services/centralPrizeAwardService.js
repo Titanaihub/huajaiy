@@ -1,4 +1,5 @@
 const { getPool } = require("../db/pool");
+const heartLedgerService = require("./heartLedgerService");
 
 function requirePool() {
   const pool = getPool();
@@ -164,6 +165,35 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
     await client.query("COMMIT");
     if (ins.rows.length === 0) {
       return { inserted: false, reason: "SESSION_ALREADY_RECORDED" };
+    }
+    const sid = String(playSessionId).slice(0, 64);
+    const cat = String(rule.prize_category || "").toLowerCase();
+    const head =
+      rule.prize_title != null && String(rule.prize_title).trim()
+        ? String(rule.prize_title).trim()
+        : cat === "cash"
+          ? "เงินสด"
+          : cat === "item"
+            ? "สิ่งของ"
+            : "รางวัล";
+    const tail = [rule.prize_value_text, rule.prize_unit]
+      .filter((x) => x != null && String(x).trim())
+      .join(" ")
+      .trim();
+    const summary = tail ? `${head}: ${tail}` : head;
+    try {
+      await heartLedgerService.mergeMetaJsonByPlaySession(sid, {
+        roundOutcome: "won",
+        roundPrizeSummary: summary
+      });
+      await heartLedgerService.recordCentralRoundOutcome({
+        userId,
+        playSessionId: sid,
+        outcome: "won",
+        summary
+      });
+    } catch (ledgerErr) {
+      console.error("[heart_ledger after award]", ledgerErr.message);
     }
     return { inserted: true, awardId: ins.rows[0].id };
   } catch (e) {

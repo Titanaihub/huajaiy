@@ -250,6 +250,19 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS central_game_round_outcomes (
+        play_session_id VARCHAR(64) PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        round_outcome VARCHAR(16) NOT NULL,
+        round_summary TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_game_round_outcomes_user ON central_game_round_outcomes(user_id);`
+    );
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS name_change_requests (
         id UUID PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
