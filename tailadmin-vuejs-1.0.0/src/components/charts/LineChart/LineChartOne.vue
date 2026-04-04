@@ -30,7 +30,7 @@ const chartOptions = ref({
   },
   colors: ['#465FFF', '#9CB9FF'],
   chart: {
-    fontFamily: 'HuajaiyUI, Nunito, sans-serif',
+    fontFamily: 'Niramit, sans-serif',
     type: 'area',
     toolbar: {
       show: false,

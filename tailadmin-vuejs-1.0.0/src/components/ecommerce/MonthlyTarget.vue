@@ -153,7 +153,7 @@ const series = computed(() => [props.value])
 const chartOptions = {
   colors: ['#465FFF'],
   chart: {
-    fontFamily: 'HuajaiyUI, Nunito, sans-serif',
+    fontFamily: 'Niramit, sans-serif',
     sparkline: {
       enabled: true,
     },

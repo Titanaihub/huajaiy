@@ -87,7 +87,7 @@ const initMap = () => {
       zoomButtons: false,
       regionStyle: {
         initial: {
-          fontFamily: 'HuajaiyUI, Nunito, sans-serif',
+          fontFamily: 'Niramit, sans-serif',
           fill: '#D9D9D9',
         },
         hover: {

@@ -7,29 +7,11 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ตัวอักษร = Nunito; ตัวเลข (หลายชุดยูนิโค้ด) = Open Sans ผ่าน HuajaiyUI */
-        sans: [
-          "HuajaiyUI",
-          "Nunito",
-          "ui-sans-serif",
-          "system-ui",
-          "Segoe UI",
-          "Sarabun",
-          "sans-serif"
-        ],
-        heading: [
-          "HuajaiyUI",
-          "Nunito",
-          "ui-sans-serif",
-          "system-ui",
-          "Segoe UI",
-          "Sarabun",
-          "sans-serif"
-        ],
-        /** ให้ตัวเลขในโค้ด/รหัสใช้ Open Sans เหมือนทั้งเว็บ แทน monospace ล้วน */
+        /** ตัวอักษร + ตัวเลข — Niramit ทั้งหมด */
+        sans: ["Niramit", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Niramit", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: [
-          "HuajaiyUI",
-          "Nunito",
+          "Niramit",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",

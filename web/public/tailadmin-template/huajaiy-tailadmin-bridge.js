@@ -516,21 +516,14 @@
     document.head.appendChild(st);
   }
 
-  /** Nunito + HuajaiyUI (ตัวเลข Open Sans) — ชุดเดียวกับเว็บหลัก */
+  /** Niramit — ฟอนต์เดียวกับเว็บหลัก */
   function ensureHuajaiyStackFonts() {
-    if (!document.getElementById("huajaiy-digit-font-link")) {
-      var digit = document.createElement("link");
-      digit.id = "huajaiy-digit-font-link";
-      digit.rel = "stylesheet";
-      digit.href = "/huajaiy-digit-font.css";
-      document.head.appendChild(digit);
-    }
-    if (!document.getElementById("huajaiy-nunito-font-link")) {
+    if (!document.getElementById("huajaiy-niramit-font-link")) {
       var link = document.createElement("link");
-      link.id = "huajaiy-nunito-font-link";
+      link.id = "huajaiy-niramit-font-link";
       link.rel = "stylesheet";
       link.href =
-        "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap";
+        "https://fonts.googleapis.com/css2?family=Niramit:wght@400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
   }
@@ -543,7 +536,7 @@
     st.textContent =
       "html.huajaiy-member-chrome #app header{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed{font-family:HuajaiyUI,Nunito,ui-sans-serif,system-ui,sans-serif!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed{font-family:Niramit,ui-sans-serif,system-ui,sans-serif!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed>div:first-child{display:none!important;}" +
       "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){padding-top:1rem!important;}" +
@@ -746,7 +739,7 @@
       var p = document.createElement("p");
       p.className = "huajaiy-shell-placeholder-text";
       p.style.cssText =
-        "margin:0;text-align:center;font-weight:700;font-size:clamp(1.25rem,4vw,2.25rem);color:#334155;line-height:1.3;font-family:HuajaiyUI,Nunito,ui-sans-serif,system-ui,sans-serif;";
+        "margin:0;text-align:center;font-weight:700;font-size:clamp(1.25rem,4vw,2.25rem);color:#334155;line-height:1.3;font-family:Niramit,ui-sans-serif,system-ui,sans-serif;";
       root.appendChild(p);
       host.appendChild(root);
     }

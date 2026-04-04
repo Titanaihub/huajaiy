@@ -20,7 +20,7 @@ const series = ref([
 const chartOptions = ref({
   colors: ['#465fff'],
   chart: {
-    fontFamily: 'HuajaiyUI, Nunito, sans-serif',
+    fontFamily: 'Niramit, sans-serif',
     type: 'bar',
     toolbar: {
       show: false,
@@ -68,7 +68,7 @@ const chartOptions = ref({
     show: true,
     position: 'top',
     horizontalAlign: 'left',
-    fontFamily: 'HuajaiyUI, Nunito, sans-serif',
+    fontFamily: 'Niramit, sans-serif',
     markers: {
       radius: 99,
     },

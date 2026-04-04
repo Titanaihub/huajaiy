@@ -1,5 +1,4 @@
-@import './huajaiy-digit-font.css' layer(base);
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Niramit:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap')
   layer(base);
 
 @import 'tailwindcss';
@@ -8,8 +7,8 @@
 
 @theme {
   --font-*: initial;
-  /* ตัวอักษร Nunito; ตัวเลข → Open Sans ผ่าน HuajaiyUI (ชื่อ utility ยัง font-outfit) */
-  --font-outfit: HuajaiyUI, "Nunito", sans-serif;
+  /* ฟอนต์เดียว — Niramit (ชื่อ utility ยัง font-outfit) */
+  --font-outfit: "Niramit", sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
