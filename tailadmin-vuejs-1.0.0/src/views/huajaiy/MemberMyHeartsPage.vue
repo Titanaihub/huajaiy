@@ -62,6 +62,12 @@
               ยังไม่มีประวัติในช่วงที่โหลด (หรือยังไม่เคยแลกรหัส/เล่นเกมของห้องนี้)
             </div>
             <div v-else class="overflow-x-auto">
+            <p
+              class="border-b border-slate-100 bg-slate-50/80 px-4 py-2 text-xs leading-relaxed text-slate-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-400"
+            >
+              คอลัมน์ «คงเหลือ» คิดย้อนจากยอดปัจจุบันด้านบนให้ตรงระบบ — ถ้าโหลดประวัติไม่ครบ (จำกัดจำนวนแถว)
+              ยอดก่อนรายการแรกในตารางอาจสะท้อนรายการเก่าที่ไม่แสดง
+            </p>
             <table class="w-full min-w-[560px] border-collapse text-left text-sm">
               <thead>
                 <tr class="border-b border-slate-200 bg-white text-slate-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
@@ -371,25 +377,27 @@ const roomBlocks = computed((): RoomBlock[] => {
       return a.id.localeCompare(b.id)
     })
 
-    let bal = 0
-    const chronological: DisplayRow[] = []
-    for (const ev of evs) {
-      bal += ev.delta
-      if (bal < 0) bal = 0
+    /**
+     * คงเหลือหลังแต่ละรายการ: ย้อนจากยอดจริงใน DB (currentBalance) ไม่ใช่สะสมจาก 0
+     * — ถ้าประวัติใน API ไม่ครบ แถวบนสุดจะได้เท่ายอดปัจจุบัน แทนที่จะหลุดไปเลขต่ำกว่าจริง
+     */
+    let running = meta.balance
+    const rows: DisplayRow[] = []
+    for (let i = evs.length - 1; i >= 0; i -= 1) {
+      const ev = evs[i]
       const when = ev.ts
         ? new Date(ev.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })
         : '—'
-      chronological.push({
+      rows.push({
         key: ev.id,
         when,
         itemLine: ev.itemLine,
         delta: ev.delta,
-        balanceAfter: bal,
+        balanceAfter: running,
         gameId: ev.gameId,
       })
+      running -= ev.delta
     }
-
-    const rows = chronological.reverse()
 
     blocks.push({
       creatorId: cid,
