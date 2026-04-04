@@ -116,6 +116,9 @@ export default function AdminTailadminWorkspace() {
       type: "HUAJAIY_MEMBER",
       apiBase: getApiBase(),
       user,
+      shellPlaceholderText: closedShellSlug
+        ? MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE
+        : "",
       ...(token ? { token } : {})
     });
     if (
@@ -127,7 +130,7 @@ export default function AdminTailadminWorkspace() {
     } else {
       postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: "" });
     }
-  }, [user, panelUrl, postToIframe, showLegacyEmbed]);
+  }, [user, panelUrl, postToIframe, showLegacyEmbed, closedShellSlug]);
 
   useEffect(() => {
     if (loading) return;
@@ -139,7 +142,7 @@ export default function AdminTailadminWorkspace() {
   useEffect(() => {
     if (!user || loading) return;
     syncIframe();
-  }, [user, loading, panelUrl, syncIframe, iframeSrc]);
+  }, [user, loading, panelUrl, syncIframe, iframeSrc, closedShellSlug]);
 
   if (loading || !user) {
     return (
@@ -154,23 +157,6 @@ export default function AdminTailadminWorkspace() {
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.username ||
     (isAdmin ? "แอดมิน" : "สมาชิก");
-
-  if (closedShellSlug) {
-    return (
-      <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
-        <HomeStylePublicHeader
-          onHamburgerClick={toggleIframeSidebar}
-          lineProfileImageUrl={user.linePictureUrl || undefined}
-          profileDisplayName={displayName}
-        />
-        <main className="flex min-h-0 flex-1 items-center justify-center bg-slate-100 px-4 py-8">
-          <p className="text-center text-2xl font-bold leading-snug text-slate-700 sm:text-3xl md:text-4xl">
-            {MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE}
-          </p>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">

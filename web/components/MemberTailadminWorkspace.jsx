@@ -109,9 +109,12 @@ export default function MemberTailadminWorkspace() {
       type: "HUAJAIY_MEMBER",
       apiBase: getApiBase(),
       user,
+      shellPlaceholderText: closedShellSlug
+        ? MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE
+        : "",
       ...(token ? { token } : {})
     });
-  }, [user, postToIframe]);
+  }, [user, postToIframe, closedShellSlug]);
 
   useEffect(() => {
     if (loading) return;
@@ -123,7 +126,7 @@ export default function MemberTailadminWorkspace() {
   useEffect(() => {
     if (!user) return;
     pushMemberToIframe();
-  }, [user, pushMemberToIframe, iframeSrc]);
+  }, [user, pushMemberToIframe, iframeSrc, closedShellSlug]);
 
   if (loading || !user) {
     return (
@@ -157,26 +160,6 @@ export default function MemberTailadminWorkspace() {
       <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
         กำลังไปหน้าภาพรวม…
       </main>
-    );
-  }
-
-  if (closedShellSlug) {
-    return (
-      <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
-        <HomeStylePublicHeader
-          onHamburgerClick={toggleIframeSidebar}
-          lineProfileImageUrl={user.linePictureUrl || undefined}
-          profileDisplayName={
-            [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-            "สมาชิก"
-          }
-        />
-        <main className="flex min-h-0 flex-1 items-center justify-center bg-slate-100 px-4 py-8">
-          <p className="text-center text-2xl font-bold leading-snug text-slate-700 sm:text-3xl md:text-4xl">
-            {MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE}
-          </p>
-        </main>
-      </div>
     );
   }
 

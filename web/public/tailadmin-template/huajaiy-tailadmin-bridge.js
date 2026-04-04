@@ -15,6 +15,8 @@
   var moTimer = null;
   /** @type {string | null} */
   var adminEmbedUrl = null;
+  /** ข้อความทับพื้นที่เนื้อหา (เช่น ยังไม่เปิดให้ใช้งาน) — จาก parent postMessage */
+  var shellPlaceholderText = "";
   /** เป้าหมาย path เต็ม เช่น /tailadmin-template/profile จาก ?huajaiy_start=/profile */
   var huajaiyStartTarget = null;
 
@@ -711,6 +713,39 @@
     }
   }
 
+  function removeShellContentPlaceholder() {
+    document.querySelectorAll(".huajaiy-shell-placeholder-root").forEach(function (el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+  }
+
+  function ensureShellContentPlaceholder(text) {
+    var msg = text != null && String(text).trim() !== "" ? String(text).trim() : "";
+    if (!msg) {
+      removeShellContentPlaceholder();
+      return;
+    }
+    var host = document.querySelector("#app aside.fixed ~ div.flex-1");
+    if (!host) return;
+    host.style.position = "relative";
+    var root = host.querySelector(".huajaiy-shell-placeholder-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.className = "huajaiy-shell-placeholder-root";
+      root.setAttribute("role", "status");
+      root.style.cssText =
+        "position:absolute;inset:0;z-index:38;background:#f1f5f9;display:flex;align-items:center;justify-content:center;padding:1.5rem;box-sizing:border-box;";
+      var p = document.createElement("p");
+      p.className = "huajaiy-shell-placeholder-text";
+      p.style.cssText =
+        "margin:0;text-align:center;font-weight:700;font-size:clamp(1.25rem,4vw,2.25rem);color:#334155;line-height:1.3;font-family:Inter,ui-sans-serif,system-ui,sans-serif;";
+      root.appendChild(p);
+      host.appendChild(root);
+    }
+    var pEl = root.querySelector(".huajaiy-shell-placeholder-text");
+    if (pEl) pEl.textContent = msg;
+  }
+
   function removeAdminEmbed() {
     document.documentElement.classList.remove("huajaiy-admin-embed-active");
     document.querySelectorAll(".huajaiy-admin-embed-root").forEach(function (el) {
@@ -762,6 +797,7 @@
     patchMemberPublicPageNav();
     updateMemberSidebarActive();
     ensureAdminEmbed();
+    ensureShellContentPlaceholder(shellPlaceholderText);
   }
 
   function scheduleSync() {
@@ -825,6 +861,13 @@
         } catch (e) {
           /* ignore */
         }
+      }
+      if (d.shellPlaceholderText !== undefined) {
+        shellPlaceholderText =
+          d.shellPlaceholderText != null &&
+          String(d.shellPlaceholderText).trim() !== ""
+            ? String(d.shellPlaceholderText).trim()
+            : "";
       }
       if (d.user) applyUser(d.user);
       scheduleSync();
