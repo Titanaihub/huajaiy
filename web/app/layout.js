@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Prompt } from "next/font/google";
+import { Nunito, Open_Sans } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -20,14 +20,20 @@ import {
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
-/**
- * Prompt — ไทย+ละติน โทนมนสมัยตาม hero หน้าแรก (หัวแดงหนา / รองเทา น้ำหนักปกติ)
- */
-const prompt = Prompt({
-  subsets: ["latin", "latin-ext", "thai"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+/** ฟอนต์เทมเพลต organic (หน้าแรก): Open Sans = เนื้อหา, Nunito = หัวข้อ (รวม hero) */
+const openSans = Open_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   display: "swap",
-  variable: "--font-prompt"
+  variable: "--font-open-sans"
+});
+
+const nunito = Nunito({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-nunito"
 });
 
 const site = getSiteUrl();
@@ -102,7 +108,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="th"
-      className={prompt.variable}
+      className={`${openSans.variable} ${nunito.variable}`}
       style={htmlBgStyle}
     >
       <body className="hui-root flex flex-col bg-transparent font-sans antialiased">

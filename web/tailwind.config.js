@@ -7,18 +7,26 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ชุดเดียวกับ hero หน้าแรก — Prompt (ตามสเปกภาพอ้างอิง) */
+        /** เทมเพลต organic: เนื้อหา = Open Sans */
         sans: [
-          "var(--font-prompt)",
+          "var(--font-open-sans)",
+          "var(--font-nunito)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "Sarabun",
           "sans-serif"
         ],
+        /** หัวข้อ = Nunito (เช่น ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ) */
         heading: [
-          "var(--font-prompt)",
+          "var(--font-nunito)",
+          "var(--font-open-sans)",
           "ui-sans-serif",
           "system-ui",
+          "Sarabun",
           "sans-serif"
         ]
       },
