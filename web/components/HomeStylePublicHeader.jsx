@@ -222,28 +222,28 @@ export default function HomeStylePublicHeader({
                 เข้าสู่ระบบ
               </Link>
             )}
-            <div className="relative" ref={moreRef}>
-              <button
-                type="button"
-                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 ${
-                  gameLobbyThemed ? "hover:text-[var(--gl-nav-hover)]" : "hover:text-rose-600"
-                }`}
-                aria-expanded={moreOpen}
-                aria-haspopup="true"
-                onClick={() => setMoreOpen((o) => !o)}
-              >
-                เพิ่มเติม
-                <span className="text-xs opacity-70" aria-hidden>
-                  ▾
-                </span>
-              </button>
-              {moreOpen ? (
-                <ul
-                  className="absolute right-0 z-[1100] mt-1 min-w-[14rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-                  role="menu"
+            {memberUser ? (
+              <div className="relative" ref={moreRef}>
+                <button
+                  type="button"
+                  className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 ${
+                    gameLobbyThemed ? "hover:text-[var(--gl-nav-hover)]" : "hover:text-rose-600"
+                  }`}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  onClick={() => setMoreOpen((o) => !o)}
                 >
-                  {memberUser ? (
-                    MEMBER_SHELL_MENU_ITEMS.map((item) => (
+                  เพิ่มเติม
+                  <span className="text-xs opacity-70" aria-hidden>
+                    ▾
+                  </span>
+                </button>
+                {moreOpen ? (
+                  <ul
+                    className="absolute right-0 z-[1100] mt-1 min-w-[14rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                    role="menu"
+                  >
+                    {MEMBER_SHELL_MENU_ITEMS.map((item) => (
                       <li key={item.key}>
                         {item.kind === "empty" ? (
                           <span
@@ -287,10 +287,7 @@ export default function HomeStylePublicHeader({
                           </Link>
                         ) : (
                           <Link
-                            href={workspaceShellUrl(
-                              item.tailStart,
-                              memberUser.role
-                            )}
+                            href={workspaceShellUrl(item.tailStart, memberUser.role)}
                             className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                             role="menuitem"
                             onClick={() => setMoreOpen(false)}
@@ -299,54 +296,11 @@ export default function HomeStylePublicHeader({
                           </Link>
                         )}
                       </li>
-                    ))
-                  ) : (
-                    <>
-                      <li>
-                        <Link
-                          href="/login?expand=1"
-                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                          role="menuitem"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          เข้าด้วยยูสเซอร์ / รหัส
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/account"
-                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                          role="menuitem"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          ภาพรวมบัญชี
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/register"
-                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                          role="menuitem"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          สมัครสมาชิก
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/contact"
-                          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
-                          role="menuitem"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          ติดต่อ
-                        </Link>
-                      </li>
-                    </>
-                  )}
-                </ul>
-              ) : null}
-            </div>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
           </nav>
 
           {!authPage ? (

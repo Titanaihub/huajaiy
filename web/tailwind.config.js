@@ -7,16 +7,16 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ตรง organic + fallback ไทยเมื่อ Inter ไม่มี glyph */
+        /** ชุดเดียวกับ organic-template (Inter + Noto Sans Thai สำหรับไทย) */
         sans: [
           "var(--font-inter)",
+          "var(--font-noto-sans-thai)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
           "Roboto",
           "Helvetica Neue",
           "Arial",
-          "Sarabun",
           "sans-serif"
         ]
       },

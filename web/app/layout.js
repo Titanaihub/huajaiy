@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans_Thai } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -20,12 +20,19 @@ import {
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
-/** ชุดเดียวกับหน้าแรก organic-template (Inter — style.css / Bootstrap) */
+/** Inter + Noto Sans Thai — ให้ตรงกับหัวข้อ hero ใน organic-template (h1–h6 / .hero-welcome-title) */
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-inter"
+});
+
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-noto-sans-thai"
 });
 
 const site = getSiteUrl();
@@ -98,8 +105,12 @@ export default async function RootLayout({ children }) {
   }
 
   return (
-    <html lang="th" className={inter.variable} style={htmlBgStyle}>
-      <body className={`${inter.className} hui-root flex flex-col bg-transparent font-sans`}>
+    <html
+      lang="th"
+      className={`${inter.variable} ${notoSansThai.variable}`}
+      style={htmlBgStyle}
+    >
+      <body className="hui-root flex flex-col bg-transparent font-sans antialiased">
         <Providers>
           <SiteThemeProvider value={siteTheme}>
             <HtmlBackgroundSync />
