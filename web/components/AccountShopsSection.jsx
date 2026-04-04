@@ -108,8 +108,8 @@ export default function AccountShopsSection() {
                   : "—"}
               </p>
               <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                <Link href="/shop" className="font-medium text-hui-cta hover:underline">
-                  ไปหน้าร้านค้า
+                <Link href="/page" className="font-medium text-hui-cta hover:underline">
+                  ไปเพจชุมชน
                 </Link>
                 <Link
                   href={`/member/shops/${s.id}/products`}

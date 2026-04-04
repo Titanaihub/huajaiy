@@ -978,7 +978,7 @@ export default function AdminSiteThemePanel() {
                   })
                 }
                 className="hui-input font-mono text-sm"
-                placeholder="/shop"
+                placeholder="/page"
               />
               <div className="grid grid-cols-2 gap-2">
                 <input

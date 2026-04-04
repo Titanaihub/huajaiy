@@ -44,10 +44,10 @@ export default function ProductDetailClient({ productId }) {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-sm text-red-600">{err || "ไม่พบสินค้า"}</p>
         <Link
-          href="/shop"
+          href="/page"
           className="mt-4 inline-block text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
-          ← กลับร้านค้า
+          ← เพจชุมชน
         </Link>
       </main>
     );
@@ -59,18 +59,13 @@ export default function ProductDetailClient({ productId }) {
     <main className="mx-auto max-w-2xl px-4 py-8">
       <p className="text-sm text-hui-muted">
         <Link
-          href="/shop"
+          href="/page"
           className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
-          ร้านค้า
+          เพจชุมชน
         </Link>
         <span className="mx-1 text-hui-border">/</span>
-        <Link
-          href={`/shop?shopId=${encodeURIComponent(p.shopId)}`}
-          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-        >
-          {p.shopName}
-        </Link>
+        <span className="font-medium text-hui-body">{p.shopName}</span>
         <span className="mx-1 text-hui-border">/</span>
         <span className="text-hui-body">{p.title}</span>
       </p>
@@ -117,8 +112,8 @@ export default function ProductDetailClient({ productId }) {
         className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2"
         aria-label="ทางลัดจากหน้าสินค้า"
       >
-        <Link href="/shop" className={siteNavLinkClass}>
-          ← กลับร้านค้า
+        <Link href="/page" className={siteNavLinkClass}>
+          ← เพจชุมชน
         </Link>
         <Link href="/cart" className={siteNavLinkClass}>
           ไปตะกร้า

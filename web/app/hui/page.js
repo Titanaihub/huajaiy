@@ -7,9 +7,9 @@ import { fetchPublicCentralGameMeta, fetchPublicGameList } from "../../lib/publi
 function buildActions(centralMeta) {
   return [
     {
-      href: "/shop",
-      title: "ร้านค้า",
-      desc: "ดูสินค้าตัวอย่างและแต้มหัวใจ",
+      href: "/page",
+      title: "เพจชุมชน",
+      desc: "โพสต์และลิงก์จากแอดมิน (ชุมชนเพจ)",
       accent: "border-hui-border/90 bg-gradient-to-br from-hui-pageTop/90 to-white"
     },
     {

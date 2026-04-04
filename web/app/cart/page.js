@@ -27,8 +27,8 @@ export default function CartPage() {
         <div className="mt-6">
           <CartContents />
         </div>
-        <Link href="/shop" className={`${siteNavLinkClass} mt-8 inline-flex`}>
-          ← กลับร้านค้า
+        <Link href="/page" className={`${siteNavLinkClass} mt-8 inline-flex`}>
+          ← เพจชุมชน
         </Link>
       </main>
       <SiteFooter />

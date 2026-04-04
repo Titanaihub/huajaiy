@@ -2,7 +2,7 @@
 export const GLOBAL_PRIMARY_NAV_BASE = [
   { href: "/", label: "หน้าแรก" },
   { href: "/game", label: "เกมและรางวัล" },
-  { href: "/shop", label: "เพจชุมชน" }
+  { href: "/page", label: "เพจชุมชน" }
 ];
 
 /** @deprecated ใช้ GLOBAL_PRIMARY_NAV_BASE + ปุ่มเข้า/ออก แยก */

@@ -140,10 +140,10 @@ export default function CartContents() {
       <div className="rounded-2xl border border-dashed border-hui-border bg-hui-surface p-8 text-center text-sm text-hui-muted">
         <p>ตะกร้าว่าง</p>
         <Link
-          href="/shop"
+          href="/page"
           className="mt-3 inline-block font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
-          ไปเลือกสินค้า
+          ไปเพจชุมชน
         </Link>
       </div>
     );
@@ -159,10 +159,10 @@ export default function CartContents() {
               ออเดอร์ของฉัน
             </Link>
             <Link
-              href="/shop"
+              href="/page"
               className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-sm font-semibold text-hui-section shadow-soft hover:bg-hui-pageTop"
             >
-              ช้อปต่อ
+              กลับเพจชุมชน
             </Link>
           </div>
         </div>

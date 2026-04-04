@@ -242,8 +242,8 @@ export function createDefaultOrganicHomeForm() {
     heroSubtitle: "ยกระดับกิจกรรม และ การโปรโมท ให้โดดเด่นยิ่งขึ้น",
     heroSubtitleColor: "#6C757D",
     primaryCta: {
-      label: "START SHOPPING",
-      href: "/shop",
+      label: "เพจชุมชน",
+      href: "/page",
       bgColor: "#212529",
       textColor: "#FFFFFF"
     },

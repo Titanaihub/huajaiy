@@ -42,11 +42,12 @@ export default function OwnerPage() {
       <main className="mx-auto max-w-5xl px-4 pb-16 pt-8">
         <h1 className="text-xl font-bold text-hui-section">ขายสินค้า (เจ้าของร้าน)</h1>
         <p className="mt-2 max-w-2xl text-sm text-hui-body">
-          ระบบขายทำงานแบบมาร์เก็ตเพลส: แอดมินสร้างร้านและผูกบัญชีคุณ → คุณลงสินค้า → ลูกค้าช้อปที่หน้า{" "}
-          <Link href="/shop" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
-            ร้านค้า
+          ระบบขายทำงานแบบมาร์เก็ตเพลส: แอดมินสร้างร้านและผูกบัญชีคุณ → คุณลงสินค้า → ลูกค้าเปิดลิงก์สินค้าโดยตรง
+          (/shop/รหัส) หรือไป{" "}
+          <Link href="/page" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+            เพจชุมชน
           </Link>{" "}
-          และยืนยันตะกร้าเป็นออเดอร์
+          แล้วยืนยันตะกร้าเป็นออเดอร์
         </p>
 
         <section className="mt-6 rounded-xl border border-hui-border bg-hui-pageTop/40 p-4 text-sm text-hui-body">
@@ -66,7 +67,9 @@ export default function OwnerPage() {
               </Link>{" "}
               → <strong>จัดการสินค้า</strong> เพิ่มชื่อ ราคา รูป สต็อก
             </li>
-            <li>สินค้าที่เปิดใช้จะโผล่ในหน้าร้านค้า — ลูกค้าสั่งผ่านตะกร้า</li>
+            <li>
+              สินค้าที่เปิดใช้มี URL ของตัวเอง (/shop/รหัส) — แชร์ลิงก์ได้ · ลูกค้าสั่งผ่านตะกร้า
+            </li>
           </ol>
         </section>
 
@@ -145,10 +148,10 @@ export default function OwnerPage() {
                           จัดการสินค้า (ลงขาย)
                         </Link>
                         <Link
-                          href="/shop"
+                          href="/page"
                           className="inline-flex rounded-lg border border-hui-border px-3 py-1.5 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
                         >
-                          ไปหน้าร้านค้า
+                          ไปเพจชุมชน
                         </Link>
                         <Link
                           href="/account/shops"
