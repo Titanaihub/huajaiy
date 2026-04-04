@@ -7,10 +7,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ตัวอักษร = Nunito; ตัวเลข 0-9 (+ - . , % /) = Open Sans ผ่าน HuajaiyUI */
+        /** ตัวอักษร = Nunito; ตัวเลข (หลายชุดยูนิโค้ด) = Open Sans ผ่าน HuajaiyUI */
         sans: [
           "HuajaiyUI",
-          "var(--font-nunito)",
+          "Nunito",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
@@ -19,11 +19,25 @@ module.exports = {
         ],
         heading: [
           "HuajaiyUI",
-          "var(--font-nunito)",
+          "Nunito",
           "ui-sans-serif",
           "system-ui",
+          "Segoe UI",
           "Sarabun",
           "sans-serif"
+        ],
+        /** ให้ตัวเลขในโค้ด/รหัสใช้ Open Sans เหมือนทั้งเว็บ แทน monospace ล้วน */
+        mono: [
+          "HuajaiyUI",
+          "Nunito",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "Courier New",
+          "monospace"
         ]
       },
       colors: {

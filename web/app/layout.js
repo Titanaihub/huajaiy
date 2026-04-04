@@ -1,5 +1,4 @@
 import "./globals.css";
-import { Nunito } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -19,14 +18,6 @@ import {
   pickBackgroundSliceForPathname
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
-
-/** Nunito = ตัวอักษรทั้งเว็บ; ตัวเลข ASCII ใช้ Open Sans ผ่าน HuajaiyUI ใน huajaiy-digit-font.css */
-const nunito = Nunito({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-nunito"
-});
 
 const site = getSiteUrl();
 let metadataBase;
@@ -98,11 +89,16 @@ export default async function RootLayout({ children }) {
   }
 
   return (
-    <html
-      lang="th"
-      className={nunito.variable}
-      style={htmlBgStyle}
-    >
+    <html lang="th" style={htmlBgStyle}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Nunito จาก Google (หลาย unicode-range); ไทย fallback Sarabun — Nunito ไม่มี glyhp ไทย */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="hui-root flex flex-col bg-transparent font-sans antialiased">
         <Providers>
           <SiteThemeProvider value={siteTheme}>

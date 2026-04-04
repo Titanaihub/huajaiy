@@ -18,6 +18,13 @@
   h6 {
     @apply font-heading;
   }
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: HuajaiyUI, Nunito, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+  }
 }
 
 /** พื้นหลังตั้งจาก API ที่ `<body style=…>` — คลาสนี้คุมสีตัวหนังสือและความสูงขั้นต่ำ */

@@ -1,6 +1,7 @@
 /**
- * HuajaiyUI — ตัวเลข ASCII + เครื่องหมายจำนวน → Open Sans; ที่เหลือใช้ Nunito ใน stack
- * (สำเนา logic เดียวกับ web/public/huajaiy-digit-font.css)
+ * HuajaiyUI — ชื่อครอบครัวเดียวกับ font stack หลัก
+ * unicode-range จำกัดตัวเลข + เครื่องหมายจำนวน → Open Sans (woff2)
+ * ตัวอักษรอื่นไม่ตรง range → ตัวถัดไปใน stack (Nunito …)
  */
 @font-face {
   font-family: "HuajaiyUI";
@@ -10,5 +11,6 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/opensans/v44/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2)
     format("woff2");
-  unicode-range: U+0030-0039, U+002B, U+002D, U+002E, U+002C, U+0025, U+002F, U+003A;
+  unicode-range: U+0030-0039, U+FF10-FF19, U+2070-2079, U+2080-2089, U+00B9, U+00B2, U+00B3,
+    U+002B, U+002D, U+2212, U+002E, U+002C, U+0025, U+002F, U+003A, U+0028, U+0029, U+00A0;
 }

@@ -15,7 +15,7 @@ This is main CSS file that contains custom style rules used in this template
 --------------------------------------------------------------*/
 body {
   /* ตัวอักษร Nunito; ตัวเลข ASCII → Open Sans ผ่าน HuajaiyUI (huajaiy-digit-font.css) */
-  --heading-font        : "HuajaiyUI", "Nunito", sans-serif;
+  --heading-font        : "HuajaiyUI", "Nunito", Sarabun, sans-serif;
   --bs-link-color: #333;
   --bs-link-hover-color:#333;
 
@@ -24,7 +24,7 @@ body {
 
   --bs-light-rgb: 248, 248, 248;
 
-  --bs-font-sans-serif: "HuajaiyUI", "Nunito", sans-serif;
+  --bs-font-sans-serif: "HuajaiyUI", "Nunito", Sarabun, sans-serif;
   --bs-body-font-family: var(--bs-font-sans-serif);
   --bs-body-font-size: 1rem;
   --bs-body-font-weight: 400;

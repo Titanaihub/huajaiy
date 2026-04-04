@@ -168,7 +168,15 @@ export default function AccountRoomRedGiftSection() {
       .join("");
     const w = window.open("", "_blank");
     if (!w) return;
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"/><title>พิมพ์รหัสหัวใจแดง</title><style>body{font-family:Tahoma,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}h1{font-size:20px} .muted{color:#666;font-size:12px}</style></head><body><h1>รายการรหัสหัวใจแดงสำหรับแจก</h1><p class="muted">พิมพ์เมื่อ ${stamp}</p><table><thead><tr><th>รหัส</th><th>แดง/ครั้ง</th><th>สิทธิ์ใช้</th><th>ใช้แล้ว</th><th>สถานะ</th></tr></thead><tbody>${rows || "<tr><td colspan='5'>ยังไม่มีรหัส</td></tr>"}</tbody></table></body></html>`);
+    const origin = window.location?.origin || "";
+    const fontLinks =
+      (origin
+        ? `<link rel="stylesheet" href="${origin}/huajaiy-digit-font.css"/>`
+        : "") +
+      `<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>`;
+    w.document.write(
+      `<!doctype html><html><head><meta charset="utf-8"/><title>พิมพ์รหัสหัวใจแดง</title>${fontLinks}<style>body{font-family:HuajaiyUI,Nunito,Sarabun,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}h1{font-size:20px} .muted{color:#666;font-size:12px}</style></head><body><h1>รายการรหัสหัวใจแดงสำหรับแจก</h1><p class="muted">พิมพ์เมื่อ ${stamp}</p><table><thead><tr><th>รหัส</th><th>แดง/ครั้ง</th><th>สิทธิ์ใช้</th><th>ใช้แล้ว</th><th>สถานะ</th></tr></thead><tbody>${rows || "<tr><td colspan='5'>ยังไม่มีรหัส</td></tr>"}</tbody></table></body></html>`
+    );
     w.document.close();
     w.focus();
     w.print();
