@@ -19,6 +19,8 @@ export const TAILADMIN_PROFILE_START = "/profile";
 /** เส้นทางสมาชิกใน iframe (Vue router) — หนึ่งเมนูหนึ่ง path */
 export const TAILADMIN_MY_PRIZES_START = "/my-prizes";
 export const TAILADMIN_MY_HEARTS_START = "/my-hearts";
+/** ประวัติหัวใจชมพู (ledger เฉพาะ delta ชมพู) */
+export const TAILADMIN_PINK_HISTORY_START = "/pink-history";
 export const TAILADMIN_MY_GAMES_START = "/my-games";
 export const TAILADMIN_MY_SHOPS_START = "/my-shops";
 export const TAILADMIN_MY_ORDERS_START = "/my-orders";
@@ -40,6 +42,7 @@ export const MEMBER_SLUG_TO_TAIL = Object.freeze({
   profile: TAILADMIN_PROFILE_START,
   prizes: TAILADMIN_MY_PRIZES_START,
   hearts: TAILADMIN_MY_HEARTS_START,
+  "pink-history": TAILADMIN_PINK_HISTORY_START,
   game: TAILADMIN_MY_GAMES_START,
   shops: TAILADMIN_MY_SHOPS_START,
   orders: TAILADMIN_MY_ORDERS_START,

@@ -28,10 +28,10 @@
       <div class="mt-auto pt-2">
         <a
           class="text-sm font-medium text-pink-600 underline-offset-2 hover:underline dark:text-pink-400"
-          href="/account/heart-history/play"
+          href="/member/pink-history"
           target="_parent"
           rel="noopener noreferrer"
-          >ประวัติการเล่น</a
+          >ประวัติ</a
         >
       </div>
     </div>

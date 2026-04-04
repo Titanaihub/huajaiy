@@ -45,6 +45,12 @@ const router = createRouter({
       meta: { title: 'หัวใจแดงห้องเกม', huajaiyMember: true },
     },
     {
+      path: '/pink-history',
+      name: 'PinkHeartsHistory',
+      component: () => import('../views/huajaiy/MemberPinkHeartsHistoryPage.vue'),
+      meta: { title: 'ประวัติหัวใจชมพู', huajaiyMember: true },
+    },
+    {
       path: '/my-games',
       name: 'MyGames',
       component: () => import('../views/huajaiy/MemberMyGamesPage.vue'),
