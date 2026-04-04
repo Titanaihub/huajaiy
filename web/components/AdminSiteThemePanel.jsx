@@ -8,6 +8,7 @@ import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
 import {
   createDefaultOrganicHomeForm,
   mergeOrganicHomeFromApi,
+  ORGANIC_HOMEPAGE_BLOCK_TOGGLES,
   ORGANIC_SECTION_HEADING_SIMPLE_KEYS
 } from "../lib/organicHomeFormDefaults";
 import { buildSiteFooterOverlayStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
@@ -798,6 +799,39 @@ export default function AdminSiteThemePanel() {
         <p className="hui-note text-sm">
           ควบคุมรูปพื้นหลัง hero (แทนพื้นเหลือง/รูปตะกร้า), ข้อความ, สีข้อความ (#RRGGBB — คำอธิบายการ์ดรองรับ rgba), ปุ่ม CTA, สถิติ 3 คอลัมน์ และการ์ดฟีเจอร์ 3 ใบ · บันทึกร่วมกับปุ่ม «บันทึกธีมเว็บ» ด้านล่าง
         </p>
+
+        <div className="space-y-3 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
+          <h3 className="text-sm font-semibold text-hui-section">
+            แสดงบล็อกบนหน้าแรก (iframe เทมเพลต)
+          </h3>
+          <p className="text-xs text-hui-muted">
+            เลิกเลือกช่องเพื่อซ่อนแถบนั้นบนเว็บจริง — ไม่กระทบเกมและรางวัล แบนเนอร์โปร จดหมายข่าว แอป และแถบความเชื่อมั่นด้านล่าง
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {ORGANIC_HOMEPAGE_BLOCK_TOGGLES.map(({ key, label }) => (
+              <label
+                key={key}
+                className="flex cursor-pointer items-start gap-2.5 text-sm text-hui-body"
+              >
+                <input
+                  type="checkbox"
+                  checked={organicHome.sectionVisibility?.[key] !== false}
+                  onChange={(e) =>
+                    setOrganicHome({
+                      ...organicHome,
+                      sectionVisibility: {
+                        ...organicHome.sectionVisibility,
+                        [key]: e.target.checked
+                      }
+                    })
+                  }
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-hui-border text-hui-cta focus:ring-hui-cta/30"
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         <div>
           <label htmlFor="organic-hero-bg-url" className="hui-label">

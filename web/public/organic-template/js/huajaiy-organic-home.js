@@ -91,6 +91,31 @@
     }
   }
 
+  var VISIBILITY_BLOCKS = [
+    "category",
+    "bestSelling",
+    "featured",
+    "popular",
+    "justArrived",
+    "blog",
+    "seoLooking"
+  ];
+
+  function applySectionVisibility(vis) {
+    if (!vis || typeof vis !== "object") {
+      vis = {};
+    }
+    VISIBILITY_BLOCKS.forEach(function (key) {
+      var el = document.querySelector('[data-huajaiy-block="' + key + '"]');
+      if (!el) return;
+      if (vis[key] === false) {
+        el.classList.add("d-none");
+      } else {
+        el.classList.remove("d-none");
+      }
+    });
+  }
+
   function setFeature(i, f) {
     var card = $("huajaiy-feature-" + i);
     if (card) {
@@ -255,6 +280,7 @@
       }
     }
     applySectionHeadings(data.sectionHeadings);
+    applySectionVisibility(data.sectionVisibility);
   }
 
   function fetchJson() {

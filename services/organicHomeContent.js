@@ -159,6 +159,30 @@ const DEFAULT_SECTION_HEADINGS = Object.freeze({
   ])
 });
 
+/** บล็อกที่แอดมินเปิด/ปิดได้ (หน้าแรก organic iframe) — คีย์ตรงกับ data-huajaiy-block */
+const TOGGLEABLE_HOME_BLOCKS = [
+  "category",
+  "bestSelling",
+  "featured",
+  "popular",
+  "justArrived",
+  "blog",
+  "seoLooking"
+];
+
+const DEFAULT_SECTION_VISIBILITY = Object.freeze(
+  Object.fromEntries(TOGGLEABLE_HOME_BLOCKS.map((k) => [k, true]))
+);
+
+function normSectionVisibility(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const out = {};
+  for (const k of TOGGLEABLE_HOME_BLOCKS) {
+    out[k] = o[k] === false ? false : true;
+  }
+  return out;
+}
+
 function normSectionHeadingBlock(raw, fb) {
   const o = raw && typeof raw === "object" ? raw : {};
   const hasSubtitleKey = Object.prototype.hasOwnProperty.call(o, "subtitle");
@@ -283,7 +307,8 @@ function deepCloneDefault() {
     secondaryCta: { ...DEFAULT_ORGANIC_HOME.secondaryCta },
     stats: DEFAULT_ORGANIC_HOME.stats.map((s) => ({ ...s })),
     features: DEFAULT_ORGANIC_HOME.features.map((f) => ({ ...f })),
-    sectionHeadings: normSectionHeadings(null)
+    sectionHeadings: normSectionHeadings(null),
+    sectionVisibility: normSectionVisibility(null)
   };
 }
 
@@ -375,6 +400,9 @@ function mergeOrganicHomeFromRow(rawJson) {
   base.stats = normStats(o.stats);
   base.features = normFeatures(o.features);
   base.sectionHeadings = normSectionHeadings(o.sectionHeadings);
+  base.sectionVisibility = normSectionVisibility(
+    o.sectionVisibility != null ? o.sectionVisibility : base.sectionVisibility
+  );
   return base;
 }
 
@@ -389,6 +417,8 @@ function normalizeOrganicHomePayload(input) {
 module.exports = {
   DEFAULT_ORGANIC_HOME,
   DEFAULT_SECTION_HEADINGS,
+  DEFAULT_SECTION_VISIBILITY,
+  TOGGLEABLE_HOME_BLOCKS,
   mergeOrganicHomeFromRow,
   normalizeOrganicHomePayload,
   normalizeHttpsUrl,

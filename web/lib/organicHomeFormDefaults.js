@@ -1,3 +1,24 @@
+/** บล็อกหน้าแรกที่แอดมินเปิด/ปิดได้ — ตรงกับ data-huajaiy-block และ services/organicHomeContent.js */
+export const ORGANIC_HOMEPAGE_BLOCK_KEYS = [
+  "category",
+  "bestSelling",
+  "featured",
+  "popular",
+  "justArrived",
+  "blog",
+  "seoLooking"
+];
+
+export const ORGANIC_HOMEPAGE_BLOCK_TOGGLES = [
+  { key: "category", label: "Category" },
+  { key: "bestSelling", label: "Best selling products" },
+  { key: "featured", label: "Featured products" },
+  { key: "popular", label: "Most popular products" },
+  { key: "justArrived", label: "Just arrived" },
+  { key: "blog", label: "Our Recent Blog" },
+  { key: "seoLooking", label: "People are also looking for" }
+];
+
 /** คีย์หัวข้อบล็อก (ไม่รวม valueTrust) — ป้ายไทยสำหรับแอดมิน */
 export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
   {
@@ -17,6 +38,22 @@ export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
   { key: "appDownload", label: "ดาวน์โหลดแอป" },
   { key: "seoLooking", label: "คำค้นยอดนิยม (People also looking)" }
 ];
+
+export function createDefaultSectionVisibility() {
+  return Object.fromEntries(ORGANIC_HOMEPAGE_BLOCK_KEYS.map((k) => [k, true]));
+}
+
+function mergeSectionVisibilityFromApi(base, apiVis) {
+  const out = { ...base };
+  if (apiVis && typeof apiVis === "object") {
+    for (const k of ORGANIC_HOMEPAGE_BLOCK_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(apiVis, k)) {
+        out[k] = apiVis[k] !== false;
+      }
+    }
+  }
+  return out;
+}
 
 function createDefaultSectionHeadings() {
   return {
@@ -215,7 +252,8 @@ export function createDefaultOrganicHomeForm() {
         descriptionColor: "rgba(255,255,255,0.92)"
       }
     ],
-    sectionHeadings: createDefaultSectionHeadings()
+    sectionHeadings: createDefaultSectionHeadings(),
+    sectionVisibility: createDefaultSectionVisibility()
   };
 }
 
@@ -230,6 +268,7 @@ export function mergeOrganicHomeFromApi(api) {
     secondaryCta: { ...d.secondaryCta, ...(api.secondaryCta || {}) },
     stats: [0, 1, 2].map((i) => ({ ...d.stats[i], ...(api.stats?.[i] || {}) })),
     features: [0, 1, 2].map((i) => ({ ...d.features[i], ...(api.features?.[i] || {}) })),
-    sectionHeadings: mergeSectionHeadingsFromApi(d.sectionHeadings, api.sectionHeadings)
+    sectionHeadings: mergeSectionHeadingsFromApi(d.sectionHeadings, api.sectionHeadings),
+    sectionVisibility: mergeSectionVisibilityFromApi(d.sectionVisibility, api.sectionVisibility)
   };
 }
