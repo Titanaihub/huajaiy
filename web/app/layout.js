@@ -106,8 +106,8 @@ export default async function RootLayout({ children }) {
             <MemberAuthProvider>
               <ImpersonationBanner />
               <HeartsProvider>
-                {/* sticky footer: middle row grows so footer stays at viewport bottom */}
-                <div className="flex min-h-0 flex-1 flex-col">
+                {/* flex-1 + overflow-y-auto: หน้ายาว (เช่น หน้าแรก iframe+ฟุตเตอร์) เลื่อนทั้งหน้าได้ */}
+                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
                   <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
                     {children}
                   </div>

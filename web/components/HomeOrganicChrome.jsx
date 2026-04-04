@@ -24,7 +24,7 @@ export default function HomeOrganicChrome() {
   }, []);
 
   return (
-    <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
+    <div className="flex w-full flex-col bg-white">
       <HomeStylePublicHeader
         onHamburgerClick={toggleOrganicNav}
         lineProfileImageUrl={user?.linePictureUrl || undefined}
@@ -35,12 +35,12 @@ export default function HomeOrganicChrome() {
             : undefined
         }
       />
-      <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
+      <main className="w-full bg-slate-100">
         <iframe
           ref={iframeRef}
           title="หน้าแรก — HUAJAIY"
           src="/organic-template/index.html?huajaiy_chrome=1"
-          className="h-full w-full border-0"
+          className="block h-[100dvh] min-h-[28rem] w-full border-0"
         />
       </main>
       <OrganicPublicFooter />
