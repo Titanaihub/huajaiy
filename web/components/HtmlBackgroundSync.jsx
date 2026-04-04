@@ -3,8 +3,10 @@
 import { usePathname } from "next/navigation";
 import { useLayoutEffect } from "react";
 import {
+  buildCommunityPageHtmlBackgroundStyle,
   buildSiteRootBackgroundStyle,
   buildThemeLabEmbedHtmlBackgroundStyle,
+  isCommunityPageFlatBackgroundPath,
   isHeartHistoryFlatBackgroundPath,
   isThemeLabFullPageEmbedPath,
   pickBackgroundSliceForPathname
@@ -26,6 +28,11 @@ export default function HtmlBackgroundSync() {
       isHeartHistoryFlatBackgroundPath(pathname)
     ) {
       Object.assign(el.style, buildThemeLabEmbedHtmlBackgroundStyle());
+      el.style.minHeight = "100dvh";
+      return;
+    }
+    if (isCommunityPageFlatBackgroundPath(pathname)) {
+      Object.assign(el.style, buildCommunityPageHtmlBackgroundStyle());
       el.style.minHeight = "100dvh";
       return;
     }

@@ -12,8 +12,10 @@ import {
   fetchSiteThemeForLayout
 } from "../lib/fetchSiteTheme";
 import {
+  buildCommunityPageHtmlBackgroundStyle,
   buildSiteRootBackgroundStyle,
   buildThemeLabEmbedHtmlBackgroundStyle,
+  isCommunityPageFlatBackgroundPath,
   isHeartHistoryFlatBackgroundPath,
   isThemeLabFullPageEmbedPath,
   pickBackgroundSliceForPathname
@@ -89,7 +91,9 @@ export default async function RootLayout({ children }) {
       isThemeLabFullPageEmbedPath(pathname) ||
       isHeartHistoryFlatBackgroundPath(pathname)
         ? { ...buildThemeLabEmbedHtmlBackgroundStyle(), minHeight: "100dvh" }
-        : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
+        : isCommunityPageFlatBackgroundPath(pathname)
+          ? { ...buildCommunityPageHtmlBackgroundStyle(), minHeight: "100dvh" }
+          : { ...buildSiteRootBackgroundStyle(bgSlice), minHeight: "100dvh" };
   } catch {
     htmlBgStyle = {
       ...buildThemeLabEmbedHtmlBackgroundStyle(),

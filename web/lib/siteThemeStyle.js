@@ -24,6 +24,23 @@ export function isHeartHistoryFlatBackgroundPath(pathname) {
   );
 }
 
+/** เพจชุมชน (/page) — พื้นเรียบของตัวเอง ไม่ใช้รูป inner ของธีมเว็บ */
+export function isCommunityPageFlatBackgroundPath(pathname) {
+  return normalizePathnameForTheme(pathname) === "/page";
+}
+
+/** พื้นหลังเพจชุมชน — โทนอบอุ่น ไม่มีรูปของขวัญ/ม่วงจากแอดมิน */
+export function buildCommunityPageHtmlBackgroundStyle() {
+  return {
+    backgroundImage: "none",
+    backgroundColor: "#f5eff2",
+    backgroundAttachment: "scroll",
+    backgroundSize: "auto",
+    backgroundPosition: "left top",
+    backgroundRepeat: "no-repeat"
+  };
+}
+
 /** พื้นหลังเรียบให้ `<html>` ตอนดูเทมเพลต — ไม่ดึงรูป/ไล่สีจากแอดมิน */
 export function buildThemeLabEmbedHtmlBackgroundStyle() {
   return {
