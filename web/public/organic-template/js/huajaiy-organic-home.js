@@ -55,13 +55,31 @@
     if (card) {
       card.style.backgroundColor = f.cardBgColor || "";
     }
+    var svg = $("huajaiy-feature-" + i + "-icon-svg");
+    var img = $("huajaiy-feature-" + i + "-icon-img");
     var sym = $("huajaiy-feature-" + i + "-icon");
-    if (sym && f.icon) {
-      var href = "#" + f.icon;
-      try {
-        sym.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", href);
-      } catch (e1) {}
-      sym.setAttribute("href", href);
+    var u = f.iconImageUrl != null ? String(f.iconImageUrl).trim() : "";
+    if (u && /^https:\/\//i.test(u)) {
+      if (img) {
+        img.src = u;
+        img.alt = f.title != null ? String(f.title).slice(0, 120) : "";
+        img.classList.remove("d-none");
+      }
+      if (svg) svg.classList.add("d-none");
+    } else {
+      if (img) {
+        img.removeAttribute("src");
+        img.alt = "";
+        img.classList.add("d-none");
+      }
+      if (svg) svg.classList.remove("d-none");
+      if (sym && f.icon) {
+        var href = "#" + f.icon;
+        try {
+          sym.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", href);
+        } catch (e1) {}
+        sym.setAttribute("href", href);
+      }
     }
     setText("huajaiy-feature-" + i + "-title", f.title);
     setText("huajaiy-feature-" + i + "-desc", f.description);

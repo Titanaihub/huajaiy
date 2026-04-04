@@ -77,6 +77,7 @@ const DEFAULT_ORGANIC_HOME = Object.freeze({
   features: Object.freeze([
     Object.freeze({
       icon: "fresh",
+      iconImageUrl: "",
       title: "Fresh from farm",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipi elit.",
@@ -86,6 +87,7 @@ const DEFAULT_ORGANIC_HOME = Object.freeze({
     }),
     Object.freeze({
       icon: "organic",
+      iconImageUrl: "",
       title: "100% Organic",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipi elit.",
@@ -95,6 +97,7 @@ const DEFAULT_ORGANIC_HOME = Object.freeze({
     }),
     Object.freeze({
       icon: "delivery",
+      iconImageUrl: "",
       title: "Free delivery",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipi elit.",
@@ -159,6 +162,7 @@ function normFeatures(arr) {
       : f.icon;
     return {
       icon,
+      iconImageUrl: normalizeHttpsUrl(s.iconImageUrl) || "",
       title: trunc(s.title, MAX_LEN.short) || f.title,
       description: trunc(s.description, MAX_LEN.medium) || f.description,
       cardBgColor: normalizeHex6(s.cardBgColor, f.cardBgColor),

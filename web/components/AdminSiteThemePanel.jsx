@@ -274,6 +274,38 @@ export default function AdminSiteThemePanel() {
     }
   }
 
+  async function onPickFeatureIcon(index, ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy(`organicIcon-${index}`);
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const features = organicHome.features.map((f, idx) =>
+        idx === index ? { ...f, iconImageUrl: url } : f
+      );
+      const nextOrganic = { ...organicHome, features };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
   if (loading) {
     return <p className="text-sm text-hui-muted">กำลังโหลดธีม…</p>;
   }
@@ -754,7 +786,51 @@ export default function AdminSiteThemePanel() {
             {[0, 1, 2].map((i) => (
               <div key={i} className="rounded-lg border border-hui-border bg-white/40 p-3">
                 <p className="mb-2 text-xs font-medium text-hui-muted">การ์ด {i + 1}</p>
+                <p className="mb-1 text-xs text-hui-muted">
+                  รูปไอคอน (https) แทนชุด SVG — เว้นว่างแล้วใช้ไอคอนด้านล่าง
+                </p>
+                <input
+                  type="url"
+                  value={organicHome.features[i].iconImageUrl ?? ""}
+                  onChange={(e) => {
+                    const features = [...organicHome.features];
+                    features[i] = { ...features[i], iconImageUrl: e.target.value };
+                    setOrganicHome({ ...organicHome, features });
+                  }}
+                  className="hui-input mb-2 font-mono text-xs"
+                  placeholder="https://... รูปไอคอน"
+                  autoComplete="off"
+                />
+                <div className="mb-2 flex flex-wrap gap-2">
+                  <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-xs disabled:opacity-50">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={uploadBusy !== null}
+                      onChange={(e) => onPickFeatureIcon(i, e)}
+                    />
+                    {uploadBusy === `organicIcon-${i}`
+                      ? "กำลังอัปโหลด…"
+                      : "อัปโหลดรูปไอคอน"}
+                  </label>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-hui-border bg-white px-3 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-surface"
+                    onClick={() => {
+                      const features = [...organicHome.features];
+                      features[i] = { ...features[i], iconImageUrl: "" };
+                      setOrganicHome({ ...organicHome, features });
+                    }}
+                  >
+                    ล้างรูป
+                  </button>
+                </div>
+                <label htmlFor={`organic-feature-icon-preset-${i}`} className="hui-label text-xs">
+                  ไอคอน SVG (เมื่อไม่มีรูป)
+                </label>
                 <select
+                  id={`organic-feature-icon-preset-${i}`}
                   value={organicHome.features[i].icon}
                   onChange={(e) => {
                     const features = [...organicHome.features];
@@ -763,9 +839,9 @@ export default function AdminSiteThemePanel() {
                   }}
                   className="hui-input mb-2 text-sm"
                 >
-                  <option value="fresh">ไอคอน — ฟาร์ม (fresh)</option>
-                  <option value="organic">ไอคอน — ออร์แกนิก (organic)</option>
-                  <option value="delivery">ไอคอน — จัดส่ง (delivery)</option>
+                  <option value="fresh">ฟาร์ม (fresh)</option>
+                  <option value="organic">ออร์แกนิก (organic)</option>
+                  <option value="delivery">จัดส่ง (delivery)</option>
                 </select>
                 <input
                   type="text"

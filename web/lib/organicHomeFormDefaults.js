@@ -41,6 +41,7 @@ export function createDefaultOrganicHomeForm() {
     features: [
       {
         icon: "fresh",
+        iconImageUrl: "",
         title: "Fresh from farm",
         description: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
         cardBgColor: "#0D6EFD",
@@ -49,6 +50,7 @@ export function createDefaultOrganicHomeForm() {
       },
       {
         icon: "organic",
+        iconImageUrl: "",
         title: "100% Organic",
         description: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
         cardBgColor: "#6C757D",
@@ -57,6 +59,7 @@ export function createDefaultOrganicHomeForm() {
       },
       {
         icon: "delivery",
+        iconImageUrl: "",
         title: "Free delivery",
         description: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
         cardBgColor: "#DC3545",
