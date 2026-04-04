@@ -84,6 +84,106 @@ function playSessionIdFromMeta(meta) {
   return s.slice(0, 64);
 }
 
+function gameIdFromMeta(meta) {
+  if (!meta || typeof meta !== "object") return "";
+  const gid = meta.gameId != null ? String(meta.gameId).trim() : "";
+  return UUID_RE.test(gid) ? gid : "";
+}
+
+/** pg บางเส้นทางอาจได้ meta เป็น string */
+function normalizeMetaFromDb(raw) {
+  if (raw == null) return null;
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    if (!s) return null;
+    try {
+      const o = JSON.parse(s);
+      return o && typeof o === "object" && !Array.isArray(o) ? o : null;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof raw === "object" && !Array.isArray(raw)) return raw;
+  return null;
+}
+
+/**
+ * แถวเก่าไม่มี playSessionId — จับคู่รางวัลจาก central_prize_awards ตามเกม + เวลา
+ * (แต่ละ award ผูกกับ ledger game_start ล่าสุดก่อนเวลาชนะที่ยังไม่มีผล)
+ */
+async function enrichEntriesFromPrizeAwardsByGameTime(userId, entries) {
+  const out = entries.map((e) => ({
+    ...e,
+    meta:
+      e.meta && typeof e.meta === "object" && !Array.isArray(e.meta)
+        ? { ...e.meta }
+        : e.meta
+  }));
+
+  const ledgerSlots = [];
+  for (let i = 0; i < out.length; i += 1) {
+    const e = out[i];
+    if (e.kind !== "game_start" || !e.meta || typeof e.meta !== "object") continue;
+    if (metaHasRoundOutcome(e.meta)) continue;
+    const gid = gameIdFromMeta(e.meta);
+    if (!gid || !e.createdAt) continue;
+    const t = new Date(e.createdAt).getTime();
+    if (!Number.isFinite(t)) continue;
+    ledgerSlots.push({ i, gameId: gid, t, matched: false });
+  }
+  if (ledgerSlots.length === 0) return out;
+
+  const gameIds = [...new Set(ledgerSlots.map((x) => x.gameId))];
+  let r;
+  try {
+    r = await requirePool().query(
+      `SELECT id, game_id, created_at AS "createdAt",
+              COALESCE(BTRIM(rule_prize_title), '') AS t,
+              COALESCE(BTRIM(rule_prize_value_text), '') AS v,
+              COALESCE(BTRIM(rule_prize_unit), '') AS u,
+              prize_category
+       FROM central_prize_awards
+       WHERE winner_user_id = $1::uuid
+         AND game_id = ANY($2::uuid[])
+       ORDER BY created_at ASC`,
+      [userId, gameIds]
+    );
+  } catch {
+    return out;
+  }
+
+  const SKEW_MS = 120000;
+  const MAX_MS_BEFORE_WIN = 72 * 60 * 60 * 1000;
+
+  for (const row of r.rows) {
+    const at = new Date(row.createdAt).getTime();
+    if (!Number.isFinite(at)) continue;
+    const gid = row.game_id != null ? String(row.game_id).trim() : "";
+    if (!gid) continue;
+    let best = null;
+    for (const L of ledgerSlots) {
+      if (L.matched || L.gameId !== gid) continue;
+      if (L.t > at + SKEW_MS) continue;
+      if (at - L.t > MAX_MS_BEFORE_WIN) continue;
+      if (best == null || L.t > best.t) best = L;
+    }
+    if (!best) continue;
+    best.matched = true;
+    const e = out[best.i];
+    const summary = prizeSummaryFromAwardRow(row);
+    out[best.i] = {
+      ...e,
+      meta: {
+        ...e.meta,
+        roundOutcome: "won",
+        roundPrizeSummary: summary
+      }
+    };
+  }
+
+  return out;
+}
+
 /** ผลรอบถาวร — ใช้เมื่ออ่าน ledger (รองรับหลาย instance / meta ไม่อัปเดต) */
 async function enrichEntriesFromRoundOutcomesTable(userId, entries) {
   const sids = new Set();
@@ -256,11 +356,12 @@ async function listForUser(userId, opts = {}) {
     redBalanceAfter: Math.max(0, Math.floor(Number(row.redBalanceAfter) || 0)),
     kind: row.kind != null ? String(row.kind) : "",
     label: row.label != null ? String(row.label) : "",
-    meta: row.meta && typeof row.meta === "object" ? row.meta : null
+    meta: normalizeMetaFromDb(row.meta)
   }));
   const withCodes = await enrichEntriesWithCentralGameCodes(rows);
   const withRounds = await enrichEntriesFromRoundOutcomesTable(userId, withCodes);
-  return enrichEntriesFromPrizeAwards(userId, withRounds);
+  const withAwardSid = await enrichEntriesFromPrizeAwards(userId, withRounds);
+  return enrichEntriesFromPrizeAwardsByGameTime(userId, withAwardSid);
 }
 
 /**

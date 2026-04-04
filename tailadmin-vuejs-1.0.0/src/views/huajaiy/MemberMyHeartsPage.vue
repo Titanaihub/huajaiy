@@ -180,6 +180,24 @@ function gameHref(id: string) {
   return `/game/${g}`
 }
 
+/** meta จาก API อาจเป็น object หรือ JSON string */
+function metaAsRecord(e: HeartLedgerEntry): Record<string, unknown> | null {
+  const m = e.meta
+  if (m == null) return null
+  if (typeof m === 'string') {
+    try {
+      const o = JSON.parse(m) as unknown
+      return o && typeof o === 'object' && !Array.isArray(o)
+        ? (o as Record<string, unknown>)
+        : null
+    } catch {
+      return null
+    }
+  }
+  if (typeof m === 'object' && !Array.isArray(m)) return m as Record<string, unknown>
+  return null
+}
+
 /** ชื่อแสดงใน ledger — ใช้ meta.gameTitle ก่อน แล้วค่อยดึงจาก label รูป เริ่มเล่นเกม「…」 */
 function gameDisplayNameFromEntry(e: HeartLedgerEntry, m: Record<string, unknown> | null): string {
   const fromMeta = m?.gameTitle != null ? String(m.gameTitle).trim() : ''
@@ -275,7 +293,7 @@ function collectRawEvents(): RawEv[] {
 
   for (const e of ledger.value) {
     if (e.kind !== 'game_start') continue
-    const m = e.meta && typeof e.meta === 'object' && !Array.isArray(e.meta) ? e.meta : null
+    const m = metaAsRecord(e)
     const gifts = m?.redFromRoomGifts
     if (!gifts || typeof gifts !== 'object' || Array.isArray(gifts)) continue
     const gid = m.gameId != null ? String(m.gameId).trim() : null
