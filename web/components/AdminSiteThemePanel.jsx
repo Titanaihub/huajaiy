@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
-import { createDefaultOrganicHomeForm, mergeOrganicHomeFromApi } from "../lib/organicHomeFormDefaults";
+import {
+  createDefaultOrganicHomeForm,
+  mergeOrganicHomeFromApi,
+  ORGANIC_SECTION_HEADING_SIMPLE_KEYS
+} from "../lib/organicHomeFormDefaults";
 import { buildSiteFooterOverlayStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 
 function loadImage(fileBlob) {
@@ -902,6 +906,153 @@ export default function AdminSiteThemePanel() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-dashed border-hui-border pt-6">
+          <p className="hui-label mb-1">หัวข้อแต่ละบล็อกในหน้า Organic</p>
+          <p className="hui-note mb-4 text-sm">
+            แก้ชื่อหลัก สีหลัก ข้อความย่อยใต้หัวข้อ (ถ้าไม่ใส่บางบล็อกจะซ่อนบรรทัดย่อย) และสีข้อความย่อย · ใช้{" "}
+            <code className="rounded bg-hui-surface px-1">#RRGGBB</code> หรือ{" "}
+            <code className="rounded bg-hui-surface px-1">rgba(...)</code>
+          </p>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {ORGANIC_SECTION_HEADING_SIMPLE_KEYS.map(({ key, label }) => {
+              const blk = organicHome.sectionHeadings?.[key];
+              if (!blk) return null;
+              return (
+                <div
+                  key={key}
+                  className="rounded-lg border border-hui-border bg-white/40 p-3"
+                >
+                  <p className="mb-2 text-xs font-semibold text-hui-section">{label}</p>
+                  <input
+                    type="text"
+                    value={blk.title}
+                    onChange={(e) => {
+                      const sectionHeadings = {
+                        ...organicHome.sectionHeadings,
+                        [key]: { ...blk, title: e.target.value }
+                      };
+                      setOrganicHome({ ...organicHome, sectionHeadings });
+                    }}
+                    className="hui-input mb-2 text-sm"
+                    placeholder="หัวข้อหลัก"
+                  />
+                  <input
+                    type="text"
+                    value={blk.titleColor}
+                    onChange={(e) => {
+                      const sectionHeadings = {
+                        ...organicHome.sectionHeadings,
+                        [key]: { ...blk, titleColor: e.target.value }
+                      };
+                      setOrganicHome({ ...organicHome, sectionHeadings });
+                    }}
+                    className="hui-input mb-2 font-mono text-xs"
+                    placeholder="สีหัวข้อ"
+                  />
+                  <textarea
+                    rows={2}
+                    value={blk.subtitle}
+                    onChange={(e) => {
+                      const sectionHeadings = {
+                        ...organicHome.sectionHeadings,
+                        [key]: { ...blk, subtitle: e.target.value }
+                      };
+                      setOrganicHome({ ...organicHome, sectionHeadings });
+                    }}
+                    className="hui-input mb-2 min-h-[2.5rem] text-sm"
+                    placeholder="ข้อความย่อย (เว้นว่างได้)"
+                  />
+                  <input
+                    type="text"
+                    value={blk.subtitleColor}
+                    onChange={(e) => {
+                      const sectionHeadings = {
+                        ...organicHome.sectionHeadings,
+                        [key]: { ...blk, subtitleColor: e.target.value }
+                      };
+                      setOrganicHome({ ...organicHome, sectionHeadings });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    placeholder="สีข้อความย่อย"
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="hui-label mb-2 mt-6">แถวความน่าเชื่อถือ 5 ช่อง (เหนือฟุตเตอร์)</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2, 3, 4].map((i) => {
+              const blk = organicHome.sectionHeadings?.valueTrust?.[i];
+              if (!blk) return null;
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg border border-hui-border bg-white/40 p-3"
+                >
+                  <p className="mb-2 text-xs font-medium text-hui-muted">ช่อง {i + 1}</p>
+                  <input
+                    type="text"
+                    value={blk.title}
+                    onChange={(e) => {
+                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
+                      valueTrust[i] = { ...valueTrust[i], title: e.target.value };
+                      setOrganicHome({
+                        ...organicHome,
+                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
+                      });
+                    }}
+                    className="hui-input mb-2 text-sm"
+                    placeholder="หัวข้อ"
+                  />
+                  <input
+                    type="text"
+                    value={blk.titleColor}
+                    onChange={(e) => {
+                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
+                      valueTrust[i] = { ...valueTrust[i], titleColor: e.target.value };
+                      setOrganicHome({
+                        ...organicHome,
+                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
+                      });
+                    }}
+                    className="hui-input mb-2 font-mono text-xs"
+                    placeholder="สีหัวข้อ"
+                  />
+                  <textarea
+                    rows={2}
+                    value={blk.subtitle}
+                    onChange={(e) => {
+                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
+                      valueTrust[i] = { ...valueTrust[i], subtitle: e.target.value };
+                      setOrganicHome({
+                        ...organicHome,
+                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
+                      });
+                    }}
+                    className="hui-input mb-2 min-h-[2.5rem] text-sm"
+                    placeholder="ข้อความย่อย"
+                  />
+                  <input
+                    type="text"
+                    value={blk.subtitleColor}
+                    onChange={(e) => {
+                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
+                      valueTrust[i] = { ...valueTrust[i], subtitleColor: e.target.value };
+                      setOrganicHome({
+                        ...organicHome,
+                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
+                      });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    placeholder="สีข้อความย่อย"
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </fieldset>

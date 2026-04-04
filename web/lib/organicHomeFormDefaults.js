@@ -1,3 +1,141 @@
+/** คีย์หัวข้อบล็อก (ไม่รวม valueTrust) — ป้ายไทยสำหรับแอดมิน */
+export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
+  { key: "category", label: "หมวดหมู่ (Category)" },
+  { key: "bestSelling", label: "สินค้าขายดี (Best selling)" },
+  { key: "bannerSale1", label: "แบนเนอร์ 1 — Items on SALE" },
+  { key: "bannerSale2", label: "แบนเนอร์ 2 — Combo offers" },
+  { key: "bannerSale3", label: "แบนเนอร์ 3 — Discount Coupons" },
+  { key: "featured", label: "สินค้าแนะนำ (Featured)" },
+  { key: "newsletter", label: "จดหมายข่าว / ส่วนลด" },
+  { key: "popular", label: "ยอดนิยม (Most popular)" },
+  { key: "justArrived", label: "สินค้าใหม่ (Just arrived)" },
+  { key: "blog", label: "บล็อก (Our blog)" },
+  { key: "appDownload", label: "ดาวน์โหลดแอป" },
+  { key: "seoLooking", label: "คำค้นยอดนิยม (People also looking)" }
+];
+
+function createDefaultSectionHeadings() {
+  return {
+    category: {
+      title: "Category",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    bestSelling: {
+      title: "Best selling products",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    bannerSale1: {
+      title: "Items on SALE",
+      titleColor: "#FFFFFF",
+      subtitle: "Discounts up to 30%",
+      subtitleColor: "rgba(255,255,255,0.92)"
+    },
+    bannerSale2: {
+      title: "Combo offers",
+      titleColor: "#FFFFFF",
+      subtitle: "Discounts up to 50%",
+      subtitleColor: "rgba(255,255,255,0.92)"
+    },
+    bannerSale3: {
+      title: "Discount Coupons",
+      titleColor: "#FFFFFF",
+      subtitle: "Discounts up to 40%",
+      subtitleColor: "rgba(255,255,255,0.92)"
+    },
+    featured: {
+      title: "Featured products",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    newsletter: {
+      title: "Get 25% Discount on your first purchase",
+      titleColor: "#FFFFFF",
+      subtitle: "Just Sign Up & Register it now to become member.",
+      subtitleColor: "rgba(255,255,255,0.9)"
+    },
+    popular: {
+      title: "Most popular products",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    justArrived: {
+      title: "Just arrived",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    blog: {
+      title: "Our Recent Blog",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    appDownload: {
+      title: "Download Organic App",
+      titleColor: "#212529",
+      subtitle: "Online Orders made easy, fast and reliable",
+      subtitleColor: "#6C757D"
+    },
+    seoLooking: {
+      title: "People are also looking for",
+      titleColor: "#212529",
+      subtitle: "",
+      subtitleColor: "#6C757D"
+    },
+    valueTrust: [
+      {
+        title: "Free delivery",
+        titleColor: "#212529",
+        subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+        subtitleColor: "#6C757D"
+      },
+      {
+        title: "100% secure payment",
+        titleColor: "#212529",
+        subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+        subtitleColor: "#6C757D"
+      },
+      {
+        title: "Quality guarantee",
+        titleColor: "#212529",
+        subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+        subtitleColor: "#6C757D"
+      },
+      {
+        title: "guaranteed savings",
+        titleColor: "#212529",
+        subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+        subtitleColor: "#6C757D"
+      },
+      {
+        title: "Daily offers",
+        titleColor: "#212529",
+        subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+        subtitleColor: "#6C757D"
+      }
+    ]
+  };
+}
+
+function mergeSectionHeadingsFromApi(base, apiSh) {
+  if (!apiSh || typeof apiSh !== "object") return base;
+  const out = { ...base };
+  for (const { key } of ORGANIC_SECTION_HEADING_SIMPLE_KEYS) {
+    out[key] = { ...base[key], ...(apiSh[key] || {}) };
+  }
+  out.valueTrust = [0, 1, 2, 3, 4].map((i) => ({
+    ...base.valueTrust[i],
+    ...(apiSh.valueTrust?.[i] || {})
+  }));
+  return out;
+}
+
 /** ค่าเริ่มต้นฟอร์มแอดมิน — สอดคล้อง services/organicHomeContent.js */
 export function createDefaultOrganicHomeForm() {
   return {
@@ -66,7 +204,8 @@ export function createDefaultOrganicHomeForm() {
         titleColor: "#FFFFFF",
         descriptionColor: "rgba(255,255,255,0.92)"
       }
-    ]
+    ],
+    sectionHeadings: createDefaultSectionHeadings()
   };
 }
 
@@ -80,6 +219,7 @@ export function mergeOrganicHomeFromApi(api) {
     primaryCta: { ...d.primaryCta, ...(api.primaryCta || {}) },
     secondaryCta: { ...d.secondaryCta, ...(api.secondaryCta || {}) },
     stats: [0, 1, 2].map((i) => ({ ...d.stats[i], ...(api.stats?.[i] || {}) })),
-    features: [0, 1, 2].map((i) => ({ ...d.features[i], ...(api.features?.[i] || {}) }))
+    features: [0, 1, 2].map((i) => ({ ...d.features[i], ...(api.features?.[i] || {}) })),
+    sectionHeadings: mergeSectionHeadingsFromApi(d.sectionHeadings, api.sectionHeadings)
   };
 }

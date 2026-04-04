@@ -36,6 +36,163 @@ function trunc(s, max) {
   return x.length > max ? x.slice(0, max) : x;
 }
 
+/** สีหัวข้อ/ข้อความย่อย — รองรับ #RRGGBB หรือ rgb/rgba */
+function normOptionalTextColor(s, fallback) {
+  const c = String(s || "").trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(c)) return c;
+  if (c.startsWith("rgba(") || c.startsWith("rgb(")) {
+    return trunc(c, 80) || fallback;
+  }
+  return normalizeHex6(s, fallback);
+}
+
+const DEFAULT_SECTION_HEADINGS = Object.freeze({
+  category: Object.freeze({
+    title: "Category",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  bestSelling: Object.freeze({
+    title: "Best selling products",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  bannerSale1: Object.freeze({
+    title: "Items on SALE",
+    titleColor: "#FFFFFF",
+    subtitle: "Discounts up to 30%",
+    subtitleColor: "rgba(255,255,255,0.92)"
+  }),
+  bannerSale2: Object.freeze({
+    title: "Combo offers",
+    titleColor: "#FFFFFF",
+    subtitle: "Discounts up to 50%",
+    subtitleColor: "rgba(255,255,255,0.92)"
+  }),
+  bannerSale3: Object.freeze({
+    title: "Discount Coupons",
+    titleColor: "#FFFFFF",
+    subtitle: "Discounts up to 40%",
+    subtitleColor: "rgba(255,255,255,0.92)"
+  }),
+  featured: Object.freeze({
+    title: "Featured products",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  newsletter: Object.freeze({
+    title: "Get 25% Discount on your first purchase",
+    titleColor: "#FFFFFF",
+    subtitle: "Just Sign Up & Register it now to become member.",
+    subtitleColor: "rgba(255,255,255,0.9)"
+  }),
+  popular: Object.freeze({
+    title: "Most popular products",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  justArrived: Object.freeze({
+    title: "Just arrived",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  blog: Object.freeze({
+    title: "Our Recent Blog",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  appDownload: Object.freeze({
+    title: "Download Organic App",
+    titleColor: "#212529",
+    subtitle: "Online Orders made easy, fast and reliable",
+    subtitleColor: "#6C757D"
+  }),
+  seoLooking: Object.freeze({
+    title: "People are also looking for",
+    titleColor: "#212529",
+    subtitle: "",
+    subtitleColor: "#6C757D"
+  }),
+  valueTrust: Object.freeze([
+    Object.freeze({
+      title: "Free delivery",
+      titleColor: "#212529",
+      subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+      subtitleColor: "#6C757D"
+    }),
+    Object.freeze({
+      title: "100% secure payment",
+      titleColor: "#212529",
+      subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+      subtitleColor: "#6C757D"
+    }),
+    Object.freeze({
+      title: "Quality guarantee",
+      titleColor: "#212529",
+      subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+      subtitleColor: "#6C757D"
+    }),
+    Object.freeze({
+      title: "guaranteed savings",
+      titleColor: "#212529",
+      subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+      subtitleColor: "#6C757D"
+    }),
+    Object.freeze({
+      title: "Daily offers",
+      titleColor: "#212529",
+      subtitle: "Lorem ipsum dolor sit amet, consectetur adipi elit.",
+      subtitleColor: "#6C757D"
+    })
+  ])
+});
+
+function normSectionHeadingBlock(raw, fb) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const hasSubtitleKey = Object.prototype.hasOwnProperty.call(o, "subtitle");
+  return {
+    title: trunc(o.title, MAX_LEN.short) || fb.title,
+    titleColor: normOptionalTextColor(o.titleColor, fb.titleColor),
+    subtitle: hasSubtitleKey
+      ? trunc(String(o.subtitle == null ? "" : o.subtitle), MAX_LEN.medium)
+      : fb.subtitle,
+    subtitleColor: normOptionalTextColor(o.subtitleColor, fb.subtitleColor)
+  };
+}
+
+function normValueTrustHeadings(raw, fbArr) {
+  const list = Array.isArray(raw) ? raw : [];
+  return [0, 1, 2, 3, 4].map((i) =>
+    normSectionHeadingBlock(list[i], fbArr[i])
+  );
+}
+
+function normSectionHeadings(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const fb = DEFAULT_SECTION_HEADINGS;
+  return {
+    category: normSectionHeadingBlock(o.category, fb.category),
+    bestSelling: normSectionHeadingBlock(o.bestSelling, fb.bestSelling),
+    bannerSale1: normSectionHeadingBlock(o.bannerSale1, fb.bannerSale1),
+    bannerSale2: normSectionHeadingBlock(o.bannerSale2, fb.bannerSale2),
+    bannerSale3: normSectionHeadingBlock(o.bannerSale3, fb.bannerSale3),
+    featured: normSectionHeadingBlock(o.featured, fb.featured),
+    newsletter: normSectionHeadingBlock(o.newsletter, fb.newsletter),
+    popular: normSectionHeadingBlock(o.popular, fb.popular),
+    justArrived: normSectionHeadingBlock(o.justArrived, fb.justArrived),
+    blog: normSectionHeadingBlock(o.blog, fb.blog),
+    appDownload: normSectionHeadingBlock(o.appDownload, fb.appDownload),
+    seoLooking: normSectionHeadingBlock(o.seoLooking, fb.seoLooking),
+    valueTrust: normValueTrustHeadings(o.valueTrust, fb.valueTrust)
+  };
+}
+
 const DEFAULT_ORGANIC_HOME = Object.freeze({
   heroBackgroundImageUrl: "",
   heroTitle: "ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ",
@@ -118,7 +275,8 @@ function deepCloneDefault() {
     primaryCta: { ...DEFAULT_ORGANIC_HOME.primaryCta },
     secondaryCta: { ...DEFAULT_ORGANIC_HOME.secondaryCta },
     stats: DEFAULT_ORGANIC_HOME.stats.map((s) => ({ ...s })),
-    features: DEFAULT_ORGANIC_HOME.features.map((f) => ({ ...f }))
+    features: DEFAULT_ORGANIC_HOME.features.map((f) => ({ ...f })),
+    sectionHeadings: normSectionHeadings(null)
   };
 }
 
@@ -209,6 +367,7 @@ function mergeOrganicHomeFromRow(rawJson) {
   base.secondaryCta = normCta(o.secondaryCta, base.secondaryCta);
   base.stats = normStats(o.stats);
   base.features = normFeatures(o.features);
+  base.sectionHeadings = normSectionHeadings(o.sectionHeadings);
   return base;
 }
 
@@ -222,6 +381,7 @@ function normalizeOrganicHomePayload(input) {
 
 module.exports = {
   DEFAULT_ORGANIC_HOME,
+  DEFAULT_SECTION_HEADINGS,
   mergeOrganicHomeFromRow,
   normalizeOrganicHomePayload,
   normalizeHttpsUrl,

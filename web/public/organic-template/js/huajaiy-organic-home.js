@@ -50,6 +50,46 @@
     setStyle("huajaiy-stat-" + i + "-label", "color", s.labelColor);
   }
 
+  var SECTION_TITLE_SUB_IDS = {
+    category: ["huajaiy-sec-category-title", "huajaiy-sec-category-sub"],
+    bestSelling: ["huajaiy-sec-bestselling-title", "huajaiy-sec-bestselling-sub"],
+    bannerSale1: ["huajaiy-sec-bannersale1-title", "huajaiy-sec-bannersale1-sub"],
+    bannerSale2: ["huajaiy-sec-bannersale2-title", "huajaiy-sec-bannersale2-sub"],
+    bannerSale3: ["huajaiy-sec-bannersale3-title", "huajaiy-sec-bannersale3-sub"],
+    featured: ["huajaiy-sec-featured-title", "huajaiy-sec-featured-sub"],
+    newsletter: ["huajaiy-sec-newsletter-title", "huajaiy-sec-newsletter-sub"],
+    popular: ["huajaiy-sec-popular-title", "huajaiy-sec-popular-sub"],
+    justArrived: ["huajaiy-sec-justarrived-title", "huajaiy-sec-justarrived-sub"],
+    blog: ["huajaiy-sec-blog-title", "huajaiy-sec-blog-sub"],
+    appDownload: ["huajaiy-sec-app-title", "huajaiy-sec-app-sub"],
+    seoLooking: ["huajaiy-sec-seo-title", "huajaiy-sec-seo-sub"]
+  };
+
+  function applySectionBlock(block, titleId, subId) {
+    if (!block) return;
+    setText(titleId, block.title);
+    setStyle(titleId, "color", block.titleColor);
+    var sub = $(subId);
+    if (!sub) return;
+    var t = block.subtitle != null ? String(block.subtitle) : "";
+    sub.textContent = t;
+    sub.style.color = block.subtitleColor || "";
+    sub.style.display = t.replace(/\s/g, "") ? "" : "none";
+  }
+
+  function applySectionHeadings(sh) {
+    if (!sh || typeof sh !== "object") return;
+    Object.keys(SECTION_TITLE_SUB_IDS).forEach(function (key) {
+      var pair = SECTION_TITLE_SUB_IDS[key];
+      applySectionBlock(sh[key], pair[0], pair[1]);
+    });
+    var vt = sh.valueTrust;
+    if (!Array.isArray(vt)) return;
+    for (var k = 0; k < 5; k++) {
+      applySectionBlock(vt[k], "huajaiy-sec-trust-" + k + "-title", "huajaiy-sec-trust-" + k + "-sub");
+    }
+  }
+
   function setFeature(i, f) {
     var card = $("huajaiy-feature-" + i);
     if (card) {
@@ -108,6 +148,7 @@
         if (feats[j]) setFeature(j, feats[j]);
       }
     }
+    applySectionHeadings(data.sectionHeadings);
   }
 
   function fetchJson() {
