@@ -34,6 +34,10 @@
       html.huajaiy-chrome-hide header.sticky-top.border-bottom {
         display: none !important;
       }
+      /* ความสูง iframe ปรับตามเอกสาร — ลดสกอร์บาร์ซ้อนใน iframe */
+      html.huajaiy-chrome-hide {
+        overflow-x: hidden;
+      }
       /* การ์ดเกมหน้าแรก — ให้ใกล้เคียงหน้า /game (GameLobby) */
       .huajaiy-game-card {
         border: 1px solid #f0d6dc !important;
@@ -2269,6 +2273,44 @@
     <script src="js/plugins.js"></script>
     <script src="js/script.js"></script>
     <script src="js/huajaiy-organic-home.js"></script>
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).get("huajaiy_chrome") === "1" && window.parent !== window) {
+            function huajaiySendDocHeightToParent() {
+              requestAnimationFrame(function () {
+                var doc = document.documentElement;
+                var body = document.body;
+                var h = Math.max(
+                  doc.scrollHeight,
+                  body ? body.scrollHeight : 0,
+                  doc.offsetHeight,
+                  body ? body.offsetHeight : 0
+                );
+                if (h < 320) h = 320;
+                window.parent.postMessage(
+                  { type: "HUAJAIY_ORGANIC_DOC_HEIGHT", height: h },
+                  window.location.origin
+                );
+              });
+            }
+            window.__huajaiyNotifyOrganicHeight = huajaiySendDocHeightToParent;
+            window.addEventListener("load", function () {
+              huajaiySendDocHeightToParent();
+              setTimeout(huajaiySendDocHeightToParent, 200);
+              setTimeout(huajaiySendDocHeightToParent, 900);
+            });
+            window.addEventListener("resize", huajaiySendDocHeightToParent);
+            if (typeof ResizeObserver !== "undefined") {
+              try {
+                new ResizeObserver(huajaiySendDocHeightToParent).observe(document.documentElement);
+              } catch (e) {}
+            }
+            huajaiySendDocHeightToParent();
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script>
       (function () {
         window.addEventListener("message", function (ev) {

@@ -1,17 +1,33 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import OrganicPublicFooter from "./OrganicPublicFooter";
 import { useMemberAuth } from "./MemberAuthProvider";
 
+const IFRAME_HEIGHT_INITIAL = 960;
+
 /**
  * หน้าแรก production: หัวเว็บเดียวกับ /member /admin (MemberAuthProvider)
- * + iframe organic (?huajaiy_chrome=1 ซ่อนแถบซ้ำใน iframe)
+ * + iframe organic (?huajaiy_chrome=1) ส่งความสูงเอกสารจริง → เลื่อนทั้งหน้า สกอร์บาร์เดียว ฟุตเตอร์ท้ายเนื้อหา
  */
 export default function HomeOrganicChrome() {
   const iframeRef = useRef(null);
   const { user } = useMemberAuth();
+  const [iframePxHeight, setIframePxHeight] = useState(IFRAME_HEIGHT_INITIAL);
+
+  useEffect(() => {
+    function onMessage(ev) {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data;
+      if (!d || d.type !== "HUAJAIY_ORGANIC_DOC_HEIGHT") return;
+      const h = Number(d.height);
+      if (!Number.isFinite(h) || h < 240) return;
+      setIframePxHeight(Math.min(Math.ceil(h), 32000));
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   const toggleOrganicNav = useCallback(() => {
     const w = iframeRef.current?.contentWindow;
@@ -24,7 +40,7 @@ export default function HomeOrganicChrome() {
   }, []);
 
   return (
-    <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
+    <div className="flex w-full flex-col bg-white">
       <HomeStylePublicHeader
         onHamburgerClick={toggleOrganicNav}
         lineProfileImageUrl={user?.linePictureUrl || undefined}
@@ -35,12 +51,14 @@ export default function HomeOrganicChrome() {
             : undefined
         }
       />
-      <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
+      <main className="w-full bg-slate-100">
         <iframe
           ref={iframeRef}
           title="หน้าแรก — HUAJAIY"
           src="/organic-template/index.html?huajaiy_chrome=1"
-          className="h-full w-full border-0"
+          className="block w-full max-w-full border-0"
+          style={{ height: iframePxHeight }}
+          scrolling="no"
         />
       </main>
       <OrganicPublicFooter />

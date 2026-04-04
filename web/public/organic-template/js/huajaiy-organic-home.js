@@ -383,6 +383,17 @@
           applyOrganicHome(body.organicHome);
           applyGameCards(Array.isArray(body.organicGamesPick) ? body.organicGamesPick : []);
         }
+        try {
+          if (typeof window.__huajaiyNotifyOrganicHeight === "function") {
+            window.__huajaiyNotifyOrganicHeight();
+            setTimeout(function () {
+              window.__huajaiyNotifyOrganicHeight();
+            }, 200);
+            setTimeout(function () {
+              window.__huajaiyNotifyOrganicHeight();
+            }, 800);
+          }
+        } catch (e) {}
       })
       .catch(function () {
         var emptyEl = $("huajaiy-community-empty");
@@ -391,6 +402,11 @@
           emptyEl.textContent =
             "โหลดข้อมูลไม่สำเร็จ — ลองรีเฟรช หรือตรวจการเชื่อม API";
         }
+        try {
+          if (typeof window.__huajaiyNotifyOrganicHeight === "function") {
+            window.__huajaiyNotifyOrganicHeight();
+          }
+        } catch (e) {}
       });
   }
 
