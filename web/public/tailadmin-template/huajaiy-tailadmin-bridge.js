@@ -7,6 +7,9 @@
 (function () {
   var TOKEN_KEY = "huajaiy_member_token";
   var HEART = "/tailadmin-template/images/logo/huajaiy-heart.svg";
+  /** โปรไฟล์สมาชิกเมื่อไม่มีรูปที่อัปโหลดและไม่มีรูป LINE */
+  var DEFAULT_MEMBER_AVATAR =
+    "/tailadmin-template/images/default-member-avatar-heart.svg";
 
   var lastUser = null;
   var moTimer = null;
@@ -603,11 +606,14 @@
     var full = displayName(user);
     var sub =
       (user.username ? "@" + user.username + " · " : "") + roleLabel(user.role);
-    var av = user.linePictureUrl;
+    var av =
+      (user.profilePictureUrl && String(user.profilePictureUrl).trim()) ||
+      (user.linePictureUrl && String(user.linePictureUrl).trim()) ||
+      "";
 
     document.querySelectorAll('img[alt="User"], img[alt="user"]').forEach(
       function (img) {
-        if (av) img.src = av;
+        img.src = av || DEFAULT_MEMBER_AVATAR;
       }
     );
 

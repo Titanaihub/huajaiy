@@ -5,6 +5,7 @@
         <div class="flex flex-col items-center w-full gap-6 xl:flex-row">
           <div
             class="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 shrink-0"
+            :class="{ 'bg-pink-50 dark:bg-pink-950/30': isDefaultHeartAvatar }"
           >
             <img :src="avatarUrl" alt="โปรไฟล์" class="h-full w-full object-cover" />
           </div>
@@ -223,6 +224,9 @@ const saveErr = ref('')
 
 const displayName = computed(() => ctx.displayName.value)
 const avatarUrl = computed(() => ctx.avatarUrl.value)
+const isDefaultHeartAvatar = computed(() =>
+  Boolean(avatarUrl.value && avatarUrl.value.includes('default-member-avatar-heart.svg'))
+)
 
 const subtitle = computed(() => {
   const u = ctx.user.value

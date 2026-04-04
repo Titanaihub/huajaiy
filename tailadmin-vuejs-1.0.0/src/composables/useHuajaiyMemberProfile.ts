@@ -54,7 +54,7 @@ export function useHuajaiyMemberProfile() {
     const line = u?.linePictureUrl
     const raw = (custom && String(custom).trim()) || (line && String(line).trim()) || ''
     if (raw) return raw
-    return `${import.meta.env.BASE_URL}images/user/owner.jpg`
+    return `${import.meta.env.BASE_URL}images/default-member-avatar-heart.svg`
   })
 
   async function load(): Promise<void> {
