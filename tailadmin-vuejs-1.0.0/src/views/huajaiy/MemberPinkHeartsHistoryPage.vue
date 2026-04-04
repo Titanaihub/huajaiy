@@ -247,6 +247,17 @@ function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | nul
     return base
   }
 
+  if (kind === 'admin_adjust') {
+    const lab = String(e.label || '').trim()
+    if (lab) return lab
+    const adminUser = m?.adminUsername != null ? String(m.adminUsername).trim() : ''
+    const who = adminUser ? `@${adminUser}` : 'แอดมิน'
+    const pd = Math.floor(Number(e.pinkDelta) || 0)
+    if (pd > 0) return `ได้รับหัวใจชมพูจากแอดมิน (${who})`
+    if (pd < 0) return `แอดมิน (${who}) หักหัวใจชมพู`
+    return `แอดมิน (${who}) ปรับยอด`
+  }
+
   return String(e.label || '').trim() || kind || 'รายการ'
 }
 

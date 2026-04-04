@@ -42,6 +42,43 @@ function isUuidParam(id) {
   );
 }
 
+/** ข้อความบันทึก heart_ledger — สมาชิกเห็นชัดว่าได้/หักจากแอดมิน */
+function buildAdminHeartLedgerLabel(adminUsername, pinkDelta, redDelta, redGiveawayDelta) {
+  const u =
+    adminUsername != null && String(adminUsername).trim()
+      ? String(adminUsername).trim()
+      : "";
+  const tag = u ? `@${u}` : "แอดมิน";
+  const pd = Math.floor(Number(pinkDelta) || 0);
+  const rd = Math.floor(Number(redDelta) || 0);
+  const gd = Math.floor(Number(redGiveawayDelta) || 0);
+  const parts = [];
+  if (pd !== 0) {
+    parts.push(
+      pd > 0
+        ? `ได้รับหัวใจชมพูจากแอดมิน (${tag}) +${pd}`
+        : `แอดมิน (${tag}) หักหัวใจชมพู ${pd}`
+    );
+  }
+  if (rd !== 0) {
+    parts.push(
+      rd > 0
+        ? `ได้รับหัวใจแดงจากแอดมิน (${tag}) +${rd}`
+        : `แอดมิน (${tag}) หักหัวใจแดง ${rd}`
+    );
+  }
+  if (gd !== 0) {
+    parts.push(
+      gd > 0
+        ? `ได้รับหัวใจแดงแจกจากแอดมิน (${tag}) +${gd}`
+        : `แอดมิน (${tag}) หักหัวใจแดงแจก ${gd}`
+    );
+  }
+  return parts.length > 0
+    ? parts.join(" · ")
+    : `แอดมิน (${tag}) ปรับยอดหัวใจ`;
+}
+
 function requireGameBuilderRole(req, res, next) {
   const r = req.userRole || MEMBER;
   const ok =
@@ -338,9 +375,10 @@ router.post(
         redGiveawayDelta,
         {
           kind: "admin_adjust",
-          label: `แอดมิน @${req.username || "?"} ปรับยอดหัวใจ`,
+          label: buildAdminHeartLedgerLabel(req.username, pinkDelta, redDelta, redGiveawayDelta),
           meta: {
             adminUsername: req.username || null,
+            source: "admin_panel",
             pinkDelta,
             redDelta,
             redGiveawayDelta
