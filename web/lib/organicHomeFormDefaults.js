@@ -15,7 +15,7 @@ export const ORGANIC_HOMEPAGE_BLOCK_TOGGLES = [
   { key: "featured", label: "Featured products" },
   { key: "popular", label: "Most popular products" },
   { key: "justArrived", label: "Just arrived" },
-  { key: "blog", label: "Our Recent Blog" },
+  { key: "blog", label: "เพจชุมชน (ชุมชนเพจ)" },
   { key: "seoLooking", label: "People are also looking for" }
 ];
 
@@ -34,13 +34,63 @@ export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
   { key: "newsletter", label: "จดหมายข่าว / ส่วนลด" },
   { key: "popular", label: "ยอดนิยม (Most popular)" },
   { key: "justArrived", label: "สินค้าใหม่ (Just arrived)" },
-  { key: "blog", label: "บล็อก (Our blog)" },
+  { key: "blog", label: "เพจชุมชน (ชุมชนเพจ)" },
   { key: "appDownload", label: "ดาวน์โหลดแอป" },
   { key: "seoLooking", label: "คำค้นยอดนิยม (People also looking)" }
 ];
 
 export function createDefaultSectionVisibility() {
   return Object.fromEntries(ORGANIC_HOMEPAGE_BLOCK_KEYS.map((k) => [k, true]));
+}
+
+export function createDefaultCommunityPage() {
+  return {
+    viewAllHref: "#",
+    viewAllLabel: "ดูทั้งหมด",
+    posts: [
+      {
+        imageUrl: "images/post-thumbnail-1.jpg",
+        href: "#",
+        dateLine: "22 Aug 2021",
+        category: "tips & tricks",
+        title: "Top 10 casual look ideas to dress up your kids",
+        excerpt:
+          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+      },
+      {
+        imageUrl: "images/post-thumbnail-2.jpg",
+        href: "#",
+        dateLine: "25 Aug 2021",
+        category: "trending",
+        title: "Latest trends of wearing street wears supremely",
+        excerpt:
+          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+      },
+      {
+        imageUrl: "images/post-thumbnail-3.jpg",
+        href: "#",
+        dateLine: "28 Aug 2021",
+        category: "inspiration",
+        title: "10 Different Types of comfortable clothes ideas for women",
+        excerpt:
+          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+      }
+    ]
+  };
+}
+
+function mergeCommunityPageFromApi(base, apiCp) {
+  const b = base && typeof base === "object" ? base : createDefaultCommunityPage();
+  if (!apiCp || typeof apiCp !== "object") return b;
+  const posts = [0, 1, 2].map((i) => ({
+    ...b.posts[i],
+    ...(apiCp.posts?.[i] && typeof apiCp.posts[i] === "object" ? apiCp.posts[i] : {})
+  }));
+  return {
+    viewAllHref: apiCp.viewAllHref != null ? String(apiCp.viewAllHref) : b.viewAllHref,
+    viewAllLabel: apiCp.viewAllLabel != null ? String(apiCp.viewAllLabel) : b.viewAllLabel,
+    posts
+  };
 }
 
 function mergeSectionVisibilityFromApi(base, apiVis) {
@@ -118,7 +168,7 @@ function createDefaultSectionHeadings() {
       subtitleColor: "#6C757D"
     },
     blog: {
-      title: "Our Recent Blog",
+      title: "เพจชุมชน",
       titleColor: "#212529",
       subtitle: "",
       subtitleColor: "#6C757D"
@@ -253,7 +303,8 @@ export function createDefaultOrganicHomeForm() {
       }
     ],
     sectionHeadings: createDefaultSectionHeadings(),
-    sectionVisibility: createDefaultSectionVisibility()
+    sectionVisibility: createDefaultSectionVisibility(),
+    communityPage: createDefaultCommunityPage()
   };
 }
 
@@ -269,6 +320,7 @@ export function mergeOrganicHomeFromApi(api) {
     stats: [0, 1, 2].map((i) => ({ ...d.stats[i], ...(api.stats?.[i] || {}) })),
     features: [0, 1, 2].map((i) => ({ ...d.features[i], ...(api.features?.[i] || {}) })),
     sectionHeadings: mergeSectionHeadingsFromApi(d.sectionHeadings, api.sectionHeadings),
-    sectionVisibility: mergeSectionVisibilityFromApi(d.sectionVisibility, api.sectionVisibility)
+    sectionVisibility: mergeSectionVisibilityFromApi(d.sectionVisibility, api.sectionVisibility),
+    communityPage: mergeCommunityPageFromApi(d.communityPage, api.communityPage)
   };
 }

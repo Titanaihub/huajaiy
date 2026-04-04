@@ -337,6 +337,40 @@ export default function AdminSiteThemePanel() {
     }
   }
 
+  async function onPickCommunityPostImage(index, ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy(`organicCommunity-${index}`);
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const merged = mergeOrganicHomeFromApi({ communityPage: organicHome.communityPage })
+        .communityPage;
+      const posts = merged.posts.map((p, idx) =>
+        idx === index ? { ...p, imageUrl: url } : p
+      );
+      const nextOrganic = { ...organicHome, communityPage: { ...merged, posts } };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
   async function onPickGameLobbyBg(ev) {
     const file = ev.target.files?.[0];
     ev.target.value = "";
@@ -1207,6 +1241,198 @@ export default function AdminSiteThemePanel() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-hui-border bg-white/40 p-4">
+          <p className="hui-label mb-1">
+            ชุมชนเพจ <span className="font-normal text-hui-muted">(แสดงบนหน้าเป็น «เพจชุมชน» ถัดจากเกมและรางวัล)</span>
+          </p>
+          <p className="hui-note mb-4 text-sm">
+            ปุ่มดูทั้งหมดและการ์ด 3 ใบ · รูปเป็น{" "}
+            <code className="rounded bg-hui-surface px-1">https://...</code> หรือ path เช่น{" "}
+            <code className="rounded bg-hui-surface px-1">images/post-thumbnail-1.jpg</code> ·
+            ลิงก์ขึ้นต้นด้วย <code className="rounded bg-hui-surface px-1">/</code> หรือ{" "}
+            <code className="rounded bg-hui-surface px-1">https://</code>
+          </p>
+          {(() => {
+            const cp = mergeOrganicHomeFromApi({
+              communityPage: organicHome.communityPage
+            }).communityPage;
+            return (
+              <>
+                <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="hui-label text-xs">ข้อความปุ่มดูทั้งหมด</label>
+                    <input
+                      type="text"
+                      value={cp.viewAllLabel}
+                      onChange={(e) =>
+                        setOrganicHome((oh) => {
+                          const m = mergeOrganicHomeFromApi({
+                            communityPage: oh.communityPage
+                          }).communityPage;
+                          return { ...oh, communityPage: { ...m, viewAllLabel: e.target.value } };
+                        })
+                      }
+                      className="hui-input text-sm"
+                      placeholder="ดูทั้งหมด"
+                    />
+                  </div>
+                  <div>
+                    <label className="hui-label text-xs">ลิงก์ปุ่มดูทั้งหมด</label>
+                    <input
+                      type="text"
+                      value={cp.viewAllHref}
+                      onChange={(e) =>
+                        setOrganicHome((oh) => {
+                          const m = mergeOrganicHomeFromApi({
+                            communityPage: oh.communityPage
+                          }).communityPage;
+                          return { ...oh, communityPage: { ...m, viewAllHref: e.target.value } };
+                        })
+                      }
+                      className="hui-input font-mono text-xs"
+                      placeholder="/community หรือ https://..."
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border border-hui-border bg-white/50 p-3"
+                    >
+                      <p className="mb-2 text-xs font-medium text-hui-muted">การ์ด {i + 1}</p>
+                      <label className="hui-label text-xs">URL รูปหน้าปก</label>
+                      <input
+                        type="text"
+                        value={cp.posts[i].imageUrl ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, imageUrl: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input mb-2 font-mono text-xs"
+                        placeholder="https://... หรือ images/..."
+                        autoComplete="off"
+                      />
+                      <div className="mb-2 flex flex-wrap gap-2">
+                        <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-xs disabled:opacity-50">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            disabled={uploadBusy !== null}
+                            onChange={(ev) => onPickCommunityPostImage(i, ev)}
+                          />
+                          {uploadBusy === `organicCommunity-${i}`
+                            ? "กำลังอัปโหลด…"
+                            : "อัปโหลดรูป"}
+                        </label>
+                      </div>
+                      <label className="hui-label text-xs">ลิงก์การ์ด</label>
+                      <input
+                        type="text"
+                        value={cp.posts[i].href ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, href: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input mb-2 font-mono text-xs"
+                        placeholder="# หรือ /path"
+                        autoComplete="off"
+                      />
+                      <label className="hui-label text-xs">วันที่ (บรรทัดเดียว)</label>
+                      <input
+                        type="text"
+                        value={cp.posts[i].dateLine ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, dateLine: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input mb-2 text-sm"
+                        placeholder="22 Aug 2021"
+                      />
+                      <label className="hui-label text-xs">หมวด / แท็ก</label>
+                      <input
+                        type="text"
+                        value={cp.posts[i].category ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, category: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input mb-2 text-sm"
+                        placeholder="tips & tricks"
+                      />
+                      <label className="hui-label text-xs">หัวข้อ</label>
+                      <input
+                        type="text"
+                        value={cp.posts[i].title ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, title: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input mb-2 text-sm"
+                        placeholder="หัวข้อโพสต์"
+                      />
+                      <label className="hui-label text-xs">คำโปรย</label>
+                      <textarea
+                        rows={3}
+                        value={cp.posts[i].excerpt ?? ""}
+                        onChange={(e) =>
+                          setOrganicHome((oh) => {
+                            const m = mergeOrganicHomeFromApi({
+                              communityPage: oh.communityPage
+                            }).communityPage;
+                            const posts = m.posts.map((p, idx) =>
+                              idx === i ? { ...p, excerpt: e.target.value } : p
+                            );
+                            return { ...oh, communityPage: { ...m, posts } };
+                          })
+                        }
+                        className="hui-input min-h-[3rem] text-sm"
+                        placeholder="ข้อความสั้นใต้หัวข้อ"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         <div className="mt-8 border-t border-dashed border-hui-border pt-6">

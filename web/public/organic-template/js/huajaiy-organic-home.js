@@ -258,6 +258,48 @@
     }
   }
 
+  function setCommunityLink(id, href) {
+    var a = $(id);
+    if (!a) return;
+    var h = href != null ? String(href).trim() : "";
+    a.href = h || "#";
+    a.target = "_top";
+    a.rel = "noopener";
+  }
+
+  function applyCommunityPage(cp) {
+    if (!cp || typeof cp !== "object") return;
+    var va = $("huajaiy-community-view-all");
+    if (va) {
+      va.textContent =
+        cp.viewAllLabel != null ? String(cp.viewAllLabel) : "ดูทั้งหมด";
+      setCommunityLink("huajaiy-community-view-all", cp.viewAllHref);
+    }
+    var posts = cp.posts;
+    if (!Array.isArray(posts)) return;
+    for (var n = 0; n < 3; n++) {
+      var p = posts[n];
+      if (!p || typeof p !== "object") continue;
+      var href = p.href != null ? String(p.href).trim() : "#";
+      setCommunityLink("huajaiy-community-post-" + n + "-img-link", href);
+      setCommunityLink("huajaiy-community-post-" + n + "-title-link", href);
+      var img = $("huajaiy-community-post-" + n + "-img");
+      if (img) {
+        var u = p.imageUrl != null ? String(p.imageUrl).trim() : "";
+        if (u) {
+          img.src = u;
+          img.alt =
+            p.title != null ? String(p.title).slice(0, 120) : "";
+        }
+      }
+      setText("huajaiy-community-post-" + n + "-date", p.dateLine);
+      setText("huajaiy-community-post-" + n + "-category", p.category);
+      var tl = $("huajaiy-community-post-" + n + "-title-link");
+      if (tl) tl.textContent = p.title != null ? String(p.title) : "";
+      setText("huajaiy-community-post-" + n + "-excerpt", p.excerpt);
+    }
+  }
+
   function applyOrganicHome(data) {
     if (!data || typeof data !== "object") return;
     setHeroBg(data.heroBackgroundImageUrl);
@@ -281,6 +323,7 @@
     }
     applySectionHeadings(data.sectionHeadings);
     applySectionVisibility(data.sectionVisibility);
+    applyCommunityPage(data.communityPage);
   }
 
   function fetchJson() {

@@ -102,7 +102,7 @@ const DEFAULT_SECTION_HEADINGS = Object.freeze({
     subtitleColor: "#6C757D"
   }),
   blog: Object.freeze({
-    title: "Our Recent Blog",
+    title: "เพจชุมชน",
     titleColor: "#212529",
     subtitle: "",
     subtitleColor: "#6C757D"
@@ -158,6 +158,75 @@ const DEFAULT_SECTION_HEADINGS = Object.freeze({
     })
   ])
 });
+
+const DEFAULT_COMMUNITY_PAGE_POSTS = Object.freeze([
+  Object.freeze({
+    imageUrl: "images/post-thumbnail-1.jpg",
+    href: "#",
+    dateLine: "22 Aug 2021",
+    category: "tips & tricks",
+    title: "Top 10 casual look ideas to dress up your kids",
+    excerpt:
+      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+  }),
+  Object.freeze({
+    imageUrl: "images/post-thumbnail-2.jpg",
+    href: "#",
+    dateLine: "25 Aug 2021",
+    category: "trending",
+    title: "Latest trends of wearing street wears supremely",
+    excerpt:
+      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+  }),
+  Object.freeze({
+    imageUrl: "images/post-thumbnail-3.jpg",
+    href: "#",
+    dateLine: "28 Aug 2021",
+    category: "inspiration",
+    title: "10 Different Types of comfortable clothes ideas for women",
+    excerpt:
+      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
+  })
+]);
+
+function normCommunityPostHref(v, fb) {
+  const s = trunc(String(v == null ? "" : v), 500);
+  if (!s || s === "#") return fb || "#";
+  if (s.startsWith("/")) return s.replace(/\/+/g, "/").slice(0, 500);
+  if (/^https:\/\//i.test(s)) return normalizeHttpsUrl(s) ? s : fb || "#";
+  return fb || "#";
+}
+
+function normCommunityImageUrl(v, fb) {
+  const s = String(v || "").trim().slice(0, MAX_LEN.url);
+  if (!s) return fb;
+  if (/^https:\/\//i.test(s)) return normalizeHttpsUrl(s) ? s : fb;
+  if (s.startsWith("/")) return trunc(s, MAX_LEN.url);
+  if (/^images\//i.test(s)) return trunc(s, MAX_LEN.url);
+  return fb;
+}
+
+function normCommunityPage(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const list = Array.isArray(o.posts) ? o.posts : [];
+  const posts = [0, 1, 2].map((i) => {
+    const s = list[i] && typeof list[i] === "object" ? list[i] : {};
+    const f = DEFAULT_COMMUNITY_PAGE_POSTS[i];
+    return {
+      imageUrl: normCommunityImageUrl(s.imageUrl, f.imageUrl),
+      href: normCommunityPostHref(s.href, f.href),
+      dateLine: trunc(s.dateLine, 80) || f.dateLine,
+      category: trunc(s.category, 80) || f.category,
+      title: trunc(s.title, MAX_LEN.short) || f.title,
+      excerpt: trunc(s.excerpt, MAX_LEN.medium) || f.excerpt
+    };
+  });
+  return {
+    viewAllHref: normCommunityPostHref(o.viewAllHref, "#"),
+    viewAllLabel: trunc(o.viewAllLabel, MAX_LEN.short) || "ดูทั้งหมด",
+    posts
+  };
+}
 
 /** บล็อกที่แอดมินเปิด/ปิดได้ (หน้าแรก organic iframe) — คีย์ตรงกับ data-huajaiy-block */
 const TOGGLEABLE_HOME_BLOCKS = [
@@ -308,7 +377,8 @@ function deepCloneDefault() {
     stats: DEFAULT_ORGANIC_HOME.stats.map((s) => ({ ...s })),
     features: DEFAULT_ORGANIC_HOME.features.map((f) => ({ ...f })),
     sectionHeadings: normSectionHeadings(null),
-    sectionVisibility: normSectionVisibility(null)
+    sectionVisibility: normSectionVisibility(null),
+    communityPage: normCommunityPage(null)
   };
 }
 
@@ -402,6 +472,9 @@ function mergeOrganicHomeFromRow(rawJson) {
   base.sectionHeadings = normSectionHeadings(o.sectionHeadings);
   base.sectionVisibility = normSectionVisibility(
     o.sectionVisibility != null ? o.sectionVisibility : base.sectionVisibility
+  );
+  base.communityPage = normCommunityPage(
+    o.communityPage != null ? o.communityPage : base.communityPage
   );
   return base;
 }
