@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
 
@@ -74,24 +73,9 @@ export default function PublicMemberPageChrome({ member }) {
     "relative px-4 py-3 text-[15px] font-semibold transition-colors rounded-t-lg border-b-2 -mb-px min-h-[48px] flex items-center";
 
   return (
-    <div className="min-h-dvh bg-[#f0f2f5]">
-      <div className="mx-auto max-w-5xl px-0 pb-10 sm:px-4">
-        <nav
-          className="flex flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 text-sm sm:px-0"
-          aria-label="ทางลัด"
-        >
-          <Link href="/" className={siteNavLinkClass}>
-            ← หน้าแรก
-          </Link>
-          <span className="text-gray-400" aria-hidden>
-            ·
-          </span>
-          <Link href="/game" className={siteNavLinkClass}>
-            รายการเกม
-          </Link>
-        </nav>
-
-        <div className="overflow-hidden rounded-none bg-white shadow-sm sm:rounded-xl">
+    <div className="min-h-full bg-[#f0f2f5] px-3 py-4 sm:px-5 sm:py-6 md:px-6">
+      <div className="mx-auto max-w-4xl pb-6">
+        <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm">
           {/* ปกเพจ */}
           <div
             className="relative h-44 bg-gradient-to-br from-rose-500 via-pink-500 to-indigo-600 sm:h-52 md:h-60"

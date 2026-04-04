@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
+import MemberStylePageShell from "../../../components/MemberStylePageShell";
 import PublicMemberPageChrome from "../../../components/PublicMemberPageChrome";
-import SiteFooter from "../../../components/SiteFooter";
-import SiteHeader from "../../../components/SiteHeader";
 import { getApiBase } from "../../../lib/config";
 
 export const dynamic = "force-dynamic";
@@ -50,12 +49,8 @@ export default async function PublicMemberPage({ params }) {
   }
 
   return (
-    <>
-      <SiteHeader />
-      <main>
-        <PublicMemberPageChrome member={m} />
-      </main>
-      <SiteFooter />
-    </>
+    <MemberStylePageShell>
+      <PublicMemberPageChrome member={m} />
+    </MemberStylePageShell>
   );
 }
