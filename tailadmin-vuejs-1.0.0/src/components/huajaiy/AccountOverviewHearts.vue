@@ -106,7 +106,7 @@
           >เติมหัวใจ</a
         >
         <a
-          class="text-sm font-medium text-gray-600 underline-offset-2 hover:underline dark:text-gray-400"
+          class="text-sm font-medium text-red-600 underline-offset-2 hover:underline dark:text-red-400"
           href="/account/heart-history/giveaway"
           target="_parent"
           rel="noopener noreferrer"
