@@ -33,11 +33,28 @@
           <div class="border-b border-pink-100/80 bg-pink-50/60 px-4 py-3 dark:border-pink-900/20 dark:bg-pink-950/20">
             <p class="text-sm text-slate-600 dark:text-gray-400">
               แสดงเฉพาะรายการที่<strong class="text-pink-700 dark:text-pink-300">หัวใจชมพู</strong>มีการเพิ่มหรือหัก
-              (เช่น ได้จากสั่งซื้อ / หักเล่นเกม)
+              (เช่น ได้จากสั่งซื้อ / แอดมินปรับ / หักเล่นเกม)
+            </p>
+            <p class="mt-2 text-xs leading-relaxed text-slate-500 dark:text-gray-500">
+              รายการมาจาก<strong>บันทึกในระบบ (heart ledger)</strong> เท่านั้น — ไม่ได้สร้างจากยอดคงเหลือปัจจุบัน
+              ถ้าเคยได้รับชมพูแต่ไม่เห็นที่นี่ อาจเป็นช่วงก่อนมีการบันทึก หรือยอดถูกตั้งในฐานข้อมูลโดยไม่ผ่าน ledger
+              แอดมินตรวจรายการเต็มได้ที่หลังบ้านสมาชิก
+            </p>
+            <p
+              v-if="!ledgerLoading && pinkRows.length > 0"
+              class="mt-2 text-xs font-semibold text-pink-800 dark:text-pink-300"
+            >
+              แสดง {{ pinkRows.length }} รายการ (โหลดจากเซิร์ฟเวอร์แล้ว)
+            </p>
+            <p v-if="ledgerLoading" class="mt-2 text-xs text-slate-500 dark:text-gray-400">
+              กำลังโหลดประวัติชมพู…
             </p>
           </div>
-          <div v-if="pinkRows.length === 0" class="px-4 py-10 text-center text-sm text-slate-500 dark:text-gray-400">
-            ยังไม่มีประวัติชมพูในช่วงที่โหลด
+          <div
+            v-if="!ledgerLoading && pinkRows.length === 0"
+            class="px-4 py-10 text-center text-sm text-slate-500 dark:text-gray-400"
+          >
+            ยังไม่มีประวัติชมพูในระบบ หรือยังไม่มีแถวที่หัก/เพิ่มชมพูถูกบันทึก
           </div>
           <div v-else class="overflow-x-auto">
             <table class="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -90,7 +107,9 @@
                             ? 'text-red-600 dark:text-red-400'
                             : 'text-slate-500'
                       "
-                      >{{ row.pinkDelta > 0 ? '+' : '' }}{{ fmt(Math.abs(row.pinkDelta)) }}</span
+                      >{{
+                        row.pinkDelta > 0 ? '+' : row.pinkDelta < 0 ? '−' : ''
+                      }}{{ fmt(Math.abs(row.pinkDelta)) }}</span
                     >
                   </td>
                   <td
@@ -126,6 +145,7 @@ const { user, loading: authLoading, load: loadProfile } = useHuajaiyMemberProfil
 
 const loadErr = ref('')
 const dbRequired = ref(false)
+const ledgerLoading = ref(false)
 const ledger = ref<HeartLedgerEntry[]>([])
 
 function fmt(n: number) {
@@ -303,22 +323,49 @@ const pinkRows = computed((): PinkRow[] => {
   return out
 })
 
+function sortLedgerDesc(entries: HeartLedgerEntry[]) {
+  return [...entries].sort((a, b) => {
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    return tb - ta
+  })
+}
+
 async function loadLedger() {
   loadErr.value = ''
   dbRequired.value = false
+  ledgerLoading.value = true
   const token = huajaiyMemberToken()
-  if (!token) return
+  if (!token) {
+    ledgerLoading.value = false
+    return
+  }
   try {
-    const L = await apiGetMyHeartLedger(token, {
-      limit: 500,
-      offset: 0,
-      pinkOnly: true,
-    })
-    ledger.value = L.entries
-    dbRequired.value = Boolean(L.dbRequired)
+    /** ดึงทีละชุดจนได้น้อยกว่า PAGE หรือถึงขีดจำกัด offset — กันพลาด limit รวม */
+    const PAGE = 1000
+    const MAX_OFF = 10000
+    const byId = new Map<string, HeartLedgerEntry>()
+    let dbReq = false
+    for (let off = 0; off <= MAX_OFF; off += PAGE) {
+      const L = await apiGetMyHeartLedger(token, {
+        limit: PAGE,
+        offset: off,
+        pinkOnly: true,
+      })
+      dbReq = dbReq || Boolean(L.dbRequired)
+      const batch = L.entries
+      for (const e of batch) {
+        byId.set(e.id, e)
+      }
+      if (batch.length < PAGE) break
+    }
+    dbRequired.value = dbReq
+    ledger.value = sortLedgerDesc([...byId.values()])
   } catch (e) {
     loadErr.value = e instanceof Error ? e.message : String(e)
     ledger.value = []
+  } finally {
+    ledgerLoading.value = false
   }
 }
 

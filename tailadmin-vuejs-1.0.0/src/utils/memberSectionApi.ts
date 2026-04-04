@@ -276,7 +276,7 @@ export async function apiGetMyHeartLedger(
   token: string,
   opts?: { limit?: number; offset?: number; pinkOnly?: boolean }
 ): Promise<{ entries: HeartLedgerEntry[]; dbRequired?: boolean }> {
-  const lim = opts?.limit ?? (opts?.pinkOnly ? 500 : 300)
+  const lim = opts?.limit ?? (opts?.pinkOnly ? 2000 : 300)
   const off = opts?.offset ?? 0
   const qs = new URLSearchParams({ limit: String(lim), offset: String(off) })
   if (opts?.pinkOnly) qs.set('pinkOnly', '1')
