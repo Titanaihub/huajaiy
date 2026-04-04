@@ -43,38 +43,23 @@ export function createDefaultSectionVisibility() {
   return Object.fromEntries(ORGANIC_HOMEPAGE_BLOCK_KEYS.map((k) => [k, true]));
 }
 
+const EMPTY_COMMUNITY_POST = {
+  imageUrl: "",
+  href: "#",
+  dateLine: "",
+  category: "",
+  title: "",
+  excerpt: ""
+};
+
 export function createDefaultCommunityPage() {
   return {
     viewAllHref: "#",
     viewAllLabel: "ดูทั้งหมด",
     posts: [
-      {
-        imageUrl: "images/post-thumbnail-1.jpg",
-        href: "#",
-        dateLine: "22 Aug 2021",
-        category: "tips & tricks",
-        title: "Top 10 casual look ideas to dress up your kids",
-        excerpt:
-          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-      },
-      {
-        imageUrl: "images/post-thumbnail-2.jpg",
-        href: "#",
-        dateLine: "25 Aug 2021",
-        category: "trending",
-        title: "Latest trends of wearing street wears supremely",
-        excerpt:
-          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-      },
-      {
-        imageUrl: "images/post-thumbnail-3.jpg",
-        href: "#",
-        dateLine: "28 Aug 2021",
-        category: "inspiration",
-        title: "10 Different Types of comfortable clothes ideas for women",
-        excerpt:
-          "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-      }
+      { ...EMPTY_COMMUNITY_POST },
+      { ...EMPTY_COMMUNITY_POST },
+      { ...EMPTY_COMMUNITY_POST }
     ]
   };
 }

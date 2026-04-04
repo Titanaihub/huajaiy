@@ -1250,7 +1250,7 @@ export default function AdminSiteThemePanel() {
           <p className="hui-note mb-4 text-sm">
             ปุ่มดูทั้งหมดและการ์ด 3 ใบ · รูปเป็น{" "}
             <code className="rounded bg-hui-surface px-1">https://...</code> หรือ path เช่น{" "}
-            <code className="rounded bg-hui-surface px-1">images/post-thumbnail-1.jpg</code> ·
+            <code className="rounded bg-hui-surface px-1">images/ชื่อรูป.jpg</code> (ในโฟลเดอร์เทมเพลต) ·
             ลิงก์ขึ้นต้นด้วย <code className="rounded bg-hui-surface px-1">/</code> หรือ{" "}
             <code className="rounded bg-hui-surface px-1">https://</code>
           </p>

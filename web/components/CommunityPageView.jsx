@@ -1,5 +1,26 @@
 import Link from "next/link";
 
+const LEGACY_BLOG_TITLES = new Set([
+  "our recent blog",
+  "our blog",
+  "recent blog"
+]);
+
+function normalizeCommunityTitle(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return "เพจชุมชน";
+  if (LEGACY_BLOG_TITLES.has(t.toLowerCase())) return "เพจชุมชน";
+  return t;
+}
+
+function postHasPublicContent(post) {
+  if (!post || typeof post !== "object") return false;
+  const t = String(post.title ?? "").trim();
+  const u = String(post.imageUrl ?? "").trim();
+  const ex = String(post.excerpt ?? "").trim();
+  return Boolean(t || u || ex);
+}
+
 function resolveCommunityImageSrc(url) {
   const u = String(url || "").trim();
   if (!u) return "";
@@ -29,12 +50,16 @@ function SmartLink({ href, className, children }) {
 }
 
 export default function CommunityPageView({ blogBlock, communityPage }) {
-  const title = blogBlock?.title?.trim() || "เพจชุมชน";
-  const sub = blogBlock?.subtitle?.trim() || "";
+  const rawTitle = blogBlock?.title?.trim() || "";
+  const title = normalizeCommunityTitle(rawTitle);
+  const rawSub = blogBlock?.subtitle?.trim() || "";
+  const sub =
+    rawSub && !rawSub.toLowerCase().includes("lorem ipsum") ? rawSub : "";
   const titleColor = blogBlock?.titleColor || "#212529";
   const subColor = blogBlock?.subtitleColor || "#6C757D";
   const cp = communityPage && typeof communityPage === "object" ? communityPage : {};
   const posts = Array.isArray(cp.posts) ? cp.posts : [];
+  const visiblePosts = posts.filter(postHasPublicContent);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -56,61 +81,68 @@ export default function CommunityPageView({ blogBlock, communityPage }) {
           {cp.viewAllLabel || "ดูทั้งหมด"}
         </SmartLink>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {posts.slice(0, 3).map((post, i) => {
-          const src = resolveCommunityImageSrc(post?.imageUrl);
-          const phref = post?.href;
-          const hasNav =
-            phref != null && String(phref).trim() && String(phref).trim() !== "#";
-          return (
-            <article
-              key={i}
-              className="flex flex-col overflow-hidden rounded-2xl border border-hui-border bg-hui-surface/90 shadow-soft"
-            >
-              <div className="aspect-[16/10] overflow-hidden bg-hui-pageTop">
-                {src ? (
-                  hasNav ? (
-                    <SmartLink href={phref} className="block h-full w-full">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {visiblePosts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-hui-border bg-hui-surface/60 px-6 py-12 text-center text-sm text-hui-muted">
+          ยังไม่มีโพสต์ในหน้านี้ — แอดมินตั้งค่าได้ที่{" "}
+          <span className="text-hui-body">ธีมเว็บ → ชุมชนเพจ</span>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-3">
+          {visiblePosts.slice(0, 3).map((post, i) => {
+            const src = resolveCommunityImageSrc(post?.imageUrl);
+            const phref = post?.href;
+            const hasNav =
+              phref != null && String(phref).trim() && String(phref).trim() !== "#";
+            return (
+              <article
+                key={i}
+                className="flex flex-col overflow-hidden rounded-2xl border border-hui-border bg-hui-surface/90 shadow-soft"
+              >
+                <div className="aspect-[16/10] overflow-hidden bg-hui-pageTop">
+                  {src ? (
+                    hasNav ? (
+                      <SmartLink href={phref} className="block h-full w-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={src}
+                          alt=""
+                          className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+                        />
+                      </SmartLink>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={src}
                         alt=""
-                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]"
+                        className="h-full w-full object-cover"
                       />
-                    </SmartLink>
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={src}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  )
-                ) : null}
-              </div>
-              <div className="flex flex-1 flex-col p-4">
-                <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-xs uppercase tracking-wide text-hui-muted">
-                  <span>{post?.dateLine}</span>
-                  <span>{post?.category}</span>
+                    )
+                  ) : null}
                 </div>
-                <h2 className="text-base font-semibold text-hui-section">
-                  <SmartLink
-                    href={phref}
-                    className="text-hui-section decoration-hui-border/60 underline-offset-2 hover:text-hui-cta hover:underline"
-                  >
-                    {post?.title}
-                  </SmartLink>
-                </h2>
-                {post?.excerpt ? (
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-hui-body line-clamp-4">
-                    {post.excerpt}
-                  </p>
-                ) : null}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-xs uppercase tracking-wide text-hui-muted">
+                    <span>{post?.dateLine}</span>
+                    <span>{post?.category}</span>
+                  </div>
+                  <h2 className="text-base font-semibold text-hui-section">
+                    <SmartLink
+                      href={phref}
+                      className="text-hui-section decoration-hui-border/60 underline-offset-2 hover:text-hui-cta hover:underline"
+                    >
+                      {post?.title}
+                    </SmartLink>
+                  </h2>
+                  {post?.excerpt ? (
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-hui-body line-clamp-4">
+                      {post.excerpt}
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
       <p className="hui-note mt-8 text-sm">
         เนื้อหาและรูปแก้ได้ที่แอดมิน → ธีมเว็บ → ชุมชนเพจ
       </p>

@@ -34,6 +34,7 @@ const gameStartDeductionService = require("./services/gameStartDeductionService"
 const heartLedgerService = require("./services/heartLedgerService");
 const { validateUsername } = require("./authValidators");
 const siteThemeService = require("./services/siteThemeService");
+const organicHomeContent = require("./services/organicHomeContent");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -364,7 +365,9 @@ app.get("/api/public/organic-home", async (_req, res) => {
     }
     return res.json({
       ok: true,
-      organicHome: theme.organicHome,
+      organicHome: organicHomeContent.sanitizeOrganicHomeForPublic(
+        theme.organicHome
+      ),
       organicGamesPick
     });
   } catch (e) {

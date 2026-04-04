@@ -159,35 +159,84 @@ const DEFAULT_SECTION_HEADINGS = Object.freeze({
   ])
 });
 
+/** การ์ดชุมชน — ไม่มีดีโมจากเทมเพลตเก่า (แอดมินเป็นคนกรอก) */
+const EMPTY_COMMUNITY_POST = Object.freeze({
+  imageUrl: "",
+  href: "#",
+  dateLine: "",
+  category: "",
+  title: "",
+  excerpt: ""
+});
+
 const DEFAULT_COMMUNITY_PAGE_POSTS = Object.freeze([
-  Object.freeze({
-    imageUrl: "images/post-thumbnail-1.jpg",
-    href: "#",
-    dateLine: "22 Aug 2021",
-    category: "tips & tricks",
-    title: "Top 10 casual look ideas to dress up your kids",
-    excerpt:
-      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-  }),
-  Object.freeze({
-    imageUrl: "images/post-thumbnail-2.jpg",
-    href: "#",
-    dateLine: "25 Aug 2021",
-    category: "trending",
-    title: "Latest trends of wearing street wears supremely",
-    excerpt:
-      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-  }),
-  Object.freeze({
-    imageUrl: "images/post-thumbnail-3.jpg",
-    href: "#",
-    dateLine: "28 Aug 2021",
-    category: "inspiration",
-    title: "10 Different Types of comfortable clothes ideas for women",
-    excerpt:
-      "Lorem ipsum dolor sit amet, consectetur adipi elit. Aliquet eleifend viverra enim tincidunt donec quam. A in arcu, hendrerit neque dolor morbi..."
-  })
+  EMPTY_COMMUNITY_POST,
+  EMPTY_COMMUNITY_POST,
+  EMPTY_COMMUNITY_POST
 ]);
+
+const LEGACY_BLOG_TITLE = new Set([
+  "our recent blog",
+  "our blog",
+  "recent blog"
+]);
+
+const LEGACY_COMMUNITY_TITLE = new Set([
+  "top 10 casual look ideas to dress up your kids",
+  "latest trends of wearing street wears supremely",
+  "10 different types of comfortable clothes ideas for women"
+]);
+
+function isLegacyDemoCommunityPost(p) {
+  if (!p || typeof p !== "object") return false;
+  const t = String(p.title || "")
+    .trim()
+    .toLowerCase();
+  if (t && LEGACY_COMMUNITY_TITLE.has(t)) return true;
+  const ex = String(p.excerpt || "").toLowerCase();
+  if (ex.includes("lorem ipsum")) return true;
+  const img = String(p.imageUrl || "").toLowerCase();
+  if (/post-thumbnail-[123]\.jpg/i.test(img)) return true;
+  return false;
+}
+
+/**
+ * ตอบสาธารณะเท่านั้น — ตัดหัวข้อ/โพสต์ดีโมเก่า (ข้อมูลใน DB เดิมยังอยู่สำหรับแอดมิน)
+ * @param {object} organicHome ผล mergeOrganicHomeFromRow แล้ว
+ */
+function sanitizeOrganicHomeForPublic(organicHome) {
+  if (!organicHome || typeof organicHome !== "object") {
+    return mergeOrganicHomeFromRow(null);
+  }
+  const blogIn = organicHome.sectionHeadings?.blog;
+  const blog =
+    blogIn && typeof blogIn === "object" ? { ...blogIn } : { ...DEFAULT_SECTION_HEADINGS.blog };
+  const bt = String(blog.title || "").trim();
+  const btl = bt.toLowerCase();
+  if (!bt || LEGACY_BLOG_TITLE.has(btl)) {
+    blog.title = DEFAULT_SECTION_HEADINGS.blog.title;
+  }
+  const sub = String(blog.subtitle || "").trim();
+  if (sub.toLowerCase().includes("lorem ipsum")) {
+    blog.subtitle = "";
+  }
+  const cpIn = organicHome.communityPage;
+  const cpBase = normCommunityPage(cpIn != null ? cpIn : null);
+  const posts = cpBase.posts.map((p) =>
+    isLegacyDemoCommunityPost(p) ? { ...EMPTY_COMMUNITY_POST } : p
+  );
+  return {
+    ...organicHome,
+    sectionHeadings: {
+      ...organicHome.sectionHeadings,
+      blog
+    },
+    communityPage: {
+      ...cpBase,
+      posts
+    }
+  };
+}
 
 function normCommunityPostHref(v, fb) {
   const s = trunc(String(v == null ? "" : v), 500);
@@ -213,12 +262,12 @@ function normCommunityPage(raw) {
     const s = list[i] && typeof list[i] === "object" ? list[i] : {};
     const f = DEFAULT_COMMUNITY_PAGE_POSTS[i];
     return {
-      imageUrl: normCommunityImageUrl(s.imageUrl, f.imageUrl),
+      imageUrl: normCommunityImageUrl(s.imageUrl, f.imageUrl) || "",
       href: normCommunityPostHref(s.href, f.href),
-      dateLine: trunc(s.dateLine, 80) || f.dateLine,
-      category: trunc(s.category, 80) || f.category,
-      title: trunc(s.title, MAX_LEN.short) || f.title,
-      excerpt: trunc(s.excerpt, MAX_LEN.medium) || f.excerpt
+      dateLine: trunc(s.dateLine, 80) || f.dateLine || "",
+      category: trunc(s.category, 80) || f.category || "",
+      title: trunc(s.title, MAX_LEN.short) || f.title || "",
+      excerpt: trunc(s.excerpt, MAX_LEN.medium) || f.excerpt || ""
     };
   });
   return {
@@ -494,6 +543,7 @@ module.exports = {
   TOGGLEABLE_HOME_BLOCKS,
   mergeOrganicHomeFromRow,
   normalizeOrganicHomePayload,
+  sanitizeOrganicHomeForPublic,
   normalizeHttpsUrl,
   normalizeHex6
 };

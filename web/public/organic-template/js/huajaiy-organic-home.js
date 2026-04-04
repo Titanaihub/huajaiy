@@ -267,6 +267,14 @@
     a.rel = "noopener";
   }
 
+  function communityPostHasContent(p) {
+    if (!p || typeof p !== "object") return false;
+    var t = p.title != null ? String(p.title).trim() : "";
+    var u = p.imageUrl != null ? String(p.imageUrl).trim() : "";
+    var ex = p.excerpt != null ? String(p.excerpt).trim() : "";
+    return Boolean(t || u || ex);
+  }
+
   function applyCommunityPage(cp) {
     if (!cp || typeof cp !== "object") return;
     var va = $("huajaiy-community-view-all");
@@ -277,9 +285,33 @@
     }
     var posts = cp.posts;
     if (!Array.isArray(posts)) return;
+    var anyVisible = false;
     for (var n = 0; n < 3; n++) {
       var p = posts[n];
-      if (!p || typeof p !== "object") continue;
+      var col = $("huajaiy-community-post-" + n + "-col");
+      var vis = communityPostHasContent(p);
+      if (col) {
+        if (vis) {
+          col.classList.remove("d-none");
+          anyVisible = true;
+        } else {
+          col.classList.add("d-none");
+        }
+      }
+      if (!vis) {
+        var img0 = $("huajaiy-community-post-" + n + "-img");
+        if (img0) {
+          img0.removeAttribute("src");
+          img0.classList.add("d-none");
+          img0.alt = "";
+        }
+        setText("huajaiy-community-post-" + n + "-date", "");
+        setText("huajaiy-community-post-" + n + "-category", "");
+        var tl0 = $("huajaiy-community-post-" + n + "-title-link");
+        if (tl0) tl0.textContent = "";
+        setText("huajaiy-community-post-" + n + "-excerpt", "");
+        continue;
+      }
       var href = p.href != null ? String(p.href).trim() : "#";
       setCommunityLink("huajaiy-community-post-" + n + "-img-link", href);
       setCommunityLink("huajaiy-community-post-" + n + "-title-link", href);
@@ -288,8 +320,12 @@
         var u = p.imageUrl != null ? String(p.imageUrl).trim() : "";
         if (u) {
           img.src = u;
-          img.alt =
-            p.title != null ? String(p.title).slice(0, 120) : "";
+          img.alt = p.title != null ? String(p.title).slice(0, 120) : "";
+          img.classList.remove("d-none");
+        } else {
+          img.removeAttribute("src");
+          img.classList.add("d-none");
+          img.alt = "";
         }
       }
       setText("huajaiy-community-post-" + n + "-date", p.dateLine);
@@ -297,6 +333,16 @@
       var tl = $("huajaiy-community-post-" + n + "-title-link");
       if (tl) tl.textContent = p.title != null ? String(p.title) : "";
       setText("huajaiy-community-post-" + n + "-excerpt", p.excerpt);
+    }
+    var emptyEl = $("huajaiy-community-empty");
+    if (emptyEl) {
+      if (anyVisible) {
+        emptyEl.classList.add("d-none");
+      } else {
+        emptyEl.classList.remove("d-none");
+        emptyEl.textContent =
+          "ยังไม่มีโพสต์ — ตั้งค่าได้ที่แอดมิน → ธีมเว็บ → ชุมชนเพจ";
+      }
     }
   }
 
@@ -339,7 +385,12 @@
         }
       })
       .catch(function () {
-        /* ใช้ HTML เดิม */
+        var emptyEl = $("huajaiy-community-empty");
+        if (emptyEl) {
+          emptyEl.classList.remove("d-none");
+          emptyEl.textContent =
+            "โหลดข้อมูลไม่สำเร็จ — ลองรีเฟรช หรือตรวจการเชื่อม API";
+        }
       });
   }
 

@@ -9,13 +9,24 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function metaBlogTitle(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return "เพจชุมชน";
+  const l = t.toLowerCase();
+  if (l === "our recent blog" || l === "our blog" || l === "recent blog") {
+    return "เพจชุมชน";
+  }
+  return t;
+}
+
 export async function generateMetadata() {
   const raw = await fetchOrganicHomePublic();
   const oh = mergeOrganicHomeFromApi(raw || {});
-  const title = oh.sectionHeadings?.blog?.title?.trim() || "เพจชุมชน";
-  const desc =
-    oh.sectionHeadings?.blog?.subtitle?.trim() ||
-    "เพจชุมชน — ลิงก์และโพสต์จากผู้ดูแลเว็บ";
+  const title = metaBlogTitle(oh.sectionHeadings?.blog?.title);
+  let desc = oh.sectionHeadings?.blog?.subtitle?.trim() || "";
+  if (!desc || desc.toLowerCase().includes("lorem ipsum")) {
+    desc = "เพจชุมชน — ลิงก์และโพสต์จากผู้ดูแลเว็บ";
+  }
   return {
     title: `${title} | HUAJAIY`,
     description: desc
