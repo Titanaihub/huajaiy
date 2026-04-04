@@ -27,6 +27,24 @@ import {
 
 const PAGE_SIZE = 25;
 
+/** แสดงในตารางประวัติหัวใจ (แอดมิน) — ค่าใน DB ยังเป็น kind เดิม */
+const HEART_LEDGER_KIND_LABEL_TH = {
+  game_start: "เล่นเกม",
+  admin_adjust: "แอดมินปรับยอด",
+  script_set_exact: "สคริปต์กำหนดยอด (ฉุกเฉิน)",
+  marketplace_order: "สั่งซื้อสินค้า",
+  heart_purchase_approved: "อนุมัติซื้อแพ็กหัวใจ",
+  adjustment: "ปรับยอด",
+  room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
+  room_red_code_refund: "คืนแดงห้อง",
+  room_red_code_redeem: "แลกรหัสห้อง"
+};
+
+function heartLedgerKindLabelTh(kind) {
+  const k = kind != null ? String(kind) : "";
+  return HEART_LEDGER_KIND_LABEL_TH[k] || k || "—";
+}
+
 const ADMIN_TAB_KEYS = [
   "members",
   "siteTheme",
@@ -1259,7 +1277,19 @@ export default function AdminDashboard() {
                                     ? new Date(row.createdAt).toLocaleString("th-TH")
                                     : "—"}
                                 </td>
-                                <td className="py-1 pr-2 font-mono">{row.kind}</td>
+                                <td
+                                  className="py-1 pr-2"
+                                  title={row.kind != null ? String(row.kind) : ""}
+                                >
+                                  <span className="font-medium text-hui-body">
+                                    {heartLedgerKindLabelTh(row.kind)}
+                                  </span>
+                                  {HEART_LEDGER_KIND_LABEL_TH[row.kind] ? (
+                                    <span className="mt-0.5 block font-mono text-[11px] text-hui-muted">
+                                      {row.kind}
+                                    </span>
+                                  ) : null}
+                                </td>
                                 <td className="py-1 pr-2 tabular-nums">{row.pinkDelta}</td>
                                 <td className="py-1 pr-2 tabular-nums">{row.redDelta}</td>
                                 <td className="max-w-[14rem] py-1 text-hui-body sm:max-w-md">
