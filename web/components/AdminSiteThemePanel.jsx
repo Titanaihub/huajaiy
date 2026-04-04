@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
+import { createDefaultOrganicHomeForm, mergeOrganicHomeFromApi } from "../lib/organicHomeFormDefaults";
 import { buildSiteFooterOverlayStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 
 function loadImage(fileBlob) {
@@ -97,6 +98,8 @@ export default function AdminSiteThemePanel() {
   const [footerScrimHex, setFooterScrimHex] = useState("#2B121C");
   const [footerScrimPercent, setFooterScrimPercent] = useState(48);
 
+  const [organicHome, setOrganicHome] = useState(() => createDefaultOrganicHomeForm());
+
   const previewHomeStyle = useMemo(
     () =>
       buildSiteRootBackgroundStyle({
@@ -165,6 +168,7 @@ export default function AdminSiteThemePanel() {
         const n = Number(t.footerScrimPercent);
         setFooterScrimPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 48);
       }
+      setOrganicHome(mergeOrganicHomeFromApi(t.organicHome));
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -196,7 +200,8 @@ export default function AdminSiteThemePanel() {
         innerBgGradientBottom,
         innerImageOverlayPercent,
         footerScrimHex,
-        footerScrimPercent
+        footerScrimPercent,
+        organicHome
       });
       router.refresh();
       setMsg("บันทึกแล้ว — สลับหน้าแรกกับหน้าอื่นเพื่อเทียบพื้นหลัง");
@@ -225,6 +230,35 @@ export default function AdminSiteThemePanel() {
               ? { backgroundImageUrl: url }
               : { innerBackgroundImageUrl: url }
           );
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
+  async function onPickOrganicHeroBg(ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy("organicHero");
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const nextOrganic = { ...organicHome, heroBackgroundImageUrl: url };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
           router.refresh();
         } catch (patchErr) {
           setErr(
@@ -454,6 +488,347 @@ export default function AdminSiteThemePanel() {
           </div>
         </fieldset>
       </div>
+
+      <fieldset className="min-w-0 space-y-5 rounded-xl border border-hui-border bg-white/50 p-4">
+        <legend className="px-1 text-base font-semibold text-hui-section">
+          หน้าแรก Organic <span className="font-normal text-hui-muted">(เทมเพลต /organic-template/)</span>
+        </legend>
+        <p className="hui-note text-sm">
+          ควบคุมรูปพื้นหลัง hero (แทนพื้นเหลือง/รูปตะกร้า), ข้อความ, สีข้อความ (#RRGGBB — คำอธิบายการ์ดรองรับ rgba), ปุ่ม CTA, สถิติ 3 คอลัมน์ และการ์ดฟีเจอร์ 3 ใบ · บันทึกร่วมกับปุ่ม «บันทึกธีมเว็บ» ด้านล่าง
+        </p>
+
+        <div>
+          <label htmlFor="organic-hero-bg-url" className="hui-label">
+            Hero — URL รูปพื้นหลัง (https)
+          </label>
+          <input
+            id="organic-hero-bg-url"
+            type="url"
+            value={organicHome.heroBackgroundImageUrl}
+            onChange={(e) =>
+              setOrganicHome({ ...organicHome, heroBackgroundImageUrl: e.target.value })
+            }
+            className="hui-input"
+            placeholder="https://..."
+            autoComplete="off"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={uploadBusy !== null}
+                onChange={onPickOrganicHeroBg}
+              />
+              {uploadBusy === "organicHero" ? "กำลังอัปโหลด…" : "อัปโหลดรูป Hero"}
+            </label>
+            <button
+              type="button"
+              className="rounded-2xl border border-hui-border bg-white px-4 py-2 text-sm font-semibold text-hui-body hover:bg-hui-surface"
+              onClick={() => setOrganicHome({ ...organicHome, heroBackgroundImageUrl: "" })}
+            >
+              ล้าง URL
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="organic-hero-title" className="hui-label">
+              หัวข้อหลัก
+            </label>
+            <input
+              id="organic-hero-title"
+              type="text"
+              value={organicHome.heroTitle}
+              onChange={(e) => setOrganicHome({ ...organicHome, heroTitle: e.target.value })}
+              className="hui-input"
+            />
+            <label htmlFor="organic-hero-title-color" className="hui-label mt-2">
+              สีหัวข้อ
+            </label>
+            <input
+              id="organic-hero-title-color"
+              type="text"
+              value={organicHome.heroTitleColor}
+              onChange={(e) => setOrganicHome({ ...organicHome, heroTitleColor: e.target.value })}
+              className="hui-input font-mono text-sm"
+              maxLength={40}
+            />
+          </div>
+          <div>
+            <label htmlFor="organic-hero-sub" className="hui-label">
+              คำบรรยายใต้หัวข้อ
+            </label>
+            <textarea
+              id="organic-hero-sub"
+              rows={2}
+              value={organicHome.heroSubtitle}
+              onChange={(e) => setOrganicHome({ ...organicHome, heroSubtitle: e.target.value })}
+              className="hui-input min-h-[3rem]"
+            />
+            <label htmlFor="organic-hero-sub-color" className="hui-label mt-2">
+              สีคำบรรยาย
+            </label>
+            <input
+              id="organic-hero-sub-color"
+              type="text"
+              value={organicHome.heroSubtitleColor}
+              onChange={(e) => setOrganicHome({ ...organicHome, heroSubtitleColor: e.target.value })}
+              className="hui-input font-mono text-sm"
+              maxLength={40}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-lg border border-hui-border bg-white/40 p-3">
+            <p className="mb-2 text-sm font-semibold text-hui-section">ปุ่มหลัก (Primary CTA)</p>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={organicHome.primaryCta.label}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    primaryCta: { ...organicHome.primaryCta, label: e.target.value }
+                  })
+                }
+                className="hui-input text-sm"
+                placeholder="ข้อความปุ่ม"
+              />
+              <input
+                type="text"
+                value={organicHome.primaryCta.href}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    primaryCta: { ...organicHome.primaryCta, href: e.target.value }
+                  })
+                }
+                className="hui-input font-mono text-sm"
+                placeholder="/shop"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={organicHome.primaryCta.bgColor}
+                  onChange={(e) =>
+                    setOrganicHome({
+                      ...organicHome,
+                      primaryCta: { ...organicHome.primaryCta, bgColor: e.target.value }
+                    })
+                  }
+                  className="hui-input font-mono text-xs"
+                  placeholder="พื้นปุ่ม #RRGGBB"
+                />
+                <input
+                  type="text"
+                  value={organicHome.primaryCta.textColor}
+                  onChange={(e) =>
+                    setOrganicHome({
+                      ...organicHome,
+                      primaryCta: { ...organicHome.primaryCta, textColor: e.target.value }
+                    })
+                  }
+                  className="hui-input font-mono text-xs"
+                  placeholder="ตัวอักษร"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-lg border border-hui-border bg-white/40 p-3">
+            <p className="mb-2 text-sm font-semibold text-hui-section">ปุ่มรอง (Secondary CTA)</p>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={organicHome.secondaryCta.label}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    secondaryCta: { ...organicHome.secondaryCta, label: e.target.value }
+                  })
+                }
+                className="hui-input text-sm"
+              />
+              <input
+                type="text"
+                value={organicHome.secondaryCta.href}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    secondaryCta: { ...organicHome.secondaryCta, href: e.target.value }
+                  })
+                }
+                className="hui-input font-mono text-sm"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={organicHome.secondaryCta.bgColor}
+                  onChange={(e) =>
+                    setOrganicHome({
+                      ...organicHome,
+                      secondaryCta: { ...organicHome.secondaryCta, bgColor: e.target.value }
+                    })
+                  }
+                  className="hui-input font-mono text-xs"
+                />
+                <input
+                  type="text"
+                  value={organicHome.secondaryCta.textColor}
+                  onChange={(e) =>
+                    setOrganicHome({
+                      ...organicHome,
+                      secondaryCta: { ...organicHome.secondaryCta, textColor: e.target.value }
+                    })
+                  }
+                  className="hui-input font-mono text-xs"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="hui-label mb-2">สถิติ 3 คอลัมน์</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-lg border border-hui-border bg-white/40 p-3">
+                <p className="mb-2 text-xs font-medium text-hui-muted">คอลัมน์ {i + 1}</p>
+                <input
+                  type="text"
+                  value={organicHome.stats[i].value}
+                  onChange={(e) => {
+                    const stats = [...organicHome.stats];
+                    stats[i] = { ...stats[i], value: e.target.value };
+                    setOrganicHome({ ...organicHome, stats });
+                  }}
+                  className="hui-input mb-2 text-sm"
+                  placeholder="14k+"
+                />
+                <input
+                  type="text"
+                  value={organicHome.stats[i].label}
+                  onChange={(e) => {
+                    const stats = [...organicHome.stats];
+                    stats[i] = { ...stats[i], label: e.target.value };
+                    setOrganicHome({ ...organicHome, stats });
+                  }}
+                  className="hui-input mb-2 text-sm"
+                  placeholder="PRODUCT VARIETIES"
+                />
+                <div className="grid grid-cols-2 gap-1">
+                  <input
+                    type="text"
+                    value={organicHome.stats[i].valueColor}
+                    onChange={(e) => {
+                      const stats = [...organicHome.stats];
+                      stats[i] = { ...stats[i], valueColor: e.target.value };
+                      setOrganicHome({ ...organicHome, stats });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    title="สีตัวเลข"
+                  />
+                  <input
+                    type="text"
+                    value={organicHome.stats[i].labelColor}
+                    onChange={(e) => {
+                      const stats = [...organicHome.stats];
+                      stats[i] = { ...stats[i], labelColor: e.target.value };
+                      setOrganicHome({ ...organicHome, stats });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    title="สีป้าย"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="hui-label mb-2">การ์ดฟีเจอร์ 3 ใบ</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-lg border border-hui-border bg-white/40 p-3">
+                <p className="mb-2 text-xs font-medium text-hui-muted">การ์ด {i + 1}</p>
+                <select
+                  value={organicHome.features[i].icon}
+                  onChange={(e) => {
+                    const features = [...organicHome.features];
+                    features[i] = { ...features[i], icon: e.target.value };
+                    setOrganicHome({ ...organicHome, features });
+                  }}
+                  className="hui-input mb-2 text-sm"
+                >
+                  <option value="fresh">ไอคอน — ฟาร์ม (fresh)</option>
+                  <option value="organic">ไอคอน — ออร์แกนิก (organic)</option>
+                  <option value="delivery">ไอคอน — จัดส่ง (delivery)</option>
+                </select>
+                <input
+                  type="text"
+                  value={organicHome.features[i].title}
+                  onChange={(e) => {
+                    const features = [...organicHome.features];
+                    features[i] = { ...features[i], title: e.target.value };
+                    setOrganicHome({ ...organicHome, features });
+                  }}
+                  className="hui-input mb-2 text-sm"
+                  placeholder="หัวข้อ"
+                />
+                <textarea
+                  rows={2}
+                  value={organicHome.features[i].description}
+                  onChange={(e) => {
+                    const features = [...organicHome.features];
+                    features[i] = { ...features[i], description: e.target.value };
+                    setOrganicHome({ ...organicHome, features });
+                  }}
+                  className="hui-input mb-2 min-h-[2.5rem] text-sm"
+                  placeholder="คำอธิบาย"
+                />
+                <input
+                  type="text"
+                  value={organicHome.features[i].cardBgColor}
+                  onChange={(e) => {
+                    const features = [...organicHome.features];
+                    features[i] = { ...features[i], cardBgColor: e.target.value };
+                    setOrganicHome({ ...organicHome, features });
+                  }}
+                  className="hui-input mb-1 font-mono text-xs"
+                  placeholder="พื้นการ์ด #RRGGBB"
+                />
+                <div className="grid grid-cols-2 gap-1">
+                  <input
+                    type="text"
+                    value={organicHome.features[i].titleColor}
+                    onChange={(e) => {
+                      const features = [...organicHome.features];
+                      features[i] = { ...features[i], titleColor: e.target.value };
+                      setOrganicHome({ ...organicHome, features });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    placeholder="สีหัวข้อ"
+                  />
+                  <input
+                    type="text"
+                    value={organicHome.features[i].descriptionColor}
+                    onChange={(e) => {
+                      const features = [...organicHome.features];
+                      features[i] = { ...features[i], descriptionColor: e.target.value };
+                      setOrganicHome({ ...organicHome, features });
+                    }}
+                    className="hui-input font-mono text-xs"
+                    placeholder="สีคำอธิบาย"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </fieldset>
 
       <div className="rounded-xl border border-hui-border bg-white/60 p-4">
         <p className="hui-label">ฟุตเตอร์ — สีทึบโปร่งทับพื้นหลังจริงของแต่ละหน้า</p>

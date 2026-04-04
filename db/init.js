@@ -769,6 +769,7 @@ async function initDb() {
         inner_bg_gradient_bottom VARCHAR(7) NOT NULL DEFAULT '#FFD6E2',
         inner_image_overlay_percent SMALLINT NOT NULL DEFAULT 78
           CHECK (inner_image_overlay_percent >= 0 AND inner_image_overlay_percent <= 100),
+        organic_home_json JSONB NOT NULL DEFAULT '{}'::jsonb,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
@@ -805,6 +806,10 @@ async function initDb() {
       ALTER TABLE site_theme
       ADD COLUMN IF NOT EXISTS inner_image_overlay_percent SMALLINT NOT NULL DEFAULT 78
         CHECK (inner_image_overlay_percent >= 0 AND inner_image_overlay_percent <= 100);
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS organic_home_json JSONB NOT NULL DEFAULT '{}'::jsonb;
     `);
     /* DB เดิม: ยังไม่เคยแยกธีม inner — คัดลอกจากหน้าแรกครั้งเดียวขณะ inner ยังเป็นค่าเริ่ม */
     await client.query(`

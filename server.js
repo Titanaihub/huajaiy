@@ -336,6 +336,16 @@ app.get("/api/public/site-theme", async (_req, res) => {
   }
 });
 
+/** เนื้อหา hero + การ์ดฟีเจอร์หน้าแรก organic (iframe) — สาธารณะ */
+app.get("/api/public/organic-home", async (_req, res) => {
+  try {
+    const theme = await siteThemeService.getSiteTheme();
+    return res.json({ ok: true, organicHome: theme.organicHome });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** รายชื่อผู้ได้รับรางวัลต่อกติกา (สาธารณะ) — ไม่มีข้อมูลบัญชี */
 app.get(
   "/api/public/games/:gameId/rules/:ruleId/awards",
