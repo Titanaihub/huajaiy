@@ -157,56 +157,11 @@ export default function AdminTailadminWorkspace() {
         <iframe
           key={iframeSrc}
           ref={iframeRef}
-          title={
-            isAdmin ? "ระบบแอดมิน HUAJAIY" : "พื้นที่ผู้ดูแลระบบ — จำกัดสิทธิ์"
-          }
+          title={isAdmin ? "ระบบแอดมิน HUAJAIY" : "HUAJAIY"}
           src={iframeSrc}
           className="h-full w-full border-0"
           onLoad={syncIframe}
         />
-
-        {!isAdmin && (
-          <div className="pointer-events-none absolute inset-0 flex justify-center overflow-y-auto pt-6 pb-10 sm:pt-10">
-            <div className="pointer-events-auto mx-4 w-full max-w-2xl shrink-0 rounded-xl border border-amber-200/90 bg-amber-50/95 p-4 text-sm text-amber-950 shadow-lg shadow-amber-900/10 backdrop-blur-sm sm:p-5">
-              <h1 className="text-lg font-bold text-slate-900">พื้นที่ผู้ดูแลระบบ</h1>
-              <p className="mt-1 text-slate-600">
-                บัญชีของคุณยังไม่มีสิทธิ์ <strong className="text-slate-800">admin</strong>
-                — ด้านหลังเป็นเทมเพลตแดชบอร์ด (แสดงเมื่อไม่มีสิทธิ์เข้าจัดการ)
-              </p>
-              <p className="mt-2 text-slate-600">
-                ถ้าคุณเป็นสมาชิก ให้ใช้{" "}
-                <a
-                  href="/member"
-                  className="font-semibold text-rose-700 underline decoration-rose-300 underline-offset-2 hover:text-rose-800"
-                >
-                  พื้นที่สมาชิก
-                </a>
-              </p>
-              <div className="mt-4 border-t border-amber-200/80 pt-4">
-                <p className="font-medium text-amber-950">บัญชีนี้ยังไม่ใช่แอดมิน</p>
-                <p className="mt-2 text-amber-900/90">
-                  <strong>วิธีที่ 1 — ยังไม่เคยสมัคร:</strong> ที่{" "}
-                  <code className="rounded bg-white/80 px-1">huajaiy-api</code> → Environment ใส่{" "}
-                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_USERNAME</code> (ชื่อล็อกอิน),{" "}
-                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PASSWORD</code> (รหัสที่ต้องการ),{" "}
-                  <code className="rounded bg-white/80 px-1">BOOTSTRAP_ADMIN_PHONE</code> (เบอร์ 10 หลัก 0xxxxxxxxx)
-                  → Deploy → ล็อกอินด้วย username/รหัสนั้น → แล้ว<strong>ลบ env ทั้งสามทิ้ง</strong>
-                </p>
-                <p className="mt-2 text-amber-900/90">
-                  <strong>วิธีที่ 2 — สมัครแล้ว:</strong>{" "}
-                  <code className="rounded bg-white/80 px-1">PROMOTE_ADMIN_USERNAME</code> = ยูสเซอร์ที่สมัคร → Deploy
-                  (ไม่เปลี่ยนรหัส — ใช้รหัสตอนสมัครล็อกอิน)
-                </p>
-                <p className="mt-2 text-amber-900/90">
-                  หรือรัน SQL:{" "}
-                  <code className="rounded bg-white/80 px-1 break-all">
-                    UPDATE users SET role = &apos;admin&apos; WHERE username = &apos;...&apos;;
-                  </code>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );
