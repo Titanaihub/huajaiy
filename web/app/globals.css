@@ -8,6 +8,14 @@
     /* พื้นหลังธีมใส่ที่ layout (inline) — ไม่ใส่สีทึบที่นี่เพื่อไม่บังรูป/ไล่สี */
     background-color: transparent;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
 }
 
 /** พื้นหลังตั้งจาก API ที่ `<body style=…>` — คลาสนี้คุมสีตัวหนังสือและความสูงขั้นต่ำ */
@@ -22,13 +30,13 @@
 
 @layer components {
   .hui-h1 {
-    @apply text-hui-hero font-bold text-hui-burgundy md:text-[2.625rem];
+    @apply font-heading text-hui-hero font-bold text-hui-burgundy md:text-[2.625rem];
   }
   .hui-h2 {
-    @apply text-hui-h2 font-semibold text-hui-section;
+    @apply font-heading text-hui-h2 font-semibold text-hui-section;
   }
   .hui-h3 {
-    @apply text-hui-h3 font-semibold text-hui-cardTitle;
+    @apply font-heading text-hui-h3 font-semibold text-hui-cardTitle;
   }
   .hui-body-text {
     @apply text-base text-hui-body;

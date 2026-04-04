@@ -7,16 +7,26 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ชุดเดียวกับ organic-template (Inter + Noto Sans Thai สำหรับไทย) */
+        /** เทมเพลต organic: เนื้อหา = Open Sans */
         sans: [
-          "var(--font-inter)",
-          "var(--font-noto-sans-thai)",
+          "var(--font-open-sans)",
+          "var(--font-nunito)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
           "Roboto",
           "Helvetica Neue",
           "Arial",
+          "Sarabun",
+          "sans-serif"
+        ],
+        /** หัวข้อ = Nunito (เช่น ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ) */
+        heading: [
+          "var(--font-nunito)",
+          "var(--font-open-sans)",
+          "ui-sans-serif",
+          "system-ui",
+          "Sarabun",
           "sans-serif"
         ]
       },
