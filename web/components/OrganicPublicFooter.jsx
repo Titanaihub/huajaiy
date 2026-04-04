@@ -11,8 +11,8 @@ const linkClass =
  */
 export default function OrganicPublicFooter() {
   return (
-    <footer className="mt-auto shrink-0 border-t border-gray-200 bg-white">
-      <div className="mx-auto max-w-5xl px-4 py-5 sm:px-4">
+    <footer className="mt-auto shrink-0 border-y border-gray-200 bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-4 sm:px-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <BrandLogo variant="footer" />
           <nav

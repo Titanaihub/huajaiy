@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from "react";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
+import OrganicPublicFooter from "./OrganicPublicFooter";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 /**
@@ -42,6 +43,7 @@ export default function HomeOrganicChrome() {
           className="h-full w-full border-0"
         />
       </main>
+      <OrganicPublicFooter />
     </div>
   );
 }
