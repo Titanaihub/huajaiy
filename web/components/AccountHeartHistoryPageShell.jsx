@@ -38,7 +38,7 @@ export default function AccountHeartHistoryPageShell({ children }) {
               href="/member/hearts"
               className="rounded-lg px-3 py-1.5 font-medium text-rose-700 transition hover:bg-rose-50"
             >
-              หัวใจของฉัน
+              หัวใจแดงห้องเกม
             </Link>
           </nav>
         </div>

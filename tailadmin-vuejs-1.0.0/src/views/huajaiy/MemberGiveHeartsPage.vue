@@ -30,7 +30,7 @@
             rel="noopener noreferrer"
             class="font-semibold text-rose-600 underline decoration-gray-300 underline-offset-2 dark:text-rose-400"
           >
-            หัวใจของฉัน (มุมมองผู้เล่น)
+            หัวใจแดงห้องเกม (มุมมองผู้เล่น)
           </a>
         </p>
       </header>

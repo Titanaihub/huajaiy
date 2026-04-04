@@ -1,7 +1,7 @@
 import AccountMyHeartsSection from "../../../components/AccountMyHeartsSection";
 
 export const metadata = {
-  title: "หัวใจของฉัน | HUAJAIY"
+  title: "หัวใจแดงห้องเกม | HUAJAIY"
 };
 
 export default function AccountMyHeartsPage() {

@@ -196,7 +196,7 @@ export default function AccountMyHeartsSection() {
   return (
     <div className="space-y-8">
       <header>
-        <h2 className="hui-h2">หัวใจของฉัน</h2>
+        <h2 className="hui-h2">หัวใจแดงห้องเกม</h2>
       </header>
 
       <section className="max-w-2xl">

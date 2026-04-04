@@ -24,7 +24,7 @@ export default function HeartsBadge() {
       <Link
         href="/account/my-hearts"
         className={badgeClass}
-        title="หัวใจชมพู / แดงจากรหัสห้อง / แดงแจก · แตะเพื่อหัวใจของฉัน"
+        title="หัวใจชมพู / แดงจากรหัสห้อง / แดงแจก · แตะเพื่อหัวใจแดงห้องเกม"
       >
         <span className="inline-flex items-center gap-0.5 tabular-nums" title="หัวใจชมพู">
           <GlossyHeartIcon tone="pink" className="h-4 w-4 shrink-0" />

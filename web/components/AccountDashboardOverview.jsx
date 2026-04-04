@@ -77,7 +77,7 @@ export default function AccountDashboardOverview() {
                 href="/account/my-hearts"
                 className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
-                หัวใจของฉัน (แยกตามเจ้าห้อง · เข้าเล่นเกม)
+                หัวใจแดงห้องเกม (แยกตามเจ้าห้อง · เข้าเล่นเกม)
               </Link>
               <Link
                 href="/account/heart-history/play"

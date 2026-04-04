@@ -168,7 +168,7 @@ export default function MemberNav() {
                 role="menuitem"
                 title="หัวใจจากรหัสห้อง แยกตามเจ้าของเกม"
               >
-                หัวใจของฉัน
+                หัวใจแดงห้องเกม
               </Link>
               <Link
                 href="/member/profile"

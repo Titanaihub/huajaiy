@@ -1,15 +1,8 @@
 <template>
   <admin-layout>
-    <PageBreadcrumb page-title="หัวใจของฉัน" />
+    <PageBreadcrumb page-title="หัวใจแดงห้องเกม" />
 
     <div class="space-y-6">
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        แดงห้อง = หัวใจแดงที่ได้จากรหัสของแต่ละเจ้าของห้อง ใช้เล่นเกมของห้องนั้น — แยกการ์ดตามห้อง แสดงวันที่ รายการ (แลกรหัส / ชื่อเกมจากระบบ) จำนวน +/− และยอดคงเหลือหลังแต่ละเหตุการณ์
-      </p>
-      <p class="text-xs text-gray-500 dark:text-gray-500">
-        ประวัติคำนวณจากรายการล่าสุดในระบบ (ledger ~400 รายการ + การแลกรหัส) — รายการเก่ามากอาจไม่แสดง
-      </p>
-
       <div v-if="authLoading" class="text-sm text-gray-500 dark:text-gray-400">กำลังโหลด…</div>
       <div
         v-else-if="!user"
@@ -33,24 +26,6 @@
           ระบบยังไม่เชื่อมฐานข้อมูล — ไม่มีประวัติแดงห้องให้แสดง
         </div>
 
-        <div class="flex flex-wrap gap-2 text-sm">
-          <a
-            class="font-semibold text-rose-600 underline decoration-gray-300 underline-offset-2 hover:text-rose-800 dark:text-rose-400"
-            href="/account/heart-history/play"
-            target="_parent"
-            rel="noopener noreferrer"
-            >ประวัติหัวใจชมพู</a
-          >
-          <span class="text-gray-300 dark:text-gray-600">|</span>
-          <a
-            class="font-semibold text-rose-600 underline decoration-gray-300 underline-offset-2 hover:text-rose-800 dark:text-rose-400"
-            href="/account/heart-history/purchases"
-            target="_parent"
-            rel="noopener noreferrer"
-            >ประวัติแดง (กระเป๋าและห้อง)</a
-          >
-        </div>
-
         <section
           v-for="block in roomBlocks"
           :key="block.creatorId"
@@ -70,12 +45,23 @@
                 }}</span>
               </p>
             </div>
+            <button
+              type="button"
+              class="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-rose-500/50 dark:hover:bg-gray-700 dark:hover:text-rose-200"
+              @click="toggleRoomDetail(block.creatorId)"
+            >
+              {{ roomDetailOpen[block.creatorId] ? 'ซ่อนรายละเอียด' : 'รายละเอียด' }}
+            </button>
           </div>
 
-          <div v-if="block.rows.length === 0" class="px-4 py-8 text-center text-sm text-slate-500">
-            ยังไม่มีประวัติในช่วงที่โหลด (หรือยังไม่เคยแลกรหัส/เล่นเกมของห้องนี้)
-          </div>
-          <div v-else class="overflow-x-auto">
+          <template v-if="roomDetailOpen[block.creatorId]">
+            <div
+              v-if="block.rows.length === 0"
+              class="px-4 py-8 text-center text-sm text-slate-500"
+            >
+              ยังไม่มีประวัติในช่วงที่โหลด (หรือยังไม่เคยแลกรหัส/เล่นเกมของห้องนี้)
+            </div>
+            <div v-else class="overflow-x-auto">
             <table class="w-full min-w-[560px] border-collapse text-left text-sm">
               <thead>
                 <tr class="border-b border-slate-200 bg-white text-slate-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
@@ -125,7 +111,8 @@
                 </tr>
               </tbody>
             </table>
-          </div>
+            </div>
+          </template>
         </section>
 
         <p
@@ -140,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import {
@@ -158,6 +145,11 @@ const loadErr = ref('')
 const dbRequired = ref(false)
 const ledger = ref<HeartLedgerEntry[]>([])
 const redemptions = ref<RoomRedRedemptionRow[]>([])
+const roomDetailOpen = reactive<Record<string, boolean>>({})
+
+function toggleRoomDetail(creatorId: string) {
+  roomDetailOpen[creatorId] = !roomDetailOpen[creatorId]
+}
 
 interface RawEv {
   id: string

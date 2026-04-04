@@ -65,7 +65,7 @@ export default function HomeStylePublicHeader({
     ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
     : "/login";
   const heartsTitle = memberUser
-    ? "หัวใจชมพู (ระบบส่วนกลาง) · แดงจากผู้เล่น · แดงสำหรับแจก — แตะเพื่อหน้าหัวใจของฉัน"
+    ? "หัวใจชมพู (ระบบส่วนกลาง) · แดงจากผู้เล่น · แดงสำหรับแจก — แตะเพื่อหน้าหัวใจแดงห้องเกม"
     : "เข้าสู่ระบบเพื่อดูยอดหัวใจจากเซิร์ฟเวอร์";
 
   useEffect(() => {

@@ -85,7 +85,7 @@
     { key: "overview", label: "ภาพรวมบัญชี", kind: "shell", slug: "", start: "/" },
     { key: "profile", label: "โปรไฟล์", kind: "shell", slug: "profile", start: "/profile" },
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
-    { key: "hearts", label: "หัวใจของฉัน", kind: "shell", slug: "hearts", start: "/my-hearts" },
+    { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
     { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน (สาธารณะ)", kind: "publicPage" },

@@ -45,7 +45,7 @@ export default function AccountGiveHeartsSection() {
             href="/account/my-hearts"
             className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
           >
-            หัวใจของฉัน (มุมมองผู้เล่น)
+            หัวใจแดงห้องเกม (มุมมองผู้เล่น)
           </Link>
         </p>
       </header>
