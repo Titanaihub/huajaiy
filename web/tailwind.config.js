@@ -7,26 +7,18 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** เทมเพลต organic: เนื้อหา = Open Sans */
+        /** ชุดเดียวกับ hero หน้าแรก (ไทย + อังกฤษ) — Kanit */
         sans: [
-          "var(--font-open-sans)",
-          "var(--font-nunito)",
+          "var(--font-kanit)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
-          "Sarabun",
           "sans-serif"
         ],
-        /** หัวข้อ = Nunito (เช่น ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ) */
         heading: [
-          "var(--font-nunito)",
-          "var(--font-open-sans)",
+          "var(--font-kanit)",
           "ui-sans-serif",
           "system-ui",
-          "Sarabun",
           "sans-serif"
         ]
       },

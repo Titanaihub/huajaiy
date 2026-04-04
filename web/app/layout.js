@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Nunito, Open_Sans } from "next/font/google";
+import { Kanit } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -20,20 +20,15 @@ import {
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
-/** ฟอนต์เทมเพลต organic (หน้าแรก): Open Sans = เนื้อหา, Nunito = หัวข้อ (รวม hero) */
-const openSans = Open_Sans({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+/**
+ * Kanit — รองรับไทย + ละติน (Google Fonts) ให้ตัวหนังสือไทยใน hero บนหน้าแรก
+ * กับทั้งเว็บ Next ใช้ชุดเดียวกัน ไม่พึ่งฟอนต์ระบบที่ต่างกันแพลตฟอร์ม
+ */
+const kanit = Kanit({
+  subsets: ["latin", "latin-ext", "thai"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
-  variable: "--font-open-sans"
-});
-
-const nunito = Nunito({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-nunito"
+  variable: "--font-kanit"
 });
 
 const site = getSiteUrl();
@@ -108,7 +103,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="th"
-      className={`${openSans.variable} ${nunito.variable}`}
+      className={kanit.variable}
       style={htmlBgStyle}
     >
       <body className="hui-root flex flex-col bg-transparent font-sans antialiased">
