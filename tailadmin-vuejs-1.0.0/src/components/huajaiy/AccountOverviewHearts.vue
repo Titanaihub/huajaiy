@@ -64,10 +64,10 @@
       <div class="mt-auto pt-2">
         <a
           class="text-sm font-medium text-red-600 underline-offset-2 hover:underline dark:text-red-400"
-          href="/account/heart-history/purchases"
+          href="/member/hearts"
           target="_parent"
           rel="noopener noreferrer"
-          >ประวัติการซื้อ/ใช้</a
+          >ประวัติ</a
         >
       </div>
     </div>
