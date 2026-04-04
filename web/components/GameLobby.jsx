@@ -79,15 +79,17 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                   href={href}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white text-left shadow-sm transition hover:border-hui-cta/35 hover:shadow-md"
                 >
-                  <div className="relative aspect-video w-full overflow-hidden bg-hui-pageTop">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                      alt=""
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                      width={640}
-                      height={360}
-                    />
+                  <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-hui-border/70 bg-slate-100">
+                    <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                        alt=""
+                        className="max-h-full max-w-full object-contain transition duration-200 group-hover:opacity-95"
+                        width={640}
+                        height={360}
+                      />
+                    </div>
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-4">
                     <h2 className="line-clamp-2 text-base font-semibold leading-snug text-hui-section">
