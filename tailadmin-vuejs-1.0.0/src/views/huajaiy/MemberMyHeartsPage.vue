@@ -180,6 +180,22 @@ function gameHref(id: string) {
   return `/game/${g}`
 }
 
+/** ชื่อแสดงใน ledger — ใช้ meta.gameTitle ก่อน แล้วค่อยดึงจาก label รูป เริ่มเล่นเกม「…」 */
+function gameDisplayNameFromEntry(e: HeartLedgerEntry, m: Record<string, unknown> | null): string {
+  const fromMeta = m?.gameTitle != null ? String(m.gameTitle).trim() : ''
+  if (fromMeta) return fromMeta
+  const lab = e.label != null ? String(e.label).trim() : ''
+  const br = lab.match(/เริ่มเล่นเกม「\s*(.+?)\s*」/)
+  if (br) return br[1].trim()
+  if (lab) return lab
+  return '—'
+}
+
+function gameCodeFromMeta(m: Record<string, unknown> | null): string {
+  const id = m?.gameId != null ? String(m.gameId).trim() : ''
+  return id || '—'
+}
+
 function roomRowsFromUser() {
   const u = user.value
   const arr = Array.isArray(u?.roomGiftRed) ? u!.roomGiftRed! : []
@@ -225,11 +241,10 @@ function collectRawEvents(): RawEv[] {
     const m = e.meta && typeof e.meta === 'object' && !Array.isArray(e.meta) ? e.meta : null
     const gifts = m?.redFromRoomGifts
     if (!gifts || typeof gifts !== 'object' || Array.isArray(gifts)) continue
-    const label =
-      (e.label != null && String(e.label).trim()) ||
-      (m.gameTitle != null && String(m.gameTitle).trim()) ||
-      'เริ่มเล่นเกม'
     const gid = m.gameId != null ? String(m.gameId).trim() : null
+    const gName = gameDisplayNameFromEntry(e, m)
+    const gCode = gameCodeFromMeta(m)
+    const itemLine = `ชื่อเกม ${gName} · รหัสเกม ${gCode}`
     for (const [cidRaw, v] of Object.entries(gifts as Record<string, unknown>)) {
       const cid = String(cidRaw)
       const deducted = Math.max(0, Math.floor(Number(v) || 0))
@@ -240,7 +255,7 @@ function collectRawEvents(): RawEv[] {
         typeOrder: 1,
         creatorId: cid,
         delta: -deducted,
-        itemLine: `เล่นเกม · ${label}`,
+        itemLine,
         gameId: gid,
       })
     }

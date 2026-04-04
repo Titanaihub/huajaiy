@@ -1538,7 +1538,7 @@ export default function FlipGameDemo({
       return "เกมนี้หักหัวใจชมพูด้วย — แดงจากรหัสห้องใช้แทนชมพูไม่ได้ ต้องมีชมพูในบัญชีให้พอตามที่เกมกำหนด";
     }
     if (r > 0 && totalRed < r) {
-      return "หัวใจแดงรวม (ทั่วไป + แดงห้องของเจ้าของเกมนี้) ยังไม่พอต่อรอบ — ตรวจว่าเล่นเกมของ @ เดียวกับที่ออกรหัสให้คุณ";
+      return "หัวใจแดงรวม (ทั่วไป + หัวใจแดงห้องเกมของเจ้าของเกมนี้) ยังไม่พอต่อรอบ — ตรวจว่าเล่นเกมของ @ เดียวกับที่ออกรหัสให้คุณ";
     }
     return "";
   }, [
@@ -1559,13 +1559,13 @@ export default function FlipGameDemo({
   const showCompactCentralStatsBar =
     compactPlayLayout && mode === "api" && apiGameMode === "central";
   const compactCentralStatsBar = showCompactCentralStatsBar ? (
-    <div className="rounded-xl border border-hui-border/90 bg-white px-3 py-3 text-hui-body shadow-sm sm:px-4">
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
         <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="shrink-0 font-medium text-hui-body">{cards.length} ป้าย</span>
+          <span className="shrink-0 font-medium text-slate-800">{cards.length} ป้าย</span>
           {pinkHeartCost > 0 || redHeartCost > 0 ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-hui-muted">หักต่อรอบ</span>
+              <span className="text-slate-500">หักต่อรอบ</span>
               {pinkHeartCost > 0 ? (
                 <span
                   className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
@@ -1577,36 +1577,36 @@ export default function FlipGameDemo({
                 </span>
               ) : null}
               {pinkHeartCost > 0 && redHeartCost > 0 ? (
-                <span className="text-hui-border" aria-hidden>
+                <span className="text-slate-300" aria-hidden>
                   ·
                 </span>
               ) : null}
               {redHeartCost > 0 ? (
                 <span
                   className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
-                  title="หัวใจแดง"
+                  title="หัวใจแดงห้องเกม"
                 >
                   <InlineHeart size="xl" className="text-red-600" />
                   <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                  <span className="text-sm font-semibold text-red-800">หัวใจแดง</span>
+                  <span className="text-sm font-semibold text-red-800">หัวใจแดงห้องเกม</span>
                 </span>
               ) : null}
             </span>
           ) : (
-            <span className="text-hui-muted">เริ่มรอบฟรี</span>
+            <span className="text-slate-500">เริ่มรอบฟรี</span>
           )}
         </span>
-        <span className="shrink-0 text-hui-muted">เปิดแล้ว {flips} ครั้ง</span>
+        <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
       </div>
     </div>
   ) : null;
 
   if (mode === null && cards.length === 0) {
     return (
-      <div className="mt-6 rounded-xl border border-hui-border/90 bg-white p-8 text-center text-sm text-hui-muted shadow-sm">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
         <span className="inline-flex items-center gap-2">
           <span
-            className="h-2 w-2 animate-pulse rounded-full bg-hui-cta"
+            className="h-2 w-2 animate-pulse rounded-full bg-rose-500"
             aria-hidden
           />
           กำลังเตรียมกระดาน…
@@ -1622,7 +1622,7 @@ export default function FlipGameDemo({
           <p className="font-medium">{bootError || "ไม่สามารถโหลดเกมได้"}</p>
           <Link
             href="/game"
-            className="mt-3 inline-block text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+            className="mt-3 inline-block text-sm font-semibold text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
           >
             ← กลับไปหน้ารายการเกม
           </Link>
@@ -1648,7 +1648,7 @@ export default function FlipGameDemo({
             className={
               resolvedGameId && centralCanAffordStart
                 ? "rounded-xl border-2 border-emerald-400 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
-                : "rounded-xl border border-hui-border bg-hui-pageTop px-4 py-3 text-sm text-hui-burgundy"
+                : "rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
             }
           >
             <p className="font-semibold">
@@ -1660,13 +1660,13 @@ export default function FlipGameDemo({
               className={
                 resolvedGameId && centralCanAffordStart
                   ? "mt-1 text-emerald-900/95"
-                  : "mt-1 text-hui-body"
+                  : "mt-1 text-slate-800"
               }
             >
               {playLockReason}
             </p>
             {!resolvedGameId || !centralCanAffordStart ? (
-              <p className="mt-2 text-sm text-hui-body">
+              <p className="mt-2 text-sm text-slate-800">
                 กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะกลับมาหน้าจอเริ่มรอบ
               </p>
             ) : null}
@@ -1687,14 +1687,14 @@ export default function FlipGameDemo({
         ? compactCentralStatsBar
         : null}
       {!showCompactCentralStatsBar ? (
-        <div className="rounded-xl border border-hui-border bg-white p-3 text-sm text-hui-body">
+        <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800">
           <div
             className={
               mode === "api" && apiGameMode === "central" ? "flex gap-3" : ""
             }
           >
             {mode === "api" && apiGameMode === "central" ? (
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-hui-border bg-hui-pageTop">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={centralGameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
@@ -1722,13 +1722,13 @@ export default function FlipGameDemo({
             </div>
           </div>
           {mode === "api" && apiGameMode === "central" && centralDescription ? (
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-hui-body">
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
               {centralDescription}
             </p>
           ) : null}
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-hui-muted">
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
             {mode === "api" ? (
-              <span className="rounded-full bg-hui-pageTop px-2 py-0.5 text-hui-cta">
+              <span className="rounded-full bg-slate-50 px-2 py-0.5 text-rose-600">
                 {apiGameMode === "central"
                   ? playLocked
                     ? resolvedGameId
@@ -1755,7 +1755,7 @@ export default function FlipGameDemo({
                     ชมพู {pinkHeartCost}
                   </span>
                 ) : null}
-                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-hui-muted">·</span> : null}
+                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-500">·</span> : null}
                 {redHeartCost > 0 ? (
                   <span className="inline-flex items-center gap-0.5 text-red-700">
                     <InlineHeart size="sm" className="text-red-600" />
@@ -1767,7 +1767,7 @@ export default function FlipGameDemo({
             {mode === "api" && apiGameMode !== "central" && heartCost > 0 ? (
               <span className="inline-flex items-center gap-1">
                 <span>หักรวม</span>
-                <InlineHeart size="sm" className="text-hui-pink" />
+                <InlineHeart size="sm" className="text-pink-500" />
                 <span>{heartCost} ต่อรอบ (ชมพูก่อน แล้วแดง — สาธิต)</span>
               </span>
             ) : null}
@@ -1775,7 +1775,7 @@ export default function FlipGameDemo({
           {bootError ? (
             <p className="mt-1 text-sm text-amber-700">{bootError}</p>
           ) : null}
-          <p className="mt-1 text-sm text-hui-muted">
+          <p className="mt-1 text-sm text-slate-500">
             {mode === "api" && apiGameMode === "central"
               ? setImageCounts.length > 0
                 ? `ป้ายในชุดไม่เท่ากัน: ${setImageCounts.map((x, i) => `ช.${i + 1}=${x}`).join(" · ")} — สุ่มตำแหน่งใหม่ทุกรอบ`
@@ -1790,12 +1790,12 @@ export default function FlipGameDemo({
         <p className="text-sm text-amber-700">{bootError}</p>
       ) : null}
 
-      <div className="rounded-xl border border-hui-border/90 bg-white p-4 text-sm shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-hui-muted">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           {compactPlayLayout ? "กติกา" : "กติกา / ความคืบหน้า"}
         </p>
         {mode === "api" && apiGameMode === "central" ? (
-          <ul className="mt-3 space-y-2.5 text-hui-body">
+          <ul className="mt-3 space-y-2.5 text-slate-800">
             {prizeList.map((p) => {
               const setIdx = Math.max(0, Math.floor(Number(p.setIndex)) || 0);
               const opened = setCounts[setIdx] ?? setCounts[p.setIndex] ?? 0;
@@ -1811,9 +1811,9 @@ export default function FlipGameDemo({
               return (
                 <li
                   key={p.key}
-                  className="flex gap-3 rounded-xl border border-hui-border/70 bg-white p-3 transition hover:border-hui-border/80"
+                  className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-hui-border/70 bg-white">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -1824,22 +1824,22 @@ export default function FlipGameDemo({
                         decoding="async"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm font-medium text-hui-muted">
+                      <div className="flex h-full items-center justify-center text-sm font-medium text-slate-500">
                         ช.{setIdx + 1}
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1 text-sm leading-relaxed text-hui-body">
+                  <div className="min-w-0 flex-1 text-sm leading-relaxed text-slate-800">
                     {p.prizeCategory === "none" ? (
                       <>
                         <p>{centralRuleNoneHeadLine(p, cap)}</p>
                         <p className="mt-1.5">
-                          <span className="font-medium text-hui-muted">เปิดในชุดแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-hui-section">
+                          <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {opened}
                           </span>
-                          <span className="font-mono text-hui-muted">/</span>
-                          <span className="font-mono font-semibold tabular-nums text-hui-section">
+                          <span className="font-mono text-slate-500">/</span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {cap}
                           </span>
                         </p>
@@ -1848,23 +1848,23 @@ export default function FlipGameDemo({
                       <>
                         <p>{centralRuleSetConditionLine(p, cap)}</p>
                         <p className="mt-1.5">{centralRulePrizeDescriptionLine(p)}</p>
-                        <p className="mt-1 text-sm text-hui-body">
+                        <p className="mt-1 text-sm text-slate-800">
                           {centralRuleFulfillmentLine(p)}
                         </p>
-                        <p className="mt-1.5 text-hui-body">
-                          <span className="font-medium text-hui-muted">เปิดในชุดแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-hui-section">
+                        <p className="mt-1.5 text-slate-800">
+                          <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {opened}/{cap}
                           </span>
-                          <span className="text-hui-muted"> , </span>
-                          <span className="font-medium text-hui-muted">รางวัลออกไปแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-hui-section">
+                          <span className="text-slate-500"> , </span>
+                          <span className="font-medium text-slate-500">รางวัลออกไปแล้ว </span>
+                          <span className="font-mono font-semibold tabular-nums text-slate-900">
                             {`${Math.max(0, Math.floor(Number(p.prizesGivenSoFar) || 0))}/${centralRulePrizeTotalQty(p)}`}
                           </span>{" "}
                           <button
                             type="button"
                             onClick={() => setRecipientsModalPrize(p)}
-                            className="inline font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                            className="inline font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
                           >
                             ดูรายละเอียด
                           </button>
@@ -1877,7 +1877,7 @@ export default function FlipGameDemo({
             })}
           </ul>
         ) : (
-          <ul className="mt-2 space-y-1 text-hui-body">
+          <ul className="mt-2 space-y-1 text-slate-800">
             {prizeList.map((p) => (
               <li key={p.key}>
                 {p.emoji} {p.label}: {counts[p.key] ?? 0}/{p.need}
@@ -1895,8 +1895,8 @@ export default function FlipGameDemo({
           heartCurrencyMode === "either" &&
           acceptsPinkHeartsMeta &&
           (pinkHeartCost > 0 || redHeartCost > 0) ? (
-            <div className="rounded-lg border border-hui-border bg-white px-3 py-2 text-sm text-hui-body shadow-sm">
-              <p className="font-medium text-hui-body">เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ</p>
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm">
+              <p className="font-medium text-slate-800">เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ</p>
               <div className="mt-2 flex flex-wrap gap-4">
                 <label className="inline-flex cursor-pointer items-center gap-2">
                   <input
@@ -1929,7 +1929,7 @@ export default function FlipGameDemo({
                 !playLocked ||
                 !centralCanAffordStart
               }
-              className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-hui-border disabled:bg-hui-pageTop disabled:text-hui-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
+              className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               เริ่มเล่นเกม
             </button>
@@ -1937,7 +1937,7 @@ export default function FlipGameDemo({
               type="button"
               onClick={reset}
               disabled={busy}
-              className="shrink-0 rounded-xl border-2 border-hui-border bg-white px-4 py-3.5 text-sm font-semibold text-hui-body shadow-sm transition hover:bg-hui-pageTop active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-border focus-visible:ring-offset-2 sm:px-5"
+              className="shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
             >
               รีเซ็ตกระดาน
             </button>
@@ -1950,13 +1950,13 @@ export default function FlipGameDemo({
                 !roundFinished ||
                 centralSolutionShown
               }
-              className="flex-1 rounded-xl border-2 border-red-500 bg-white px-4 py-3.5 text-sm font-semibold text-red-900 shadow-sm transition hover:bg-red-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-hui-border disabled:bg-hui-pageTop disabled:text-hui-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+              className="flex-1 rounded-xl border-2 border-red-500 bg-white px-4 py-3.5 text-sm font-semibold text-red-900 shadow-sm transition hover:bg-red-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
             >
               เฉลยเกม
             </button>
           </div>
           {!compactPlayLayout ? (
-            <p className="text-center text-sm leading-relaxed text-hui-muted sm:text-left">
+            <p className="text-center text-sm leading-relaxed text-slate-500 sm:text-left">
               「เริ่มเล่นเกม」หักหัวใจตามที่เกมกำหนด แล้วเริ่มเปิดป้าย · 「เฉลยเกม」หลังจบรอบ
               แสดงภาพใต้ป้ายที่ยังไม่ได้เปิด
             </p>
@@ -1969,7 +1969,7 @@ export default function FlipGameDemo({
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-hui-border/80 bg-gradient-to-b from-hui-pageTop to-hui-pageMid/70 p-3 shadow-inner sm:p-4">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100/90 p-3 shadow-inner sm:p-4">
         <div className={gridClass}>
         {cards.map((card, i) => {
           const key = card.key;
@@ -2008,18 +2008,18 @@ export default function FlipGameDemo({
                 busy ||
                 ((winner !== null || centralLoss !== null) && !card.revealed)
               }
-              className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta focus-visible:ring-offset-2 ${
+              className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 ${
                 showRedUnpicked
                   ? "border-red-500 ring-2 ring-red-400/90"
                   : isCentralOutcomeHighlight
                     ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80"
                     : showCentralSolutionDim
-                      ? "border-hui-border bg-hui-pageTop"
+                      ? "border-slate-200 bg-slate-50"
                       : card.revealed
-                        ? "border-hui-border bg-hui-pageTop"
+                        ? "border-slate-200 bg-slate-50"
                         : playLocked
-                          ? "cursor-not-allowed border-hui-border bg-hui-border/40 opacity-80"
-                          : "border-hui-muted bg-hui-border/35 hover:bg-hui-border/50 active:scale-[0.97]"
+                          ? "cursor-not-allowed border-slate-200 bg-slate-300/40 opacity-80"
+                          : "border-slate-300 bg-slate-200/60 hover:bg-slate-200/80 active:scale-[0.97]"
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (
@@ -2063,7 +2063,7 @@ export default function FlipGameDemo({
 
       {recipientsModalPrize ? (
         <div
-          className="fixed inset-0 z-[101] flex items-center justify-center bg-hui-burgundy/55 p-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[101] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-[2px]"
           role="presentation"
           onClick={() => setRecipientsModalPrize(null)}
         >
@@ -2071,24 +2071,24 @@ export default function FlipGameDemo({
             role="dialog"
             aria-modal="true"
             aria-labelledby="prize-recipients-title"
-            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-hui-border bg-white p-6 shadow-game"
+            className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h2
               id="prize-recipients-title"
-              className="text-lg font-semibold text-hui-section"
+              className="text-lg font-semibold text-slate-900"
             >
               ผู้ได้รับรางวัล — ชุดที่ {Number(recipientsModalPrize.setIndex) + 1}
             </h2>
             {recipientsModalLoading ? (
-              <p className="mt-4 text-sm text-hui-muted">กำลังโหลด…</p>
+              <p className="mt-4 text-sm text-slate-500">กำลังโหลด…</p>
             ) : recipientsModalError ? (
               <p className="mt-4 text-sm text-amber-800">{recipientsModalError}</p>
             ) : recipientsModalData ? (
-              <div className="mt-4 space-y-3 text-sm text-hui-body">
-                <p className="text-hui-body">
+              <div className="mt-4 space-y-3 text-sm text-slate-800">
+                <p className="text-slate-800">
                   แจกไปแล้ว{" "}
-                  <span className="font-semibold tabular-nums text-hui-section">
+                  <span className="font-semibold tabular-nums text-slate-900">
                     {recipientsModalData.givenCount}
                   </span>
                   {recipientsModalData.totalQty != null ? (
@@ -2103,7 +2103,7 @@ export default function FlipGameDemo({
                   ) : null}
                   {recipientsModalData.totalQty != null &&
                   recipientsModalData.givenCount < recipientsModalData.totalQty ? (
-                    <span className="block pt-1 text-sm text-hui-muted">
+                    <span className="block pt-1 text-sm text-slate-500">
                       เหลืออีก{" "}
                       {recipientsModalData.totalQty - recipientsModalData.givenCount}{" "}
                       รางวัล
@@ -2112,16 +2112,16 @@ export default function FlipGameDemo({
                 </p>
                 {Array.isArray(recipientsModalData.recipients) &&
                 recipientsModalData.recipients.length > 0 ? (
-                  <ul className="divide-y divide-hui-border/70 rounded-lg border border-hui-border/70">
+                  <ul className="divide-y divide-slate-200 rounded-lg border border-slate-200">
                     {recipientsModalData.recipients.map((row, idx) => (
                       <li
                         key={`${row.username}-${idx}`}
                         className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2"
                       >
-                        <span className="font-medium text-hui-cta">
+                        <span className="font-medium text-rose-600">
                           @{row.username}
                         </span>
-                        <span className="text-sm text-hui-muted">
+                        <span className="text-sm text-slate-500">
                           {row.wonAt
                             ? new Date(row.wonAt).toLocaleString("th-TH", {
                                 dateStyle: "short",
@@ -2133,9 +2133,9 @@ export default function FlipGameDemo({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-hui-muted">ยังไม่มีผู้ได้รับรางวัลจากชุดนี้</p>
+                  <p className="text-slate-500">ยังไม่มีผู้ได้รับรางวัลจากชุดนี้</p>
                 )}
-                <p className="text-sm text-hui-muted">
+                <p className="text-sm text-slate-500">
                   สมาชิกที่ล็อกอินและชนะรางวัลจะถูกบันทึกในรายการนี้
                 </p>
               </div>
@@ -2143,7 +2143,7 @@ export default function FlipGameDemo({
             <button
               type="button"
               onClick={() => setRecipientsModalPrize(null)}
-              className="hui-btn-primary mt-6 w-full py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
+              className="mt-6 w-full rounded-2xl bg-rose-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 active:scale-[0.99]"
             >
               ปิด
             </button>
@@ -2153,7 +2153,7 @@ export default function FlipGameDemo({
 
       {resultOverlayVisible ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-hui-burgundy/55 p-4 backdrop-blur-[2px]"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-[2px]"
           role="presentation"
           onClick={() => setResultModalOpen(false)}
         >
@@ -2161,7 +2161,7 @@ export default function FlipGameDemo({
             role="dialog"
             aria-modal="true"
             aria-labelledby="game-result-title"
-            className={`w-full max-w-md rounded-2xl border border-hui-border bg-white p-6 shadow-game transition-all duration-300 ease-out ${
+            className={`w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl transition-all duration-300 ease-out ${
               resultOverlayEnter
                 ? "translate-y-0 scale-100 opacity-100"
                 : "translate-y-2 scale-[0.96] opacity-0"
@@ -2176,7 +2176,7 @@ export default function FlipGameDemo({
                 >
                   ยินดีด้วยคุณได้รับรางวัล
                 </h2>
-                <p className="mt-4 text-base text-hui-body sm:text-lg">
+                <p className="mt-4 text-base text-slate-800 sm:text-lg">
                   ได้รับรางวัล
                   {winner.emoji ? ` ${winner.emoji}` : ""}
                   {winner.label ? ` ${winner.label}` : ""}
@@ -2184,7 +2184,7 @@ export default function FlipGameDemo({
                 <button
                   type="button"
                   onClick={() => setResultModalOpen(false)}
-                  className="hui-btn-primary mt-6 w-full py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
+                  className="mt-6 w-full rounded-2xl bg-rose-600 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 active:scale-[0.99]"
                 >
                   ปิด
                 </button>
@@ -2193,20 +2193,20 @@ export default function FlipGameDemo({
               <>
                 <h2
                   id="game-result-title"
-                  className="text-2xl font-bold leading-snug text-hui-body sm:text-3xl"
+                  className="text-2xl font-bold leading-snug text-slate-800 sm:text-3xl"
                 >
                   เสียใจด้วยคุณไม่ได้รับรางวัล
                 </h2>
                 {centralLoss?.label ? (
-                  <p className="mt-3 text-sm text-hui-body">{centralLoss.label}</p>
+                  <p className="mt-3 text-sm text-slate-800">{centralLoss.label}</p>
                 ) : null}
-                <p className="mt-2 text-sm text-hui-muted">
+                <p className="mt-2 text-sm text-slate-500">
                   หัวใจที่ใช้เริ่มรอบนี้ไม่คืน
                 </p>
                 <button
                   type="button"
                   onClick={() => setResultModalOpen(false)}
-                  className="hui-btn-primary mt-6 w-full py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 active:scale-[0.99]"
+                  className="mt-6 w-full rounded-2xl bg-rose-600 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 active:scale-[0.99]"
                 >
                   ปิด
                 </button>
@@ -2221,7 +2221,7 @@ export default function FlipGameDemo({
           type="button"
           onClick={reset}
           disabled={busy}
-          className="w-full rounded-xl border border-transparent py-2.5 text-sm font-medium text-hui-muted transition hover:bg-hui-pageTop hover:text-hui-body disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-border focus-visible:ring-offset-2"
+          className="w-full rounded-xl border border-transparent py-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
         >
           รีเซ็ตกระดาน
         </button>

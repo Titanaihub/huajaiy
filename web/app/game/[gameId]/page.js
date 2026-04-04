@@ -2,16 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import FlipGameDemo from "../../../components/FlipGameDemo";
 import InlineHeart from "../../../components/InlineHeart";
-import SiteFooter from "../../../components/SiteFooter";
-import SiteHeader from "../../../components/SiteHeader";
+import PublicOrganicShell from "../../../components/PublicOrganicShell";
 import { fetchPublicCentralGameMetaById } from "../../../lib/publicGameMeta";
-import { siteNavLinkClass } from "../../../lib/siteNavLinkClass";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const navLink =
+  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-slate-700 transition hover:bg-slate-200/80 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2";
 
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
@@ -44,12 +45,11 @@ export default async function GamePlayPage({ params }) {
     centralMeta.pinkHeartCost > 0 || centralMeta.redHeartCost > 0;
 
   return (
-    <>
-      <SiteHeader />
+    <PublicOrganicShell>
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
-        <div className="rounded-3xl border border-hui-border/80 bg-hui-surface/95 p-4 shadow-soft sm:p-6">
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center gap-4">
-            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-hui-border bg-hui-pageTop shadow-sm ring-1 ring-hui-border/60">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm ring-1 ring-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={centralMeta.coverImageUrl}
@@ -58,10 +58,12 @@ export default async function GamePlayPage({ params }) {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="hui-h2 tracking-tight">{centralMeta.title}</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                {centralMeta.title}
+              </h1>
               {showHeartCosts ? (
                 <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm">
-                  <span className="font-medium text-hui-muted">หักต่อรอบ</span>
+                  <span className="font-medium text-slate-500">หักต่อรอบ</span>
                   {centralMeta.pinkHeartCost > 0 ? (
                     <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-50 px-2 py-1 text-pink-900 ring-1 ring-pink-200/90">
                       <InlineHeart size="md" className="text-pink-500" />
@@ -70,7 +72,7 @@ export default async function GamePlayPage({ params }) {
                     </span>
                   ) : null}
                   {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
-                    <span className="text-hui-border" aria-hidden>
+                    <span className="text-slate-300" aria-hidden>
                       ·
                     </span>
                   ) : null}
@@ -78,55 +80,54 @@ export default async function GamePlayPage({ params }) {
                     <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2 py-1 text-red-900 ring-1 ring-red-200/80">
                       <InlineHeart size="md" className="text-red-600" />
                       <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                      <span className="text-sm font-semibold text-red-800">หัวใจแดง</span>
+                      <span className="text-sm font-semibold text-red-800">หัวใจแดงห้องเกม</span>
                     </span>
                   ) : null}
                 </div>
               ) : null}
               <p
-                className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-hui-muted ${
+                className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 ${
                   showHeartCosts ? "mt-2" : "mt-1"
                 }`}
               >
                 {centralMeta.creatorUsername ? (
                   <Link
                     href={`/u/${centralMeta.creatorUsername}`}
-                    className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                    className="font-medium text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-rose-700"
                   >
                     @{centralMeta.creatorUsername}
                   </Link>
                 ) : null}
                 {centralMeta.creatorUsername ? (
-                  <span className="text-hui-border" aria-hidden>
+                  <span className="text-slate-300" aria-hidden>
                     ·
                   </span>
                 ) : null}
-                <Link href="/game" className={siteNavLinkClass}>
+                <Link href="/game" className={navLink}>
                   ← รายการเกม
                 </Link>
               </p>
             </div>
           </div>
           {centralMeta.description ? (
-            <p className="mt-4 max-w-prose whitespace-pre-wrap text-base leading-relaxed text-hui-body">
+            <p className="mt-4 max-w-prose whitespace-pre-wrap text-base leading-relaxed text-slate-700">
               {centralMeta.description}
             </p>
           ) : null}
           <FlipGameDemo serverCentralPublished centralGameId={gameId} />
           <nav
-            className="mt-8 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-hui-border/80 pt-6"
+            className="mt-8 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-slate-200 pt-6"
             aria-label="ทางลัดหลังเล่นเกม"
           >
-            <Link href="/game" className={siteNavLinkClass}>
+            <Link href="/game" className={navLink}>
               ← รายการเกม
             </Link>
-            <Link href="/" className={siteNavLinkClass}>
+            <Link href="/" className={navLink}>
               หน้าแรก
             </Link>
           </nav>
         </div>
       </main>
-      <SiteFooter />
-    </>
+    </PublicOrganicShell>
   );
 }
