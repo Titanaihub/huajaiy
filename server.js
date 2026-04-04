@@ -352,7 +352,12 @@ app.get("/api/public/organic-home", async (_req, res) => {
         id: g.id,
         title: g.title,
         description: g.description,
-        gameCoverUrl: g.gameCoverUrl
+        gameCoverUrl: g.gameCoverUrl,
+        creatorUsername: g.creatorUsername,
+        pinkHeartCost: g.pinkHeartCost,
+        redHeartCost: g.redHeartCost,
+        heartCurrencyMode: g.heartCurrencyMode,
+        acceptsPinkHearts: g.acceptsPinkHearts
       }));
     } catch (_e) {
       organicGamesPick = [];

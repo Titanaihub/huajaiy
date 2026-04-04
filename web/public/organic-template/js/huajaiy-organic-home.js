@@ -128,10 +128,50 @@
     setStyle("huajaiy-feature-" + i + "-desc", "color", f.descriptionColor);
   }
 
+  var DEFAULT_GAME_COVER = "/game-cover-default-pink.svg";
+  var DESC_GAME_LEN = 180;
+
   function truncDesc(s, max) {
     var t = s != null ? String(s).replace(/\s+/g, " ").trim() : "";
     if (t.length <= max) return t;
     return t.slice(0, max - 1) + "\u2026";
+  }
+
+  function heartCostParts(pinkHeartCost, redHeartCost) {
+    var p = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
+    var r = Math.max(0, Math.floor(Number(redHeartCost) || 0));
+    var parts = [];
+    if (p > 0) parts.push(p + " หัวใจชมพู");
+    if (r > 0) parts.push(r + " หัวใจแดง");
+    return parts;
+  }
+
+  function formatHeartCostPerRoundLine(pinkHeartCost, redHeartCost) {
+    var parts = heartCostParts(pinkHeartCost, redHeartCost);
+    if (parts.length === 0) return null;
+    return "หักหัวใจต่อรอบ: " + parts.join(" \u00b7 ");
+  }
+
+  /** สอดคล้องกับ web/lib/formatHeartCostLabel.js — formatCentralLobbyHeartLine */
+  function formatCentralLobbyHeartLine(g) {
+    var p = Math.max(0, Math.floor(Number(g && g.pinkHeartCost) || 0));
+    var r = Math.max(0, Math.floor(Number(g && g.redHeartCost) || 0));
+    var mode = String((g && g.heartCurrencyMode) || "both").toLowerCase();
+    if (p === 0 && r === 0) return null;
+    if (mode === "either") {
+      var fee = Math.max(p, r);
+      var acc = !g || g.acceptsPinkHearts !== false;
+      return acc
+        ? "หักต่อรอบ: " + fee + " ดวง (เลือกจ่ายชมพูหรือแดง)"
+        : "หักต่อรอบ: " + fee + " ดวง (แดง)";
+    }
+    if (mode === "pink_only") {
+      return p > 0 ? "หักต่อรอบ: " + p + " หัวใจชมพู" : null;
+    }
+    if (mode === "red_only") {
+      return r > 0 ? "หักต่อรอบ: " + r + " หัวใจแดง" : null;
+    }
+    return formatHeartCostPerRoundLine(p, r);
   }
 
   function applyGameCards(games) {
@@ -141,6 +181,8 @@
       var wrap = $("huajaiy-game-card-" + i + "-wrap");
       var link = $("huajaiy-game-card-" + i);
       var img = $("huajaiy-game-card-" + i + "-img");
+      var heartsEl = $("huajaiy-game-card-" + i + "-hearts");
+      var descEl = $("huajaiy-game-card-" + i + "-desc");
       var g = games && games[i];
       if (!wrap || !link) continue;
       if (!g || !g.id) {
@@ -156,16 +198,34 @@
       if (img) {
         if (cover && /^https?:\/\//i.test(cover)) {
           img.src = cover;
-          img.alt = g.title ? String(g.title).slice(0, 120) : "เกม";
-          img.classList.remove("d-none");
         } else {
-          img.removeAttribute("src");
-          img.alt = "";
-          img.classList.add("d-none");
+          img.src = DEFAULT_GAME_COVER;
         }
+        img.alt = g.title ? String(g.title).slice(0, 120) : "เกม";
       }
       setText("huajaiy-game-card-" + i + "-title", g.title || "เกม");
-      setText("huajaiy-game-card-" + i + "-desc", truncDesc(g.description, 110));
+      var cu = g.creatorUsername && String(g.creatorUsername).trim();
+      setText("huajaiy-game-card-" + i + "-creator-user", cu ? "@" + cu : "\u2014");
+      var heartLine = formatCentralLobbyHeartLine(g);
+      if (heartsEl) {
+        if (heartLine) {
+          heartsEl.textContent = heartLine;
+          heartsEl.classList.remove("d-none");
+        } else {
+          heartsEl.textContent = "";
+          heartsEl.classList.add("d-none");
+        }
+      }
+      var rawDesc = g.description != null ? String(g.description).trim() : "";
+      if (descEl) {
+        if (rawDesc) {
+          descEl.textContent = truncDesc(rawDesc, DESC_GAME_LEN);
+          descEl.classList.remove("huajaiy-game-card-desc-empty");
+        } else {
+          descEl.textContent = "ไม่มีคำอธิบายสั้น";
+          descEl.classList.add("huajaiy-game-card-desc-empty");
+        }
+      }
     }
     if (sec) {
       if (any) sec.classList.remove("d-none");
