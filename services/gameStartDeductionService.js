@@ -2,6 +2,22 @@ const { getPool } = require("../db/pool");
 const heartLedgerService = require("./heartLedgerService");
 const userService = require("./userService");
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** รหัสเกมสั้น (YYYYMMDD+ลำดับ) จาก central_games — ใส่ใน meta ledger */
+async function fetchCentralGameCode(client, gameId) {
+  if (!gameId) return null;
+  const id = String(gameId).trim();
+  if (!UUID_RE.test(id)) return null;
+  const r = await client.query(
+    `SELECT NULLIF(TRIM(game_code::text), '') AS gc FROM central_games WHERE id = $1::uuid`,
+    [id]
+  );
+  const gc = r.rows[0]?.gc;
+  return gc != null && String(gc).trim() ? String(gc).trim() : null;
+}
+
 /**
  * หักหัวใจเริ่มรอบเกมส่วนกลางที่เผยแพร่
  * - ชมพู: จาก users.pink เท่านั้น
@@ -168,6 +184,7 @@ async function deductCentralGameStart(
     );
 
     const title = gameTitle ? String(gameTitle).trim() : "";
+    const gameCodeLedger = await fetchCentralGameCode(client, gameId);
     await heartLedgerService.insertWithClient(client, {
       userId,
       pinkDelta: -pink,
@@ -179,6 +196,7 @@ async function deductCentralGameStart(
       meta: {
         gameMode: "central",
         gameId: gameId || null,
+        ...(gameCodeLedger ? { gameCode: gameCodeLedger } : {}),
         gameTitle: title || null,
         pinkCharged: pink,
         redCharged: red,

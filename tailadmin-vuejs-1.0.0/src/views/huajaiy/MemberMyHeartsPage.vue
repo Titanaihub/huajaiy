@@ -191,9 +191,13 @@ function gameDisplayNameFromEntry(e: HeartLedgerEntry, m: Record<string, unknown
   return '—'
 }
 
+/** รหัสเกมสั้น (YYYYMMDD+ลำดับ) จาก meta — ไม่โชว์ UUID; รายการเก่าไม่มีใน meta จะเป็น — */
 function gameCodeFromMeta(m: Record<string, unknown> | null): string {
-  const id = m?.gameId != null ? String(m.gameId).trim() : ''
-  return id || '—'
+  const a = m?.gameCode != null ? String(m.gameCode).trim() : ''
+  if (a) return a
+  const b = m?.game_code != null ? String(m.game_code).trim() : ''
+  if (b) return b
+  return '—'
 }
 
 function roomRowsFromUser() {
