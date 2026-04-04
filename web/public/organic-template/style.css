@@ -14,7 +14,7 @@ This is main CSS file that contains custom style rules used in this template
 /** VARIABLES
 --------------------------------------------------------------*/
 body {
-  --heading-font        : "Kanit", sans-serif;
+  --heading-font        : "Prompt", sans-serif;
   --bs-link-color: #333;
   --bs-link-hover-color:#333;
 
@@ -23,7 +23,7 @@ body {
 
   --bs-light-rgb: 248, 248, 248;
 
-  --bs-font-sans-serif: "Kanit", sans-serif;
+  --bs-font-sans-serif: "Prompt", sans-serif;
   --bs-body-font-family: var(--bs-font-sans-serif);
   --bs-body-font-size: 1rem;
   --bs-body-font-weight: 400;
@@ -600,6 +600,8 @@ a.btn-link.text-light:after {
 
 /* HUAJAIY organic hero: narrow phones wrap to 2+ lines; sm+ single line */
 .hero-welcome-title {
+  font-family: var(--heading-font);
+  font-weight: 800;
   line-height: 1.2;
   font-size: clamp(1.4rem, 5vw, 3.35rem);
   white-space: normal;
@@ -609,4 +611,11 @@ a.btn-link.text-light:after {
     white-space: nowrap;
     font-size: clamp(1.15rem, 5.2vw, 3.35rem);
   }
+}
+/* คำรองใต้หัวข้อ — ครอบครัวเดียวกับหัว น้ำหนักปกติ (ตามภาพอ้างอิง) */
+.huajaiy-hero-subtitle,
+#huajaiy-hero-subtitle {
+  font-family: var(--bs-font-sans-serif);
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }

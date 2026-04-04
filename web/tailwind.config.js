@@ -7,16 +7,16 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** ชุดเดียวกับ hero หน้าแรก (ไทย + อังกฤษ) — Kanit */
+        /** ชุดเดียวกับ hero หน้าแรก — Prompt (ตามสเปกภาพอ้างอิง) */
         sans: [
-          "var(--font-kanit)",
+          "var(--font-prompt)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
           "sans-serif"
         ],
         heading: [
-          "var(--font-kanit)",
+          "var(--font-prompt)",
           "ui-sans-serif",
           "system-ui",
           "sans-serif"

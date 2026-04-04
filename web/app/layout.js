@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Kanit } from "next/font/google";
+import { Prompt } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -21,14 +21,13 @@ import {
 import { getSiteUrl } from "../lib/siteUrl";
 
 /**
- * Kanit — รองรับไทย + ละติน (Google Fonts) ให้ตัวหนังสือไทยใน hero บนหน้าแรก
- * กับทั้งเว็บ Next ใช้ชุดเดียวกัน ไม่พึ่งฟอนต์ระบบที่ต่างกันแพลตฟอร์ม
+ * Prompt — ไทย+ละติน โทนมนสมัยตาม hero หน้าแรก (หัวแดงหนา / รองเทา น้ำหนักปกติ)
  */
-const kanit = Kanit({
+const prompt = Prompt({
   subsets: ["latin", "latin-ext", "thai"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-kanit"
+  variable: "--font-prompt"
 });
 
 const site = getSiteUrl();
@@ -103,7 +102,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="th"
-      className={kanit.variable}
+      className={prompt.variable}
       style={htmlBgStyle}
     >
       <body className="hui-root flex flex-col bg-transparent font-sans antialiased">
