@@ -437,6 +437,26 @@ export async function apiListRoomRedGiftCodes(token) {
   return data;
 }
 
+/** รหัสแจก + ผู้แลก ตาม ledger meta.codeIds — GET batch-detail?ids= */
+export async function apiGetRoomRedCodesBatchDetail(token, codeIds) {
+  const ids = Array.isArray(codeIds)
+    ? codeIds.map((x) => String(x || "").trim()).filter(Boolean)
+    : [];
+  if (ids.length === 0) {
+    throw new Error("ไม่มีรหัสอ้างอิง");
+  }
+  const qs = new URLSearchParams({ ids: ids.join(",") });
+  const r = await fetch(
+    `${apiRoot()}/api/hearts/room-red-codes/batch-detail?${qs.toString()}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดรายละเอียดรหัสไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiDeleteRoomRedGiftCode(token, codeId) {
   const r = await fetch(
     `${apiRoot()}/api/hearts/room-red-codes/${encodeURIComponent(codeId)}`,

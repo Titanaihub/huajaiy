@@ -190,6 +190,39 @@ router.get("/room-red-codes/mine", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * รายละเอียดรหัสแจกหลายรหัส (รหัส + ผู้แลก) — query ids=uuid,uuid
+ * ใช้กับประวัติ ledger ที่มี meta.codeIds
+ */
+router.get("/room-red-codes/batch-detail", authMiddleware, async (req, res) => {
+  try {
+    const raw = req.query?.ids != null ? String(req.query.ids) : "";
+    const parts = raw
+      .split(/[,\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const codes = await roomRedGiftService.getCodesBatchDetailForCreator(
+      req.userId,
+      parts
+    );
+    return res.json({ ok: true, codes });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error: "ฟีเจอร์รหัสห้องต้องใช้ฐานข้อมูล PostgreSQL"
+      });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** แลกรหัสที่เจ้าของห้องออกให้ — หัวใจแดงใช้ได้เฉพาะห้องเจ้าของหรือเกมที่เปิดอนุญาต */
 router.post("/room-red-redeem", authMiddleware, async (req, res) => {
   try {

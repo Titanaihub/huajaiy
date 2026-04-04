@@ -320,6 +320,85 @@ async function deleteCodeByCreator(creatorId, codeId) {
   }
 }
 
+const BATCH_DETAIL_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * รายละเอียดรหัสแจกหลายรหัสพร้อมผู้แลก — ใช้เฉพาะเจ้าของรหัส (ตรวจครบทุก id)
+ * @param {string} creatorId
+ * @param {string[]} rawIds
+ */
+async function getCodesBatchDetailForCreator(creatorId, rawIds) {
+  const pool = getPool();
+  if (!pool) {
+    const e = new Error("DB_REQUIRED");
+    e.code = "DB_REQUIRED";
+    throw e;
+  }
+  const seen = new Set();
+  const ids = [];
+  for (const x of Array.isArray(rawIds) ? rawIds : []) {
+    const id = String(x || "").trim();
+    if (!BATCH_DETAIL_UUID_RE.test(id) || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+    if (ids.length >= 50) break;
+  }
+  if (ids.length === 0) {
+    const e = new Error("ไม่มีรหัสอ้างอิงที่ถูกต้อง");
+    e.code = "VALIDATION";
+    throw e;
+  }
+
+  const cRes = await pool.query(
+    `SELECT id, code, red_amount AS "redAmount", max_uses AS "maxUses", uses_count AS "usesCount"
+     FROM room_red_gift_codes
+     WHERE creator_id = $1::uuid AND id = ANY($2::uuid[])`,
+    [creatorId, ids]
+  );
+  if (cRes.rows.length !== ids.length) {
+    const e = new Error("ไม่พบรหัสหรือไม่ใช่รหัสของคุณ");
+    e.code = "FORBIDDEN";
+    throw e;
+  }
+
+  const byId = new Map(
+    cRes.rows.map((r) => [String(r.id), r])
+  );
+  const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+
+  const rr = await pool.query(
+    `SELECT rr.code_id AS "codeId", rr.redeemed_at AS "redeemedAt",
+            u.username AS "redeemerUsername", rr.red_amount AS "redAmount"
+     FROM room_red_gift_redemptions rr
+     LEFT JOIN users u ON u.id = rr.redeemer_id
+     WHERE rr.creator_id = $1::uuid AND rr.code_id = ANY($2::uuid[])
+     ORDER BY rr.redeemed_at ASC`,
+    [creatorId, ids]
+  );
+  const redemptionsByCode = new Map();
+  for (const row of rr.rows) {
+    const k = String(row.codeId);
+    if (!redemptionsByCode.has(k)) redemptionsByCode.set(k, []);
+    redemptionsByCode.get(k).push({
+      redeemedAt: row.redeemedAt,
+      redeemerUsername: row.redeemerUsername
+        ? String(row.redeemerUsername).toLowerCase()
+        : null,
+      redAmount: Math.max(0, Math.floor(Number(row.redAmount) || 0))
+    });
+  }
+
+  return ordered.map((c) => ({
+    id: String(c.id),
+    code: c.code != null ? String(c.code).trim().toUpperCase() : "",
+    redAmount: Math.max(0, Math.floor(Number(c.redAmount) || 0)),
+    maxUses: Math.max(1, Math.floor(Number(c.maxUses) || 1)),
+    usesCount: Math.max(0, Math.floor(Number(c.usesCount) || 0)),
+    redemptions: redemptionsByCode.get(String(c.id)) || []
+  }));
+}
+
 async function listCodesForCreator(creatorId) {
   const pool = getPool();
   if (!pool) {
@@ -577,6 +656,7 @@ async function redeemCode(redeemerUserId, rawCode) {
 module.exports = {
   issueRoomRedGiftCodes,
   deleteCodeByCreator,
+  getCodesBatchDetailForCreator,
   listCodesForCreator,
   listRoomGiftBalancesForUser,
   listRedemptionsForUser,

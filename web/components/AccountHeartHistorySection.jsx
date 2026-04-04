@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { apiGetMyHeartLedger, getMemberToken } from "../lib/memberApi";
+import {
+  apiGetMyHeartLedger,
+  apiGetRoomRedCodesBatchDetail,
+  getMemberToken
+} from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const KIND_HINT = {
@@ -27,6 +31,119 @@ function formatWhen(iso) {
   } catch {
     return "—";
   }
+}
+
+const LEDGER_CODE_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseLedgerCodeIds(meta) {
+  const raw = meta?.codeIds;
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const x of raw) {
+    const id = String(x || "").trim();
+    if (!LEDGER_CODE_ID_RE.test(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
+/** รายละเอียดรหัสแจกจากแถวประวัติแดงแจก (สร้างรหัสห้อง) */
+function RoomRedIssueExpandBlock({ codeIds }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [codes, setCodes] = useState(null);
+
+  useEffect(() => {
+    if (!open || codes != null || !codeIds?.length) return;
+    let cancelled = false;
+    const token = getMemberToken();
+    if (!token) {
+      setErr("ต้องเข้าสู่ระบบ");
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      setErr("");
+      try {
+        const data = await apiGetRoomRedCodesBatchDetail(token, codeIds);
+        if (!cancelled) setCodes(Array.isArray(data.codes) ? data.codes : []);
+      } catch (e) {
+        if (!cancelled) setErr(e.message || String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, codeIds, codes]);
+
+  return (
+    <div className="mt-3 border-t border-slate-200/80 pt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="rounded-lg border border-rose-200 bg-rose-50/90 px-3 py-1.5 text-xs font-semibold text-rose-800 transition hover:bg-rose-100"
+      >
+        {open ? "▼ ซ่อนรายละเอียดรหัส" : "▶ ดูรหัสที่สร้างและผู้เติม"}
+      </button>
+      {open ? (
+        <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs text-slate-700">
+          {loading ? <p className="text-slate-500">กำลังโหลด…</p> : null}
+          {err ? (
+            <p className="font-medium text-red-600" role="alert">
+              {err}
+            </p>
+          ) : null}
+          {!loading && !err && Array.isArray(codes)
+            ? codes.map((c) => (
+                <div
+                  key={c.id}
+                  className="rounded-lg border border-white bg-white/90 p-3 shadow-sm"
+                >
+                  <p className="font-mono text-sm font-bold text-slate-900">{c.code || "—"}</p>
+                  <p className="mt-1 text-slate-600">
+                    แดงต่อครั้ง {Number(c.redAmount || 0).toLocaleString("th-TH")} · ใช้แล้ว{" "}
+                    {Number(c.usesCount || 0).toLocaleString("th-TH")} /{" "}
+                    {Number(c.maxUses || 1).toLocaleString("th-TH")} ครั้ง
+                  </p>
+                  <div className="mt-2 border-t border-slate-100 pt-2">
+                    <p className="font-semibold text-slate-800">ผู้เติมจากรหัสนี้</p>
+                    {!c.redemptions?.length ? (
+                      <p className="mt-1 text-slate-500">ยังไม่มีผู้แลก</p>
+                    ) : (
+                      <ul className="mt-1 space-y-1">
+                        {c.redemptions.map((r, idx) => (
+                          <li key={`${c.id}-${idx}`} className="text-slate-600">
+                            <span className="font-medium text-slate-800">
+                              {r.redeemerUsername ? `@${r.redeemerUsername}` : "ผู้ใช้"}
+                            </span>
+                            {" · "}
+                            {formatWhen(r.redeemedAt)}
+                            {r.redAmount > 0 ? (
+                              <>
+                                {" · "}
+                                <span className="text-emerald-700">
+                                  +{Number(r.redAmount).toLocaleString("th-TH")} แดงห้อง
+                                </span>
+                              </>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              ))
+            : null}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function sumRoomGiftDeductions(meta) {
@@ -199,6 +316,7 @@ function buildTableRows(mode, entries) {
         const gd = Math.max(0, Math.floor(Number(m.giveawayDeducted) || 0));
         if (gd <= 0) continue;
         const after = m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
+        const issueCodeIds = parseLedgerCodeIds(m);
         rows.push({
           id: e.id,
           createdAt: e.createdAt,
@@ -213,7 +331,8 @@ function buildTableRows(mode, entries) {
           balanceDisplay:
             after != null && Number.isFinite(after)
               ? after.toLocaleString("th-TH")
-              : "—"
+              : "—",
+          issueCodeIds: issueCodeIds.length > 0 ? issueCodeIds : undefined
         });
         continue;
       }
@@ -265,12 +384,6 @@ function AmountCell({ amountNumeric, amountDisplay }) {
     </span>
   );
 }
-
-const TABS = [
-  { mode: "pink", href: "/account/heart-history/play", label: "หัวใจชมพู" },
-  { mode: "red", href: "/account/heart-history/purchases", label: "หัวใจแดง" },
-  { mode: "giveaway", href: "/account/heart-history/giveaway", label: "แดงสำหรับแจก" }
-];
 
 /**
  * @param {{ variant?: "play" | "purchase" | "giveaway" | "pink" | "red" | "all" }} props
@@ -372,28 +485,6 @@ export default function AccountHeartHistorySection({ variant = "play" }) {
 
   return (
     <section className="space-y-6">
-      <nav
-        className="flex flex-wrap gap-2 rounded-2xl border border-slate-200/90 bg-white/80 p-2 shadow-sm backdrop-blur-sm"
-        aria-label="เลือกประเภทประวัติหัวใจ"
-      >
-        {TABS.map((t) => {
-          const active = mode === t.mode;
-          return (
-            <Link
-              key={t.mode}
-              href={t.href}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                active
-                  ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/25"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </nav>
-
       <header className="space-y-1">
         <h2 className="text-xl font-bold tracking-tight text-slate-900">{heading}</h2>
         <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{blurb}</p>
@@ -453,7 +544,12 @@ export default function AccountHeartHistorySection({ variant = "play" }) {
                         {formatWhen(row.createdAt)}
                       </time>
                     </td>
-                    <td className="max-w-md px-4 py-3.5 align-top text-slate-700">{row.item}</td>
+                    <td className="max-w-md px-4 py-3.5 align-top text-slate-700">
+                      {row.item}
+                      {Array.isArray(row.issueCodeIds) && row.issueCodeIds.length > 0 ? (
+                        <RoomRedIssueExpandBlock codeIds={row.issueCodeIds} />
+                      ) : null}
+                    </td>
                     <td className="whitespace-nowrap px-4 py-3.5 align-top">
                       <AmountCell amountNumeric={row.amountNumeric} amountDisplay={row.amountDisplay} />
                     </td>
