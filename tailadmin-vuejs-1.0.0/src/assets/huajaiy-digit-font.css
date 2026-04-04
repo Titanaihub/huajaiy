@@ -1,0 +1,14 @@
+/**
+ * HuajaiyUI — ตัวเลข ASCII + เครื่องหมายจำนวน → Open Sans; ที่เหลือใช้ Nunito ใน stack
+ * (สำเนา logic เดียวกับ web/public/huajaiy-digit-font.css)
+ */
+@font-face {
+  font-family: "HuajaiyUI";
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/opensans/v44/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2)
+    format("woff2");
+  unicode-range: U+0030-0039, U+002B, U+002D, U+002E, U+002C, U+0025, U+002F, U+003A;
+}

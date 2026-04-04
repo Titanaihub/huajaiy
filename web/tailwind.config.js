@@ -7,23 +7,19 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        /** เทมเพลต organic: เนื้อหา = Open Sans */
+        /** ตัวอักษร = Nunito; ตัวเลข 0-9 (+ - . , % /) = Open Sans ผ่าน HuajaiyUI */
         sans: [
-          "var(--font-open-sans)",
+          "HuajaiyUI",
           "var(--font-nunito)",
           "ui-sans-serif",
           "system-ui",
           "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
           "Sarabun",
           "sans-serif"
         ],
-        /** หัวข้อ = Nunito (เช่น ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ) */
         heading: [
+          "HuajaiyUI",
           "var(--font-nunito)",
-          "var(--font-open-sans)",
           "ui-sans-serif",
           "system-ui",
           "Sarabun",

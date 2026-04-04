@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Nunito, Open_Sans } from "next/font/google";
+import { Nunito } from "next/font/google";
 import Providers from "./providers";
 import HeartsProvider from "../components/HeartsProvider";
 import ImpersonationBanner from "../components/ImpersonationBanner";
@@ -20,15 +20,7 @@ import {
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
 
-/** ฟอนต์เทมเพลต organic (หน้าแรก): Open Sans = เนื้อหา, Nunito = หัวข้อ (รวม hero) */
-const openSans = Open_Sans({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-  variable: "--font-open-sans"
-});
-
+/** Nunito = ตัวอักษรทั้งเว็บ; ตัวเลข ASCII ใช้ Open Sans ผ่าน HuajaiyUI ใน huajaiy-digit-font.css */
 const nunito = Nunito({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
@@ -108,7 +100,7 @@ export default async function RootLayout({ children }) {
   return (
     <html
       lang="th"
-      className={`${openSans.variable} ${nunito.variable}`}
+      className={nunito.variable}
       style={htmlBgStyle}
     >
       <body className="hui-root flex flex-col bg-transparent font-sans antialiased">

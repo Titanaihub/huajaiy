@@ -341,7 +341,7 @@ function printCodes() {
   const w = window.open('', '_blank')
   if (!w) return
   w.document.write(
-    `<!doctype html><html><head><meta charset="utf-8"/><title>พิมพ์รหัสหัวใจแดง</title><style>body{font-family:Tahoma,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}h1{font-size:20px} .muted{color:#666;font-size:12px}</style></head><body><h1>รายการรหัสหัวใจแดงสำหรับแจก</h1><p class="muted">พิมพ์เมื่อ ${stamp}</p><table><thead><tr><th>รหัส</th><th>แดง/ครั้ง</th><th>สิทธิ์ใช้</th><th>ใช้แล้ว</th><th>สถานะ</th></tr></thead><tbody>${bodyRows || "<tr><td colspan='5'>ยังไม่มีรหัส</td></tr>"}</tbody></table></body></html>`
+    `<!doctype html><html><head><meta charset="utf-8"/><title>พิมพ์รหัสหัวใจแดง</title><style>body{font-family:HuajaiyUI,Nunito,Tahoma,sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}h1{font-size:20px} .muted{color:#666;font-size:12px}</style></head><body><h1>รายการรหัสหัวใจแดงสำหรับแจก</h1><p class="muted">พิมพ์เมื่อ ${stamp}</p><table><thead><tr><th>รหัส</th><th>แดง/ครั้ง</th><th>สิทธิ์ใช้</th><th>ใช้แล้ว</th><th>สถานะ</th></tr></thead><tbody>${bodyRows || "<tr><td colspan='5'>ยังไม่มีรหัส</td></tr>"}</tbody></table></body></html>`
   )
   w.document.close()
   w.focus()
