@@ -260,5 +260,71 @@ export async function apiGetMyShops(token: string): Promise<MyShopRow[]> {
   return Array.isArray(data.shops) ? data.shops : []
 }
 
+export interface HeartLedgerEntry {
+  id: string
+  createdAt?: string
+  pinkDelta?: number
+  redDelta?: number
+  pinkBalanceAfter?: number
+  redBalanceAfter?: number
+  kind?: string
+  label?: string
+  meta?: Record<string, unknown> | null
+}
+
+export async function apiGetMyHeartLedger(
+  token: string,
+  opts?: { limit?: number; offset?: number }
+): Promise<{ entries: HeartLedgerEntry[]; dbRequired?: boolean }> {
+  const lim = opts?.limit ?? 300
+  const off = opts?.offset ?? 0
+  const qs = new URLSearchParams({ limit: String(lim), offset: String(off) })
+  const r = await fetch(`${root()}/api/auth/heart-ledger/mine?${qs}`, {
+    headers: authHeaders(token)
+  })
+  const data = (await r.json().catch(() => ({}))) as {
+    ok?: boolean
+    entries?: HeartLedgerEntry[]
+    dbRequired?: boolean
+    error?: string
+  }
+  if (!r.ok || !data.ok) throw new Error(data.error || 'โหลดประวัติหัวใจไม่สำเร็จ')
+  return {
+    entries: Array.isArray(data.entries) ? data.entries : [],
+    dbRequired: Boolean(data.dbRequired)
+  }
+}
+
+export interface RoomRedRedemptionRow {
+  id: string
+  redeemedAt?: string
+  redAmount?: number
+  code?: string | null
+  creatorId?: string | null
+  creatorUsername?: string | null
+}
+
+export async function apiGetMyRoomRedRedemptions(
+  token: string,
+  opts?: { limit?: number }
+): Promise<{ items: RoomRedRedemptionRow[]; dbRequired?: boolean }> {
+  const lim = opts?.limit ?? 400
+  const qs = new URLSearchParams({ limit: String(lim) })
+  const r = await fetch(`${root()}/api/auth/room-red-redemptions/mine?${qs}`, {
+    headers: authHeaders(token)
+  })
+  const data = (await r.json().catch(() => ({}))) as {
+    ok?: boolean
+    items?: RoomRedRedemptionRow[]
+    dbRequired?: boolean
+    error?: string
+  }
+  if (!r.ok || !data.ok) throw new Error(data.error || 'โหลดประวัติแลกรหัสไม่สำเร็จ')
+  return {
+    items: Array.isArray(data.items) ? data.items : [],
+    dbRequired: Boolean(data.dbRequired)
+  }
+}
+
 /** Re-export token helper for pages */
 export { huajaiyMemberToken }

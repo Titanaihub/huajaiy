@@ -41,7 +41,7 @@ const router = createRouter({
     {
       path: '/my-hearts',
       name: 'MyHearts',
-      component: () => import('../views/huajaiy/MemberSectionPage.vue'),
+      component: () => import('../views/huajaiy/MemberMyHeartsPage.vue'),
       meta: { title: 'หัวใจของฉัน', huajaiyMember: true },
     },
     {
