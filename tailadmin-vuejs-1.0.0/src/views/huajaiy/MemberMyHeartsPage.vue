@@ -83,6 +83,12 @@
                   </td>
                   <td class="max-w-md px-4 py-2.5 align-top text-slate-800 dark:text-gray-100">
                     <span class="font-medium">{{ row.itemLine }}</span>
+                    <p
+                      v-if="row.roundLine"
+                      class="mt-1 text-xs leading-snug text-slate-600 dark:text-gray-400"
+                    >
+                      {{ row.roundLine }}
+                    </p>
                     <a
                       v-if="row.gameId"
                       class="mt-1 block text-xs font-semibold text-rose-600 hover:text-rose-800 dark:text-rose-400"
@@ -158,6 +164,7 @@ interface RawEv {
   creatorId: string
   delta: number
   itemLine: string
+  roundLine?: string
   gameId?: string | null
 }
 
@@ -200,11 +207,41 @@ function gameCodeFromMeta(m: Record<string, unknown> | null): string {
   return '—'
 }
 
+/** ผลรอบหลังจบเกม — จาก meta ที่ API อัปเดตตอน flip จบรอบ */
+function roundOutcomeLineFromMeta(m: Record<string, unknown> | null): string {
+  if (!m) return ''
+  const oRaw =
+    m.roundOutcome != null
+      ? String(m.roundOutcome).trim().toLowerCase()
+      : m.round_outcome != null
+        ? String(m.round_outcome).trim().toLowerCase()
+        : ''
+  const sum =
+    m.roundPrizeSummary != null
+      ? String(m.roundPrizeSummary).trim()
+      : m.round_prize_summary != null
+        ? String(m.round_prize_summary).trim()
+        : ''
+  if (oRaw === 'won') {
+    return sum ? `ผลรอบ: ได้รับรางวัล — ${sum}` : 'ผลรอบ: ได้รับรางวัล'
+  }
+  if (oRaw === 'lost') {
+    if (sum && sum !== 'ไม่ได้รับรางวัล') {
+      return `ผลรอบ: ไม่ได้รับรางวัล · ${sum}`
+    }
+    return 'ผลรอบ: ไม่ได้รับรางวัล'
+  }
+  return ''
+}
+
 function roomRowsFromUser() {
   const u = user.value
-  const arr = Array.isArray(u?.roomGiftRed) ? u!.roomGiftRed! : []
+  const arr = (Array.isArray(u?.roomGiftRed) ? u!.roomGiftRed! : []) as Record<
+    string,
+    unknown
+  >[]
   return arr
-    .map((x: Record<string, unknown>) => ({
+    .map((x) => ({
       creatorId: x.creatorId != null ? String(x.creatorId) : '',
       creatorUsername: x.creatorUsername != null ? String(x.creatorUsername) : '',
       balance: Math.max(0, Math.floor(Number(x.balance) || 0)),
@@ -249,6 +286,7 @@ function collectRawEvents(): RawEv[] {
     const gName = gameDisplayNameFromEntry(e, m)
     const gCode = gameCodeFromMeta(m)
     const itemLine = `ชื่อเกม ${gName} · รหัสเกม ${gCode}`
+    const roundLine = roundOutcomeLineFromMeta(m)
     for (const [cidRaw, v] of Object.entries(gifts as Record<string, unknown>)) {
       const cid = String(cidRaw)
       const deducted = Math.max(0, Math.floor(Number(v) || 0))
@@ -260,6 +298,7 @@ function collectRawEvents(): RawEv[] {
         creatorId: cid,
         delta: -deducted,
         itemLine,
+        roundLine,
         gameId: gid,
       })
     }
@@ -272,6 +311,7 @@ interface DisplayRow {
   key: string
   when: string
   itemLine: string
+  roundLine?: string
   delta: number
   balanceAfter: number
   gameId?: string | null
@@ -331,6 +371,7 @@ const roomBlocks = computed((): RoomBlock[] => {
         key: ev.id,
         when,
         itemLine: ev.itemLine,
+        roundLine: ev.roundLine,
         delta: ev.delta,
         balanceAfter: bal,
         gameId: ev.gameId,

@@ -69,14 +69,25 @@ function imageUrlForCell(snapshot, setIndex, imageIndex) {
 /**
  * @param {object} snapshot จาก getGameSnapshotById / getActiveGameSnapshot
  */
-function createSession(snapshot) {
+function createSession(snapshot, presetSessionId = null) {
   const { game, imageUrl, rules } = snapshot;
   const { setImageCounts, tileCount, id: gameId } = game;
   const deck = buildDeck(setImageCounts);
   if (deck.length !== tileCount) {
     throw new Error("deck length mismatch");
   }
-  const id = crypto.randomBytes(16).toString("hex");
+  let id;
+  if (presetSessionId != null && String(presetSessionId).trim()) {
+    id = String(presetSessionId).trim();
+    if (!/^[0-9a-f]{32}$/i.test(id)) {
+      throw new Error("รูปแบบ sessionId ไม่ถูกต้อง");
+    }
+    if (sessions.has(id)) {
+      throw new Error("sessionId ซ้ำ — เริ่มรอบใหม่");
+    }
+  } else {
+    id = crypto.randomBytes(16).toString("hex");
+  }
   sessions.set(id, {
     gameId,
     deck,

@@ -1,6 +1,9 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function requirePool() {
   const pool = getPool();
   if (!pool) {
@@ -52,6 +55,45 @@ async function insertWithClient(client, row) {
  * @param {string} userId
  * @param {{ limit?: number; offset?: number }} opts
  */
+function metaHasGameCode(meta) {
+  if (!meta || typeof meta !== "object") return false;
+  const a = meta.gameCode != null ? String(meta.gameCode).trim() : "";
+  const b = meta.game_code != null ? String(meta.game_code).trim() : "";
+  return Boolean(a || b);
+}
+
+/** แถวเก่าไม่มี gameCode ใน meta — ดึงจาก central_games ตอนอ่านรายการ */
+async function enrichEntriesWithCentralGameCodes(entries) {
+  const ids = new Set();
+  for (const e of entries) {
+    if (e.kind !== "game_start" || !e.meta || typeof e.meta !== "object") continue;
+    const gid = e.meta.gameId != null ? String(e.meta.gameId).trim() : "";
+    if (!gid || !UUID_RE.test(gid) || metaHasGameCode(e.meta)) continue;
+    ids.add(gid);
+  }
+  if (ids.size === 0) return entries;
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT id::text AS id, NULLIF(TRIM(game_code::text), '') AS gc
+     FROM central_games WHERE id = ANY($1::uuid[])`,
+    [[...ids]]
+  );
+  const map = new Map();
+  for (const row of r.rows) {
+    if (row.gc != null && String(row.gc).trim()) {
+      map.set(String(row.id), String(row.gc).trim());
+    }
+  }
+  return entries.map((e) => {
+    if (e.kind !== "game_start" || !e.meta || typeof e.meta !== "object") return e;
+    const gid = e.meta.gameId != null ? String(e.meta.gameId).trim() : "";
+    if (!gid || metaHasGameCode(e.meta)) return e;
+    const gc = map.get(gid);
+    if (!gc) return e;
+    return { ...e, meta: { ...e.meta, gameCode: gc } };
+  });
+}
+
 async function listForUser(userId, opts = {}) {
   const pool = requirePool();
   const lim = Math.min(200, Math.max(1, Math.floor(Number(opts.limit) || 80)));
@@ -73,7 +115,7 @@ async function listForUser(userId, opts = {}) {
      LIMIT $2 OFFSET $3`,
     [userId, lim, off]
   );
-  return r.rows.map((row) => ({
+  const rows = r.rows.map((row) => ({
     id: String(row.id),
     createdAt: row.createdAt,
     pinkDelta: Math.floor(Number(row.pinkDelta) || 0),
@@ -84,9 +126,29 @@ async function listForUser(userId, opts = {}) {
     label: row.label != null ? String(row.label) : "",
     meta: row.meta && typeof row.meta === "object" ? row.meta : null
   }));
+  return enrichEntriesWithCentralGameCodes(rows);
+}
+
+/**
+ * อัปเดต meta ของแถว game_start ที่ผูก playSessionId (เช่น ผลรอบหลังจบเกม)
+ * @param {string} playSessionId
+ * @param {Record<string, unknown>} patch
+ */
+async function mergeMetaJsonByPlaySession(playSessionId, patch) {
+  if (!playSessionId || typeof patch !== "object" || patch == null) return 0;
+  const pool = requirePool();
+  const sid = String(playSessionId).trim().slice(0, 64);
+  const r = await pool.query(
+    `UPDATE heart_ledger
+     SET meta = COALESCE(meta, '{}'::jsonb) || $2::jsonb
+     WHERE kind = 'game_start' AND meta->>'playSessionId' = $1`,
+    [sid, JSON.stringify(patch)]
+  );
+  return r.rowCount || 0;
 }
 
 module.exports = {
   insertWithClient,
-  listForUser
+  listForUser,
+  mergeMetaJsonByPlaySession
 };

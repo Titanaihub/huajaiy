@@ -1,4 +1,5 @@
 require("dotenv").config();
+const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -30,6 +31,7 @@ const centralGameService = require("./services/centralGameService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralGameSession = require("./centralGameSession");
 const gameStartDeductionService = require("./services/gameStartDeductionService");
+const heartLedgerService = require("./services/heartLedgerService");
 const { validateUsername } = require("./authValidators");
 const siteThemeService = require("./services/siteThemeService");
 
@@ -247,7 +249,8 @@ async function deductHeartsForGameStart(
       gameId: ledgerContext?.gameId || null,
       gameTitle: title,
       gameCreatedBy: ledgerContext?.gameCreatedBy ?? null,
-      allowGiftRedPlay: Boolean(ledgerContext?.allowGiftRedPlay)
+      allowGiftRedPlay: Boolean(ledgerContext?.allowGiftRedPlay),
+      playSessionId: ledgerContext?.playSessionId ?? null
     });
   }
   const u = await userService.findById(userId);
@@ -458,6 +461,7 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
         }
         throw err;
       }
+      const playSessionId = crypto.randomBytes(16).toString("hex");
       let afterUser = null;
       try {
         afterUser = await deductHeartsForGameStart(req.userId, {
@@ -468,7 +472,8 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
             gameId: snap.game.id,
             gameTitle: snap.game.title,
             gameCreatedBy: resolvedCreator || snap.game.createdBy || null,
-            allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay)
+            allowGiftRedPlay: Boolean(snap.game.allowGiftRedPlay),
+            playSessionId
           }
         });
       } catch (err) {
@@ -484,7 +489,7 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
         }
         throw err;
       }
-      const sessionId = centralGameSession.createSession(snap);
+      const sessionId = centralGameSession.createSession(snap, playSessionId);
       const meta = await centralMetaFromSnapWithCounts(snap);
       const body = {
         ok: true,
@@ -593,6 +598,38 @@ app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
     const r = centralGameSession.flip(sessionId, idx);
     if (r.ok) {
       let prizeTallyUpdate = null;
+      if (r.finished && r.gameMode === "central") {
+        try {
+          /** @type {Record<string, unknown>} */
+          const patch = {};
+          if (r.winner) {
+            patch.roundOutcome = "won";
+            const sum =
+              r.winner.label != null && String(r.winner.label).trim()
+                ? String(r.winner.label).trim()
+                : [
+                    r.winner.prizeTitle,
+                    r.winner.prizeValueText,
+                    r.winner.prizeUnit
+                  ]
+                    .filter((x) => x != null && String(x).trim())
+                    .join(" ")
+                    .trim() || "รางวัล";
+            patch.roundPrizeSummary = sum;
+          } else if (r.loss) {
+            patch.roundOutcome = "lost";
+            patch.roundPrizeSummary =
+              r.loss.label != null && String(r.loss.label).trim()
+                ? String(r.loss.label).trim()
+                : "ไม่ได้รับรางวัล";
+          }
+          if (Object.keys(patch).length) {
+            await heartLedgerService.mergeMetaJsonByPlaySession(sessionId, patch);
+          }
+        } catch (err) {
+          console.error("[heart_ledger round meta]", err.message);
+        }
+      }
       if (
         r.gameMode === "central" &&
         r.winner &&

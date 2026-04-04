@@ -34,7 +34,8 @@ async function deductCentralGameStart(
     gameId = null,
     gameTitle = "",
     gameCreatedBy = null,
-    allowGiftRedPlay = false
+    allowGiftRedPlay = false,
+    playSessionId = null
   } = {}
 ) {
   if (!userId) return null;
@@ -56,12 +57,17 @@ async function deductCentralGameStart(
       throw e;
     }
     const title = gameTitle ? String(gameTitle).trim() : "";
+    const sid =
+      playSessionId != null && String(playSessionId).trim()
+        ? String(playSessionId).trim().slice(0, 64)
+        : null;
     return userService.adjustDualHearts(userId, -pink, -red, {
       kind: "game_start",
       label: title ? `เริ่มเล่นเกม「${title}」` : "เริ่มเล่นเกมส่วนกลาง",
       meta: {
         gameMode: "central",
         gameId: gameId || null,
+        ...(sid ? { playSessionId: sid } : {}),
         gameTitle: title || null,
         pinkCharged: pink,
         redCharged: red,
@@ -185,6 +191,10 @@ async function deductCentralGameStart(
 
     const title = gameTitle ? String(gameTitle).trim() : "";
     const gameCodeLedger = await fetchCentralGameCode(client, gameId);
+    const sid =
+      playSessionId != null && String(playSessionId).trim()
+        ? String(playSessionId).trim().slice(0, 64)
+        : null;
     await heartLedgerService.insertWithClient(client, {
       userId,
       pinkDelta: -pink,
@@ -196,6 +206,7 @@ async function deductCentralGameStart(
       meta: {
         gameMode: "central",
         gameId: gameId || null,
+        ...(sid ? { playSessionId: sid } : {}),
         ...(gameCodeLedger ? { gameCode: gameCodeLedger } : {}),
         gameTitle: title || null,
         pinkCharged: pink,
