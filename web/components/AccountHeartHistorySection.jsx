@@ -8,6 +8,7 @@ import { useMemberAuth } from "./MemberAuthProvider";
 const KIND_HINT = {
   game_start: "เล่นเกม",
   admin_adjust: "แอดมินปรับยอด",
+  script_set_exact: "กำหนดยอด (สคริปต์ฉุกเฉิน)",
   marketplace_order: "สั่งซื้อสินค้า",
   heart_purchase_approved: "ซื้อหัวใจ (อนุมัติ)",
   adjustment: "ปรับยอด",
