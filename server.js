@@ -314,7 +314,12 @@ app.get("/api/public/members/:username", async (req, res) => {
       username: u.username,
       displayName,
       firstName: fn,
-      lastName: ln
+      lastName: ln,
+      profilePictureUrl: u.profilePictureUrl || null,
+      linePictureUrl: u.linePictureUrl || null,
+      socialFacebookUrl: u.socialFacebookUrl || null,
+      socialLineUrl: u.socialLineUrl || null,
+      socialTiktokUrl: u.socialTiktokUrl || null
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });

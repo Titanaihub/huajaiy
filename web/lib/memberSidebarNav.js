@@ -30,7 +30,7 @@ export const MEMBER_SHELL_MENU_ITEMS = [
   { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
   { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", tailStart: TAILADMIN_MY_SHOPS_START },
-  { key: "page", label: "เพจของฉัน (สาธารณะ)", kind: "publicPage" },
+  { key: "page", label: "เพจของฉัน", kind: "publicPage" },
   { key: "orders", label: "คำสั่งซื้อ", kind: "closed", tailStart: TAILADMIN_MY_ORDERS_START },
   {
     key: "prizeWithdraw",
