@@ -119,6 +119,12 @@ const DEFAULT_SECTION_HEADINGS = Object.freeze({
     subtitle: "",
     subtitleColor: "#6C757D"
   }),
+  gamePrize: Object.freeze({
+    title: "เกมและรางวัล",
+    titleColor: "#212529",
+    subtitle: "สุ่มเกมเผยแพร่จากแพลตฟอร์ม — แตะการ์ดเพื่อเล่น",
+    subtitleColor: "#6C757D"
+  }),
   valueTrust: Object.freeze([
     Object.freeze({
       title: "Free delivery",
@@ -189,6 +195,7 @@ function normSectionHeadings(raw) {
     blog: normSectionHeadingBlock(o.blog, fb.blog),
     appDownload: normSectionHeadingBlock(o.appDownload, fb.appDownload),
     seoLooking: normSectionHeadingBlock(o.seoLooking, fb.seoLooking),
+    gamePrize: normSectionHeadingBlock(o.gamePrize, fb.gamePrize),
     valueTrust: normValueTrustHeadings(o.valueTrust, fb.valueTrust)
   };
 }

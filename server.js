@@ -340,7 +340,28 @@ app.get("/api/public/site-theme", async (_req, res) => {
 app.get("/api/public/organic-home", async (_req, res) => {
   try {
     const theme = await siteThemeService.getSiteTheme();
-    return res.json({ ok: true, organicHome: theme.organicHome });
+    let organicGamesPick = [];
+    try {
+      const list = await centralGameService.listPublishedGamesForPublic();
+      const copy = Array.isArray(list) ? [...list] : [];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      organicGamesPick = copy.slice(0, 4).map((g) => ({
+        id: g.id,
+        title: g.title,
+        description: g.description,
+        gameCoverUrl: g.gameCoverUrl
+      }));
+    } catch (_e) {
+      organicGamesPick = [];
+    }
+    return res.json({
+      ok: true,
+      organicHome: theme.organicHome,
+      organicGamesPick
+    });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

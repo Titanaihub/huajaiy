@@ -1,7 +1,7 @@
 /** เมนูหลักก่อนช่องเข้า/ออกระบบ — ช่องสุดท้ายสลับใน GlobalPrimaryNav / HomeStylePublicHeader */
 export const GLOBAL_PRIMARY_NAV_BASE = [
   { href: "/", label: "หน้าแรก" },
-  { href: "/game", label: "เกมรางวัล" },
+  { href: "/game", label: "เกมและรางวัล" },
   { href: "/shop", label: "เพจชุมชน" }
 ];
 

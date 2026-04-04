@@ -1,5 +1,9 @@
 /** คีย์หัวข้อบล็อก (ไม่รวม valueTrust) — ป้ายไทยสำหรับแอดมิน */
 export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
+  {
+    key: "gamePrize",
+    label: "เกมและรางวัล (การ์ด 4 ใบ — สุ่มจากเกมเผยแพร่)"
+  },
   { key: "category", label: "หมวดหมู่ (Category)" },
   { key: "bestSelling", label: "สินค้าขายดี (Best selling)" },
   { key: "bannerSale1", label: "แบนเนอร์ 1 — Items on SALE" },
@@ -16,6 +20,12 @@ export const ORGANIC_SECTION_HEADING_SIMPLE_KEYS = [
 
 function createDefaultSectionHeadings() {
   return {
+    gamePrize: {
+      title: "เกมและรางวัล",
+      titleColor: "#212529",
+      subtitle: "สุ่มเกมเผยแพร่จากแพลตฟอร์ม — แตะการ์ดเพื่อเล่น",
+      subtitleColor: "#6C757D"
+    },
     category: {
       title: "Category",
       titleColor: "#212529",

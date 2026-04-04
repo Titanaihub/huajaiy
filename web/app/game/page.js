@@ -11,8 +11,9 @@ const navLink =
 
 export async function generateMetadata() {
   return {
-    title: "เกม | HUAJAIY",
-    description: "เลือกเกมจากรายการ — ค้นหาชื่อเกมหรือผู้สร้าง แล้วเข้าเล่นได้ทันที"
+    title: "เกมและรางวัล | HUAJAIY",
+    description:
+      "รายการเกมเผยแพร่ทั้งหมด — ค้นหาชื่อเกมหรือผู้สร้าง แตะการ์ดเพื่อเข้าเล่นและลุ้นรางวัล"
   };
 }
 
@@ -23,9 +24,12 @@ export default async function GamePage() {
     <PublicOrganicShell>
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">เกม</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            เกมและรางวัล
+          </h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-slate-600">
-            เลือกเกมจากรายการด้านล่าง แต่ละการ์ดแสดงชื่อเกม ผู้สร้าง และคำอธิบายย่อ · คลิกเพื่อเข้าเล่นเกมนั้น
+            เกมเผยแพร่ทั้งหมดในระบบ — แต่ละการ์ดมีปกเกม ชื่อ ผู้สร้าง ค่าหัวใจ และคำอธิบาย ·
+            คลิกการ์ดเพื่อเข้าเล่นและลุ้นรางวัล
           </p>
         </div>
 

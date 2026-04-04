@@ -51,6 +51,7 @@
   }
 
   var SECTION_TITLE_SUB_IDS = {
+    gamePrize: ["huajaiy-sec-gameprize-title", "huajaiy-sec-gameprize-sub"],
     category: ["huajaiy-sec-category-title", "huajaiy-sec-category-sub"],
     bestSelling: ["huajaiy-sec-bestselling-title", "huajaiy-sec-bestselling-sub"],
     bannerSale1: ["huajaiy-sec-bannersale1-title", "huajaiy-sec-bannersale1-sub"],
@@ -127,7 +128,52 @@
     setStyle("huajaiy-feature-" + i + "-desc", "color", f.descriptionColor);
   }
 
-  function apply(data) {
+  function truncDesc(s, max) {
+    var t = s != null ? String(s).replace(/\s+/g, " ").trim() : "";
+    if (t.length <= max) return t;
+    return t.slice(0, max - 1) + "\u2026";
+  }
+
+  function applyGameCards(games) {
+    var sec = $("huajaiy-game-prize-section");
+    var any = false;
+    for (var i = 0; i < 4; i++) {
+      var wrap = $("huajaiy-game-card-" + i + "-wrap");
+      var link = $("huajaiy-game-card-" + i);
+      var img = $("huajaiy-game-card-" + i + "-img");
+      var g = games && games[i];
+      if (!wrap || !link) continue;
+      if (!g || !g.id) {
+        wrap.classList.add("d-none");
+        continue;
+      }
+      any = true;
+      wrap.classList.remove("d-none");
+      link.href = "/game/" + encodeURIComponent(String(g.id).trim());
+      link.target = "_top";
+      link.rel = "noopener";
+      var cover = g.gameCoverUrl && String(g.gameCoverUrl).trim();
+      if (img) {
+        if (cover && /^https?:\/\//i.test(cover)) {
+          img.src = cover;
+          img.alt = g.title ? String(g.title).slice(0, 120) : "เกม";
+          img.classList.remove("d-none");
+        } else {
+          img.removeAttribute("src");
+          img.alt = "";
+          img.classList.add("d-none");
+        }
+      }
+      setText("huajaiy-game-card-" + i + "-title", g.title || "เกม");
+      setText("huajaiy-game-card-" + i + "-desc", truncDesc(g.description, 110));
+    }
+    if (sec) {
+      if (any) sec.classList.remove("d-none");
+      else sec.classList.add("d-none");
+    }
+  }
+
+  function applyOrganicHome(data) {
     if (!data || typeof data !== "object") return;
     setHeroBg(data.heroBackgroundImageUrl);
     setText("huajaiy-hero-title", data.heroTitle);
@@ -158,7 +204,10 @@
         return r.json();
       })
       .then(function (body) {
-        if (body && body.ok && body.organicHome) apply(body.organicHome);
+        if (body && body.ok && body.organicHome) {
+          applyOrganicHome(body.organicHome);
+          applyGameCards(Array.isArray(body.organicGamesPick) ? body.organicGamesPick : []);
+        }
       })
       .catch(function () {
         /* ใช้ HTML เดิม */
