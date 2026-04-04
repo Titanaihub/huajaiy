@@ -106,12 +106,8 @@ export default async function RootLayout({ children }) {
             <MemberAuthProvider>
               <ImpersonationBanner />
               <HeartsProvider>
-                {/* flex-1 + overflow-y-auto: หน้ายาว (เช่น หน้าแรก iframe+ฟุตเตอร์) เลื่อนทั้งหน้าได้ */}
-                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-                  <div className="grid min-h-0 w-full flex-1 grid-rows-[auto_1fr_auto]">
-                    {children}
-                  </div>
-                </div>
+                {/* ไม่ใส่ overflow-y-auto ที่นี่ — กันสกอร์บาร์ซ้อนกับหน้าเอกสาร; หน้าแรกเลื่อนเฉพาะใน iframe */}
+                <div className="flex min-h-0 w-full flex-1 flex-col">{children}</div>
               </HeartsProvider>
             </MemberAuthProvider>
           </SiteThemeProvider>
