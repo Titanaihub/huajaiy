@@ -53,7 +53,8 @@ async function insertWithClient(client, row) {
 
 /**
  * @param {string} userId
- * @param {{ limit?: number; offset?: number }} opts
+ * @param {{ limit?: number; offset?: number; pinkOnly?: boolean }} opts
+ * @param {boolean} [opts.pinkOnly] ถ้า true ดึงเฉพาะแถวที่หัวใจชมพูมีการเพิ่ม/หัก — ไม่ถูกรายการแดงล้นทับ limit
  */
 function metaHasGameCode(meta) {
   if (!meta || typeof meta !== "object") return false;
@@ -328,8 +329,12 @@ async function enrichEntriesWithCentralGameCodes(entries) {
 
 async function listForUser(userId, opts = {}) {
   const pool = requirePool();
-  const lim = Math.min(200, Math.max(1, Math.floor(Number(opts.limit) || 80)));
+  const pinkOnly = Boolean(opts.pinkOnly);
+  const defaultLim = pinkOnly ? 400 : 80;
+  const maxLim = pinkOnly ? 800 : 200;
+  const lim = Math.min(maxLim, Math.max(1, Math.floor(Number(opts.limit) || defaultLim)));
   const off = Math.max(0, Math.floor(Number(opts.offset) || 0));
+  const pinkSql = pinkOnly ? " AND COALESCE(pink_delta, 0) <> 0 " : "";
   const r = await pool.query(
     `SELECT
        id,
@@ -342,7 +347,7 @@ async function listForUser(userId, opts = {}) {
        label,
        meta
      FROM heart_ledger
-     WHERE user_id = $1
+     WHERE user_id = $1${pinkSql}
      ORDER BY created_at DESC
      LIMIT $2 OFFSET $3`,
     [userId, lim, off]

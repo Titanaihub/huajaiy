@@ -616,9 +616,18 @@ router.get("/shops/mine", authMiddleware, async (req, res) => {
 /** ประวัติได้รับ/หักหัวใจชมพู–แดง (ฐานข้อมูล) */
 router.get("/heart-ledger/mine", authMiddleware, async (req, res) => {
   try {
-    const limit = req.query.limit != null ? Number(req.query.limit) : 80;
-    const offset = req.query.offset != null ? Number(req.query.offset) : 0;
-    const entries = await heartLedgerService.listForUser(req.userId, { limit, offset });
+    const q = req.query || {};
+    const pinkOnly =
+      q.pinkOnly === "1" ||
+      q.pinkOnly === "true" ||
+      String(q.scope || "").toLowerCase() === "pink";
+    const limit = q.limit != null ? Number(q.limit) : pinkOnly ? 400 : 80;
+    const offset = q.offset != null ? Number(q.offset) : 0;
+    const entries = await heartLedgerService.listForUser(req.userId, {
+      limit,
+      offset,
+      pinkOnly
+    });
     return res.json({ ok: true, entries });
   } catch (e) {
     if (e.code === "DB_REQUIRED") {

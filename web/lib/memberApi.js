@@ -201,11 +201,15 @@ export async function apiPostWinnerPickupAck(token, awardId) {
   return data;
 }
 
-export async function apiGetMyHeartLedger(token, { limit = 80, offset = 0 } = {}) {
+export async function apiGetMyHeartLedger(
+  token,
+  { limit = 80, offset = 0, pinkOnly = false } = {}
+) {
   const qs = new URLSearchParams({
     limit: String(limit),
     offset: String(offset)
   });
+  if (pinkOnly) qs.set("pinkOnly", "1");
   const r = await fetch(`${apiRoot()}/api/auth/heart-ledger/mine?${qs}`, {
     headers: { Authorization: `Bearer ${token}` }
   });

@@ -292,7 +292,11 @@ async function loadLedger() {
   const token = huajaiyMemberToken()
   if (!token) return
   try {
-    const L = await apiGetMyHeartLedger(token, { limit: 400, offset: 0 })
+    const L = await apiGetMyHeartLedger(token, {
+      limit: 500,
+      offset: 0,
+      pinkOnly: true,
+    })
     ledger.value = L.entries
     dbRequired.value = Boolean(L.dbRequired)
   } catch (e) {

@@ -331,7 +331,12 @@ export default function AccountHeartHistorySection({ variant = "play" }) {
       setLoading(true);
       setErr("");
       try {
-        const data = await apiGetMyHeartLedger(token, { limit: 300, offset: 0 });
+        const data = await apiGetMyHeartLedger(
+          token,
+          mode === "pink"
+            ? { limit: 500, offset: 0, pinkOnly: true }
+            : { limit: 400, offset: 0 }
+        );
         if (cancelled) return;
         setEntries(Array.isArray(data.entries) ? data.entries : []);
         setDbRequired(Boolean(data.dbRequired));
@@ -344,7 +349,7 @@ export default function AccountHeartHistorySection({ variant = "play" }) {
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading]);
+  }, [user, authLoading, mode]);
 
   if (authLoading) {
     return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
