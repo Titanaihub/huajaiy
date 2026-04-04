@@ -1,10 +1,9 @@
 import CommunityPageView from "../../components/CommunityPageView";
-import SiteFooter from "../../components/SiteFooter";
-import SiteHeader from "../../components/SiteHeader";
+import PublicOrganicShell from "../../components/PublicOrganicShell";
 import { fetchOrganicHomePublic } from "../../lib/fetchOrganicHomePublic";
-import {
-  mergeOrganicHomeFromApi
-} from "../../lib/organicHomeFormDefaults";
+import { mergeOrganicHomeFromApi } from "../../lib/organicHomeFormDefaults";
+import { fetchPublicGameLobbyTheme } from "../../lib/publicGameMeta";
+import { buildSiteRootBackgroundStyle } from "../../lib/siteThemeStyle";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -34,17 +33,26 @@ export async function generateMetadata() {
 }
 
 export default async function CommunityPageRoute() {
-  const raw = await fetchOrganicHomePublic();
+  const [raw, gameLobbyTheme] = await Promise.all([
+    fetchOrganicHomePublic(),
+    fetchPublicGameLobbyTheme()
+  ]);
   const oh = mergeOrganicHomeFromApi(raw || {});
 
+  const mainBgStyle = buildSiteRootBackgroundStyle({
+    backgroundImageUrl: gameLobbyTheme.backgroundImageUrl,
+    bgGradientTop: gameLobbyTheme.bgGradientTop,
+    bgGradientMid: gameLobbyTheme.bgGradientMid,
+    bgGradientBottom: gameLobbyTheme.bgGradientBottom,
+    imageOverlayPercent: gameLobbyTheme.imageOverlayPercent
+  });
+
   return (
-    <>
-      <SiteHeader />
+    <PublicOrganicShell gameLobbyTheme={gameLobbyTheme} gameLobbyMainStyle={mainBgStyle}>
       <CommunityPageView
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
       />
-      <SiteFooter />
-    </>
+    </PublicOrganicShell>
   );
 }
