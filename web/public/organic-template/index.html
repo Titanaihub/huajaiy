@@ -38,6 +38,10 @@
       html.huajaiy-chrome-hide {
         overflow-x: hidden;
       }
+      /* ใน iframe หน้าแรก — ไม่โชว์บล็อก SEO ท้ายเพจ (ฟุตเตอร์อยู่ที่ parent ต่อท้ายป้ายแอป) */
+      html.huajaiy-chrome-hide [data-huajaiy-block="seoLooking"] {
+        display: none !important;
+      }
       /* การ์ดเกมหน้าแรก — ให้ใกล้เคียงหน้า /game (GameLobby) */
       .huajaiy-game-card {
         border: 1px solid #f0d6dc !important;
@@ -2218,7 +2222,7 @@
       </div>
     </section>
 
-    <section class="pb-4 my-4">
+    <section id="huajaiy-organic-embed-tail" class="pb-4 my-4">
       <div class="container-lg">
 
         <div class="bg-warning pt-5 rounded-5">
@@ -2281,12 +2285,20 @@
               requestAnimationFrame(function () {
                 var doc = document.documentElement;
                 var body = document.body;
-                var h = Math.max(
-                  doc.scrollHeight,
-                  body ? body.scrollHeight : 0,
-                  doc.offsetHeight,
-                  body ? body.offsetHeight : 0
-                );
+                var tail = document.getElementById("huajaiy-organic-embed-tail");
+                var h;
+                if (tail) {
+                  var r = tail.getBoundingClientRect();
+                  var y = window.pageYOffset || doc.scrollTop || 0;
+                  h = Math.ceil(r.bottom + y + 4);
+                } else {
+                  h = Math.max(
+                    doc.scrollHeight,
+                    body ? body.scrollHeight : 0,
+                    doc.offsetHeight,
+                    body ? body.offsetHeight : 0
+                  );
+                }
                 if (h < 320) h = 320;
                 window.parent.postMessage(
                   { type: "HUAJAIY_ORGANIC_DOC_HEIGHT", height: h },
@@ -2303,7 +2315,10 @@
             window.addEventListener("resize", huajaiySendDocHeightToParent);
             if (typeof ResizeObserver !== "undefined") {
               try {
-                new ResizeObserver(huajaiySendDocHeightToParent).observe(document.documentElement);
+                var tailEl = document.getElementById("huajaiy-organic-embed-tail");
+                if (tailEl) {
+                  new ResizeObserver(huajaiySendDocHeightToParent).observe(tailEl);
+                }
               } catch (e) {}
             }
             huajaiySendDocHeightToParent();
