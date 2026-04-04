@@ -477,6 +477,252 @@ async function listRoomGiftBalancesForUser(userId) {
   }));
 }
 
+/** meta จาก heart_ledger (jsonb / string) */
+function normalizeLedgerMeta(raw) {
+  if (raw == null) return null;
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    if (!s) return null;
+    try {
+      const o = JSON.parse(s);
+      return o && typeof o === "object" && !Array.isArray(o) ? o : null;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof raw === "object" && !Array.isArray(raw)) return raw;
+  return null;
+}
+
+function prizeStatusSuffixFromMeta(m) {
+  if (!m) return "";
+  const oRaw =
+    m.roundOutcome != null
+      ? String(m.roundOutcome).trim().toLowerCase()
+      : m.round_outcome != null
+        ? String(m.round_outcome).trim().toLowerCase()
+        : "";
+  const sum =
+    m.roundPrizeSummary != null
+      ? String(m.roundPrizeSummary).trim()
+      : m.round_prize_summary != null
+        ? String(m.round_prize_summary).trim()
+        : "";
+  if (oRaw === "won") {
+    if (sum) return ` (ได้รับรางวัล — ${sum})`;
+    return " (ได้รับรางวัล)";
+  }
+  if (oRaw === "lost") {
+    if (sum && sum !== "ไม่ได้รับรางวัล") {
+      return ` (ไม่ได้รับรางวัล · ${sum})`;
+    }
+    return " (ไม่ได้รับรางวัล)";
+  }
+  return "";
+}
+
+function gameItemLineFromLedgerRow(label, meta) {
+  const base =
+    label != null && String(label).trim()
+      ? String(label).trim()
+      : "เริ่มเล่นเกม";
+  return base + prizeStatusSuffixFromMeta(meta);
+}
+
+const ROOM_TIMELINE_MAX_RED = 8000;
+const ROOM_TIMELINE_MAX_GAME = 8000;
+
+/**
+ * ประวัติแดงห้องต่อเจ้าของห้อง — รวมแลกรหัส + หักเกม จาก DB แล้วคำนวณคงเหลือตามเวลาจริง
+ * ให้ตรงกับ user_room_red_balance เมื่อโหลดครบ (ไม่ถูกตัด limit)
+ */
+async function listRoomRedRoomTimelineForRedeemer(userId) {
+  const pool = getPool();
+  if (!pool) {
+    const e = new Error("DB_REQUIRED");
+    e.code = "DB_REQUIRED";
+    throw e;
+  }
+
+  const [balRes, redCountRes, redRes, gameCountRes, ledRes] = await Promise.all([
+    pool.query(
+      `SELECT b.creator_id::text AS "creatorId", b.balance,
+              u.username AS "creatorUsername"
+       FROM user_room_red_balance b
+       LEFT JOIN users u ON u.id = b.creator_id
+       WHERE b.user_id = $1::uuid`,
+      [userId]
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS c FROM room_red_gift_redemptions WHERE redeemer_id = $1::uuid`,
+      [userId]
+    ),
+    pool.query(
+      `SELECT rr.id::text AS id, rr.redeemed_at AS "redeemedAt", rr.red_amount AS "redAmount",
+              c.code AS code, rr.creator_id::text AS "creatorId", u.username AS "creatorUsername"
+       FROM room_red_gift_redemptions rr
+       LEFT JOIN room_red_gift_codes c ON c.id = rr.code_id
+       LEFT JOIN users u ON u.id = rr.creator_id
+       WHERE rr.redeemer_id = $1::uuid
+       ORDER BY rr.redeemed_at ASC, rr.id ASC
+       LIMIT $2`,
+      [userId, ROOM_TIMELINE_MAX_RED]
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS c FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind = 'game_start'`,
+      [userId]
+    ),
+    pool.query(
+      `SELECT id::text AS id, created_at AS "createdAt", label, meta
+       FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind = 'game_start'
+       ORDER BY created_at ASC, id ASC
+       LIMIT $2`,
+      [userId, ROOM_TIMELINE_MAX_GAME]
+    )
+  ]);
+
+  const totalRed = redCountRes.rows[0]?.c ?? 0;
+  const totalGame = gameCountRes.rows[0]?.c ?? 0;
+  const redemptionsTruncated = redRes.rows.length < totalRed;
+  const gamesTruncated = ledRes.rows.length < totalGame;
+  const historyIncomplete = redemptionsTruncated || gamesTruncated;
+
+  const balanceByCreator = new Map();
+  for (const row of balRes.rows) {
+    const cid = String(row.creatorId);
+    balanceByCreator.set(cid, {
+      balance: Math.max(0, Math.floor(Number(row.balance) || 0)),
+      username:
+        row.creatorUsername != null
+          ? String(row.creatorUsername).trim().toLowerCase()
+          : ""
+    });
+  }
+
+  /** @type {{ ts: number; sort: number; id: string; creatorId: string; delta: number; itemLine: string; gameId: string | null }[]} */
+  const events = [];
+
+  for (const row of redRes.rows) {
+    const cid = row.creatorId != null ? String(row.creatorId) : "";
+    const amt = Math.max(0, Math.floor(Number(row.redAmount) || 0));
+    if (!cid || amt <= 0) continue;
+    const code =
+      row.code != null ? String(row.code).trim().toUpperCase() : "";
+    const cu =
+      row.creatorUsername != null
+        ? String(row.creatorUsername).trim().replace(/^@+/, "").toLowerCase()
+        : "";
+    const ts = row.redeemedAt ? new Date(row.redeemedAt).getTime() : 0;
+    events.push({
+      ts: Number.isFinite(ts) ? ts : 0,
+      sort: 0,
+      id: `redeem-${row.id}`,
+      creatorId: cid,
+      delta: amt,
+      itemLine: `แลกรหัส ${code || "—"} · รับแดงห้อง${cu ? ` จาก @${cu}` : ""}`,
+      gameId: null
+    });
+  }
+
+  for (const row of ledRes.rows) {
+    const meta = normalizeLedgerMeta(row.meta);
+    const gifts = meta?.redFromRoomGifts;
+    if (!gifts || typeof gifts !== "object" || Array.isArray(gifts)) continue;
+    const gid =
+      meta.gameId != null ? String(meta.gameId).trim() : null;
+    const itemLine = gameItemLineFromLedgerRow(row.label, meta);
+    const ts = row.createdAt ? new Date(row.createdAt).getTime() : 0;
+    const tsSafe = Number.isFinite(ts) ? ts : 0;
+    for (const [cidRaw, v] of Object.entries(gifts)) {
+      const cid = String(cidRaw);
+      const deducted = Math.max(0, Math.floor(Number(v) || 0));
+      if (!cid || deducted <= 0) continue;
+      events.push({
+        ts: tsSafe,
+        sort: 1,
+        id: `game-${row.id}-${cid}`,
+        creatorId: cid,
+        delta: -deducted,
+        itemLine,
+        gameId: gid || null
+      });
+    }
+  }
+
+  events.sort((a, b) => {
+    if (a.ts !== b.ts) return a.ts - b.ts;
+    if (a.sort !== b.sort) return a.sort - b.sort;
+    return a.id.localeCompare(b.id);
+  });
+
+  const byCreator = new Map();
+  for (const ev of events) {
+    const list = byCreator.get(ev.creatorId) || [];
+    list.push(ev);
+    byCreator.set(ev.creatorId, list);
+  }
+
+  for (const cid of byCreator.keys()) {
+    if (!balanceByCreator.has(cid)) {
+      balanceByCreator.set(cid, { balance: 0, username: "" });
+    }
+  }
+
+  const creatorIds = [...balanceByCreator.keys()].sort((a, b) => a.localeCompare(b));
+
+  const rooms = [];
+  for (const creatorId of creatorIds) {
+    const meta = balanceByCreator.get(creatorId) || { balance: 0, username: "" };
+    const evs = byCreator.get(creatorId) || [];
+    let running = 0;
+    /** @type {object[]} */
+    const chronological = [];
+    for (const ev of evs) {
+      running += ev.delta;
+      if (running < 0) running = 0;
+      const when = ev.ts
+        ? new Date(ev.ts).toLocaleString("th-TH", {
+            dateStyle: "medium",
+            timeStyle: "short"
+          })
+        : "—";
+      chronological.push({
+        key: ev.id,
+        when,
+        itemLine: ev.itemLine,
+        delta: ev.delta,
+        balanceAfter: running,
+        gameId: ev.gameId
+      });
+    }
+
+    const expected = meta.balance;
+    let reconciled = false;
+    if (!historyIncomplete) {
+      if (evs.length === 0) {
+        reconciled = expected === 0;
+      } else {
+        reconciled = running === expected;
+      }
+    }
+
+    const rows = chronological.slice().reverse();
+
+    rooms.push({
+      creatorId,
+      creatorUsername: meta.username || creatorId.slice(0, 8),
+      currentBalance: expected,
+      reconciled,
+      historyIncomplete,
+      rows
+    });
+  }
+
+  return { rooms, historyIncomplete };
+}
+
 /**
  * ประวัติการแลกรหัสหัวใจแดงของสมาชิก (สำหรับแอดมินตรวจสอบ)
  */
@@ -659,6 +905,7 @@ module.exports = {
   getCodesBatchDetailForCreator,
   listCodesForCreator,
   listRoomGiftBalancesForUser,
+  listRoomRedRoomTimelineForRedeemer,
   listRedemptionsForUser,
   redeemCode
 };

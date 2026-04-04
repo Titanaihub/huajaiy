@@ -305,6 +305,50 @@ export interface RoomRedRedemptionRow {
   creatorUsername?: string | null
 }
 
+export interface RoomRedTimelineRow {
+  key: string
+  when: string
+  itemLine: string
+  delta: number
+  balanceAfter: number
+  gameId?: string | null
+}
+
+export interface RoomRedTimelineBlock {
+  creatorId: string
+  creatorUsername: string
+  currentBalance: number
+  reconciled: boolean
+  historyIncomplete: boolean
+  rows: RoomRedTimelineRow[]
+}
+
+/** ประวัติแดงห้อง — คำนวณจาก DB เต็มช่วง (แลกรหัส + หักเกม) ให้คงเหลือตรง user_room_red_balance */
+export async function apiGetMyRoomRedRoomTimeline(
+  token: string
+): Promise<{
+  rooms: RoomRedTimelineBlock[]
+  historyIncomplete: boolean
+  dbRequired?: boolean
+}> {
+  const r = await fetch(`${root()}/api/auth/room-red-room-timeline/mine`, {
+    headers: authHeaders(token)
+  })
+  const data = (await r.json().catch(() => ({}))) as {
+    ok?: boolean
+    rooms?: RoomRedTimelineBlock[]
+    historyIncomplete?: boolean
+    dbRequired?: boolean
+    error?: string
+  }
+  if (!r.ok || !data.ok) throw new Error(data.error || 'โหลดประวัติแดงห้องไม่สำเร็จ')
+  return {
+    rooms: Array.isArray(data.rooms) ? data.rooms : [],
+    historyIncomplete: Boolean(data.historyIncomplete),
+    dbRequired: Boolean(data.dbRequired)
+  }
+}
+
 export async function apiGetMyRoomRedRedemptions(
   token: string,
   opts?: { limit?: number }

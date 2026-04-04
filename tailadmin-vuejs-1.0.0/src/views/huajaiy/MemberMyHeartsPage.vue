@@ -26,6 +26,14 @@
           ระบบยังไม่เชื่อมฐานข้อมูล — ไม่มีประวัติแดงห้องให้แสดง
         </div>
 
+        <div
+          v-if="timelineIncomplete"
+          class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100"
+        >
+          มีรายการในประวัติมากกว่าที่โหลดในครั้งเดียว — ตารางอาจไม่ครบทุกเหตุการณ์
+          จึงยังยืนยันยอด «คงเหลือ» ทุกแถวเทียบยอดด้านบนไม่ได้ หากต้องการให้ครบ ติดต่อผู้ดูแลระบบ
+        </div>
+
         <section
           v-for="block in roomBlocks"
           :key="block.creatorId"
@@ -36,7 +44,7 @@
           >
             <div>
               <h3 class="text-base font-bold text-slate-900 dark:text-white">
-                ห้อง @{{ block.displayUsername }}
+                ห้อง @{{ block.creatorUsername }}
               </h3>
               <p class="text-xs text-slate-500 dark:text-gray-400">
                 ยอดแดงห้องปัจจุบัน
@@ -63,10 +71,16 @@
             </div>
             <div v-else class="overflow-x-auto">
             <p
+              v-if="!block.reconciled && !timelineIncomplete"
+              class="border-b border-red-100 bg-red-50/90 px-4 py-2 text-xs font-medium text-red-800 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
+              role="alert"
+            >
+              ยอดสะสมจากประวัติที่แสดงไม่ตรงกับยอดในระบบ — กรุณาแจ้งผู้ดูแล
+            </p>
+            <p
               class="border-b border-slate-100 bg-slate-50/80 px-4 py-2 text-xs leading-relaxed text-slate-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-400"
             >
-              คอลัมน์ «คงเหลือ» คิดย้อนจากยอดปัจจุบันด้านบนให้ตรงระบบ — ถ้าโหลดประวัติไม่ครบ (จำกัดจำนวนแถว)
-              ยอดก่อนรายการแรกในตารางอาจสะท้อนรายการเก่าที่ไม่แสดง
+              คอลัมน์ «คงเหลือ» คำนวณตามเวลาจริงจากฐานข้อมูล (แลกรหัส + หักแดงห้องตอนเล่นเกม) ให้สอดคล้องกับยอดด้านบนเมื่อโหลดประวัติครบ
             </p>
             <table class="w-full min-w-[560px] border-collapse text-left text-sm">
               <thead>
@@ -133,15 +147,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import {
-  apiGetMyHeartLedger,
-  apiGetMyRoomRedRedemptions,
+  apiGetMyRoomRedRoomTimeline,
   huajaiyMemberToken,
-  type HeartLedgerEntry,
-  type RoomRedRedemptionRow,
+  type RoomRedTimelineBlock,
 } from '@/utils/memberSectionApi'
 import { useHuajaiyMemberProfile } from '@/composables/useHuajaiyMemberProfile'
 
@@ -149,36 +161,16 @@ const { user, loading: authLoading, load: loadProfile } = useHuajaiyMemberProfil
 
 const loadErr = ref('')
 const dbRequired = ref(false)
-const ledger = ref<HeartLedgerEntry[]>([])
-const redemptions = ref<RoomRedRedemptionRow[]>([])
+const timelineIncomplete = ref(false)
+const roomBlocks = ref<RoomRedTimelineBlock[]>([])
 const roomDetailOpen = reactive<Record<string, boolean>>({})
 
 function toggleRoomDetail(creatorId: string) {
   roomDetailOpen[creatorId] = !roomDetailOpen[creatorId]
 }
 
-interface RawEv {
-  id: string
-  ts: number
-  typeOrder: number
-  creatorId: string
-  delta: number
-  itemLine: string
-  gameId?: string | null
-}
-
 function fmt(n: number) {
   return Math.max(0, Math.floor(Number(n) || 0)).toLocaleString('th-TH')
-}
-
-function parseTs(iso: string | undefined): number {
-  if (!iso) return 0
-  const t = new Date(iso).getTime()
-  return Number.isFinite(t) ? t : 0
-}
-
-function normUser(u: string | undefined | null) {
-  return u != null ? String(u).trim().replace(/^@+/, '').toLowerCase() : ''
 }
 
 function gameHref(id: string) {
@@ -186,247 +178,21 @@ function gameHref(id: string) {
   return `/game/${g}`
 }
 
-/** meta จาก API อาจเป็น object หรือ JSON string */
-function metaAsRecord(e: HeartLedgerEntry): Record<string, unknown> | null {
-  const m = e.meta
-  if (m == null) return null
-  if (typeof m === 'string') {
-    try {
-      const o = JSON.parse(m) as unknown
-      return o && typeof o === 'object' && !Array.isArray(o)
-        ? (o as Record<string, unknown>)
-        : null
-    } catch {
-      return null
-    }
-  }
-  if (typeof m === 'object' && !Array.isArray(m)) return m as Record<string, unknown>
-  return null
-}
-
-/** ชื่อแสดงใน ledger — ใช้ meta.gameTitle ก่อน แล้วค่อยดึงจาก label รูป เริ่มเล่นเกม「…」 */
-function gameDisplayNameFromEntry(e: HeartLedgerEntry, m: Record<string, unknown> | null): string {
-  const fromMeta = m?.gameTitle != null ? String(m.gameTitle).trim() : ''
-  if (fromMeta) return fromMeta
-  const lab = e.label != null ? String(e.label).trim() : ''
-  const br = lab.match(/เริ่มเล่นเกม「\s*(.+?)\s*」/)
-  if (br) return br[1].trim()
-  if (lab) return lab
-  return '—'
-}
-
-/** รหัสเกมสั้น (YYYYMMDD+ลำดับ) จาก meta — ไม่โชว์ UUID; รายการเก่าไม่มีใน meta จะเป็น — */
-function gameCodeFromMeta(m: Record<string, unknown> | null): string {
-  const a = m?.gameCode != null ? String(m.gameCode).trim() : ''
-  if (a) return a
-  const b = m?.game_code != null ? String(m.game_code).trim() : ''
-  if (b) return b
-  return '—'
-}
-
-/**
- * ข้อความต่อท้ายรายการเกมในคอลัมน์「รายการ」— ระบุได้/ไม่ได้รับรางวัล (จาก meta หลังจบรอบ)
- */
-function prizeStatusSuffixFromMeta(m: Record<string, unknown> | null): string {
-  if (!m) return ''
-  const oRaw =
-    m.roundOutcome != null
-      ? String(m.roundOutcome).trim().toLowerCase()
-      : m.round_outcome != null
-        ? String(m.round_outcome).trim().toLowerCase()
-        : ''
-  const sum =
-    m.roundPrizeSummary != null
-      ? String(m.roundPrizeSummary).trim()
-      : m.round_prize_summary != null
-        ? String(m.round_prize_summary).trim()
-        : ''
-  if (oRaw === 'won') {
-    if (sum) return ` (ได้รับรางวัล — ${sum})`
-    return ' (ได้รับรางวัล)'
-  }
-  if (oRaw === 'lost') {
-    if (sum && sum !== 'ไม่ได้รับรางวัล') {
-      return ` (ไม่ได้รับรางวัล · ${sum})`
-    }
-    return ' (ไม่ได้รับรางวัล)'
-  }
-  return ''
-}
-
-function roomRowsFromUser() {
-  const u = user.value
-  const arr = (Array.isArray(u?.roomGiftRed) ? u!.roomGiftRed! : []) as Record<
-    string,
-    unknown
-  >[]
-  return arr
-    .map((x) => ({
-      creatorId: x.creatorId != null ? String(x.creatorId) : '',
-      creatorUsername: x.creatorUsername != null ? String(x.creatorUsername) : '',
-      balance: Math.max(0, Math.floor(Number(x.balance) || 0)),
-    }))
-    .filter((r) => r.creatorId)
-}
-
-function usernameForCreator(cid: string, rowsMeta: ReturnType<typeof roomRowsFromUser>) {
-  const r = redemptions.value.find((x) => String(x.creatorId) === cid)
-  const u = r?.creatorUsername != null ? normUser(r.creatorUsername) : ''
-  if (u) return u
-  const row = rowsMeta.find((x) => x.creatorId === cid)
-  if (row?.creatorUsername) return normUser(row.creatorUsername)
-  return cid.slice(0, 8)
-}
-
-function collectRawEvents(): RawEv[] {
-  const out: RawEv[] = []
-
-  for (const r of redemptions.value) {
-    const cid = r.creatorId != null ? String(r.creatorId) : ''
-    const amt = Math.max(0, Math.floor(Number(r.redAmount) || 0))
-    if (!cid || amt <= 0) continue
-    const code = r.code != null ? String(r.code).trim().toUpperCase() : ''
-    const cu = normUser(r.creatorUsername)
-    out.push({
-      id: `redeem-${r.id}`,
-      ts: parseTs(r.redeemedAt),
-      typeOrder: 0,
-      creatorId: cid,
-      delta: amt,
-      itemLine: `แลกรหัส ${code || '—'} · รับแดงห้อง${cu ? ` จาก @${cu}` : ''}`,
-    })
-  }
-
-  for (const e of ledger.value) {
-    if (e.kind !== 'game_start') continue
-    const m = metaAsRecord(e)
-    const gifts = m?.redFromRoomGifts
-    if (!gifts || typeof gifts !== 'object' || Array.isArray(gifts)) continue
-    const gid = m.gameId != null ? String(m.gameId).trim() : null
-    const gName = gameDisplayNameFromEntry(e, m)
-    const gCode = gameCodeFromMeta(m)
-    const itemLine =
-      `ชื่อเกม ${gName} · รหัสเกม ${gCode}` + prizeStatusSuffixFromMeta(m)
-    for (const [cidRaw, v] of Object.entries(gifts as Record<string, unknown>)) {
-      const cid = String(cidRaw)
-      const deducted = Math.max(0, Math.floor(Number(v) || 0))
-      if (!cid || deducted <= 0) continue
-      out.push({
-        id: `game-${e.id}-${cid}`,
-        ts: parseTs(e.createdAt),
-        typeOrder: 1,
-        creatorId: cid,
-        delta: -deducted,
-        itemLine,
-        gameId: gid,
-      })
-    }
-  }
-
-  return out
-}
-
-interface DisplayRow {
-  key: string
-  when: string
-  itemLine: string
-  delta: number
-  balanceAfter: number
-  gameId?: string | null
-}
-
-interface RoomBlock {
-  creatorId: string
-  displayUsername: string
-  currentBalance: number
-  rows: DisplayRow[]
-}
-
-const roomBlocks = computed((): RoomBlock[] => {
-  const rowsMeta = roomRowsFromUser()
-  const byId = new Map<string, { username: string; balance: number }>()
-  for (const r of rowsMeta) {
-    byId.set(r.creatorId, {
-      username: normUser(r.creatorUsername) || r.creatorId.slice(0, 8),
-      balance: r.balance,
-    })
-  }
-
-  const raw = collectRawEvents()
-  const byCreator = new Map<string, RawEv[]>()
-  for (const ev of raw) {
-    const list = byCreator.get(ev.creatorId) || []
-    list.push(ev)
-    byCreator.set(ev.creatorId, list)
-  }
-
-  for (const [cid] of byCreator) {
-    if (!byId.has(cid)) {
-      byId.set(cid, { username: usernameForCreator(cid, rowsMeta), balance: 0 })
-    }
-  }
-
-  const creatorIds = [...new Set([...byId.keys(), ...byCreator.keys()])].sort()
-
-  const blocks: RoomBlock[] = []
-  for (const cid of creatorIds) {
-    const meta = byId.get(cid) || { username: cid.slice(0, 8), balance: 0 }
-    const evs = (byCreator.get(cid) || []).slice().sort((a, b) => {
-      if (a.ts !== b.ts) return a.ts - b.ts
-      if (a.typeOrder !== b.typeOrder) return a.typeOrder - b.typeOrder
-      return a.id.localeCompare(b.id)
-    })
-
-    /**
-     * คงเหลือหลังแต่ละรายการ: ย้อนจากยอดจริงใน DB (currentBalance) ไม่ใช่สะสมจาก 0
-     * — ถ้าประวัติใน API ไม่ครบ แถวบนสุดจะได้เท่ายอดปัจจุบัน แทนที่จะหลุดไปเลขต่ำกว่าจริง
-     */
-    let running = meta.balance
-    const rows: DisplayRow[] = []
-    for (let i = evs.length - 1; i >= 0; i -= 1) {
-      const ev = evs[i]
-      const when = ev.ts
-        ? new Date(ev.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })
-        : '—'
-      rows.push({
-        key: ev.id,
-        when,
-        itemLine: ev.itemLine,
-        delta: ev.delta,
-        balanceAfter: running,
-        gameId: ev.gameId,
-      })
-      running -= ev.delta
-    }
-
-    blocks.push({
-      creatorId: cid,
-      displayUsername: meta.username,
-      currentBalance: meta.balance,
-      rows,
-    })
-  }
-
-  return blocks
-})
-
 async function loadHistory() {
   loadErr.value = ''
   dbRequired.value = false
+  timelineIncomplete.value = false
+  roomBlocks.value = []
   const token = huajaiyMemberToken()
   if (!token) return
   try {
-    const [L, R] = await Promise.all([
-      apiGetMyHeartLedger(token, { limit: 400, offset: 0 }),
-      apiGetMyRoomRedRedemptions(token, { limit: 500 }),
-    ])
-    ledger.value = L.entries
-    redemptions.value = R.items
-    dbRequired.value = Boolean(L.dbRequired || R.dbRequired)
+    const data = await apiGetMyRoomRedRoomTimeline(token)
+    roomBlocks.value = data.rooms
+    timelineIncomplete.value = data.historyIncomplete
+    dbRequired.value = Boolean(data.dbRequired)
   } catch (e) {
     loadErr.value = e instanceof Error ? e.message : String(e)
-    ledger.value = []
-    redemptions.value = []
+    roomBlocks.value = []
   }
 }
 

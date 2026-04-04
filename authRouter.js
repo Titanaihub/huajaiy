@@ -651,6 +651,26 @@ router.get("/room-red-redemptions/mine", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * ประวัติแดงห้องต่อเจ้าของห้อง — รวม redemption + game_start จาก DB คำนวณคงเหลือให้ตรงยอดจริง
+ */
+router.get("/room-red-room-timeline/mine", authMiddleware, async (req, res) => {
+  try {
+    const data = await roomRedGiftService.listRoomRedRoomTimelineForRedeemer(req.userId);
+    return res.json({ ok: true, ...data });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({
+        ok: true,
+        rooms: [],
+        historyIncomplete: false,
+        dbRequired: true
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** รางวัลจากเกมส่วนกลางที่บันทึกไว้กับบัญชีนี้ */
 router.get("/central-prize-awards/mine", authMiddleware, async (req, res) => {
   try {
