@@ -11,6 +11,10 @@ import {
   ORGANIC_SECTION_HEADING_SIMPLE_KEYS
 } from "../lib/organicHomeFormDefaults";
 import { buildSiteFooterOverlayStyle, buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
+import {
+  FALLBACK_GAME_LOBBY_THEME,
+  mergeGameLobbyFromApi
+} from "../lib/gameLobbyThemeDefaults";
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
@@ -104,6 +108,8 @@ export default function AdminSiteThemePanel() {
 
   const [organicHome, setOrganicHome] = useState(() => createDefaultOrganicHomeForm());
 
+  const [gameLobby, setGameLobby] = useState(() => ({ ...FALLBACK_GAME_LOBBY_THEME }));
+
   const previewHomeStyle = useMemo(
     () =>
       buildSiteRootBackgroundStyle({
@@ -137,6 +143,24 @@ export default function AdminSiteThemePanel() {
   const previewFooterOverlayStyle = useMemo(
     () => buildSiteFooterOverlayStyle({ footerScrimHex, footerScrimPercent }),
     [footerScrimHex, footerScrimPercent]
+  );
+
+  const previewGameLobbyStyle = useMemo(
+    () =>
+      buildSiteRootBackgroundStyle({
+        backgroundImageUrl: gameLobby.backgroundImageUrl,
+        bgGradientTop: gameLobby.bgGradientTop,
+        bgGradientMid: gameLobby.bgGradientMid,
+        bgGradientBottom: gameLobby.bgGradientBottom,
+        imageOverlayPercent: gameLobby.imageOverlayPercent
+      }),
+    [
+      gameLobby.backgroundImageUrl,
+      gameLobby.bgGradientTop,
+      gameLobby.bgGradientMid,
+      gameLobby.bgGradientBottom,
+      gameLobby.imageOverlayPercent
+    ]
   );
 
   const load = useCallback(async () => {
@@ -173,6 +197,7 @@ export default function AdminSiteThemePanel() {
         setFooterScrimPercent(Number.isFinite(n) ? Math.min(100, Math.max(0, Math.floor(n))) : 48);
       }
       setOrganicHome(mergeOrganicHomeFromApi(t.organicHome));
+      setGameLobby(mergeGameLobbyFromApi(t.gameLobby));
     } catch (e) {
       setErr(e.message || String(e));
     } finally {
@@ -205,7 +230,8 @@ export default function AdminSiteThemePanel() {
         innerImageOverlayPercent,
         footerScrimHex,
         footerScrimPercent,
-        organicHome
+        organicHome,
+        gameLobby
       });
       router.refresh();
       setMsg("บันทึกแล้ว — สลับหน้าแรกกับหน้าอื่นเพื่อเทียบพื้นหลัง");
@@ -295,6 +321,35 @@ export default function AdminSiteThemePanel() {
       if (token) {
         try {
           await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
+  async function onPickGameLobbyBg(ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy("gameLobby");
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const next = { ...gameLobby, backgroundImageUrl: url };
+      setGameLobby(next);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { gameLobby: next });
           router.refresh();
         } catch (patchErr) {
           setErr(
@@ -524,6 +579,217 @@ export default function AdminSiteThemePanel() {
           </div>
         </fieldset>
       </div>
+
+      <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+        <legend className="px-1 text-base font-semibold text-hui-section">
+          หน้าเกมและรางวัล <span className="font-normal text-hui-muted">(/game)</span>
+        </legend>
+        <p className="text-sm text-hui-muted">
+          พื้นหลังเฉพาะหน้านี้ (ไล่สีหรือรูป https) · สีหัวเมนู หัวข้อ ช่องค้นหา ข้อความในการ์ด และพื้นการ์ด · บันทึกร่วมกับ «บันทึกธีมเว็บ»
+        </p>
+        <div>
+          <p className="hui-label">ตัวอย่างพื้นหลัง</p>
+          <div
+            className="mt-2 h-24 w-full rounded-2xl border border-hui-border shadow-inner"
+            style={previewGameLobbyStyle}
+            aria-hidden
+          />
+        </div>
+        <div>
+          <label htmlFor="gl-bg-url" className="hui-label">
+            URL รูปพื้นหลัง (https — เว้นว่าง = ไล่สีอย่างเดียว)
+          </label>
+          <input
+            id="gl-bg-url"
+            type="url"
+            value={gameLobby.backgroundImageUrl}
+            onChange={(e) => setGameLobby({ ...gameLobby, backgroundImageUrl: e.target.value })}
+            className="hui-input"
+            placeholder="https://..."
+            autoComplete="off"
+          />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={uploadBusy !== null}
+                onChange={onPickGameLobbyBg}
+              />
+              {uploadBusy === "gameLobby" ? "กำลังอัปโหลด…" : "อัปโหลดรูปพื้นหลัง"}
+            </label>
+            <button
+              type="button"
+              className="rounded-2xl border border-hui-border bg-white px-4 py-2 text-sm font-semibold text-hui-body hover:bg-hui-surface"
+              onClick={() => setGameLobby({ ...gameLobby, backgroundImageUrl: "" })}
+            >
+              ล้าง URL
+            </button>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label htmlFor="gl-bg-top" className="hui-label">
+              สีไล่บน
+            </label>
+            <input
+              id="gl-bg-top"
+              type="text"
+              value={gameLobby.bgGradientTop}
+              onChange={(e) => setGameLobby({ ...gameLobby, bgGradientTop: e.target.value })}
+              className="hui-input font-mono text-sm"
+              maxLength={7}
+            />
+          </div>
+          <div>
+            <label htmlFor="gl-bg-mid" className="hui-label">
+              สีกลาง
+            </label>
+            <input
+              id="gl-bg-mid"
+              type="text"
+              value={gameLobby.bgGradientMid}
+              onChange={(e) => setGameLobby({ ...gameLobby, bgGradientMid: e.target.value })}
+              className="hui-input font-mono text-sm"
+              maxLength={7}
+            />
+          </div>
+          <div>
+            <label htmlFor="gl-bg-bot" className="hui-label">
+              สีล่าง
+            </label>
+            <input
+              id="gl-bg-bot"
+              type="text"
+              value={gameLobby.bgGradientBottom}
+              onChange={(e) => setGameLobby({ ...gameLobby, bgGradientBottom: e.target.value })}
+              className="hui-input font-mono text-sm"
+              maxLength={7}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="gl-bg-overlay" className="hui-label">
+            ความทึบทับรูป: {gameLobby.imageOverlayPercent}%
+          </label>
+          <input
+            id="gl-bg-overlay"
+            type="range"
+            min={0}
+            max={100}
+            value={gameLobby.imageOverlayPercent}
+            onChange={(e) =>
+              setGameLobby({ ...gameLobby, imageOverlayPercent: Number(e.target.value) })
+            }
+            className="mt-1 w-full"
+          />
+        </div>
+
+        <p className="pt-2 text-sm font-semibold text-hui-section">แถบหัวและเมนู</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["headerBackground", "พื้นหลังแถบหัว"],
+            ["headerBorder", "เส้นขอบล่างแถบหัว"],
+            ["navLinkColor", "ข้อความลิงก์เมนู"],
+            ["navLinkHoverColor", "ลิงก์เมนูตอนโฮเวอร์"],
+            ["navMutedColor", "ข้อความจาง (เช่น … โหลด)"],
+            ["iconButtonColor", "ไอคอนขวา / แฮมเบอร์เกอร์"],
+            ["iconButtonHoverBg", "พื้นโฮเวอร์ไอคอน"]
+          ].map(([key, label]) => (
+            <div key={key}>
+              <label htmlFor={`gl-${key}`} className="hui-label">
+                {label}
+              </label>
+              <input
+                id={`gl-${key}`}
+                type="text"
+                value={gameLobby[key]}
+                onChange={(e) => setGameLobby({ ...gameLobby, [key]: e.target.value })}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          ))}
+        </div>
+
+        <p className="pt-2 text-sm font-semibold text-hui-section">หัวข้อและช่องค้นหา</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["pageHeadingColor", "หัวข้อ «เกมและรางวัล»"],
+            ["searchLabelColor", "ป้ายช่องค้นหา"],
+            ["searchInputBackground", "พื้นช่องค้นหา"],
+            ["searchInputBorder", "ขอบช่องค้นหา"],
+            ["searchInputText", "ตัวอักษรในช่องค้นหา"],
+            ["searchPlaceholderColor", "ตัวอย่างในช่อง (placeholder)"]
+          ].map(([key, label]) => (
+            <div key={key}>
+              <label htmlFor={`gl-${key}`} className="hui-label">
+                {label}
+              </label>
+              <input
+                id={`gl-${key}`}
+                type="text"
+                value={gameLobby[key]}
+                onChange={(e) => setGameLobby({ ...gameLobby, [key]: e.target.value })}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          ))}
+        </div>
+
+        <p className="pt-2 text-sm font-semibold text-hui-section">การ์ดเกม</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ["cardBackground", "พื้นหลังการ์ด"],
+            ["cardBorder", "เส้นขอบการ์ด"],
+            ["cardMediaBackground", "พื้นหลังกรอบรูปปก"],
+            ["cardTitleColor", "ชื่อเกม"],
+            ["cardMutedColor", "ข้อความรอง (ผู้สร้าง / ไม่มีคำอธิบาย)"],
+            ["cardBodyColor", "คำอธิบาย / @ผู้สร้าง"],
+            ["cardHeartColor", "บรรทัดหักหัวใจ"],
+            ["cardCtaColor", "ข้อความ «เข้าเล่นเกมนี้»"],
+            ["cardCtaHoverColor", "CTA ตอนโฮเวอร์การ์ด"]
+          ].map(([key, label]) => (
+            <div key={key}>
+              <label htmlFor={`gl-${key}`} className="hui-label">
+                {label}
+              </label>
+              <input
+                id={`gl-${key}`}
+                type="text"
+                value={gameLobby[key]}
+                onChange={(e) => setGameLobby({ ...gameLobby, [key]: e.target.value })}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          ))}
+        </div>
+
+        <p className="pt-2 text-sm font-semibold text-hui-section">ลิงก์ท้ายหน้า (/game)</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            ["footerNavColor", "ข้อความลิงก์ (หน้าแรก ร้านค้า …)"],
+            ["footerNavHoverColor", "ลิงก์ตอนโฮเวอร์"]
+          ].map(([key, label]) => (
+            <div key={key}>
+              <label htmlFor={`gl-${key}`} className="hui-label">
+                {label}
+              </label>
+              <input
+                id={`gl-${key}`}
+                type="text"
+                value={gameLobby[key]}
+                onChange={(e) => setGameLobby({ ...gameLobby, [key]: e.target.value })}
+                className="hui-input font-mono text-sm"
+                maxLength={7}
+              />
+            </div>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="min-w-0 space-y-5 rounded-xl border border-hui-border bg-white/50 p-4">
         <legend className="px-1 text-base font-semibold text-hui-section">

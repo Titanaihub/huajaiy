@@ -1,5 +1,6 @@
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "./centralGameDefaults";
 import { getApiBase } from "./config";
+import { mergeGameLobbyFromApi } from "./gameLobbyThemeDefaults";
 
 /**
  * ดึงข้อมูลเกมส่วนกลางที่เปิดใช้ (เผยแพร่) — ใช้ใน Server Component
@@ -30,6 +31,26 @@ export async function fetchPublicCentralGameMeta() {
     };
   } catch {
     return null;
+  }
+}
+
+/** ธีมหน้า /game จาก API สาธารณะ (รวมค่าเริ่มต้น) */
+export async function fetchPublicGameLobbyTheme() {
+  const base = getApiBase().replace(/\/$/, "");
+  try {
+    const r = await fetch(`${base}/api/public/site-theme?_nc=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "Cache-Control": "no-cache"
+      }
+    });
+    if (!r.ok) return mergeGameLobbyFromApi(null);
+    const data = await r.json();
+    if (!data.ok || !data.theme) return mergeGameLobbyFromApi(null);
+    return mergeGameLobbyFromApi(data.theme.gameLobby);
+  } catch {
+    return mergeGameLobbyFromApi(null);
   }
 }
 

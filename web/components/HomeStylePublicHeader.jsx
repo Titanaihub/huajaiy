@@ -22,6 +22,9 @@ const HEART_RED_SRC = "/hearts/red-heart.png";
 const iconLinkClass =
   "inline-flex items-center justify-center p-2 text-gray-800 transition hover:bg-gray-100";
 
+const iconLinkClassGameLobby =
+  "inline-flex items-center justify-center p-2 text-[var(--gl-icon)] transition hover:bg-[var(--gl-icon-hover-bg)]";
+
 /**
  * หัวเว็บแบบหน้าแรก (organic-template) — โครงและลำดับเหมือน sticky header ใน index.html
  * ใช้บนหน้าสมาชิก (เหนือ iframe TailAdmin)
@@ -29,12 +32,14 @@ const iconLinkClass =
  * @param {string} [lineProfileImageUrl] — รูป LINE แทนไอคอนคนอันแรกทางขวา
  * @param {string} [profileDisplayName] — ชื่อสำหรับ alt
  * @param {boolean} [authPage] — หน้าล็อกอิน: ไม่แสดงแฮมเบอร์เกอร์ + ไอคอนขวา (ไม่ใช้เมนูเก่า)
+ * @param {boolean} [gameLobbyThemed] — ใช้ CSS variables จากธีมหน้า /game (--gl-*)
  */
 export default function HomeStylePublicHeader({
   onHamburgerClick,
   lineProfileImageUrl,
   profileDisplayName,
-  authPage = false
+  authPage = false,
+  gameLobbyThemed = false
 }) {
   const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
@@ -79,8 +84,23 @@ export default function HomeStylePublicHeader({
     return () => document.removeEventListener("mousedown", close);
   }, [moreOpen]);
 
+  const headerShell = gameLobbyThemed
+    ? "sticky top-0 z-[1040] shrink-0 border-b bg-[var(--gl-header-bg)] border-[color:var(--gl-header-border)]"
+    : "sticky top-0 z-[1040] shrink-0 border-b border-gray-200 bg-white";
+  const navShell = gameLobbyThemed
+    ? "order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 font-sans text-sm font-semibold text-[var(--gl-nav)] sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6"
+    : "order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 font-sans text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6";
+  const navItemClass = gameLobbyThemed
+    ? "whitespace-nowrap rounded-md px-2 py-1 hover:text-[var(--gl-nav-hover)]"
+    : "whitespace-nowrap rounded-md px-2 py-1 hover:text-rose-600";
+  const hamburgerBtnClass = gameLobbyThemed
+    ? "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-[var(--gl-icon)] hover:bg-[var(--gl-icon-hover-bg)]"
+    : "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100";
+  const iconLink = gameLobbyThemed ? iconLinkClassGameLobby : iconLinkClass;
+  const heartsRowHover = gameLobbyThemed ? "hover:bg-[var(--gl-icon-hover-bg)]" : "hover:bg-gray-50";
+
   return (
-    <header className="sticky top-0 z-[1040] shrink-0 border-b border-gray-200 bg-white">
+    <header className={headerShell}>
       {/* lg: คอลัมน์ 290px ชิดซ้ายสุดให้ขอบขวาตรงเส้น sidebar ใน iframe (ไม่มีเส้นแบ่งใน header) */}
       <div className="w-full px-3 sm:px-4 lg:px-0">
         <div className="flex flex-wrap items-center gap-3 py-3 lg:gap-y-3">
@@ -91,7 +111,7 @@ export default function HomeStylePublicHeader({
             ) : (
               <button
                 type="button"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-800 hover:bg-gray-100"
+                className={hamburgerBtnClass}
                 aria-label="เปิดเมนูด้านข้าง"
                 onClick={onHamburgerClick}
               >
@@ -108,7 +128,7 @@ export default function HomeStylePublicHeader({
           {!authPage ? (
             <Link
               href={heartsHref}
-              className="flex w-full shrink-0 items-center justify-center gap-2.5 rounded-md py-1 hover:bg-gray-50 sm:w-auto sm:justify-start sm:gap-3 sm:px-1 lg:px-0"
+              className={`flex w-full shrink-0 items-center justify-center gap-2.5 rounded-md py-1 sm:w-auto sm:justify-start sm:gap-3 sm:px-1 lg:px-0 ${heartsRowHover}`}
               title={heartsTitle}
               aria-label={
                 heartsLoading
@@ -168,22 +188,19 @@ export default function HomeStylePublicHeader({
           ) : null}
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
-          <nav
-            className="order-last flex w-full flex-wrap items-center justify-center gap-3 px-0 font-sans text-sm font-semibold text-gray-900 sm:px-0 lg:order-none lg:flex-1 lg:justify-end lg:gap-4 lg:px-4 xl:gap-6"
-            aria-label="เมนูหลัก"
-          >
+          <nav className={navShell} aria-label="เมนูหลัก">
             {GLOBAL_PRIMARY_NAV_BASE.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="whitespace-nowrap rounded-md px-2 py-1 hover:text-rose-600"
-              >
+              <Link key={item.href} href={item.href} className={navItemClass}>
                 {item.label}
               </Link>
             ))}
             {memberLoading ? (
               <span
-                className="whitespace-nowrap rounded-md px-2 py-1 text-slate-400"
+                className={
+                  gameLobbyThemed
+                    ? "whitespace-nowrap rounded-md px-2 py-1 text-[var(--gl-nav-muted)]"
+                    : "whitespace-nowrap rounded-md px-2 py-1 text-slate-400"
+                }
                 aria-hidden
               >
                 …
@@ -192,22 +209,25 @@ export default function HomeStylePublicHeader({
               <button
                 type="button"
                 onClick={() => logout()}
-                className="whitespace-nowrap rounded-md border-0 bg-transparent px-2 py-1 font-sans text-sm font-semibold text-gray-900 hover:text-rose-600"
+                className={`whitespace-nowrap rounded-md border-0 bg-transparent px-2 py-1 font-sans text-sm font-semibold ${
+                  gameLobbyThemed
+                    ? "text-[var(--gl-nav)] hover:text-[var(--gl-nav-hover)]"
+                    : "text-gray-900 hover:text-rose-600"
+                }`}
               >
                 ออกจากระบบ
               </button>
             ) : (
-              <Link
-                href="/login"
-                className="whitespace-nowrap rounded-md px-2 py-1 hover:text-rose-600"
-              >
+              <Link href="/login" className={navItemClass}>
                 เข้าสู่ระบบ
               </Link>
             )}
             <div className="relative" ref={moreRef}>
               <button
                 type="button"
-                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 hover:text-rose-600"
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 ${
+                  gameLobbyThemed ? "hover:text-[var(--gl-nav-hover)]" : "hover:text-rose-600"
+                }`}
                 aria-expanded={moreOpen}
                 aria-haspopup="true"
                 onClick={() => setMoreOpen((o) => !o)}
@@ -334,7 +354,7 @@ export default function HomeStylePublicHeader({
               {lineProfileImageUrl ? (
                 <Link
                   href={accountHref}
-                  className={`${iconLinkClass} rounded-full`}
+                  className={`${iconLink} rounded-full`}
                   title={profileDisplayName || "บัญชี"}
                   aria-label={profileDisplayName || "โปรไฟล์"}
                 >
@@ -351,7 +371,7 @@ export default function HomeStylePublicHeader({
               ) : memberUser ? (
                 <Link
                   href={accountHref}
-                  className={iconLinkClass}
+                  className={iconLink}
                   title="บัญชีของฉัน"
                   aria-label="บัญชีของฉัน"
                 >
@@ -375,7 +395,7 @@ export default function HomeStylePublicHeader({
               ) : (
                 <Link
                   href="/login"
-                  className={iconLinkClass}
+                  className={iconLink}
                   title="เข้าสู่ระบบ"
                   aria-label="เข้าสู่ระบบ"
                 >
@@ -399,7 +419,7 @@ export default function HomeStylePublicHeader({
               )}
               <button
                 type="button"
-                className={iconLinkClass}
+                className={iconLink}
                 title="รายการโปรด (เร็วๆ นี้)"
                 aria-label="รายการโปรด"
               >
@@ -417,7 +437,7 @@ export default function HomeStylePublicHeader({
               </button>
               <Link
                 href="/cart"
-                className={iconLinkClass}
+                className={iconLink}
                 title="ตะกร้า"
                 aria-label="ตะกร้า"
               >

@@ -770,6 +770,7 @@ async function initDb() {
         inner_image_overlay_percent SMALLINT NOT NULL DEFAULT 78
           CHECK (inner_image_overlay_percent >= 0 AND inner_image_overlay_percent <= 100),
         organic_home_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+        game_lobby_json JSONB NOT NULL DEFAULT '{}'::jsonb,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
@@ -810,6 +811,10 @@ async function initDb() {
     await client.query(`
       ALTER TABLE site_theme
       ADD COLUMN IF NOT EXISTS organic_home_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+    `);
+    await client.query(`
+      ALTER TABLE site_theme
+      ADD COLUMN IF NOT EXISTS game_lobby_json JSONB NOT NULL DEFAULT '{}'::jsonb;
     `);
     /* DB เดิม: ยังไม่เคยแยกธีม inner — คัดลอกจากหน้าแรกครั้งเดียวขณะ inner ยังเป็นค่าเริ่ม */
     await client.query(`

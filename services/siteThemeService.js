@@ -1,5 +1,6 @@
 const { getPool } = require("../db/pool");
 const organicHomeContent = require("./organicHomeContent");
+const gameLobbyTheme = require("./gameLobbyTheme");
 
 const DEFAULT_THEME = {
   backgroundImageUrl: "",
@@ -46,7 +47,8 @@ function rowToTheme(row) {
   if (!row) {
     return {
       ...DEFAULT_THEME,
-      organicHome: organicHomeContent.mergeOrganicHomeFromRow(null)
+      organicHome: organicHomeContent.mergeOrganicHomeFromRow(null),
+      gameLobby: gameLobbyTheme.mergeGameLobbyFromRow(null)
     };
   }
   return {
@@ -75,7 +77,8 @@ function rowToTheme(row) {
       row.inner_image_overlay_percent,
       DEFAULT_THEME.innerImageOverlayPercent
     ),
-    organicHome: organicHomeContent.mergeOrganicHomeFromRow(row.organic_home_json)
+    organicHome: organicHomeContent.mergeOrganicHomeFromRow(row.organic_home_json),
+    gameLobby: gameLobbyTheme.mergeGameLobbyFromRow(row.game_lobby_json)
   };
 }
 
@@ -84,7 +87,8 @@ async function getSiteTheme() {
   if (!pool) {
     return {
       ...DEFAULT_THEME,
-      organicHome: organicHomeContent.mergeOrganicHomeFromRow(null)
+      organicHome: organicHomeContent.mergeOrganicHomeFromRow(null),
+      gameLobby: gameLobbyTheme.mergeGameLobbyFromRow(null)
     };
   }
   try {
@@ -92,7 +96,8 @@ async function getSiteTheme() {
       `SELECT background_image_url, bg_gradient_top, bg_gradient_mid, bg_gradient_bottom,
               image_overlay_percent, footer_scrim_hex, footer_scrim_percent,
               inner_background_image_url, inner_bg_gradient_top, inner_bg_gradient_mid,
-              inner_bg_gradient_bottom, inner_image_overlay_percent, organic_home_json
+              inner_bg_gradient_bottom, inner_image_overlay_percent, organic_home_json,
+              game_lobby_json
        FROM site_theme WHERE id = 1`
     );
     if (r.rows[0]) return rowToTheme(r.rows[0]);
@@ -101,7 +106,8 @@ async function getSiteTheme() {
   }
   return {
     ...DEFAULT_THEME,
-    organicHome: organicHomeContent.mergeOrganicHomeFromRow(null)
+    organicHome: organicHomeContent.mergeOrganicHomeFromRow(null),
+    gameLobby: gameLobbyTheme.mergeGameLobbyFromRow(null)
   };
 }
 
@@ -171,15 +177,19 @@ async function updateSiteTheme(patch) {
     organicHome:
       patch.organicHome !== undefined
         ? organicHomeContent.normalizeOrganicHomePayload(patch.organicHome)
-        : current.organicHome
+        : current.organicHome,
+    gameLobby:
+      patch.gameLobby !== undefined
+        ? gameLobbyTheme.normalizeGameLobbyPayload(patch.gameLobby, current.gameLobby)
+        : current.gameLobby
   };
 
   await pool.query(
     `INSERT INTO site_theme (id, background_image_url, bg_gradient_top, bg_gradient_mid, bg_gradient_bottom,
       image_overlay_percent, footer_scrim_hex, footer_scrim_percent,
       inner_background_image_url, inner_bg_gradient_top, inner_bg_gradient_mid, inner_bg_gradient_bottom,
-      inner_image_overlay_percent, organic_home_json, updated_at)
-     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, NOW())
+      inner_image_overlay_percent, organic_home_json, game_lobby_json, updated_at)
+     VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14::jsonb, NOW())
      ON CONFLICT (id) DO UPDATE SET
        background_image_url = EXCLUDED.background_image_url,
        bg_gradient_top = EXCLUDED.bg_gradient_top,
@@ -194,6 +204,7 @@ async function updateSiteTheme(patch) {
        inner_bg_gradient_bottom = EXCLUDED.inner_bg_gradient_bottom,
        inner_image_overlay_percent = EXCLUDED.inner_image_overlay_percent,
        organic_home_json = EXCLUDED.organic_home_json,
+       game_lobby_json = EXCLUDED.game_lobby_json,
        updated_at = NOW()`,
     [
       next.backgroundImageUrl || "",
@@ -208,7 +219,8 @@ async function updateSiteTheme(patch) {
       next.innerBgGradientMid,
       next.innerBgGradientBottom,
       next.innerImageOverlayPercent,
-      JSON.stringify(next.organicHome)
+      JSON.stringify(next.organicHome),
+      JSON.stringify(next.gameLobby)
     ]
   );
   return next;

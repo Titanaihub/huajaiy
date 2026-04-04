@@ -14,9 +14,13 @@ function clipDescription(text) {
 }
 
 /**
- * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }> }} props
+ * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }>; onBrand?: boolean; gameLobbyThemed?: boolean }} props
  */
-export default function GameLobby({ initialGames = [], onBrand = false }) {
+export default function GameLobby({
+  initialGames = [],
+  onBrand = false,
+  gameLobbyThemed = false
+}) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -29,13 +33,30 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
     });
   }, [initialGames, q]);
 
+  const labelClass = gameLobbyThemed
+    ? "text-sm font-medium text-[var(--gl-search-label)]"
+    : onBrand
+      ? "hui-label"
+      : "text-sm font-medium text-hui-body";
+
+  const inputClass = gameLobbyThemed
+    ? "mt-1.5 w-full rounded-2xl border border-[color:var(--gl-search-border)] bg-[var(--gl-search-bg)] px-4 py-3 text-base text-[var(--gl-search-text)] shadow-sm outline-none placeholder:text-[var(--gl-search-ph)] focus:border-[color:var(--gl-card-heart)] focus:ring-2 focus:ring-rose-300/35 sm:text-sm"
+    : "mt-1.5 w-full rounded-2xl border border-hui-border bg-white px-4 py-3 text-base text-hui-body shadow-sm outline-none ring-hui-border placeholder:text-hui-placeholder focus:border-hui-cta/50 focus:ring-2 focus:ring-hui-cta/15 sm:text-sm";
+
+  const cardShell =
+    "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
+  const cardClass = gameLobbyThemed
+    ? `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`
+    : `${cardShell} border-hui-border bg-white hover:border-hui-cta/35`;
+
+  const mediaShell = gameLobbyThemed
+    ? "relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]"
+    : "relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-hui-border/70 bg-slate-100";
+
   return (
     <div className="space-y-6">
       <div>
-        <label
-          htmlFor="game-search"
-          className={onBrand ? "hui-label" : "text-sm font-medium text-hui-body"}
-        >
+        <label htmlFor="game-search" className={labelClass}>
           ค้นหาชื่อเกมหรือยูสเซอร์ผู้สร้าง
         </label>
         <input
@@ -44,15 +65,33 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="พิมพ์คำค้น…"
-          className="mt-1.5 w-full rounded-2xl border border-hui-border bg-white px-4 py-3 text-base text-hui-body shadow-sm outline-none ring-hui-border placeholder:text-hui-placeholder focus:border-hui-cta/50 focus:ring-2 focus:ring-hui-cta/15 sm:text-sm"
+          className={inputClass}
           autoComplete="off"
         />
       </div>
 
       {initialGames.length === 0 ? (
-        <div className="rounded-2xl border border-hui-border bg-white p-8 text-center text-sm text-hui-body shadow-sm">
-          <p className="font-medium text-hui-body">ยังไม่มีเกมที่เปิดแสดง</p>
-          <p className="mt-2 text-sm leading-relaxed text-hui-muted">
+        <div
+          className={
+            gameLobbyThemed
+              ? "rounded-2xl border border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] p-8 text-center text-sm text-[var(--gl-empty-text)] shadow-sm"
+              : "rounded-2xl border border-hui-border bg-white p-8 text-center text-sm text-hui-body shadow-sm"
+          }
+        >
+          <p
+            className={
+              gameLobbyThemed ? "font-medium text-[var(--gl-empty-text)]" : "font-medium text-hui-body"
+            }
+          >
+            ยังไม่มีเกมที่เปิดแสดง
+          </p>
+          <p
+            className={
+              gameLobbyThemed
+                ? "mt-2 text-sm leading-relaxed text-[var(--gl-empty-muted)]"
+                : "mt-2 text-sm leading-relaxed text-hui-muted"
+            }
+          >
             เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ถ้าใช้ฐานข้อมูล PostgreSQL
             ตรวจว่า API เชื่อมต่อและมีเกมที่พร้อมเล่น
           </p>
@@ -60,8 +99,8 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
       ) : filtered.length === 0 ? (
         <p
           className={
-            onBrand
-              ? "text-center text-sm text-hui-muted"
+            gameLobbyThemed
+              ? "text-center text-sm text-[var(--gl-card-muted)]"
               : "text-center text-sm text-hui-muted"
           }
         >
@@ -75,11 +114,8 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
             const heartLine = formatCentralLobbyHeartLine(g);
             return (
               <li key={g.id}>
-                <Link
-                  href={href}
-                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white text-left shadow-sm transition hover:border-hui-cta/35 hover:shadow-md"
-                >
-                  <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-hui-border/70 bg-slate-100">
+                <Link href={href} className={cardClass}>
+                  <div className={mediaShell}>
                     <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -92,26 +128,72 @@ export default function GameLobby({ initialGames = [], onBrand = false }) {
                     </div>
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-4">
-                    <h2 className="line-clamp-2 text-base font-semibold leading-snug text-hui-section">
+                    <h2
+                      className={
+                        gameLobbyThemed
+                          ? "line-clamp-2 text-base font-semibold leading-snug text-[var(--gl-card-title)]"
+                          : "line-clamp-2 text-base font-semibold leading-snug text-hui-section"
+                      }
+                    >
                       {g.title || "เกม"}
                     </h2>
-                    <p className="mt-1.5 text-sm text-hui-muted">
+                    <p
+                      className={
+                        gameLobbyThemed
+                          ? "mt-1.5 text-sm text-[var(--gl-card-muted)]"
+                          : "mt-1.5 text-sm text-hui-muted"
+                      }
+                    >
                       ผู้สร้าง:{" "}
-                      <span className="font-medium text-hui-body">
+                      <span
+                        className={
+                          gameLobbyThemed
+                            ? "font-medium text-[var(--gl-card-body)]"
+                            : "font-medium text-hui-body"
+                        }
+                      >
                         {g.creatorUsername ? `@${g.creatorUsername}` : "—"}
                       </span>
                     </p>
                     {heartLine ? (
-                      <p className="mt-1 text-sm font-medium text-rose-600/90">{heartLine}</p>
+                      <p
+                        className={
+                          gameLobbyThemed
+                            ? "mt-1 text-sm font-medium text-[var(--gl-card-heart)]"
+                            : "mt-1 text-sm font-medium text-rose-600/90"
+                        }
+                      >
+                        {heartLine}
+                      </p>
                     ) : null}
                     {g.description ? (
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-hui-body">
+                      <p
+                        className={
+                          gameLobbyThemed
+                            ? "mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--gl-card-body)]"
+                            : "mt-2 line-clamp-3 text-sm leading-relaxed text-hui-body"
+                        }
+                      >
                         {clipDescription(g.description)}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm italic text-hui-muted">ไม่มีคำอธิบายสั้น</p>
+                      <p
+                        className={
+                          gameLobbyThemed
+                            ? "mt-2 text-sm italic text-[var(--gl-card-muted)]"
+                            : "mt-2 text-sm italic text-hui-muted"
+                        }
+                      >
+                        ไม่มีคำอธิบายสั้น
+                      </p>
                     )}
-                    <span className="mt-auto border-t border-hui-border/60 pt-3 text-center text-sm font-semibold text-hui-section group-hover:text-hui-cta">
+                    <span
+                      className={
+                        gameLobbyThemed
+                          ? "mt-auto border-t border-[color:var(--gl-card-border)] pt-3 text-center text-sm font-semibold text-[var(--gl-card-cta)] group-hover:text-[var(--gl-card-cta-hover)]"
+                          : "mt-auto border-t border-hui-border/60 pt-3 text-center text-sm font-semibold text-hui-section group-hover:text-hui-cta"
+                      }
+                    >
                       เข้าเล่นเกมนี้
                     </span>
                   </div>
