@@ -805,7 +805,7 @@ export default function AdminSiteThemePanel() {
             แสดงบล็อกบนหน้าแรก (iframe เทมเพลต)
           </h3>
           <p className="text-xs text-hui-muted">
-            เลิกเลือกช่องเพื่อซ่อนแถบนั้นบนเว็บจริง — ไม่กระทบเกมและรางวัล แบนเนอร์โปร จดหมายข่าว แอป และแถบความเชื่อมั่นด้านล่าง
+            เลิกเลือกช่องเพื่อซ่อนแถบนั้นบนเว็บจริง — ไม่กระทบเกมและรางวัล แบนเนอร์โปร จดหมายข่าว และแอป (ฟุตเตอร์เทมเพลตถูกถอดออกจากหน้าแรกแล้ว)
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {ORGANIC_HOMEPAGE_BLOCK_TOGGLES.map(({ key, label }) => (
@@ -1274,78 +1274,6 @@ export default function AdminSiteThemePanel() {
                         [key]: { ...blk, subtitleColor: e.target.value }
                       };
                       setOrganicHome({ ...organicHome, sectionHeadings });
-                    }}
-                    className="hui-input font-mono text-xs"
-                    placeholder="สีข้อความย่อย"
-                  />
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="hui-label mb-2 mt-6">แถวความน่าเชื่อถือ 5 ช่อง (เหนือฟุตเตอร์)</p>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {[0, 1, 2, 3, 4].map((i) => {
-              const blk = organicHome.sectionHeadings?.valueTrust?.[i];
-              if (!blk) return null;
-              return (
-                <div
-                  key={i}
-                  className="rounded-lg border border-hui-border bg-white/40 p-3"
-                >
-                  <p className="mb-2 text-xs font-medium text-hui-muted">ช่อง {i + 1}</p>
-                  <input
-                    type="text"
-                    value={blk.title}
-                    onChange={(e) => {
-                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
-                      valueTrust[i] = { ...valueTrust[i], title: e.target.value };
-                      setOrganicHome({
-                        ...organicHome,
-                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
-                      });
-                    }}
-                    className="hui-input mb-2 text-sm"
-                    placeholder="หัวข้อ"
-                  />
-                  <input
-                    type="text"
-                    value={blk.titleColor}
-                    onChange={(e) => {
-                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
-                      valueTrust[i] = { ...valueTrust[i], titleColor: e.target.value };
-                      setOrganicHome({
-                        ...organicHome,
-                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
-                      });
-                    }}
-                    className="hui-input mb-2 font-mono text-xs"
-                    placeholder="สีหัวข้อ"
-                  />
-                  <textarea
-                    rows={2}
-                    value={blk.subtitle}
-                    onChange={(e) => {
-                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
-                      valueTrust[i] = { ...valueTrust[i], subtitle: e.target.value };
-                      setOrganicHome({
-                        ...organicHome,
-                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
-                      });
-                    }}
-                    className="hui-input mb-2 min-h-[2.5rem] text-sm"
-                    placeholder="ข้อความย่อย"
-                  />
-                  <input
-                    type="text"
-                    value={blk.subtitleColor}
-                    onChange={(e) => {
-                      const valueTrust = [...organicHome.sectionHeadings.valueTrust];
-                      valueTrust[i] = { ...valueTrust[i], subtitleColor: e.target.value };
-                      setOrganicHome({
-                        ...organicHome,
-                        sectionHeadings: { ...organicHome.sectionHeadings, valueTrust }
-                      });
                     }}
                     className="hui-input font-mono text-xs"
                     placeholder="สีข้อความย่อย"
