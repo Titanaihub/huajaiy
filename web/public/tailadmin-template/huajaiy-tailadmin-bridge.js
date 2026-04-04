@@ -78,7 +78,7 @@
 
   /**
    * เมนูซ้ายสมาชิก — คงเชลล์ /member|/admin + iframe เทมเพลต (huajaiy_start)
-   * ตรงกับ web/lib/memberSidebarNav.js · kind: "shell" | "empty"
+   * ตรงกับ web/lib/memberSidebarNav.js · kind: "shell" | "closed" | "empty"
    */
   /**
    * slug = path หลัง /member (ว่าง = ภาพรวม) · start = path ใน Vue iframe
@@ -90,9 +90,9 @@
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
     { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", slug: "shops", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน (สาธารณะ)", kind: "publicPage" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", slug: "orders", start: "/my-orders" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "closed", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",
@@ -130,7 +130,7 @@
 
   function memberShellHref(item) {
     var base = parentWorkspaceBase();
-    if (item.kind !== "shell") return base;
+    if (item.kind !== "shell" && item.kind !== "closed") return base;
     var slug = item.slug != null ? String(item.slug) : "";
     slug = slug.replace(/^\/+/g, "").replace(/\/+$/g, "");
     if (slug === "") return base;
@@ -209,7 +209,7 @@
       var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
       if (!el) return;
       var active = false;
-      if (item.kind === "shell") {
+      if (item.kind === "shell" || item.kind === "closed") {
         var slug = item.slug != null ? String(item.slug) : "";
         active = effectiveSlug === slug;
       } else if (item.kind === "legacy" && item.href) {
@@ -337,7 +337,7 @@
       scrollHost.insertBefore(nav, scrollHost.firstChild);
     } else {
       MEMBER_SIDEBAR_MENU.forEach(function (item) {
-        if (item.kind !== "shell") return;
+        if (item.kind !== "shell" && item.kind !== "closed") return;
         var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
         if (el && el.tagName === "A") {
           el.setAttribute("href", memberShellHref(item));

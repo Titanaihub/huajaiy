@@ -34,6 +34,26 @@ export const TAILADMIN_CREATE_GAME_START = "/create-game";
 /** ตั้งค่าห้องเกมหลังสร้าง — ฝัง AdminCentralGamePanel (React) ในเชลล์สมาชิก */
 export const TAILADMIN_GAME_STUDIO_START = "/game-studio";
 
+/** ข้อความเมื่อเมนูยังไม่เปิด — เชลล์ Next ไม่โหลด iframe */
+export const MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE =
+  "ยังไม่เปิดให้ใช้งาน";
+
+/** slug หลัง `/member` หรือ `/admin` ที่แสดงข้อความแทน iframe */
+export const MEMBER_SHELL_IFRAME_CLOSED_SLUGS = Object.freeze([
+  "shops",
+  "orders"
+]);
+
+export function isMemberShellIframeClosedSlug(slug) {
+  if (slug == null || String(slug).trim() === "") return false;
+  const s = String(slug)
+    .trim()
+    .toLowerCase()
+    .split("/")
+    .filter(Boolean)[0];
+  return MEMBER_SHELL_IFRAME_CLOSED_SLUGS.includes(s);
+}
+
 /**
  * slug ใน URL สาธารณะ (เช่น /member/shops, /member/game) → path ใน Vue iframe
  * @type {Readonly<Record<string, string>>}

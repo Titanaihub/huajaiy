@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import {
   adminAppPathForTail,
+  isMemberShellIframeClosedSlug,
   memberTailPathFromSlug,
+  MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE,
   normalizeMemberTailPath,
   parseAdminAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
@@ -37,10 +39,17 @@ export default function AdminTailadminWorkspace() {
 
   const parsed = useMemo(() => parseAdminAppPath(pathname), [pathname]);
 
+  const closedShellSlug = useMemo(() => {
+    if (!parsed || parsed.segments.length !== 1) return null;
+    const seg = parsed.segments[0];
+    return isMemberShellIframeClosedSlug(seg) ? seg : null;
+  }, [parsed]);
+
   const tailForIframe = useMemo(() => {
     if (!parsed) return TAILADMIN_SHOP_DASHBOARD_START;
     if (parsed.segments.length === 0) return TAILADMIN_SHOP_DASHBOARD_START;
     if (parsed.segments.length > 1) return null;
+    if (isMemberShellIframeClosedSlug(parsed.segments[0])) return null;
     return memberTailPathFromSlug(parsed.segments[0]);
   }, [parsed]);
 
@@ -61,10 +70,10 @@ export default function AdminTailadminWorkspace() {
       router.replace("/admin");
       return;
     }
-    if (parsed.segments.length === 1 && tailForIframe === null) {
+    if (parsed.segments.length === 1 && tailForIframe === null && !closedShellSlug) {
       router.replace("/admin");
     }
-  }, [parsed, tailForIframe, user, router]);
+  }, [parsed, tailForIframe, closedShellSlug, user, router]);
 
   const iframeSrc = useMemo(() => {
     const start =
@@ -145,6 +154,23 @@ export default function AdminTailadminWorkspace() {
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.username ||
     (isAdmin ? "แอดมิน" : "สมาชิก");
+
+  if (closedShellSlug) {
+    return (
+      <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
+        <HomeStylePublicHeader
+          onHamburgerClick={toggleIframeSidebar}
+          lineProfileImageUrl={user.linePictureUrl || undefined}
+          profileDisplayName={displayName}
+        />
+        <main className="flex min-h-0 flex-1 items-center justify-center bg-slate-100 px-4 py-8">
+          <p className="text-center text-2xl font-bold leading-snug text-slate-700 sm:text-3xl md:text-4xl">
+            {MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE}
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
