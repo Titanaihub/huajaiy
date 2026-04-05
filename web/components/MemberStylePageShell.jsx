@@ -7,6 +7,7 @@ import BrandLogo from "./BrandLogo";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 import {
   MEMBER_TAIL_TO_SLUG,
   normalizeMemberTailPath,
@@ -91,7 +92,7 @@ export default function MemberStylePageShell({ children }) {
       if (item.kind === "publicPage") {
         const raw = user?.username != null ? String(user.username).trim().toLowerCase() : "";
         const ok = PUBLIC_USER_RE.test(raw);
-        const href = ok ? `/u/${encodeURIComponent(raw)}` : null;
+        const href = ok ? publicMemberPath(raw) : null;
         return {
           ...item,
           href,

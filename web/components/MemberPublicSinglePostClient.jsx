@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 import { getMemberToken } from "../lib/memberApi";
 import {
   buildMemberPostShareUrl,
@@ -143,7 +144,7 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
     <div className="min-h-full bg-[#f0f2f5] px-3 py-6 sm:px-5">
       <div className="mx-auto max-w-3xl">
         <Link
-          href={`/u/${encodeURIComponent(username)}`}
+          href={publicMemberPath(username)}
           className="mb-4 inline-block text-sm font-semibold text-rose-600 hover:text-rose-800"
         >
           ← กลับไปเพจ @{username}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import MemberPublicPostsFeed from "./MemberPublicPostsFeed";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 import PublicMemberPageOwnerPanel from "./PublicMemberPageOwnerPanel";
 
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
@@ -79,7 +80,7 @@ function IconTiktok({ className }) {
 }
 
 /**
- * เลย์เอาต์เพจสมาชิกแบบโซเชียล (คล้ายเพจ Facebook) — ใช้กับ /u/[username]
+ * เลย์เอาต์เพจสมาชิกแบบโซเชียล (คล้ายเพจ Facebook) — ใช้กับ /[username]
  * @param {{ member: Record<string, unknown>; initialPosts?: unknown[] }} props
  */
 export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
@@ -107,7 +108,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
 
   const pageUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
-    return `${window.location.origin}/u/${encodeURIComponent(username)}`;
+    return `${window.location.origin}${publicMemberPath(username)}`;
   }, [username]);
 
   const copyLink = useCallback(async () => {

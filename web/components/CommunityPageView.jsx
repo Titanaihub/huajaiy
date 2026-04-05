@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CommunityLobby from "./CommunityLobby";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 
 const LEGACY_BLOG_TITLES = new Set([
   "our recent blog",
@@ -22,7 +23,7 @@ function postHasPublicContent(post) {
   return Boolean(t || u || ex);
 }
 
-/** ลิงก์เดียวกัน (เช่น /u/username) ไม่แสดงซ้ำ — คงรายการจาก member API ก่อน */
+/** ลิงก์เดียวกัน (เช่น /username) ไม่แสดงซ้ำ — คงรายการจาก member API ก่อน */
 function communityPostDedupeKey(post) {
   const h = String(post?.href ?? "").trim();
   if (h && h !== "#") {
@@ -79,7 +80,7 @@ function memberDirectoryCard(m) {
     dateLine: `@${un}`,
     excerpt,
     imageUrl: img,
-    href: `/u/${encodeURIComponent(un)}`
+    href: publicMemberPath(un)
   };
 }
 

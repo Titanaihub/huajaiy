@@ -1,3 +1,5 @@
+import { publicMemberPostPath } from "./memberPublicUrls";
+
 /** ลิงก์แชร์ไลน์ (LINE It) */
 export function lineShareUrl(pageUrl) {
   return `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(pageUrl)}`;
@@ -17,7 +19,7 @@ export function facebookShareUrl(pageUrl) {
  */
 export function buildMemberPostShareUrl(origin, pageUsername, postId, viewerUsername) {
   const o = String(origin || "").replace(/\/$/, "");
-  const base = `${o}/u/${encodeURIComponent(pageUsername)}/post/${encodeURIComponent(postId)}`;
+  const base = `${o}${publicMemberPostPath(pageUsername, postId)}`;
   const v = viewerUsername && String(viewerUsername).trim();
   if (v) return `${base}?ref=${encodeURIComponent(v)}`;
   return base;

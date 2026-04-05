@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import FlipGameDemo from "../../../components/FlipGameDemo";
 import InlineHeart from "../../../components/InlineHeart";
 import PublicOrganicShell from "../../../components/PublicOrganicShell";
+import { publicMemberPath } from "../../../lib/memberPublicUrls";
 import { fetchPublicCentralGameMetaById } from "../../../lib/publicGameMeta";
 
 export const dynamic = "force-dynamic";
@@ -92,7 +93,7 @@ export default async function GamePlayPage({ params }) {
               >
                 {centralMeta.creatorUsername ? (
                   <Link
-                    href={`/u/${centralMeta.creatorUsername}`}
+                    href={publicMemberPath(centralMeta.creatorUsername)}
                     className="font-medium text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-rose-700"
                   >
                     @{centralMeta.creatorUsername}

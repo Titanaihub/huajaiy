@@ -322,7 +322,7 @@ function publicMemberDirectoryPostForOrganic(m) {
     dateLine: `@${un}`,
     excerpt,
     imageUrl: img,
-    href: `/u/${encodeURIComponent(un)}`
+    href: `/${encodeURIComponent(un)}`
   };
 }
 

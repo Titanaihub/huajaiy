@@ -112,7 +112,7 @@
     { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
   ];
 
-  /** ลิงก์ /u/{username} — ให้ทุกยูสที่ไม่ว่างใช้ได้ (สอดคล้อง encodeURIComponent บนเว็บหลัก) */
+  /** ลิงก์ /{username} — เพจสาธารณะ (สอดคล้อง encodeURIComponent บนเว็บหลัก) */
   function canLinkPublicMemberPageUsername(raw) {
     var s = String(raw || "").trim();
     if (s.length < 1 || s.length > 128) return false;
@@ -707,7 +707,7 @@
         : "";
     var ok = canLinkPublicMemberPageUsername(raw);
     if (ok) {
-      el.setAttribute("href", "/u/" + encodeURIComponent(raw));
+      el.setAttribute("href", "/" + encodeURIComponent(raw));
       el.removeAttribute("aria-disabled");
       el.removeAttribute("title");
       el.classList.remove("opacity-50", "cursor-default", "pointer-events-none");

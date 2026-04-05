@@ -14,6 +14,7 @@ import {
 } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
@@ -267,9 +268,7 @@ export default function HomeStylePublicHeader({
                             String(memberUser.username || "").trim().toLowerCase()
                           ) ? (
                             <Link
-                              href={`/u/${encodeURIComponent(
-                                String(memberUser.username).trim().toLowerCase()
-                              )}`}
+                              href={publicMemberPath(memberUser.username)}
                               className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                               role="menuitem"
                               onClick={() => setMoreOpen(false)}

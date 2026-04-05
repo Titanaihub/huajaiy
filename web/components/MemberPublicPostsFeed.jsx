@@ -16,6 +16,7 @@ import {
   facebookShareUrl,
   lineShareUrl
 } from "../lib/memberPostShare";
+import { publicMemberPostPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { PostBodyBlocks, needsExpand } from "./MemberPublicPostBlocks";
 
@@ -339,7 +340,7 @@ function MemberPublicPostCard({
               คัดลอกลิงก์
             </button>
             <a
-              href={`/u/${encodeURIComponent(pageUsername)}/post/${encodeURIComponent(String(post.id))}`}
+              href={publicMemberPostPath(pageUsername, String(post.id))}
               className="text-[11px] font-semibold text-rose-600 underline hover:text-rose-800"
             >
               เปิดหน้าโพสต์

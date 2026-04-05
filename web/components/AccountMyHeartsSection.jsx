@@ -10,6 +10,7 @@ import {
   apiRedeemRoomRedGiftCode,
   getMemberToken
 } from "../lib/memberApi";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
 
@@ -306,7 +307,7 @@ export default function AccountMyHeartsSection() {
                   {g.creatorUsername ? (
                     <p className="mt-1 text-sm text-amber-900/80">
                       <Link
-                        href={`/u/${encodeURIComponent(normUser(g.creatorUsername))}`}
+                        href={publicMemberPath(normUser(g.creatorUsername))}
                         className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
                       >
                         หน้าโปรไฟล์ @{g.creatorUsername}
