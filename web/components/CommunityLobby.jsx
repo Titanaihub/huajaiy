@@ -26,6 +26,45 @@ function isNavigableHref(href) {
   return Boolean(h && h !== "#");
 }
 
+function MetaCalendarIcon({ className }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  );
+}
+
+function MetaFolderIcon({ className }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+    </svg>
+  );
+}
+
+/** โครงการ์ดเดียวกับหน้าแรก organic (#latest-blog): แบนเนอร์ → แถวเมตา → หัวข้อ → คำอธิบาย */
 function CardInner({ post, cardClass, mediaShell }) {
   const src = resolveCommunityImageSrc(post?.imageUrl);
   const phref = post?.href;
@@ -35,35 +74,34 @@ function CardInner({ post, cardClass, mediaShell }) {
 
   const media = (
     <div className={mediaShell}>
-      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src || DEFAULT_CENTRAL_GAME_COVER_PATH}
-          alt=""
-          className="max-h-full max-w-full object-contain transition duration-200 group-hover:opacity-95"
-          width={640}
-          height={360}
-        />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src || DEFAULT_CENTRAL_GAME_COVER_PATH}
+        alt=""
+        className="h-full w-full object-cover transition duration-200 group-hover:opacity-95"
+        width={640}
+        height={246}
+      />
     </div>
   );
 
   const body = (
     <>
       {media}
-      <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-3.5">
-        <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--gl-card-title)] sm:text-base">
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--gl-card-bg)] p-3 sm:p-3.5">
+        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase leading-none tracking-wide text-[var(--gl-card-muted)]">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <MetaCalendarIcon className="shrink-0 opacity-85" />
+            <span className="truncate">{dateLine || "—"}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <MetaFolderIcon className="shrink-0 opacity-85" />
+            <span>{category || "—"}</span>
+          </div>
+        </div>
+        <h2 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-[var(--gl-card-title)] sm:text-lg">
           {post?.title || "โพสต์"}
         </h2>
-        <p className="mt-1.5 text-sm text-[var(--gl-card-muted)]">
-          หมวด:{" "}
-          <span className="font-medium text-[var(--gl-card-body)]">{category || "—"}</span>
-        </p>
-        {dateLine ? (
-          <p className="mt-1 text-sm font-medium text-[var(--gl-card-heart)] line-clamp-2">
-            {dateLine}
-          </p>
-        ) : null}
         {post?.excerpt ? (
           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--gl-card-body)]">
             {clipDescription(post.excerpt)}
@@ -116,8 +154,9 @@ export default function CommunityLobby({ posts = [] }) {
   const cardShell =
     "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
   const cardClass = `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`;
+  /* อัตราส่วนแนวนอนใกล้แบนเนอร์เพจ (~2.6:1) ให้สอดคล้องหน้าแรก */
   const mediaShell =
-    "relative h-32 w-full overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:h-36 md:h-40";
+    "relative aspect-[2.6/1] min-h-[120px] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:min-h-[132px]";
 
   return (
     <div className="space-y-6">
