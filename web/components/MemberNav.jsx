@@ -241,11 +241,9 @@ export default function MemberNav() {
             แอดมิน
           </Link>
         ) : null}
-        {user.role === "owner" || user.role === "admin" ? (
-          <Link href="/owner" className={siteNavLinkClass}>
-            เจ้าของร้าน
-          </Link>
-        ) : null}
+        <Link href="/owner" className={siteNavLinkClass}>
+          ร้านของฉัน
+        </Link>
       </span>
     );
   }

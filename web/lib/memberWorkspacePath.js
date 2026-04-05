@@ -83,11 +83,8 @@ export const TAILADMIN_GAME_STUDIO_START = "/game-studio";
 export const MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE =
   "ยังไม่เปิดให้ใช้งาน";
 
-/** slug หลัง `/member` หรือ `/admin` ที่แสดงข้อความแทน iframe */
-export const MEMBER_SHELL_IFRAME_CLOSED_SLUGS = Object.freeze([
-  "shops",
-  "orders"
-]);
+/** slug ที่ไม่โหลด iframe (ว่าง = สมาชิกทุกคนเห็น Vue เหมือนกันทุกเมนู) */
+export const MEMBER_SHELL_IFRAME_CLOSED_SLUGS = Object.freeze([]);
 
 export function isMemberShellIframeClosedSlug(slug) {
   if (slug == null || String(slug).trim() === "") return false;

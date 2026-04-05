@@ -92,9 +92,9 @@
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
     { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", slug: "shops", start: "/my-shops" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน", kind: "publicPage" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "closed", slug: "orders", start: "/my-orders" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",
@@ -112,7 +112,12 @@
     { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", slug: "give-hearts", start: "/give-hearts" }
   ];
 
-  var PUBLIC_PAGE_USER_RE = /^[a-z0-9_]{3,32}$/;
+  function canLinkPublicMemberPageUsername(raw) {
+    var s = String(raw || "").trim();
+    if (s.length < 1 || s.length > 128) return false;
+    if (/[/#?]/.test(s)) return false;
+    return true;
+  }
 
   function parentWorkspaceBase() {
     try {
@@ -236,12 +241,19 @@
             lastUser && lastUser.username != null
               ? String(lastUser.username).trim().toLowerCase()
               : "";
-          if (PUBLIC_PAGE_USER_RE.test(rawP) && window.parent && window.parent.location) {
+          if (canLinkPublicMemberPageUsername(rawP) && window.parent && window.parent.location) {
             var ppU = String(window.parent.location.pathname || "")
               .split("?")[0]
               .replace(/\/+/g, "/")
               .replace(/\/$/, "") || "/";
-            active = ppU === "/u/" + rawP;
+            var um = ppU.match(/^\/u\/(.+)$/i);
+            var pathUser = "";
+            try {
+              pathUser = um ? decodeURIComponent(um[1]).toLowerCase() : "";
+            } catch (e1) {
+              pathUser = "";
+            }
+            active = pathUser === rawP;
           }
         } catch (e1) {
           /* cross-origin */
@@ -409,7 +421,6 @@
 
   function roleLabel(role) {
     if (role === "admin") return "ผู้ดูแลระบบ";
-    if (role === "owner") return "เจ้าของร้าน";
     return "สมาชิก";
   }
 
@@ -693,7 +704,7 @@
       lastUser && lastUser.username != null
         ? String(lastUser.username).trim().toLowerCase()
         : "";
-    var ok = PUBLIC_PAGE_USER_RE.test(raw);
+    var ok = canLinkPublicMemberPageUsername(raw);
     if (ok) {
       el.setAttribute("href", "/u/" + encodeURIComponent(raw));
       el.removeAttribute("aria-disabled");
@@ -705,7 +716,7 @@
       el.setAttribute("aria-disabled", "true");
       el.setAttribute(
         "title",
-        "ตั้งชื่อผู้ใช้ (a-z 0-9 _) 3–32 ตัวในโปรไฟล์ก่อน"
+        "อัปเดตชื่อผู้ใช้ในโปรไฟล์ก่อน"
       );
       el.classList.add("opacity-50", "cursor-default");
       el.onclick = function (e) {

@@ -5,22 +5,19 @@ const { MEMBER, OWNER, ADMIN } = require("./constants/roles");
  * - เน้น role-based ก่อน (member/owner/admin)
  * - สิทธิ์แบบ owner-of-resource ให้เช็กเพิ่มที่ service ของโดเมนนั้นๆ
  */
+/** สมาชิกทุกคน (member/owner) ใช้ชุดสิทธิ์เดียวกัน — แยกเฉพาะ admin */
+const STANDARD_MEMBER_CAPABILITIES = [
+  "create_central_game",
+  "manage_own_central_game",
+  "use_hearts",
+  "request_prize_withdrawal",
+  "resolve_incoming_withdrawal",
+  "manage_owned_shop"
+];
+
 const CAPABILITIES_BY_ROLE = {
-  [MEMBER]: [
-    "create_central_game",
-    "manage_own_central_game",
-    "use_hearts",
-    "request_prize_withdrawal",
-    "resolve_incoming_withdrawal"
-  ],
-  [OWNER]: [
-    "create_central_game",
-    "manage_own_central_game",
-    "use_hearts",
-    "request_prize_withdrawal",
-    "resolve_incoming_withdrawal",
-    "manage_owned_shop"
-  ],
+  [MEMBER]: [...STANDARD_MEMBER_CAPABILITIES],
+  [OWNER]: [...STANDARD_MEMBER_CAPABILITIES],
   [ADMIN]: ["*"]
 };
 

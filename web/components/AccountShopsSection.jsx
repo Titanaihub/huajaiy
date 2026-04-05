@@ -52,8 +52,6 @@ export default function AccountShopsSection() {
     );
   }
 
-  const canOwnerPanel = user.role === "owner" || user.role === "admin";
-
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-hui-section">ร้านของฉัน</h2>
@@ -70,27 +68,20 @@ export default function AccountShopsSection() {
           <p className="mt-2 text-hui-body">
             ระบบขายทำงานเมื่อแอดมินสร้างร้านและผูกบัญชีคุณแล้ว จากนั้นจะเห็นรายการร้านที่นี่และปุ่มจัดการสินค้า
           </p>
-          {canOwnerPanel ? (
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-hui-body">
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-hui-body">
+            <li>
+              <Link href="/owner" className="font-semibold text-hui-cta hover:underline">
+                หน้าขายสินค้า / สรุปขั้นตอน
+              </Link>
+            </li>
+            {user?.role === "admin" ? (
               <li>
-                <Link href="/owner" className="font-semibold text-hui-cta hover:underline">
-                  หน้าขายสินค้า (เจ้าของร้าน)
-                </Link>{" "}
-                — สรุปขั้นตอน
+                <Link href="/admin?tab=shops" className="font-semibold text-hui-cta hover:underline">
+                  สร้างร้าน (แอดมิน)
+                </Link>
               </li>
-              {user?.role === "admin" ? (
-                <li>
-                  <Link href="/admin?tab=shops" className="font-semibold text-hui-cta hover:underline">
-                    สร้างร้าน (แอดมิน)
-                  </Link>
-                </li>
-              ) : null}
-            </ul>
-          ) : (
-            <p className="mt-3 text-hui-muted">
-              ติดต่อแอดมินให้ตั้งบทบาท <span className="font-mono text-sm">owner</span> และสร้างร้านผูกยูสเซอร์คุณ
-            </p>
-          )}
+            ) : null}
+          </ul>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -117,11 +108,9 @@ export default function AccountShopsSection() {
                 >
                   จัดการสินค้า
                 </Link>
-                {canOwnerPanel ? (
-                  <Link href="/owner" className="font-medium text-hui-cta hover:underline">
-                    แผงเจ้าของร้าน
-                  </Link>
-                ) : null}
+                <Link href="/owner" className="font-medium text-hui-cta hover:underline">
+                  หน้าขายสินค้า
+                </Link>
               </div>
             </li>
           ))}

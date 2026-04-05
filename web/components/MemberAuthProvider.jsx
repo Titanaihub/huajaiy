@@ -177,7 +177,11 @@ export default function MemberAuthProvider({ children }) {
   const applyUser = useCallback((next) => {
     if (next && typeof next === "object") {
       setUser(next);
-      setCapabilities(deriveCapabilitiesForRole(next.role));
+      setCapabilities(
+        Array.isArray(next.capabilities) && next.capabilities.length
+          ? next.capabilities
+          : deriveCapabilitiesForRole(next.role)
+      );
     }
   }, []);
 

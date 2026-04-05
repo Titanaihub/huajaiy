@@ -14,7 +14,7 @@ export default function OwnerPage() {
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    if (!user || (user.role !== "owner" && user.role !== "admin")) return;
+    if (!user) return;
     const token = getMemberToken();
     if (!token) return;
     let cancelled = false;
@@ -33,8 +33,6 @@ export default function OwnerPage() {
       cancelled = true;
     };
   }, [user]);
-
-  const allowed = user && (user.role === "owner" || user.role === "admin");
 
   return (
     <>
@@ -82,20 +80,6 @@ export default function OwnerPage() {
             </Link>{" "}
             ก่อน แล้วค่อยลงสินค้าได้หลังแอดมินผูกร้านให้
           </p>
-        ) : !allowed ? (
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
-            <p className="font-medium">บัญชีนี้ยังไม่ใช่เจ้าของร้านในระบบ</p>
-            <p className="mt-2 text-amber-900/90">
-              ให้แอดมินตั้งบทบาท <code className="rounded bg-white/80 px-1">owner</code> และสร้างร้านผูกกับยูสเซอร์คุณ
-              ที่แผงแอดมิน — หรือมีบัญชีสมาชิกแล้วแจ้งทีมงานให้เปิดร้านให้
-            </p>
-            <p className="mt-3">
-              <Link href="/account/shops" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
-                ไปหน้าร้านของฉัน
-              </Link>{" "}
-              (จะว่างจนกว่าจะมีร้านในชื่อคุณ)
-            </p>
-          </div>
         ) : (
           <div className="mt-6 space-y-4">
             <p className="text-sm text-hui-body">
