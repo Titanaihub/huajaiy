@@ -13,9 +13,8 @@ function loadImage(fileBlob: Blob): Promise<HTMLImageElement> {
 
 const JPEG_FLAT_BG = '#f8fafc'
 
-async function compressToJpeg(file: File): Promise<Blob> {
+async function compressToJpeg(file: File, maxSide = 1200): Promise<Blob> {
   const img = await loadImage(file)
-  const maxSide = 1200
   const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1)
   const w = Math.round(img.width * ratio)
   const h = Math.round(img.height * ratio)
@@ -45,8 +44,10 @@ function isProbablyPng(file: File): boolean {
 
 export async function uploadGameImageFile(
   apiBase: string,
-  file: File
+  file: File,
+  opts?: { maxCompressSide?: number }
 ): Promise<string> {
+  const side = opts?.maxCompressSide ?? 1200
   const base = apiBase.replace(/\/$/, '')
   const body = new FormData()
   if (isProbablyPng(file)) {
@@ -56,7 +57,7 @@ export async function uploadGameImageFile(
       file.name && /\.png$/i.test(file.name) ? file.name : `upload-${Date.now()}.png`
     )
   } else {
-    const blob = await compressToJpeg(file)
+    const blob = await compressToJpeg(file, side)
     body.append('image', new File([blob], `${Date.now()}.jpg`, { type: 'image/jpeg' }))
   }
   const res = await fetch(`${base}/upload`, { method: 'POST', body })

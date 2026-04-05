@@ -291,13 +291,11 @@
               แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
             </p>
             <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-              แนะนำแนวนอนอัตราส่วนประมาณ
-              <span class="font-medium text-gray-700 dark:text-gray-300">2.6:1</span>
-              (กว้างกว่าสูง) เช่น
-              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">1200×460 px</span>
-              หรือ
-              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">1560×600 px</span>
-              — พอดีกับการ์ดในรายการเกม (ระบบอาจย่อความละเอียดอัตโนมัติ)
+              แนะนำรูปสี่เหลี่ยมจัตุรัส
+              <span class="font-medium text-gray-700 dark:text-gray-300">1:1</span>
+              เช่น
+              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">800×800 px</span>
+              — การ์ดในรายการเกมและหน้าเล่นแสดงเป็นสี่เหลี่ยมจัตุรัส (ระบบอาจย่อความละเอียดอัตโนมัติเมื่ออัปโหลดไม่ใช่ PNG)
             </p>
             <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end">
               <div class="w-32 shrink-0 sm:w-36">
@@ -1010,7 +1008,7 @@ async function onCoverFile(e: Event) {
   if (!file) return
   msg.value = 'กำลังอัปโหลดรูปหน้าปก…'
   try {
-    gameCoverUrl.value = await uploadGameImageFile(apiBase(), file)
+    gameCoverUrl.value = await uploadGameImageFile(apiBase(), file, { maxCompressSide: 800 })
     msg.value = 'อัปโหลดรูปหน้าปกแล้ว — กดบันทึกข้อมูลเพื่อบันทึกลงเซิร์ฟเวอร์'
   } catch (err_: unknown) {
     msg.value = err_ instanceof Error ? err_.message : String(err_)
