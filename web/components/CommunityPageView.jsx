@@ -22,6 +22,39 @@ function postHasPublicContent(post) {
   return Boolean(t || u || ex);
 }
 
+/** ลิงก์เดียวกัน (เช่น /u/username) ไม่แสดงซ้ำ — คงรายการจาก member API ก่อน */
+function communityPostDedupeKey(post) {
+  const h = String(post?.href ?? "").trim();
+  if (h && h !== "#") {
+    try {
+      let path = h.split("?")[0].replace(/\/+$/, "");
+      if (/^https?:\/\//i.test(path)) {
+        path = new URL(path).pathname || path;
+      }
+      path = path.toLowerCase();
+      return path || `href:${h}`;
+    } catch {
+      return h.toLowerCase();
+    }
+  }
+  const t = String(post?.title ?? "").trim();
+  const u = String(post?.imageUrl ?? "").trim();
+  return `raw:${t}|${u}`;
+}
+
+function dedupeCommunityPosts(orderedPosts) {
+  const seen = new Set();
+  const out = [];
+  for (const p of orderedPosts) {
+    if (!p || typeof p !== "object") continue;
+    const k = communityPostDedupeKey(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(p);
+  }
+  return out;
+}
+
 const MEMBER_EXCERPT_LEN = 200;
 
 function memberDirectoryCard(m) {
@@ -32,7 +65,6 @@ function memberDirectoryCard(m) {
   if (excerpt.length > MEMBER_EXCERPT_LEN) {
     excerpt = `${excerpt.slice(0, MEMBER_EXCERPT_LEN).trim()}…`;
   }
-  if (!excerpt) excerpt = "เปิดดูเพจสมาชิก";
   const img =
     String(m?.publicPageCoverUrl || "").trim() ||
     String(m?.profilePictureUrl || "").trim() ||
@@ -90,7 +122,7 @@ export default function CommunityPageView({
     .map(memberDirectoryCard)
     .filter(Boolean)
     .filter(postHasPublicContent);
-  const lobbyPosts = [...memberPosts, ...visiblePosts];
+  const lobbyPosts = dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
   const viewHref = String(cp.viewAllHref || "").trim();
   const showViewAll = viewHref && viewHref !== "#";
 

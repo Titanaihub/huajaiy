@@ -26,6 +26,15 @@ function isNavigableHref(href) {
   return Boolean(h && h !== "#");
 }
 
+function communityCardListKey(post, index) {
+  const h = String(post?.href || "").trim();
+  if (h && h !== "#") return h;
+  const t = String(post?.title || "").trim();
+  const u = String(post?.imageUrl || "").trim();
+  if (t || u) return `card:${t}|${u}`;
+  return `card-fallback-${index}`;
+}
+
 function MetaCalendarIcon({ className }) {
   return (
     <svg
@@ -106,12 +115,7 @@ function CardInner({ post, cardClass, mediaShell }) {
           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--gl-card-body)]">
             {clipDescription(post.excerpt)}
           </p>
-        ) : (
-          <p className="mt-2 text-sm italic text-[var(--gl-card-muted)]">ไม่มีคำอธิบายสั้น</p>
-        )}
-        <span className="mt-auto border-t border-[color:var(--gl-card-border)] pt-3 text-center text-sm font-semibold text-[var(--gl-card-cta)] group-hover:text-[var(--gl-card-cta-hover)]">
-          {hasNav ? "เปิดโพสต์นี้" : "ยังไม่มีลิงก์"}
-        </span>
+        ) : null}
       </div>
     </>
   );
@@ -147,7 +151,13 @@ export default function CommunityLobby({ posts = [] }) {
       const title = String(p?.title || "").toLowerCase();
       const ex = String(p?.excerpt || "").toLowerCase();
       const cat = String(p?.category || "").toLowerCase();
-      return title.includes(needle) || ex.includes(needle) || cat.includes(needle);
+      const dateLine = String(p?.dateLine || "").toLowerCase();
+      return (
+        title.includes(needle) ||
+        ex.includes(needle) ||
+        cat.includes(needle) ||
+        dateLine.includes(needle)
+      );
     });
   }, [posts, q]);
 
@@ -187,7 +197,7 @@ export default function CommunityLobby({ posts = [] }) {
       ) : (
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((post, i) => (
-            <li key={i}>
+            <li key={communityCardListKey(post, i)}>
               <CardInner post={post} cardClass={cardClass} mediaShell={mediaShell} />
             </li>
           ))}
