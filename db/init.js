@@ -857,6 +857,25 @@ async function initDb() {
         AND red_amount > 0 AND max_uses > 0;
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS member_public_posts (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(200) NOT NULL,
+        cover_image_url VARCHAR(1024),
+        body_blocks JSONB NOT NULL DEFAULT '[]'::jsonb,
+        layout VARCHAR(16) NOT NULL DEFAULT 'row',
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT chk_member_public_posts_layout CHECK (layout IN ('row', 'stack'))
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_member_public_posts_user_sort
+      ON member_public_posts(user_id, sort_order ASC, created_at DESC);
+    `);
+
     console.log(
       "[db] PostgreSQL schema พร้อม — รวมตารางหลักและคอลัมน์เพจสมาชิกบน users (public_page_cover_url, public_page_bio, public_page_listed)"
     );

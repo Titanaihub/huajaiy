@@ -17,6 +17,7 @@ const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
+const memberPublicPostService = require("./services/memberPublicPostService");
 const { listCapabilitiesForRole } = require("./permissions");
 const {
   validateProfilePatch,
@@ -609,6 +610,97 @@ router.get("/shops/mine", authMiddleware, async (req, res) => {
     const shops = await shopService.listByOwner(req.userId);
     return res.json({ ok: true, shops });
   } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** โพสต์เพจสาธารณะของฉัน — เรียงตาม sort_order */
+router.get("/my-public-posts", authMiddleware, async (req, res) => {
+  try {
+    const posts = await memberPublicPostService.listByUserId(req.userId);
+    return res.json({ ok: true, posts });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, posts: [], dbRequired: true });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.post("/my-public-posts", authMiddleware, async (req, res) => {
+  try {
+    const b = req.body && typeof req.body === "object" ? req.body : {};
+    const post = await memberPublicPostService.createForUser(req.userId, {
+      title: b.title,
+      coverImageUrl: b.coverImageUrl,
+      bodyBlocks: b.bodyBlocks,
+      layout: b.layout,
+      sortOrder: b.sortOrder
+    });
+    return res.json({ ok: true, post });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.patch("/my-public-posts/:id", authMiddleware, async (req, res) => {
+  try {
+    const b = req.body && typeof req.body === "object" ? req.body : {};
+    const patch = {};
+    if (Object.prototype.hasOwnProperty.call(b, "title")) patch.title = b.title;
+    if (Object.prototype.hasOwnProperty.call(b, "coverImageUrl")) {
+      patch.coverImageUrl = b.coverImageUrl;
+    }
+    if (Object.prototype.hasOwnProperty.call(b, "bodyBlocks")) {
+      patch.bodyBlocks = b.bodyBlocks;
+    }
+    if (Object.prototype.hasOwnProperty.call(b, "layout")) patch.layout = b.layout;
+    if (Object.prototype.hasOwnProperty.call(b, "sortOrder")) {
+      patch.sortOrder = b.sortOrder;
+    }
+    const post = await memberPublicPostService.updateForUser(
+      req.userId,
+      req.params.id,
+      patch
+    );
+    return res.json({ ok: true, post });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND" || e.code === "FORBIDDEN") {
+      return res.status(e.code === "FORBIDDEN" ? 403 : 404).json({
+        ok: false,
+        error: e.message
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+router.delete("/my-public-posts/:id", authMiddleware, async (req, res) => {
+  try {
+    await memberPublicPostService.deleteForUser(req.userId, req.params.id);
+    return res.json({ ok: true });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION" || e.code === "NOT_FOUND") {
+      return res.status(e.code === "NOT_FOUND" ? 404 : 400).json({
+        ok: false,
+        error: e.message
+      });
+    }
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

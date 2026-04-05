@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import MemberPublicPostsFeed from "./MemberPublicPostsFeed";
 import PublicMemberPageOwnerPanel from "./PublicMemberPageOwnerPanel";
 
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
@@ -79,9 +80,9 @@ function IconTiktok({ className }) {
 
 /**
  * เลย์เอาต์เพจสมาชิกแบบโซเชียล (คล้ายเพจ Facebook) — ใช้กับ /u/[username]
- * @param {{ member: Record<string, unknown> }} props
+ * @param {{ member: Record<string, unknown>; initialPosts?: unknown[] }} props
  */
-export default function PublicMemberPageChrome({ member }) {
+export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
   const [tab, setTab] = useState("posts");
   const [copied, setCopied] = useState(false);
 
@@ -268,13 +269,8 @@ export default function PublicMemberPageChrome({ member }) {
 
           <div className="border-t border-gray-100 bg-[#f0f2f5] px-3 py-4 sm:px-4 sm:py-6">
             {tab === "posts" ? (
-              <div className="mx-auto max-w-2xl rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-                <p className="text-lg font-semibold text-gray-800">
-                  ยังไม่มีโพสต์
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                  ในอนาคตคุณจะสามารถแชร์อัปเดตหรือกิจกรรมบนเพจนี้ได้
-                </p>
+              <div className="mx-auto max-w-4xl">
+                <MemberPublicPostsFeed username={username} initialPosts={initialPosts} />
               </div>
             ) : (
               <div className="mx-auto max-w-2xl space-y-4">

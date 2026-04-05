@@ -20,6 +20,18 @@ async function fetchPublicMember(username) {
   return data;
 }
 
+async function fetchPublicMemberPosts(username) {
+  const base = getApiBase().replace(/\/$/, "");
+  const r = await fetch(
+    `${base}/api/public/members/${encodeURIComponent(username)}/posts`,
+    { cache: "no-store", headers: { Accept: "application/json" } }
+  );
+  if (!r.ok) return [];
+  const data = await r.json().catch(() => ({}));
+  if (!data.ok || !Array.isArray(data.posts)) return [];
+  return data.posts;
+}
+
 export async function generateMetadata({ params }) {
   const raw = params?.username;
   const un = typeof raw === "string" ? raw.trim().toLowerCase() : "";
@@ -56,10 +68,11 @@ export default async function PublicMemberPage({ params }) {
   if (!m) {
     notFound();
   }
+  const initialPosts = await fetchPublicMemberPosts(un);
 
   return (
     <MemberStylePageShell>
-      <PublicMemberPageChrome member={m} />
+      <PublicMemberPageChrome member={m} initialPosts={initialPosts} />
     </MemberStylePageShell>
   );
 }

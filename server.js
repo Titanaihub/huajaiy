@@ -35,6 +35,7 @@ const heartLedgerService = require("./services/heartLedgerService");
 const { validateUsername } = require("./authValidators");
 const siteThemeService = require("./services/siteThemeService");
 const organicHomeContent = require("./services/organicHomeContent");
+const memberPublicPostService = require("./services/memberPublicPostService");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -354,6 +355,27 @@ app.get("/api/public/members/:username", async (req, res) => {
       publicPageTitle: u.publicPageTitle || null
     });
   } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** โพสต์เพจสาธารณะของสมาชิก — เรียงตาม sort_order */
+app.get("/api/public/members/:username/posts", async (req, res) => {
+  try {
+    const v = validateUsername(req.params.username);
+    if (!v.ok) {
+      return res.status(400).json({ ok: false, error: v.error });
+    }
+    const u = await userService.findByUsername(v.value);
+    if (!u) {
+      return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+    }
+    const posts = await memberPublicPostService.listPublicByUsername(v.value);
+    return res.json({ ok: true, posts });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, posts: [] });
+    }
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

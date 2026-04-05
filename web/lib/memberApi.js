@@ -487,3 +487,79 @@ export async function apiRedeemRoomRedGiftCode(token, code) {
   }
   return data;
 }
+
+/** โพสต์เพจสมาชิก (สาธารณะ) */
+export async function apiFetchPublicMemberPosts(username) {
+  const un = String(username || "").trim();
+  if (!un) return { ok: true, posts: [] };
+  const r = await fetch(
+    `${apiRoot()}/api/public/members/${encodeURIComponent(un)}/posts`,
+    { cache: "no-store", headers: { Accept: "application/json" } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    return { ok: false, posts: [], error: data.error };
+  }
+  return data;
+}
+
+export async function apiMyPublicPosts(token) {
+  const r = await fetch(`${apiRoot()}/api/auth/my-public-posts`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดโพสต์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiCreateMyPublicPost(token, body) {
+  const r = await fetch(`${apiRoot()}/api/auth/my-public-posts`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "สร้างโพสต์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiPatchMyPublicPost(token, id, body) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "บันทึกโพสต์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiDeleteMyPublicPost(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ลบโพสต์ไม่สำเร็จ");
+  }
+  return data;
+}
