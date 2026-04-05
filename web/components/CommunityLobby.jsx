@@ -93,6 +93,7 @@ function CardInner({ post, cardClass, mediaShell }) {
         className="h-full w-full object-cover object-center transition duration-200 group-hover:opacity-95"
         width={800}
         height={800}
+        decoding="async"
       />
     </div>
   );
@@ -168,9 +169,9 @@ export default function CommunityLobby({ posts = [] }) {
   const cardShell =
     "post-item group flex h-full flex-col overflow-hidden rounded-lg border-0 bg-white text-left shadow-sm transition hover:shadow-md";
   const cardClass = `${cardShell} p-3`;
-  /* สัดส่วน 1:1 สอดคล้องปกเพจสมาชิก / การ์ดเกม — กรอบรูปแบบหน้าแรก (#latest-blog .huajaiy-community-card-media) */
+  /* สัดส่วน 1:1 + ขอบชัด — กรอบรูปแบบหน้าแรก (#latest-blog) */
   const mediaShell =
-    "relative aspect-square w-full shrink-0 overflow-hidden rounded-lg bg-[#f8f9fa]";
+    "relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-[#f1f5f9] shadow-sm ring-1 ring-slate-200/90";
 
   return (
     <div className="space-y-6">
@@ -199,7 +200,7 @@ export default function CommunityLobby({ posts = [] }) {
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-[var(--gl-card-muted)]">ไม่พบโพสต์ที่ตรงกับคำค้น</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {filtered.map((post, i) => (
             <li key={communityCardListKey(post, i)}>
               <CardInner post={post} cardClass={cardClass} mediaShell={mediaShell} />
