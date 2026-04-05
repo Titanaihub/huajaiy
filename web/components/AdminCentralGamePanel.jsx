@@ -18,6 +18,11 @@ import {
   apiAdminCentralGamePutRules,
   apiAdminCentralGamesList
 } from "../lib/rolesApi";
+import {
+  CENTRAL_GAME_ADMIN_LINE_URL,
+  CENTRAL_GAME_MAX_PER_MEMBER,
+  CENTRAL_GAME_MAX_TILES
+} from "../lib/centralGameLimits";
 
 const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง"];
 
@@ -115,6 +120,33 @@ function resizeSetSizes(prev, n, fill) {
   const f = Math.max(1, parseInt(String(fill), 10) || 1);
   while (out.length < n) out.push(out[out.length - 1] ?? f);
   return out;
+}
+
+function CentralGamePolicyCallout() {
+  return (
+    <div className="rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
+      <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
+      <ul className="mt-2 list-inside list-disc space-y-1">
+        <li>
+          1 เกมมีได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_TILES}</strong> ป้าย (นับรวมทุกชุด)
+        </li>
+        <li>
+          บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_PER_MEMBER}</strong> เกม
+        </li>
+      </ul>
+      <p className="mt-2">
+        หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน{" "}
+        <a
+          href={CENTRAL_GAME_ADMIN_LINE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800"
+        >
+          LINE Official
+        </a>
+      </p>
+    </div>
+  );
 }
 
 /** แถวกติกา — ใช้ทั้งแบบผูกชุด (ไม่โชว์เลขชุด) และแบมแก้ชุดเอง */
@@ -613,6 +645,13 @@ export default function AdminCentralGamePanel({
       const counts = newSetSizes
         .slice(0, newSets)
         .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
+      const newTotal = counts.reduce((a, b) => a + b, 0);
+      if (newTotal > CENTRAL_GAME_MAX_TILES) {
+        setMsg(
+          `ป้ายรวมต้องไม่เกิน ${CENTRAL_GAME_MAX_TILES} ป้าย — หากต้องการยกเว้น ติดต่อแอดมิน ${CENTRAL_GAME_ADMIN_LINE_URL}`
+        );
+        return;
+      }
       const data = await apiAdminCentralGameCreate(token, {
         title: newTitle,
         description: newGameDescription,
@@ -689,6 +728,12 @@ export default function AdminCentralGamePanel({
     const counts = setSizes
       .slice(0, setCount)
       .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
+    const tileTotal = counts.reduce((a, b) => a + b, 0);
+    if (tileTotal > CENTRAL_GAME_MAX_TILES) {
+      throw new Error(
+        `ป้ายรวมต้องไม่เกิน ${CENTRAL_GAME_MAX_TILES} ป้าย — หากต้องการยกเว้น ติดต่อแอดมิน ${CENTRAL_GAME_ADMIN_LINE_URL}`
+      );
+    }
     await apiAdminCentralGamePatch(token, gid, {
       title: t,
       description: gameDescription,
@@ -1036,6 +1081,8 @@ export default function AdminCentralGamePanel({
         </p>
       ) : null}
 
+      <CentralGamePolicyCallout />
+
       {!embedded ? (
       <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 p-3">
         <button
@@ -1096,7 +1143,16 @@ export default function AdminCentralGamePanel({
             </p>
             <div>
               <label className="text-sm text-hui-body">ป้ายรวม</label>
-              <p className="mt-2 font-mono text-hui-body">{newTileCount}</p>
+              <p
+                className={`mt-2 font-mono ${
+                  newTileCount > CENTRAL_GAME_MAX_TILES ? "font-semibold text-red-700" : "text-hui-body"
+                }`}
+              >
+                {newTileCount}
+                {newTileCount > CENTRAL_GAME_MAX_TILES
+                  ? ` — เกินกำหนดสูงสุด ${CENTRAL_GAME_MAX_TILES} ป้าย`
+                  : null}
+              </p>
             </div>
             <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
               <p className="text-sm font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
@@ -1406,8 +1462,15 @@ export default function AdminCentralGamePanel({
                 <label className="text-sm text-hui-section">
                   ป้ายรวม (คำนวณอัตโนมัติ)
                 </label>
-                <p className="mt-2 font-mono text-sm text-hui-body">
+                <p
+                  className={`mt-2 font-mono text-sm ${
+                    tileCount > CENTRAL_GAME_MAX_TILES ? "font-semibold text-red-700" : "text-hui-body"
+                  }`}
+                >
                   {tileCount}
+                  {tileCount > CENTRAL_GAME_MAX_TILES
+                    ? ` — เกินกำหนดสูงสุด ${CENTRAL_GAME_MAX_TILES} ป้าย`
+                    : null}
                 </p>
               </div>
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">

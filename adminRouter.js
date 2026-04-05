@@ -898,12 +898,29 @@ router.post(
   }
 );
 
+const CENTRAL_G_LIMITS = require("./constants/centralGameLimits.json");
+const MAX_MEMBER_CENTRAL_GAMES = Math.max(
+  1,
+  Number(CENTRAL_G_LIMITS.maxGamesPerMember) || 3
+);
+
 router.post(
   "/central-games",
   authMiddleware,
   requireGameBuilderRole,
   async (req, res) => {
     try {
+      if (req.userRole !== ADMIN && req.userId) {
+        const existing = await centralGameService.countGamesByCreator(req.userId);
+        if (existing >= MAX_MEMBER_CENTRAL_GAMES) {
+          const line = String(CENTRAL_G_LIMITS.adminLineHelpUrl || "").trim();
+          const suffix = line ? ` ${line}` : "";
+          return res.status(400).json({
+            ok: false,
+            error: `สมาชิก 1 บัญชีสร้างได้ไม่เกิน ${MAX_MEMBER_CENTRAL_GAMES} เกม — หากต้องการเพิ่มหรือมีปัญหา กรุณาติดต่อแอดมิน${suffix}`
+          });
+        }
+      }
       const snap = await centralGameService.createGame({
         title: req.body?.title,
         description: req.body?.description,

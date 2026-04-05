@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
+const CENTRAL_LIMITS = require("../constants/centralGameLimits.json");
+const MAX_CENTRAL_TILES = Math.max(1, Number(CENTRAL_LIMITS.maxTilesPerGame) || 40);
 
 function requirePool() {
   const pool = getPool();
@@ -587,6 +589,13 @@ async function createGame({
     e.code = "VALIDATION";
     throw e;
   }
+  if (tc > MAX_CENTRAL_TILES) {
+    const e = new Error(
+      `จำนวนป้ายรวมต้องไม่เกิน ${MAX_CENTRAL_TILES} ป้ายต่อ 1 เกม — หากต้องการยกเว้นหรือมีปัญหา กรุณาติดต่อแอดมิน`
+    );
+    e.code = "VALIDATION";
+    throw e;
+  }
   const maxPer = Math.max(...sizes, 1);
   const id = crypto.randomUUID();
   let { pink, red } = normalizePinkRedCosts(
@@ -687,6 +696,13 @@ async function updateGameMeta(gameId, patch, options = {}) {
   });
   if (!title) {
     const e = new Error("ต้องมีชื่อเกม");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  if (tc > MAX_CENTRAL_TILES) {
+    const e = new Error(
+      `จำนวนป้ายรวมต้องไม่เกิน ${MAX_CENTRAL_TILES} ป้ายต่อ 1 เกม — หากต้องการยกเว้นหรือมีปัญหา กรุณาติดต่อแอดมิน`
+    );
     e.code = "VALIDATION";
     throw e;
   }
@@ -1290,6 +1306,17 @@ function setPreviewUrlsFromSnapshot(snap) {
   return out;
 }
 
+async function countGamesByCreator(userId) {
+  const pool = requirePool();
+  const uid = userId != null ? String(userId).trim() : "";
+  if (!uid) return 0;
+  const r = await pool.query(
+    `SELECT COUNT(*)::int AS c FROM central_games WHERE created_by = $1`,
+    [uid]
+  );
+  return Math.max(0, Math.floor(Number(r.rows[0]?.c)) || 0);
+}
+
 module.exports = {
   getActiveGameSnapshot,
   getGameSnapshotById,
@@ -1313,5 +1340,6 @@ module.exports = {
   formatWinnerDisplay,
   formatLossRuleDisplay,
   setPreviewUrlsFromSnapshot,
-  ensurePublishedGameCode
+  ensurePublishedGameCode,
+  countGamesByCreator
 };

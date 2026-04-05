@@ -6,6 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { DEFAULT_NEW_ROOM_HEART_PRESET } from "../lib/centralGameDefaults";
+import {
+  CENTRAL_GAME_ADMIN_LINE_URL,
+  CENTRAL_GAME_MAX_PER_MEMBER,
+  CENTRAL_GAME_MAX_TILES
+} from "../lib/centralGameLimits";
 import { getMemberToken } from "../lib/memberApi";
 import { apiAdminCentralGameCreate } from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -374,6 +379,28 @@ export default function CreateGameRoomForm() {
             ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
             : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
         </p>
+        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
+          <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
+          <ul className="mt-2 list-inside list-disc space-y-1">
+            <li>
+              1 เกมมีได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_TILES}</strong> ป้าย (นับรวมทุกชุด)
+            </li>
+            <li>
+              บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_PER_MEMBER}</strong> เกม
+            </li>
+          </ul>
+          <p className="mt-2">
+            หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน{" "}
+            <a
+              href={CENTRAL_GAME_ADMIN_LINE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800"
+            >
+              LINE Official
+            </a>
+          </p>
+        </div>
       </div>
 
       {!managingExisting ? intakeForm : null}

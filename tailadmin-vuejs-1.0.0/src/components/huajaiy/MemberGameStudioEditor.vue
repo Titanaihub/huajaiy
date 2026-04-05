@@ -20,6 +20,31 @@
         — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
       </div>
 
+      <div
+        class="rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-base leading-relaxed text-sky-950 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-100"
+      >
+        <p class="font-semibold text-sky-900 dark:text-sky-50">ข้อกำหนดการสร้างเกม</p>
+        <ul class="mt-2 list-inside list-disc space-y-1">
+          <li>
+            1 เกมมีได้ไม่เกิน <strong>{{ CENTRAL_MAX_TILES }}</strong> ป้าย (นับรวมทุกชุด)
+          </li>
+          <li>
+            บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{{ CENTRAL_MAX_GAMES }}</strong> เกม
+          </li>
+        </ul>
+        <p class="mt-2">
+          หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน
+          <a
+            :href="CENTRAL_ADMIN_LINE"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold text-rose-600 underline hover:text-rose-700 dark:text-rose-400"
+          >
+            LINE Official
+          </a>
+        </p>
+      </div>
+
       <form class="space-y-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900/30 lg:p-6" @submit.prevent>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">โครงชุดและรูปภาพ</h3>
 
@@ -78,7 +103,18 @@
           </div>
           <div>
             <label class="text-base font-medium text-gray-800 dark:text-gray-200">ป้ายรวม (คำนวณอัตโนมัติ)</label>
-            <p class="mt-3 font-mono text-xl text-gray-900 dark:text-white">{{ tileCount }}</p>
+            <p
+              class="mt-3 font-mono text-xl"
+              :class="
+                tileCount > CENTRAL_MAX_TILES
+                  ? 'font-bold text-red-600 dark:text-red-400'
+                  : 'text-gray-900 dark:text-white'
+              "
+            >
+              {{ tileCount
+              }}<span v-if="tileCount > CENTRAL_MAX_TILES">
+                — เกินกำหนดสูงสุด {{ CENTRAL_MAX_TILES }} ป้าย</span>
+            </p>
           </div>
 
           <div class="sm:col-span-2 rounded-xl border border-rose-100 bg-rose-50/50 p-5 dark:border-rose-900/40 dark:bg-rose-950/20">
@@ -439,6 +475,11 @@ function resizeSetSizes(prev: number[], n: number, fill: number): number[] {
   return out
 }
 
+/** ตัวเลขต้องตรงกับ constants/centralGameLimits.json (API) */
+const CENTRAL_MAX_TILES = 40
+const CENTRAL_MAX_GAMES = 3
+const CENTRAL_ADMIN_LINE = 'https://lin.ee/xaRqj0W'
+
 function emptyRuleForSet(setIdx: number): StudioRuleRow {
   const s = Math.max(0, Math.floor(Number(setIdx)) || 0)
   return {
@@ -770,6 +811,12 @@ async function persistMeta() {
   const t = String(title.value || '').trim()
   if (!t) throw new Error('กรุณากรอกชื่อเกม')
   const counts = setSizes.value.slice(0, setCount.value).map((x) => Math.max(1, parseInt(String(x), 10) || 1))
+  const tileTotal = counts.reduce((a, b) => a + b, 0)
+  if (tileTotal > CENTRAL_MAX_TILES) {
+    throw new Error(
+      `ป้ายรวมต้องไม่เกิน ${CENTRAL_MAX_TILES} ป้าย — หากต้องการยกเว้น ติดต่อแอดมิน ${CENTRAL_ADMIN_LINE}`
+    )
+  }
   const r = await fetch(`${apiBase()}/api/admin/central-games/${encodeURIComponent(gid)}`, {
     method: 'PATCH',
     headers: {

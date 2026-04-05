@@ -81,6 +81,36 @@
           </ul>
         </div>
 
+        <!-- ข้อกำหนดจำนวนเกม / ป้าย -->
+        <div
+          class="rounded-2xl border-2 border-sky-200 bg-sky-50/95 p-6 shadow-sm md:p-8 dark:border-sky-800/45 dark:bg-sky-950/25"
+        >
+          <p class="text-xl font-bold text-sky-950 md:text-2xl dark:text-sky-50">
+            ข้อกำหนดจำนวนเกมและป้าย
+          </p>
+          <ul
+            class="mt-4 list-disc space-y-4 pl-6 text-base leading-relaxed text-sky-950 md:text-lg dark:text-sky-100"
+          >
+            <li>
+              1 เกมมีได้ไม่เกิน <strong>40</strong> ป้าย (นับรวมทุกชุด)
+            </li>
+            <li>
+              บัญชีสมาชิกสร้างได้ไม่เกิน <strong>3</strong> เกม
+            </li>
+          </ul>
+          <p class="mt-4 text-base leading-relaxed text-sky-950 dark:text-sky-100 md:text-lg">
+            หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน
+            <a
+              href="https://lin.ee/xaRqj0W"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold text-rose-600 underline hover:text-rose-700 dark:text-rose-400"
+            >
+              LINE Official
+            </a>
+          </p>
+        </div>
+
         <!-- การ์ด 3: วัตถุประสงค์ + ฟอร์ม -->
         <div
           class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8 dark:border-gray-800 dark:bg-gray-900/40"
