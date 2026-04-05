@@ -246,6 +246,15 @@ function normCommunityPostHref(v, fb) {
   return fb || "#";
 }
 
+/** ลิงก์นำทาง — ว่างได้ (ไม่บังคับ fallback เป็น #) */
+function normOptionalNavHref(v) {
+  const s = trunc(String(v == null ? "" : v), 500);
+  if (!s || s === "#") return "";
+  if (s.startsWith("/")) return s.replace(/\/+/g, "/").slice(0, 500);
+  if (/^https:\/\//i.test(s)) return normalizeHttpsUrl(s) ? s : "";
+  return "";
+}
+
 function normCommunityImageUrl(v, fb) {
   const s = String(v || "").trim().slice(0, MAX_LEN.url);
   if (!s) return fb;
@@ -279,6 +288,9 @@ function normCommunityPage(raw) {
 
 /** บล็อกที่แอดมินเปิด/ปิดได้ (หน้าแรก organic iframe) — คีย์ตรงกับ data-huajaiy-block */
 const TOGGLEABLE_HOME_BLOCKS = [
+  "bannerSales",
+  "newsletter",
+  "appDownload",
   "category",
   "bestSelling",
   "featured",
@@ -287,6 +299,75 @@ const TOGGLEABLE_HOME_BLOCKS = [
   "blog",
   "seoLooking"
 ];
+
+const DEFAULT_PROMO_BANNER_CARD = Object.freeze({
+  backgroundImageUrl: "",
+  ctaLabel: "Shop Now",
+  ctaHref: "#"
+});
+
+function normPromoBannerCard(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const fb = DEFAULT_PROMO_BANNER_CARD;
+  const imgIn = o.backgroundImageUrl ?? o.imageUrl;
+  const img =
+    imgIn != null && String(imgIn).trim()
+      ? normCommunityImageUrl(imgIn, "")
+      : "";
+  return {
+    backgroundImageUrl: img || "",
+    ctaLabel: trunc(o.ctaLabel, MAX_LEN.short) || fb.ctaLabel,
+    ctaHref: normCommunityPostHref(o.ctaHref, fb.ctaHref)
+  };
+}
+
+function normPromoBanners(arr) {
+  const list = Array.isArray(arr) ? arr : [];
+  return [0, 1, 2].map((i) => normPromoBannerCard(list[i]));
+}
+
+function normNewsletterBlockExtra(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const fb = {
+    backgroundImageUrl: "",
+    showForm: true,
+    submitButtonLabel: "Submit",
+    submitHref: ""
+  };
+  const bg =
+    o.backgroundImageUrl != null && String(o.backgroundImageUrl).trim()
+      ? normCommunityImageUrl(o.backgroundImageUrl, "")
+      : "";
+  return {
+    backgroundImageUrl: bg || "",
+    showForm: o.showForm !== false,
+    submitButtonLabel:
+      trunc(o.submitButtonLabel, MAX_LEN.short) || fb.submitButtonLabel,
+    submitHref: normOptionalNavHref(o.submitHref)
+  };
+}
+
+function normAppDownloadBlockExtra(raw) {
+  const o = raw && typeof raw === "object" ? raw : {};
+  const fb = {
+    sectionBackgroundColor: "",
+    sideImageUrl: "",
+    appStoreHref: "#",
+    playStoreHref: "#"
+  };
+  const hex = String(o.sectionBackgroundColor || "").trim();
+  const sectionBackgroundColor = /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "";
+  const side =
+    o.sideImageUrl != null && String(o.sideImageUrl).trim()
+      ? normCommunityImageUrl(o.sideImageUrl, "")
+      : "";
+  return {
+    sectionBackgroundColor,
+    sideImageUrl: side || "",
+    appStoreHref: normCommunityPostHref(o.appStoreHref, fb.appStoreHref),
+    playStoreHref: normCommunityPostHref(o.playStoreHref, fb.playStoreHref)
+  };
+}
 
 const DEFAULT_SECTION_VISIBILITY = Object.freeze(
   Object.fromEntries(TOGGLEABLE_HOME_BLOCKS.map((k) => [k, true]))
@@ -427,7 +508,10 @@ function deepCloneDefault() {
     features: DEFAULT_ORGANIC_HOME.features.map((f) => ({ ...f })),
     sectionHeadings: normSectionHeadings(null),
     sectionVisibility: normSectionVisibility(null),
-    communityPage: normCommunityPage(null)
+    communityPage: normCommunityPage(null),
+    promoBanners: normPromoBanners(null),
+    newsletterBlock: normNewsletterBlockExtra(null),
+    appDownloadBlock: normAppDownloadBlockExtra(null)
   };
 }
 
@@ -525,6 +609,9 @@ function mergeOrganicHomeFromRow(rawJson) {
   base.communityPage = normCommunityPage(
     o.communityPage != null ? o.communityPage : base.communityPage
   );
+  base.promoBanners = normPromoBanners(o.promoBanners);
+  base.newsletterBlock = normNewsletterBlockExtra(o.newsletterBlock);
+  base.appDownloadBlock = normAppDownloadBlockExtra(o.appDownloadBlock);
   return base;
 }
 

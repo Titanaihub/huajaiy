@@ -1,5 +1,8 @@
 /** บล็อกหน้าแรกที่แอดมินเปิด/ปิดได้ — ตรงกับ data-huajaiy-block และ services/organicHomeContent.js */
 export const ORGANIC_HOMEPAGE_BLOCK_KEYS = [
+  "bannerSales",
+  "newsletter",
+  "appDownload",
   "category",
   "bestSelling",
   "featured",
@@ -10,6 +13,9 @@ export const ORGANIC_HOMEPAGE_BLOCK_KEYS = [
 ];
 
 export const ORGANIC_HOMEPAGE_BLOCK_TOGGLES = [
+  { key: "bannerSales", label: "แบนเนอร์โปร 3 ช่อง (Items on SALE …)" },
+  { key: "newsletter", label: "แถบส่วนลด / จดหมายข่าว" },
+  { key: "appDownload", label: "ดาวน์โหลดแอป" },
   { key: "category", label: "Category" },
   { key: "bestSelling", label: "Best selling products" },
   { key: "featured", label: "Featured products" },
@@ -87,7 +93,36 @@ function mergeSectionVisibilityFromApi(base, apiVis) {
       }
     }
   }
+  for (const k of ORGANIC_HOMEPAGE_BLOCK_KEYS) {
+    if (out[k] === undefined) out[k] = true;
+  }
   return out;
+}
+
+function createDefaultPromoBanners() {
+  return [
+    { backgroundImageUrl: "", ctaLabel: "Shop Now", ctaHref: "#" },
+    { backgroundImageUrl: "", ctaLabel: "Shop Now", ctaHref: "#" },
+    { backgroundImageUrl: "", ctaLabel: "Shop Now", ctaHref: "#" }
+  ];
+}
+
+function createDefaultNewsletterBlock() {
+  return {
+    backgroundImageUrl: "",
+    showForm: true,
+    submitButtonLabel: "Submit",
+    submitHref: ""
+  };
+}
+
+function createDefaultAppDownloadBlock() {
+  return {
+    sectionBackgroundColor: "",
+    sideImageUrl: "",
+    appStoreHref: "#",
+    playStoreHref: "#"
+  };
 }
 
 function createDefaultSectionHeadings() {
@@ -289,7 +324,10 @@ export function createDefaultOrganicHomeForm() {
     ],
     sectionHeadings: createDefaultSectionHeadings(),
     sectionVisibility: createDefaultSectionVisibility(),
-    communityPage: createDefaultCommunityPage()
+    communityPage: createDefaultCommunityPage(),
+    promoBanners: createDefaultPromoBanners(),
+    newsletterBlock: createDefaultNewsletterBlock(),
+    appDownloadBlock: createDefaultAppDownloadBlock()
   };
 }
 
@@ -297,6 +335,8 @@ export function createDefaultOrganicHomeForm() {
 export function mergeOrganicHomeFromApi(api) {
   const d = createDefaultOrganicHomeForm();
   if (!api || typeof api !== "object") return d;
+  const nbApi = api.newsletterBlock && typeof api.newsletterBlock === "object" ? api.newsletterBlock : {};
+  const adApi = api.appDownloadBlock && typeof api.appDownloadBlock === "object" ? api.appDownloadBlock : {};
   return {
     ...d,
     ...api,
@@ -306,6 +346,18 @@ export function mergeOrganicHomeFromApi(api) {
     features: [0, 1, 2].map((i) => ({ ...d.features[i], ...(api.features?.[i] || {}) })),
     sectionHeadings: mergeSectionHeadingsFromApi(d.sectionHeadings, api.sectionHeadings),
     sectionVisibility: mergeSectionVisibilityFromApi(d.sectionVisibility, api.sectionVisibility),
-    communityPage: mergeCommunityPageFromApi(d.communityPage, api.communityPage)
+    communityPage: mergeCommunityPageFromApi(d.communityPage, api.communityPage),
+    promoBanners: [0, 1, 2].map((i) => ({
+      ...d.promoBanners[i],
+      ...(api.promoBanners?.[i] && typeof api.promoBanners[i] === "object" ? api.promoBanners[i] : {})
+    })),
+    newsletterBlock: {
+      ...d.newsletterBlock,
+      ...nbApi,
+      showForm: Object.prototype.hasOwnProperty.call(nbApi, "showForm")
+        ? nbApi.showForm !== false
+        : d.newsletterBlock.showForm
+    },
+    appDownloadBlock: { ...d.appDownloadBlock, ...adApi }
   };
 }

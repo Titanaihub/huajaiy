@@ -337,6 +337,102 @@ export default function AdminSiteThemePanel() {
     }
   }
 
+  async function onPickPromoBanner(index, ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy(`organicPromo-${index}`);
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const promoBanners = (organicHome.promoBanners || []).map((c, idx) =>
+        idx === index ? { ...c, backgroundImageUrl: url } : c
+      );
+      const nextOrganic = { ...organicHome, promoBanners };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
+  async function onPickNewsletterBg(ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy("organicNewsletterBg");
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const nextOrganic = {
+        ...organicHome,
+        newsletterBlock: { ...(organicHome.newsletterBlock || {}), backgroundImageUrl: url }
+      };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
+  async function onPickAppSideImage(ev) {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setUploadBusy("organicAppSide");
+    setErr("");
+    try {
+      const url = await uploadImageFile(file);
+      const token = getMemberToken();
+      const nextOrganic = {
+        ...organicHome,
+        appDownloadBlock: { ...(organicHome.appDownloadBlock || {}), sideImageUrl: url }
+      };
+      setOrganicHome(nextOrganic);
+      if (token) {
+        try {
+          await apiAdminPatchSiteTheme(token, { organicHome: nextOrganic });
+          router.refresh();
+        } catch (patchErr) {
+          setErr(
+            patchErr.message ||
+              "อัปโหลดแล้ว แต่บันทึก URL ลงเซิร์ฟเวอร์ไม่สำเร็จ — กด «บันทึกธีมเว็บ»"
+          );
+        }
+      }
+    } catch (e) {
+      setErr(e.message || String(e));
+    } finally {
+      setUploadBusy(null);
+    }
+  }
+
   async function onPickCommunityPostImage(index, ev) {
     const file = ev.target.files?.[0];
     ev.target.value = "";
@@ -831,7 +927,7 @@ export default function AdminSiteThemePanel() {
           หน้าแรก Organic <span className="font-normal text-hui-muted">(เทมเพลต /organic-template/)</span>
         </legend>
         <p className="hui-note text-sm">
-          ควบคุมรูปพื้นหลัง hero (แทนพื้นเหลือง/รูปตะกร้า), ข้อความ, สีข้อความ (#RRGGBB — คำอธิบายการ์ดรองรับ rgba), ปุ่ม CTA, สถิติ 3 คอลัมน์ และการ์ดฟีเจอร์ 3 ใบ · บันทึกร่วมกับปุ่ม «บันทึกธีมเว็บ» ด้านล่าง
+          ควบคุมรูปพื้นหลัง hero (แทนพื้นเหลือง/รูปตะกร้า), ข้อความ, สีข้อความ (#RRGGBB — คำอธิบายการ์ดรองรับ rgba), ปุ่ม CTA, สถิติ 3 คอลัมน์, การ์ดฟีเจอร์ 3 ใบ, แบนเนอร์โปร 3 ช่อง, แถบจดหมายข่าว และบล็อกดาวน์โหลดแอป · บันทึกร่วมกับปุ่ม «บันทึกธีมเว็บ» ด้านล่าง
         </p>
 
         <div className="space-y-3 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
@@ -839,7 +935,7 @@ export default function AdminSiteThemePanel() {
             แสดงบล็อกบนหน้าแรก (iframe เทมเพลต)
           </h3>
           <p className="text-xs text-hui-muted">
-            เลิกเลือกช่องเพื่อซ่อนแถบนั้นบนเว็บจริง — ไม่กระทบเกมและรางวัล แบนเนอร์โปร จดหมายข่าว และแอป (ฟุตเตอร์เทมเพลตถูกถอดออกจากหน้าแรกแล้ว)
+            เลิกเลือกช่องเพื่อซ่อนแถบนั้นบนหน้าแรก (iframe) — รวมแบนเนอร์โปร จดหมายข่าว และดาวน์โหลดแอป · ไม่กระทบเกมและรางวัล (ฟุตเตอร์เทมเพลตถูกถอดออกจากหน้าแรกแล้ว)
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {ORGANIC_HOMEPAGE_BLOCK_TOGGLES.map(({ key, label }) => (
@@ -864,6 +960,300 @@ export default function AdminSiteThemePanel() {
                 <span>{label}</span>
               </label>
             ))}
+          </div>
+        </div>
+
+        <div className="space-y-6 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
+          <h3 className="text-sm font-semibold text-hui-section">แบนเนอร์โปร 3 ช่อง</h3>
+          <p className="text-xs text-hui-muted">
+            รูปพื้นหลังแต่ละช่อง (https หรือ path เช่น{" "}
+            <code className="rounded bg-white/80 px-1">images/banner-ad-1.jpg</code>) · ข้อความหัวข้อ/รองใต้หัวข้อตั้งในส่วน «หัวข้อแต่ละบล็อก» ด้านล่าง (แบนเนอร์ 1–3)
+          </p>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={`promo-${i}`}
+              className="rounded-lg border border-hui-border bg-white/50 p-3"
+            >
+              <p className="mb-2 text-xs font-semibold text-hui-section">แบนเนอร์ {i + 1}</p>
+              <label className="hui-label text-xs">URL รูปพื้นหลัง</label>
+              <input
+                type="text"
+                value={organicHome.promoBanners?.[i]?.backgroundImageUrl ?? ""}
+                onChange={(e) => {
+                  const promoBanners = [...(organicHome.promoBanners || [])];
+                  promoBanners[i] = {
+                    ...(promoBanners[i] || {}),
+                    backgroundImageUrl: e.target.value
+                  };
+                  setOrganicHome({ ...organicHome, promoBanners });
+                }}
+                className="hui-input mb-2 text-sm font-mono"
+                placeholder="https://... หรือ images/..."
+                autoComplete="off"
+              />
+              <div className="mb-2 flex flex-wrap gap-2">
+                <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploadBusy !== null}
+                    onChange={(ev) => onPickPromoBanner(i, ev)}
+                  />
+                  {uploadBusy === `organicPromo-${i}` ? "กำลังอัปโหลด…" : "อัปโหลดรูป"}
+                </label>
+                <button
+                  type="button"
+                  className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-surface"
+                  onClick={() => {
+                    const promoBanners = [...(organicHome.promoBanners || [])];
+                    promoBanners[i] = {
+                      ...(promoBanners[i] || {}),
+                      backgroundImageUrl: ""
+                    };
+                    setOrganicHome({ ...organicHome, promoBanners });
+                  }}
+                >
+                  ล้างรูป
+                </button>
+              </div>
+              <label className="hui-label text-xs">ข้อความปุ่มลิงก์</label>
+              <input
+                type="text"
+                value={organicHome.promoBanners?.[i]?.ctaLabel ?? ""}
+                onChange={(e) => {
+                  const promoBanners = [...(organicHome.promoBanners || [])];
+                  promoBanners[i] = { ...(promoBanners[i] || {}), ctaLabel: e.target.value };
+                  setOrganicHome({ ...organicHome, promoBanners });
+                }}
+                className="hui-input mb-2 text-sm"
+                placeholder="Shop Now"
+              />
+              <label className="hui-label text-xs">ลิงก์ปุ่ม (/page หรือ https)</label>
+              <input
+                type="text"
+                value={organicHome.promoBanners?.[i]?.ctaHref ?? ""}
+                onChange={(e) => {
+                  const promoBanners = [...(organicHome.promoBanners || [])];
+                  promoBanners[i] = { ...(promoBanners[i] || {}), ctaHref: e.target.value };
+                  setOrganicHome({ ...organicHome, promoBanners });
+                }}
+                className="hui-input text-sm font-mono"
+                placeholder="/shop หรือ https://..."
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-3 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
+          <h3 className="text-sm font-semibold text-hui-section">แถบจดหมายข่าว / ส่วนลด</h3>
+          <p className="text-xs text-hui-muted">
+            หัวข้อและข้อความย่อยตั้งในส่วน «หัวข้อแต่ละบล็อก» (จดหมายข่าว) · ถ้าไม่ใส่ URL ส่งฟอร์ม ระบบจะไม่ส่งออกนอกหน้า (กันส่งซ้ำใน iframe)
+          </p>
+          <label className="hui-label text-xs">URL รูปพื้นหลังแถบ</label>
+          <input
+            type="text"
+            value={organicHome.newsletterBlock?.backgroundImageUrl ?? ""}
+            onChange={(e) =>
+              setOrganicHome({
+                ...organicHome,
+                newsletterBlock: {
+                  ...(organicHome.newsletterBlock || {}),
+                  backgroundImageUrl: e.target.value
+                }
+              })
+            }
+            className="hui-input mb-2 text-sm font-mono"
+            placeholder="https://..."
+            autoComplete="off"
+          />
+          <div className="mb-3 flex flex-wrap gap-2">
+            <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={uploadBusy !== null}
+                onChange={onPickNewsletterBg}
+              />
+              {uploadBusy === "organicNewsletterBg" ? "กำลังอัปโหลด…" : "อัปโหลดรูปพื้นหลัง"}
+            </label>
+            <button
+              type="button"
+              className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-surface"
+              onClick={() =>
+                setOrganicHome({
+                  ...organicHome,
+                  newsletterBlock: {
+                    ...(organicHome.newsletterBlock || {}),
+                    backgroundImageUrl: ""
+                  }
+                })
+              }
+            >
+              ล้างรูป
+            </button>
+          </div>
+          <label className="flex cursor-pointer items-start gap-2.5 text-sm text-hui-body">
+            <input
+              type="checkbox"
+              checked={organicHome.newsletterBlock?.showForm !== false}
+              onChange={(e) =>
+                setOrganicHome({
+                  ...organicHome,
+                  newsletterBlock: {
+                    ...(organicHome.newsletterBlock || {}),
+                    showForm: e.target.checked
+                  }
+                })
+              }
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-hui-border text-hui-cta focus:ring-hui-cta/30"
+            />
+            <span>แสดงฟอร์มชื่อ / อีเมล</span>
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="hui-label text-xs">ข้อความปุ่มส่ง</label>
+              <input
+                type="text"
+                value={organicHome.newsletterBlock?.submitButtonLabel ?? ""}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    newsletterBlock: {
+                      ...(organicHome.newsletterBlock || {}),
+                      submitButtonLabel: e.target.value
+                    }
+                  })
+                }
+                className="hui-input text-sm"
+                placeholder="Submit"
+              />
+            </div>
+            <div>
+              <label className="hui-label text-xs">URL ปลายทางเมื่อกดส่ง (GET + name, email)</label>
+              <input
+                type="text"
+                value={organicHome.newsletterBlock?.submitHref ?? ""}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    newsletterBlock: {
+                      ...(organicHome.newsletterBlock || {}),
+                      submitHref: e.target.value
+                    }
+                  })
+                }
+                className="hui-input text-sm font-mono"
+                placeholder="เว้นว่าง = ไม่ส่งออก"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
+          <h3 className="text-sm font-semibold text-hui-section">บล็อกดาวน์โหลดแอป</h3>
+          <p className="text-xs text-hui-muted">
+            หัวข้อและคำอธิบายตั้งในส่วน «หัวข้อแต่ละบล็อก» (ดาวน์โหลดแอป) · ลิงก์ร้านค้าใส่ URL จริงของ App Store / Google Play
+          </p>
+          <label className="hui-label text-xs">สีพื้นหลังแถบ (#RRGGBB — เว้นว่างใช้สีเหลืองเทมเพลต)</label>
+          <input
+            type="text"
+            value={organicHome.appDownloadBlock?.sectionBackgroundColor ?? ""}
+            onChange={(e) =>
+              setOrganicHome({
+                ...organicHome,
+                appDownloadBlock: {
+                  ...(organicHome.appDownloadBlock || {}),
+                  sectionBackgroundColor: e.target.value
+                }
+              })
+            }
+            className="hui-input mb-2 max-w-xs font-mono text-sm"
+            placeholder="#FFC107"
+            maxLength={7}
+          />
+          <label className="hui-label text-xs">URL รูปมือถือ/กราฟิกด้านขวา</label>
+          <input
+            type="text"
+            value={organicHome.appDownloadBlock?.sideImageUrl ?? ""}
+            onChange={(e) =>
+              setOrganicHome({
+                ...organicHome,
+                appDownloadBlock: {
+                  ...(organicHome.appDownloadBlock || {}),
+                  sideImageUrl: e.target.value
+                }
+              })
+            }
+            className="hui-input mb-2 text-sm font-mono"
+            placeholder="https://..."
+            autoComplete="off"
+          />
+          <div className="mb-3 flex flex-wrap gap-2">
+            <label className="hui-btn-primary inline-flex cursor-pointer items-center justify-center text-sm disabled:opacity-50">
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={uploadBusy !== null}
+                onChange={onPickAppSideImage}
+              />
+              {uploadBusy === "organicAppSide" ? "กำลังอัปโหลด…" : "อัปโหลดรูปด้านขวา"}
+            </label>
+            <button
+              type="button"
+              className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-xs font-semibold text-hui-body hover:bg-hui-surface"
+              onClick={() =>
+                setOrganicHome({
+                  ...organicHome,
+                  appDownloadBlock: {
+                    ...(organicHome.appDownloadBlock || {}),
+                    sideImageUrl: ""
+                  }
+                })
+              }
+            >
+              ล้างรูป
+            </button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="hui-label text-xs">ลิงก์ App Store</label>
+              <input
+                type="text"
+                value={organicHome.appDownloadBlock?.appStoreHref ?? ""}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    appDownloadBlock: {
+                      ...(organicHome.appDownloadBlock || {}),
+                      appStoreHref: e.target.value
+                    }
+                  })
+                }
+                className="hui-input text-sm font-mono"
+                placeholder="https://apps.apple.com/..."
+              />
+            </div>
+            <div>
+              <label className="hui-label text-xs">ลิงก์ Google Play</label>
+              <input
+                type="text"
+                value={organicHome.appDownloadBlock?.playStoreHref ?? ""}
+                onChange={(e) =>
+                  setOrganicHome({
+                    ...organicHome,
+                    appDownloadBlock: {
+                      ...(organicHome.appDownloadBlock || {}),
+                      playStoreHref: e.target.value
+                    }
+                  })
+                }
+                className="hui-input text-sm font-mono"
+                placeholder="https://play.google.com/..."
+              />
+            </div>
           </div>
         </div>
 

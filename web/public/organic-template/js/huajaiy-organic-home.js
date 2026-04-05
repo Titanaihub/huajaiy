@@ -92,6 +92,9 @@
   }
 
   var VISIBILITY_BLOCKS = [
+    "bannerSales",
+    "newsletter",
+    "appDownload",
     "category",
     "bestSelling",
     "featured",
@@ -114,6 +117,103 @@
         el.classList.remove("d-none");
       }
     });
+  }
+
+  function setPromoBannerBackground(el, url) {
+    if (!el) return;
+    var u = url != null ? String(url).trim() : "";
+    if (!u) return;
+    var safe = u.replace(/'/g, "%27");
+    el.style.backgroundImage = "url('" + safe + "')";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundSize = "cover";
+  }
+
+  function setAnchorNav(id, href, label) {
+    var a = $(id);
+    if (!a) return;
+    if (label !== undefined && label !== null) {
+      a.textContent = String(label);
+    }
+    var h = href != null ? String(href).trim() : "";
+    a.href = h || "#";
+    a.target = "_top";
+    a.rel = "noopener";
+  }
+
+  function applyPromoBanners(cards) {
+    if (!Array.isArray(cards)) return;
+    for (var i = 0; i < 3; i++) {
+      var c = cards[i];
+      if (!c || typeof c !== "object") continue;
+      setPromoBannerBackground($("huajaiy-banner-sale-" + i), c.backgroundImageUrl);
+      setAnchorNav("huajaiy-banner-sale-" + i + "-cta", c.ctaHref, c.ctaLabel);
+    }
+  }
+
+  function applyNewsletterBlock(nb) {
+    if (!nb || typeof nb !== "object") return;
+    var panel = $("huajaiy-newsletter-panel");
+    if (panel) {
+      var bu = nb.backgroundImageUrl != null ? String(nb.backgroundImageUrl).trim() : "";
+      if (bu) {
+        panel.style.backgroundImage = "url('" + bu.replace(/'/g, "%27") + "')";
+        panel.style.backgroundSize = "cover";
+        panel.style.backgroundRepeat = "no-repeat";
+      }
+    }
+    var formCol = $("huajaiy-newsletter-form-col");
+    if (formCol) {
+      if (nb.showForm === false) {
+        formCol.classList.add("d-none");
+      } else {
+        formCol.classList.remove("d-none");
+      }
+    }
+    var btn = $("huajaiy-newsletter-submit");
+    if (btn && nb.submitButtonLabel != null) {
+      btn.textContent = String(nb.submitButtonLabel);
+    }
+    var form = $("huajaiy-newsletter-form");
+    if (form) {
+      var action = nb.submitHref != null ? String(nb.submitHref).trim() : "";
+      if (action) {
+        form.action = action;
+        form.method = "get";
+        form.target = "_top";
+        form.onsubmit = null;
+      } else {
+        form.removeAttribute("action");
+        form.removeAttribute("method");
+        form.removeAttribute("target");
+        form.onsubmit = function (e) {
+          e.preventDefault();
+          return false;
+        };
+      }
+    }
+  }
+
+  function applyAppDownloadBlock(ad) {
+    if (!ad || typeof ad !== "object") return;
+    var panel = $("huajaiy-app-download-panel");
+    if (panel) {
+      var c = ad.sectionBackgroundColor != null ? String(ad.sectionBackgroundColor).trim() : "";
+      if (c) {
+        panel.style.backgroundColor = c;
+      } else {
+        panel.style.backgroundColor = "";
+      }
+    }
+    var img = $("huajaiy-app-side-img");
+    if (img) {
+      var u = ad.sideImageUrl != null ? String(ad.sideImageUrl).trim() : "";
+      if (u) {
+        img.src = u;
+      }
+    }
+    setAnchorNav("huajaiy-app-store-link", ad.appStoreHref, undefined);
+    setAnchorNav("huajaiy-app-play-link", ad.playStoreHref, undefined);
   }
 
   function setFeature(i, f) {
@@ -368,6 +468,9 @@
       }
     }
     applySectionHeadings(data.sectionHeadings);
+    applyPromoBanners(data.promoBanners);
+    applyNewsletterBlock(data.newsletterBlock);
+    applyAppDownloadBlock(data.appDownloadBlock);
     applySectionVisibility(data.sectionVisibility);
     applyCommunityPage(data.communityPage);
   }
