@@ -142,7 +142,11 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS public_page_listed BOOLEAN NOT NULL DEFAULT TRUE;
+      ADD COLUMN IF NOT EXISTS public_page_listed BOOLEAN NOT NULL DEFAULT FALSE;
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ALTER COLUMN public_page_listed SET DEFAULT false;
     `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */
     await client.query(`

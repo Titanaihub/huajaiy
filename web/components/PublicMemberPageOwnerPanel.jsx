@@ -108,6 +108,7 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
   const [uploadBusy, setUploadBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [listedBusy, setListedBusy] = useState(false);
 
   const isOwner = useMemo(
     () =>
@@ -167,6 +168,33 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
     }
   }, [isOwner, patchProfile, router]);
 
+  const listedOnPage = useMemo(() => {
+    if (member && typeof member === "object" && "publicPageListed" in member) {
+      return member.publicPageListed === true;
+    }
+    return user?.publicPageListed !== false;
+  }, [member, user?.publicPageListed]);
+
+  const toggleListed = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setListedBusy(true);
+    try {
+      await patchProfile({ publicPageListed: !listedOnPage });
+      setMsg(
+        !listedOnPage
+          ? "เผยแพร่เพจแล้ว — ผู้เยี่ยมชมเห็นเพจและลิงก์ในชุมชนได้"
+          : "ซ่อนเพจแล้ว — ผู้เยี่ยมชมจะไม่เห็นเพจจนกว่าจะเผยแพร่อีกครั้ง"
+      );
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setListedBusy(false);
+    }
+  }, [isOwner, listedOnPage, patchProfile, router]);
+
   const saveText = useCallback(async () => {
     if (!isOwner) return;
     setErr("");
@@ -190,6 +218,33 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
 
   return (
     <div className="mb-4 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 shadow-sm">
+      {!listedOnPage ? (
+        <p className="mb-3 rounded-lg border border-amber-300/80 bg-white/80 px-3 py-2 text-xs leading-relaxed text-amber-950">
+          เพจยัง<strong className="font-semibold">ไม่แสดง</strong>บนเว็บสาธารณะและในรายการเพจชุมชน — กด{" "}
+          <strong className="font-semibold">เผยแพร่เพจ</strong> เมื่อต้องการให้คนอื่นเปิดลิงก์นี้ได้
+        </p>
+      ) : null}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={listedBusy || saving || uploadBusy}
+          onClick={toggleListed}
+          className={
+            listedOnPage
+              ? "rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80 disabled:opacity-50"
+              : "rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
+          }
+        >
+          {listedBusy
+            ? "กำลังอัปเดต…"
+            : listedOnPage
+              ? "ยกเลิกการเผยแพร่ (ซ่อนเพจ)"
+              : "เผยแพร่เพจสู่เว็บ"}
+        </button>
+        <span className="text-[11px] text-amber-900/85">
+          สถานะ: {listedOnPage ? "เผยแพร่แล้ว" : "ยังไม่เผยแพร่"}
+        </span>
+      </div>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

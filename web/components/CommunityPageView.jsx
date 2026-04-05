@@ -1,5 +1,7 @@
+import { randomInt } from "crypto";
 import Link from "next/link";
 import CommunityLobby from "./CommunityLobby";
+import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 
 const LEGACY_BLOG_TITLES = new Set([
@@ -103,6 +105,91 @@ function SmartLink({ href, className, children }) {
   );
 }
 
+function resolveCommunitySpotlightImageSrc(url) {
+  const u = String(url || "").trim();
+  if (!u) return "";
+  if (/^https:\/\//i.test(u)) return u;
+  if (u.startsWith("/")) return u;
+  if (/^images\//i.test(u)) return `/organic-template/${u}`;
+  return u;
+}
+
+const SPOT_DESC_LEN = 180;
+
+function clipSpotlightExcerpt(text) {
+  const s = String(text || "").trim();
+  if (s.length <= SPOT_DESC_LEN) return s;
+  return `${s.slice(0, SPOT_DESC_LEN).trim()}…`;
+}
+
+function pickRandomUniqueCommunityPosts(posts, n) {
+  const pool = [...posts];
+  const out = [];
+  const take = Math.min(n, pool.length);
+  for (let i = 0; i < take; i++) {
+    const j = randomInt(0, pool.length);
+    out.push(pool[j]);
+    pool.splice(j, 1);
+  }
+  return out;
+}
+
+/** การ์ดโพสต์สุ่มใต้หัวข้อเพจชุมชน — สไตล์ใกล้เคียง CommunityLobby */
+function CommunitySpotlightCard({ post }) {
+  const phref = String(post?.href || "").trim();
+  const hasNav = phref && phref !== "#";
+  const src = resolveCommunitySpotlightImageSrc(post?.imageUrl);
+  const imgSrc = src || DEFAULT_CENTRAL_GAME_COVER_PATH;
+  const cardShell =
+    "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]";
+  const mediaShell =
+    "relative aspect-[10/3] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]";
+  const inner = (
+    <>
+      <div className={mediaShell}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imgSrc}
+          alt=""
+          width={1000}
+          height={300}
+          className="h-full w-full object-cover object-center transition duration-200 group-hover:opacity-95"
+        />
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--gl-card-bg)] p-3 sm:p-3.5">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-[var(--gl-card-muted)]">
+          <span className="truncate">{String(post?.dateLine || "").trim() || "—"}</span>
+          <span className="mx-2 opacity-40">·</span>
+          <span>{String(post?.category || "").trim() || "—"}</span>
+        </div>
+        <h2 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-[var(--gl-card-title)] sm:text-lg">
+          {post?.title || "โพสต์"}
+        </h2>
+        {post?.excerpt ? (
+          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--gl-card-body)]">
+            {clipSpotlightExcerpt(post.excerpt)}
+          </p>
+        ) : null}
+      </div>
+    </>
+  );
+  if (hasNav && /^https:\/\//i.test(phref)) {
+    return (
+      <a href={phref} className={cardShell} target="_blank" rel="noopener noreferrer">
+        {inner}
+      </a>
+    );
+  }
+  if (hasNav) {
+    return (
+      <Link href={phref} className={cardShell}>
+        {inner}
+      </Link>
+    );
+  }
+  return <div className={cardShell}>{inner}</div>;
+}
+
 /**
  * เนื้อหาเพจชุมชน — โครงเดียวกับหน้า /game (หัวข้อ + ล็อบบี้การ์ด + ทางลัด)
  */
@@ -124,6 +211,8 @@ export default function CommunityPageView({
     .filter(Boolean)
     .filter(postHasPublicContent);
   const lobbyPosts = dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
+  const spotlightPick =
+    lobbyPosts.length > 0 ? pickRandomUniqueCommunityPosts(lobbyPosts, 3) : [];
   const viewHref = String(cp.viewAllHref || "").trim();
   const showViewAll = viewHref && viewHref !== "#";
 
@@ -149,6 +238,21 @@ export default function CommunityPageView({
           </SmartLink>
         ) : null}
       </div>
+
+      {spotlightPick.length > 0 ? (
+        <section className="mb-8" aria-label="โพสต์สุ่มจากเพจชุมชน">
+          <p className="mb-4 text-xs font-medium tracking-wide text-[var(--gl-card-muted)]">
+            โพสต์สุ่มจากหน้านี้
+          </p>
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+            {spotlightPick.map((post, i) => (
+              <li key={`spot-${communityPostDedupeKey(post)}-${i}`}>
+                <CommunitySpotlightCard post={post} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <CommunityLobby posts={lobbyPosts} />
 

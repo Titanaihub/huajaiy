@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import MemberStylePageShell from "../../../../components/MemberStylePageShell";
-import MemberPublicSinglePostClient from "../../../../components/MemberPublicSinglePostClient";
+import MemberPublicSinglePostEntry from "../../../../components/MemberPublicSinglePostEntry";
 import { getApiBase } from "../../../../lib/config";
 
 export const dynamic = "force-dynamic";
@@ -53,15 +53,17 @@ export default async function MemberPublicPostPage({ params, searchParams }) {
     notFound();
   }
   const post = await fetchPublicPost(un, postId);
-  if (!post) {
-    notFound();
-  }
   const refRaw = searchParams?.ref;
   const refUsername = typeof refRaw === "string" ? refRaw.trim() : "";
 
   return (
     <MemberStylePageShell>
-      <MemberPublicSinglePostClient username={un} post={post} refUsername={refUsername} />
+      <MemberPublicSinglePostEntry
+        username={un}
+        postId={postId}
+        initialPost={post}
+        refUsername={refUsername}
+      />
     </MemberStylePageShell>
   );
 }

@@ -137,7 +137,7 @@ function rowToUser(row) {
         ? String(row.public_page_bio).trim().slice(0, 2000)
         : null,
     publicPageTitle: sanitizePublicPageTitle(row.public_page_title),
-    publicPageListed: row.public_page_listed === false ? false : true,
+    publicPageListed: Boolean(row.public_page_listed),
     email:
       row.email != null && String(row.email).trim()
         ? String(row.email).trim().toLowerCase().slice(0, 254)
@@ -207,7 +207,7 @@ function enrichFileUserShipping(u) {
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
     publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
-    publicPageListed: u.publicPageListed === false ? false : true
+    publicPageListed: u.publicPageListed !== false
   };
 }
 
@@ -256,7 +256,7 @@ async function listPublicMemberDirectory(limit = 12) {
      FROM users
      WHERE account_disabled = false
        AND COALESCE(role, 'member') <> 'admin'
-       AND COALESCE(public_page_listed, true) = true
+       AND public_page_listed = true
      ORDER BY created_at DESC NULLS LAST
      LIMIT $1`,
     [lim]
@@ -560,7 +560,7 @@ function publicUser(u) {
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
     publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
-    publicPageListed: u.publicPageListed === false ? false : true
+    publicPageListed: u.publicPageListed !== false
   };
 }
 
@@ -735,8 +735,7 @@ async function updateProfile(
     nextPublicPageTitle = sanitizePublicPageTitle(publicPageTitle);
   }
 
-  let nextPublicPageListed =
-    current.publicPageListed === false ? false : true;
+  let nextPublicPageListed = current.publicPageListed === true;
   if (updatePublicPageListed) {
     nextPublicPageListed = Boolean(publicPageListed);
   }

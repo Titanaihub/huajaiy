@@ -15,7 +15,8 @@ const {
 const {
   router: authRouter,
   optionalAuthMiddleware,
-  postLoginLine
+  postLoginLine,
+  tryResolveBearerUser
 } = require("./authRouter");
 const userService = require("./services/userService");
 const { router: ordersRouter } = require("./ordersRouter");
@@ -298,6 +299,33 @@ function heartBalancesPayload(u) {
   };
 }
 
+/**
+ * เพจสมาชิกสาธารณะ: เห็นได้เมื่อเผยแพร่แล้ว หรือเมื่อ Bearer เป็นสมาชิกเจ้าของเพจ
+ * @returns {Promise<{ ok: true, viewer: object | null } | { ok: false }>}
+ */
+async function assertPublicMemberPageAccess(req, res, pageUser) {
+  const auth = await tryResolveBearerUser(req);
+  if (auth.kind === "reject") {
+    res.status(auth.status).json({
+      ok: false,
+      error: auth.error,
+      ...(auth.code ? { code: auth.code } : {})
+    });
+    return { ok: false };
+  }
+  const listed = pageUser.publicPageListed === true;
+  const viewer = auth.kind === "user" ? auth.user : null;
+  const isOwner =
+    viewer &&
+    String(viewer.username || "").toLowerCase() ===
+      String(pageUser.username || "").toLowerCase();
+  if (!listed && !isOwner) {
+    res.status(404).json({ ok: false, error: "ไม่พบเพจ" });
+    return { ok: false };
+  }
+  return { ok: true, viewer };
+}
+
 /** แปลงรายการ directory → การ์ดชุมชนบนหน้าแรก organic (สูงสุด 3 ช่อง) */
 function publicMemberDirectoryPostForOrganic(m) {
   const un = String(m?.username || "").trim();
@@ -337,10 +365,12 @@ app.get("/api/public/members/:username", async (req, res) => {
     if (!u) {
       return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
     }
+    const access = await assertPublicMemberPageAccess(req, res, u);
+    if (!access.ok) return;
     const fn = String(u.firstName || "").trim();
     const ln = String(u.lastName || "").trim();
     const displayName = [fn, ln].filter(Boolean).join(" ").trim() || u.username;
-    return res.json({
+    const payload = {
       ok: true,
       username: u.username,
       displayName,
@@ -353,8 +383,10 @@ app.get("/api/public/members/:username", async (req, res) => {
       socialTiktokUrl: u.socialTiktokUrl || null,
       publicPageCoverUrl: u.publicPageCoverUrl || null,
       publicPageBio: u.publicPageBio || null,
-      publicPageTitle: u.publicPageTitle || null
-    });
+      publicPageTitle: u.publicPageTitle || null,
+      publicPageListed: u.publicPageListed === true
+    };
+    return res.json(payload);
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
@@ -371,6 +403,8 @@ app.get("/api/public/members/:username/posts", async (req, res) => {
     if (!u) {
       return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
     }
+    const access = await assertPublicMemberPageAccess(req, res, u);
+    if (!access.ok) return;
     const posts = await memberPublicPostService.listPublicByUsername(v.value);
     return res.json({ ok: true, posts });
   } catch (e) {
@@ -392,6 +426,8 @@ app.get("/api/public/members/:username/posts/:postId", async (req, res) => {
     if (!u) {
       return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
     }
+    const access = await assertPublicMemberPageAccess(req, res, u);
+    if (!access.ok) return;
     const post = await memberPublicPostService.getPublicByUsernameAndPostId(
       v.value,
       req.params.postId
@@ -418,6 +454,12 @@ app.post("/api/public/members/:username/posts/:postId/ref-click", async (req, re
     if (!v.ok) {
       return res.status(400).json({ ok: false, error: v.error });
     }
+    const pageUser = await userService.findByUsername(v.value);
+    if (!pageUser) {
+      return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+    }
+    const access = await assertPublicMemberPageAccess(req, res, pageUser);
+    if (!access.ok) return;
     const refUsername =
       req.body && typeof req.body === "object"
         ? String(req.body.refUsername || "").trim()
@@ -452,6 +494,8 @@ app.post(
       if (!pageUser) {
         return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
       }
+      const access = await assertPublicMemberPageAccess(req, res, pageUser);
+      if (!access.ok) return;
       const b = req.body && typeof req.body === "object" ? req.body : {};
       const channel = String(b.channel || "").trim();
       await memberPublicPostShareService.appendPublicShareIntent(

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import MemberStylePageShell from "../../components/MemberStylePageShell";
-import PublicMemberPageChrome from "../../components/PublicMemberPageChrome";
+import PublicMemberPageEntry from "../../components/PublicMemberPageEntry";
 import { getApiBase } from "../../lib/config";
 
 export const dynamic = "force-dynamic";
@@ -65,14 +65,15 @@ export default async function PublicMemberPage({ params }) {
     notFound();
   }
   const m = await fetchPublicMember(un);
-  if (!m) {
-    notFound();
-  }
-  const initialPosts = await fetchPublicMemberPosts(un);
+  const initialPosts = m ? await fetchPublicMemberPosts(un) : [];
 
   return (
     <MemberStylePageShell>
-      <PublicMemberPageChrome member={m} initialPosts={initialPosts} />
+      <PublicMemberPageEntry
+        username={un}
+        initialMember={m}
+        initialPosts={initialPosts}
+      />
     </MemberStylePageShell>
   );
 }

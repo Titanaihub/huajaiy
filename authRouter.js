@@ -145,6 +145,46 @@ function requireRole(...allowed) {
   };
 }
 
+/**
+ * อ่าน Bearer จากคำขอแบบไม่บังคับ — ใช้กับ API สาธารณะที่ให้เจ้าของเพจเห็นก่อนเผยแพร่
+ * @returns {Promise<{ kind: "none" } | { kind: "user", user: object } | { kind: "reject", status: number, error: string, code?: string }>}
+ */
+async function tryResolveBearerUser(req) {
+  const h = req.headers.authorization;
+  if (!h || !h.startsWith("Bearer ")) {
+    return { kind: "none" };
+  }
+  const token = h.slice("Bearer ".length).trim();
+  if (!token) return { kind: "none" };
+  let payload;
+  try {
+    payload = jwt.verify(token, getJwtSecret());
+  } catch {
+    return {
+      kind: "reject",
+      status: 401,
+      error: "โทเค็นไม่ถูกต้องหรือหมดอายุ"
+    };
+  }
+  try {
+    const user = await userService.findById(payload.sub);
+    if (!user) {
+      return { kind: "reject", status: 401, error: "ไม่พบบัญชี" };
+    }
+    if (user.accountDisabled) {
+      return {
+        kind: "reject",
+        status: 403,
+        error: "บัญชีนี้ถูกระงับการใช้งาน",
+        code: "ACCOUNT_DISABLED"
+      };
+    }
+    return { kind: "user", user };
+  } catch (e) {
+    return { kind: "reject", status: 500, error: e.message };
+  }
+}
+
 /** มี Bearer ที่ถูกต้อง → ตั้ง req.userId · ไม่มีหัวหรือไม่ส่ง → ผู้เล่นทั่วไป (ไม่บังคับล็อกอิน) */
 async function optionalAuthMiddleware(req, res, next) {
   req.userId = null;
@@ -1122,6 +1162,7 @@ module.exports = {
   authMiddleware,
   requireRole,
   optionalAuthMiddleware,
+  tryResolveBearerUser,
   signImpersonationToken,
   publicUserWithRoomGiftRed,
   postLoginLine
