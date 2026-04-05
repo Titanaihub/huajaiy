@@ -210,9 +210,13 @@ export default function CommunityPageView({
     .map(memberDirectoryCard)
     .filter(Boolean)
     .filter(postHasPublicContent);
-  const lobbyPosts = dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
-  const spotlightPick =
-    lobbyPosts.length > 0 ? pickRandomUniqueCommunityPosts(lobbyPosts, 3) : [];
+  const memberLobbyPosts = dedupeCommunityPosts(memberPosts);
+  const themeLobbyPosts = dedupeCommunityPosts(visiblePosts);
+  /** สุ่มเฉพาะโพสต์จากธีมชุมชน — ไม่ปนกับการ์ดเพจสมาชิก */
+  const postSpotlightPick =
+    themeLobbyPosts.length > 0
+      ? pickRandomUniqueCommunityPosts(themeLobbyPosts, 3)
+      : [];
   const viewHref = String(cp.viewAllHref || "").trim();
   const showViewAll = viewHref && viewHref !== "#";
 
@@ -239,13 +243,16 @@ export default function CommunityPageView({
         ) : null}
       </div>
 
-      {spotlightPick.length > 0 ? (
-        <section className="mb-8" aria-label="โพสต์สุ่มจากเพจชุมชน">
-          <p className="mb-4 text-xs font-medium tracking-wide text-[var(--gl-card-muted)]">
-            โพสต์สุ่มจากหน้านี้
+      {postSpotlightPick.length > 0 ? (
+        <section className="mb-10" aria-label="โพสต์สุ่มจากชุมชน">
+          <h2 className="text-lg font-semibold tracking-tight text-[var(--gl-page-heading)]">
+            โพสต์สุ่ม
+          </h2>
+          <p className="mt-1 text-xs text-[var(--gl-card-muted)]">
+            จากเนื้อหาที่แอดมินตั้งในเพจชุมชน — ไม่ใช่รายการเพจสมาชิก
           </p>
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-            {spotlightPick.map((post, i) => (
+          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+            {postSpotlightPick.map((post, i) => (
               <li key={`spot-${communityPostDedupeKey(post)}-${i}`}>
                 <CommunitySpotlightCard post={post} />
               </li>
@@ -254,7 +261,43 @@ export default function CommunityPageView({
         </section>
       ) : null}
 
-      <CommunityLobby posts={lobbyPosts} />
+      <section className="mb-10 space-y-4" aria-labelledby="community-member-pages-heading">
+        <h2
+          id="community-member-pages-heading"
+          className="text-lg font-semibold tracking-tight text-[var(--gl-page-heading)]"
+        >
+          เพจสมาชิก
+        </h2>
+        <p className="text-xs text-[var(--gl-card-muted)]">
+          สมาชิกที่กดเผยแพร่เพจแล้ว — แต่ละการ์ดคือเพจคน ไม่ใช่โพสต์บทความ
+        </p>
+        <CommunityLobby
+          posts={memberLobbyPosts}
+          searchInputId="community-search-member-pages"
+          searchLabel="ค้นหาเพจสมาชิก (ชื่อ คำอธิบาย หรือ @)"
+          emptyTitle="ยังไม่มีเพจสมาชิกที่เผยแพร่"
+          emptyHint="เมื่อสมาชิกเปิดเผยแพร่เพจสาธารณะ รายชื่อจะแสดงที่นี่"
+        />
+      </section>
+
+      <section className="space-y-4" aria-labelledby="community-theme-posts-heading">
+        <h2
+          id="community-theme-posts-heading"
+          className="text-lg font-semibold tracking-tight text-[var(--gl-page-heading)]"
+        >
+          โพสต์จากชุมชน
+        </h2>
+        <p className="text-xs text-[var(--gl-card-muted)]">
+          บทความหรือกิจกรรมที่แอดมินตั้งในธีมเว็บ → ชุมชนเพจ
+        </p>
+        <CommunityLobby
+          posts={themeLobbyPosts}
+          searchInputId="community-search-theme-posts"
+          searchLabel="ค้นหาโพสต์ (หัวข้อ คำอธิบาย หมวด)"
+          emptyTitle="ยังไม่มีโพสต์ในหน้านี้"
+          emptyHint="แอดมินตั้งค่าได้ที่ ธีมเว็บ → ชุมชนเพจ"
+        />
+      </section>
 
       <nav
         className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"
