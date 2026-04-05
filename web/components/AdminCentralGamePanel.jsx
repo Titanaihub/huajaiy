@@ -48,9 +48,8 @@ function loadImage(fileBlob) {
 /** พื้นหลังก่อนวาด — ลดปัญหา PNG โปร่ง → JPEG กลายเป็นพื้นดำ */
 const JPEG_FLAT_BG = "#f8fafc";
 
-async function compressToJpeg(file) {
+async function compressToJpeg(file, maxSide = 1200) {
   const img = await loadImage(file);
-  const maxSide = 1200;
   const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
   const w = Math.round(img.width * ratio);
   const h = Math.round(img.height * ratio);
@@ -77,7 +76,8 @@ function isProbablyPng(file) {
   );
 }
 
-async function uploadImageFile(file) {
+async function uploadImageFile(file, { maxCompressSide } = {}) {
+  const side = maxCompressSide ?? 1200;
   const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   if (isProbablyPng(file)) {
@@ -87,7 +87,7 @@ async function uploadImageFile(file) {
       file.name && /\.png$/i.test(file.name) ? file.name : `upload-${Date.now()}.png`
     );
   } else {
-    const blob = await compressToJpeg(file);
+    const blob = await compressToJpeg(file, side);
     body.append("image", new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" }));
   }
   const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
@@ -1013,7 +1013,7 @@ export default function AdminCentralGamePanel({
     if (!file) return;
     setMsg("กำลังอัปโหลดรูปหน้าปก…");
     try {
-      const url = await uploadImageFile(file);
+      const url = await uploadImageFile(file, { maxCompressSide: 800 });
       setGameCoverUrl(url);
       setMsg("อัปโหลดรูปหน้าปกแล้ว — กดบันทึกข้อมูลเพื่อบันทึกลงเซิร์ฟเวอร์");
     } catch (e) {
@@ -1709,16 +1709,12 @@ export default function AdminCentralGamePanel({
                   แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-hui-muted">
-                  แนะนำแนวนอนอัตราส่วนประมาณ{" "}
-                  <span className="font-medium text-hui-body/90">2.6:1</span> (กว้างกว่าสูง) เช่น{" "}
+                  แนะนำรูปสี่เหลี่ยมจัตุรัส{" "}
+                  <span className="font-medium text-hui-body/90">1:1</span> เช่น{" "}
                   <span className="whitespace-nowrap font-medium text-hui-body/90">
-                    1200×460 px
+                    800×800 px
                   </span>{" "}
-                  หรือ{" "}
-                  <span className="whitespace-nowrap font-medium text-hui-body/90">
-                    1560×600 px
-                  </span>{" "}
-                  — พอดีกับการ์ดในรายการเกม (ระบบอาจย่อความละเอียดอัตโนมัติ)
+                  — การ์ดในรายการเกมและหน้าเล่นแสดงเป็นสี่เหลี่ยมจัตุรัส (ระบบอาจย่อความละเอียดอัตโนมัติเมื่ออัปโหลดไม่ใช่ PNG)
                 </p>
                 <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="w-28 shrink-0 sm:w-32">

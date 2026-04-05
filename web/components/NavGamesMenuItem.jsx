@@ -117,14 +117,14 @@ export default function NavGamesMenuItem({ navItemClass, gameLobbyThemed }) {
                         className="block overflow-hidden rounded-lg border border-black/[0.06] bg-slate-50 transition hover:opacity-95"
                         role="menuitem"
                       >
-                        <div className="aspect-[2.6/1] w-full overflow-hidden bg-slate-200">
+                        <div className="aspect-square w-full overflow-hidden bg-slate-200">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={src}
                             alt=""
                             className="h-full w-full object-cover"
-                            width={260}
-                            height={100}
+                            width={120}
+                            height={120}
                           />
                         </div>
                         <p
