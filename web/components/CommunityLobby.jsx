@@ -195,7 +195,7 @@ export default function CommunityLobby({ posts = [] }) {
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-[var(--gl-card-muted)]">ไม่พบโพสต์ที่ตรงกับคำค้น</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {filtered.map((post, i) => (
             <li key={communityCardListKey(post, i)}>
               <CardInner post={post} cardClass={cardClass} mediaShell={mediaShell} />
