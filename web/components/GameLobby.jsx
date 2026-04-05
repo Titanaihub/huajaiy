@@ -52,8 +52,8 @@ export default function GameLobby({
     : `${cardShell} border-hui-border bg-white hover:border-hui-cta/35`;
 
   const mediaShell = gameLobbyThemed
-    ? "relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]"
-    : "relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-hui-border/70 bg-slate-100";
+    ? "relative aspect-[2.6/1] min-h-[120px] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:min-h-[132px]"
+    : "relative aspect-[2.6/1] min-h-[120px] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-hui-border/70 bg-slate-100 sm:min-h-[132px]";
 
   return (
     <div className="space-y-6">
@@ -121,16 +121,14 @@ export default function GameLobby({
               <li key={g.id}>
                 <Link href={href} className={cardClass}>
                   <div className={mediaShell}>
-                    <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                        alt=""
-                        className="max-h-full max-w-full object-contain transition duration-200 group-hover:opacity-95"
-                        width={640}
-                        height={360}
-                      />
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                      alt=""
+                      className="h-full w-full object-cover transition duration-200 group-hover:opacity-95"
+                      width={640}
+                      height={246}
+                    />
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-4">
                     <h2

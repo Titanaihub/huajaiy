@@ -358,6 +358,65 @@
     }
   }
 
+  /** เมนูหัวเว็บ — หน้าปกเกม (ดึงรายการเต็มจาก /api/game/list) */
+  function fillNavGamesGrid(games) {
+    var grid = $("huajaiy-nav-games-grid");
+    var fly = $("huajaiy-nav-games-flyout-root");
+    if (!grid) return;
+    while (grid.firstChild) {
+      grid.removeChild(grid.firstChild);
+    }
+    var list = Array.isArray(games) ? games.slice(0, 6) : [];
+    if (list.length === 0) {
+      if (fly) fly.classList.add("huajaiy-nav-games-flyout--empty");
+      return;
+    }
+    if (fly) fly.classList.remove("huajaiy-nav-games-flyout--empty");
+    for (var i = 0; i < list.length; i++) {
+      var g = list[i];
+      if (!g || !g.id) continue;
+      var col = document.createElement("div");
+      col.className = "col";
+      var a = document.createElement("a");
+      a.href = "/game/" + encodeURIComponent(String(g.id).trim());
+      a.target = "_top";
+      a.rel = "noopener";
+      a.className = "text-decoration-none text-dark";
+      var thumb = document.createElement("div");
+      thumb.className = "huajaiy-nav-game-thumb mb-1";
+      var img = document.createElement("img");
+      var cover = g.gameCoverUrl && String(g.gameCoverUrl).trim();
+      img.src =
+        cover && /^https?:\/\//i.test(cover) ? cover : DEFAULT_GAME_COVER;
+      img.alt = "";
+      img.decoding = "async";
+      thumb.appendChild(img);
+      var cap = document.createElement("div");
+      cap.className = "small fw-semibold text-truncate";
+      cap.textContent = g.title != null ? String(g.title) : "เกม";
+      a.appendChild(thumb);
+      a.appendChild(cap);
+      col.appendChild(a);
+      grid.appendChild(col);
+    }
+  }
+
+  function fetchNavGamesList() {
+    fetch("/api/game/list", {
+      credentials: "omit",
+      headers: { Accept: "application/json" }
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (body) {
+        if (body && body.ok && Array.isArray(body.games)) {
+          fillNavGamesGrid(body.games);
+        }
+      })
+      .catch(function () {});
+  }
+
   function setCommunityLink(id, href) {
     var a = $(id);
     if (!a) return;
@@ -486,6 +545,7 @@
           applyOrganicHome(body.organicHome);
           applyGameCards(Array.isArray(body.organicGamesPick) ? body.organicGamesPick : []);
         }
+        fetchNavGamesList();
         try {
           if (typeof window.__huajaiyNotifyOrganicHeight === "function") {
             window.__huajaiyNotifyOrganicHeight();
@@ -505,6 +565,7 @@
           emptyEl.textContent =
             "โหลดข้อมูลไม่สำเร็จ — ลองรีเฟรช หรือตรวจการเชื่อม API";
         }
+        fetchNavGamesList();
         try {
           if (typeof window.__huajaiyNotifyOrganicHeight === "function") {
             window.__huajaiyNotifyOrganicHeight();

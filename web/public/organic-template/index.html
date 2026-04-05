@@ -54,6 +54,57 @@
       .huajaiy-game-card-media {
         background-color: #f1f5f9;
         border-bottom: 1px solid rgba(240, 214, 220, 0.7);
+        aspect-ratio: 2.6 / 1;
+        overflow: hidden;
+      }
+      .huajaiy-game-card-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      /* เมนูหัวเว็บ — เกมและรางวัล + หน้าปก */
+      .huajaiy-nav-games-dropdown {
+        position: relative;
+      }
+      .huajaiy-nav-games-dropdown::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 0.45rem;
+        z-index: 1049;
+      }
+      .huajaiy-nav-games-flyout {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.35rem);
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 17rem;
+        max-width: 20rem;
+        z-index: 1050;
+        border: 1px solid rgba(240, 214, 220, 0.9);
+      }
+      .huajaiy-nav-games-flyout.huajaiy-nav-games-flyout--empty {
+        display: none !important;
+      }
+      .huajaiy-nav-games-dropdown:hover
+        .huajaiy-nav-games-flyout:not(.huajaiy-nav-games-flyout--empty) {
+        display: block;
+      }
+      .huajaiy-nav-game-thumb {
+        aspect-ratio: 2.6 / 1;
+        overflow: hidden;
+        background: #e2e8f0;
+        border-radius: 0.35rem;
+      }
+      .huajaiy-nav-game-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
       }
       .huajaiy-game-card-title {
         color: #8a1c3a;
@@ -359,7 +410,17 @@
               <li class="nav-item">
                 <a href="/" target="_top" rel="noopener" class="nav-link py-1 px-2">หน้าแรก</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item huajaiy-nav-games-dropdown d-none d-lg-block">
+                <a href="/game" target="_top" rel="noopener" class="nav-link py-1 px-2 d-inline-flex align-items-center gap-1">
+                  เกมและรางวัล <span class="small opacity-60" aria-hidden="true">▾</span>
+                </a>
+                <div class="huajaiy-nav-games-flyout huajaiy-nav-games-flyout--empty rounded-3 bg-white p-3 shadow" id="huajaiy-nav-games-flyout-root">
+                  <p class="small fw-semibold text-body-secondary mb-2">เกมแนะนำ</p>
+                  <div id="huajaiy-nav-games-grid" class="row row-cols-2 g-2"></div>
+                  <a href="/game" target="_top" rel="noopener" class="btn btn-sm w-100 mt-2 text-white" style="background-color:#8a1c3a;border-color:#8a1c3a;">ดูทั้งหมด</a>
+                </div>
+              </li>
+              <li class="nav-item d-lg-none">
                 <a href="/game" target="_top" rel="noopener" class="nav-link py-1 px-2">เกมและรางวัล</a>
               </li>
               <li class="nav-item">
@@ -509,10 +570,8 @@
         <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-lg-4">
           <div id="huajaiy-game-card-0-wrap" class="col d-none">
             <a id="huajaiy-game-card-0" href="#" class="card h-100 text-decoration-none text-dark overflow-hidden huajaiy-game-card rounded-3 d-flex flex-column">
-              <div class="ratio ratio-16x9 huajaiy-game-card-media">
-                <div class="position-absolute top-0 start-0 d-flex h-100 w-100 align-items-center justify-content-center p-3">
-                  <img id="huajaiy-game-card-0-img" src="/game-cover-default-pink.svg" alt="" class="mh-100 mw-100" style="object-fit: contain; max-width: 100%; max-height: 100%; width: auto; height: auto;" decoding="async" />
-                </div>
+              <div class="huajaiy-game-card-media">
+                <img id="huajaiy-game-card-0-img" src="/game-cover-default-pink.svg" alt="" decoding="async" />
               </div>
               <div class="card-body p-3 d-flex flex-column flex-grow-1">
                 <h3 id="huajaiy-game-card-0-title" class="huajaiy-game-card-title h6 fw-semibold mb-0">เกม</h3>
@@ -527,10 +586,8 @@
           </div>
           <div id="huajaiy-game-card-1-wrap" class="col d-none">
             <a id="huajaiy-game-card-1" href="#" class="card h-100 text-decoration-none text-dark overflow-hidden huajaiy-game-card rounded-3 d-flex flex-column">
-              <div class="ratio ratio-16x9 huajaiy-game-card-media">
-                <div class="position-absolute top-0 start-0 d-flex h-100 w-100 align-items-center justify-content-center p-3">
-                  <img id="huajaiy-game-card-1-img" src="/game-cover-default-pink.svg" alt="" class="mh-100 mw-100" style="object-fit: contain; max-width: 100%; max-height: 100%; width: auto; height: auto;" decoding="async" />
-                </div>
+              <div class="huajaiy-game-card-media">
+                <img id="huajaiy-game-card-1-img" src="/game-cover-default-pink.svg" alt="" decoding="async" />
               </div>
               <div class="card-body p-3 d-flex flex-column flex-grow-1">
                 <h3 id="huajaiy-game-card-1-title" class="huajaiy-game-card-title h6 fw-semibold mb-0">เกม</h3>
@@ -545,10 +602,8 @@
           </div>
           <div id="huajaiy-game-card-2-wrap" class="col d-none">
             <a id="huajaiy-game-card-2" href="#" class="card h-100 text-decoration-none text-dark overflow-hidden huajaiy-game-card rounded-3 d-flex flex-column">
-              <div class="ratio ratio-16x9 huajaiy-game-card-media">
-                <div class="position-absolute top-0 start-0 d-flex h-100 w-100 align-items-center justify-content-center p-3">
-                  <img id="huajaiy-game-card-2-img" src="/game-cover-default-pink.svg" alt="" class="mh-100 mw-100" style="object-fit: contain; max-width: 100%; max-height: 100%; width: auto; height: auto;" decoding="async" />
-                </div>
+              <div class="huajaiy-game-card-media">
+                <img id="huajaiy-game-card-2-img" src="/game-cover-default-pink.svg" alt="" decoding="async" />
               </div>
               <div class="card-body p-3 d-flex flex-column flex-grow-1">
                 <h3 id="huajaiy-game-card-2-title" class="huajaiy-game-card-title h6 fw-semibold mb-0">เกม</h3>
@@ -563,10 +618,8 @@
           </div>
           <div id="huajaiy-game-card-3-wrap" class="col d-none">
             <a id="huajaiy-game-card-3" href="#" class="card h-100 text-decoration-none text-dark overflow-hidden huajaiy-game-card rounded-3 d-flex flex-column">
-              <div class="ratio ratio-16x9 huajaiy-game-card-media">
-                <div class="position-absolute top-0 start-0 d-flex h-100 w-100 align-items-center justify-content-center p-3">
-                  <img id="huajaiy-game-card-3-img" src="/game-cover-default-pink.svg" alt="" class="mh-100 mw-100" style="object-fit: contain; max-width: 100%; max-height: 100%; width: auto; height: auto;" decoding="async" />
-                </div>
+              <div class="huajaiy-game-card-media">
+                <img id="huajaiy-game-card-3-img" src="/game-cover-default-pink.svg" alt="" decoding="async" />
               </div>
               <div class="card-body p-3 d-flex flex-column flex-grow-1">
                 <h3 id="huajaiy-game-card-3-title" class="huajaiy-game-card-title h6 fw-semibold mb-0">เกม</h3>

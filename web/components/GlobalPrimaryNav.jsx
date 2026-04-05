@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import { siteNavLinkClass } from "../lib/siteNavLinkClass";
+import NavGamesMenuItem from "./NavGamesMenuItem";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function GlobalPrimaryNav() {
@@ -10,11 +11,19 @@ export default function GlobalPrimaryNav() {
 
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 sm:gap-x-8">
-      {GLOBAL_PRIMARY_NAV_BASE.map((item) => (
-        <Link key={item.href} href={item.href} className={siteNavLinkClass}>
-          {item.label}
-        </Link>
-      ))}
+      {GLOBAL_PRIMARY_NAV_BASE.map((item) =>
+        item.href === "/game" ? (
+          <NavGamesMenuItem
+            key={item.href}
+            navItemClass={siteNavLinkClass}
+            gameLobbyThemed={false}
+          />
+        ) : (
+          <Link key={item.href} href={item.href} className={siteNavLinkClass}>
+            {item.label}
+          </Link>
+        )
+      )}
       {loading ? (
         <span
           className={`${siteNavLinkClass} inline-block min-w-[5rem] text-hui-muted`}

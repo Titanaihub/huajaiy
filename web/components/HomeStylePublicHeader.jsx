@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
+import NavGamesMenuItem from "./NavGamesMenuItem";
 import { useHearts } from "./HeartsProvider";
 import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
@@ -189,11 +190,19 @@ export default function HomeStylePublicHeader({
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
           <nav className={navShell} aria-label="เมนูหลัก">
-            {GLOBAL_PRIMARY_NAV_BASE.map((item) => (
-              <Link key={item.href} href={item.href} className={navItemClass}>
-                {item.label}
-              </Link>
-            ))}
+            {GLOBAL_PRIMARY_NAV_BASE.map((item) =>
+              item.href === "/game" ? (
+                <NavGamesMenuItem
+                  key={item.href}
+                  navItemClass={navItemClass}
+                  gameLobbyThemed={gameLobbyThemed}
+                />
+              ) : (
+                <Link key={item.href} href={item.href} className={navItemClass}>
+                  {item.label}
+                </Link>
+              )
+            )}
             {memberLoading ? (
               <span
                 className={
