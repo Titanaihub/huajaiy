@@ -91,11 +91,11 @@ export default function MemberStylePageShell({ children }) {
       if (item.kind === "publicPage") {
         const raw = user?.username != null ? String(user.username).trim().toLowerCase() : "";
         const ok = PUBLIC_USER_RE.test(raw);
-        const href = ok ? "/account/my-page" : null;
+        const href = ok ? `/u/${encodeURIComponent(raw)}` : null;
         return {
           ...item,
           href,
-          active: pathN === "/account/my-page" || pathN.startsWith("/account/my-page/"),
+          active: !!(href && pathN === normPath(href)),
           disabled: !ok,
           disabledTitle: ok ? undefined : "ตั้งชื่อผู้ใช้ในโปรไฟล์ก่อน"
         };

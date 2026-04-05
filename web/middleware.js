@@ -47,8 +47,6 @@ export function middleware(request) {
     pathname.startsWith("/account/heart-history/") ||
     pathname === "/account/profile/legacy" ||
     pathname.startsWith("/account/profile/legacy/") ||
-    pathname === "/account/my-page" ||
-    pathname.startsWith("/account/my-page/") ||
     pathname.startsWith("/account/shops/");
 
   /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้นหน้าที่ต้องคง React ด้านบน) */
