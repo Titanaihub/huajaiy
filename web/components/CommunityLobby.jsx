@@ -73,10 +73,7 @@ function MetaFolderIcon({ className }) {
   );
 }
 
-/**
- * โครงเดียวกับหน้าแรก organic (#latest-blog):
- * article.post-item.card — padding รอบการ์ด → รูปมุมโค้งด้านใน → card-body (เมตา / หัวข้อ / คำอธิบาย)
- */
+/** แบนเนอร์แนวนอน (~2.6:1) → แถวเมตา → หัวข้อ → คำอธิบาย — ธีมเดียวกับ GameLobby */
 function CardInner({ post, cardClass, mediaShell }) {
   const src = resolveCommunityImageSrc(post?.imageUrl);
   const phref = post?.href;
@@ -90,10 +87,9 @@ function CardInner({ post, cardClass, mediaShell }) {
       <img
         src={src || DEFAULT_CENTRAL_GAME_COVER_PATH}
         alt=""
-        className="h-full w-full object-cover object-center transition duration-200 group-hover:opacity-95"
-        width={800}
-        height={800}
-        decoding="async"
+        className="h-full w-full object-cover transition duration-200 group-hover:opacity-95"
+        width={640}
+        height={246}
       />
     </div>
   );
@@ -101,18 +97,18 @@ function CardInner({ post, cardClass, mediaShell }) {
   const body = (
     <>
       {media}
-      <div className="card-body flex min-h-0 flex-1 flex-col p-0 pt-2">
-        <div className="post-meta flex items-center justify-between gap-2 text-[11px] font-semibold uppercase leading-none tracking-wide text-[var(--gl-card-muted)]">
+      <div className="flex min-h-0 flex-1 flex-col bg-[var(--gl-card-bg)] p-3 sm:p-3.5">
+        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase leading-none tracking-wide text-[var(--gl-card-muted)]">
           <div className="flex min-w-0 items-center gap-1.5">
             <MetaCalendarIcon className="shrink-0 opacity-85" />
             <span className="truncate">{dateLine || "—"}</span>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <MetaFolderIcon className="shrink-0 opacity-85" />
-            <span className="truncate">{category || "—"}</span>
+            <span>{category || "—"}</span>
           </div>
         </div>
-        <h2 className="post-title mt-2.5 line-clamp-2 text-base font-bold leading-snug text-[var(--gl-card-title)] sm:text-lg">
+        <h2 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-[var(--gl-card-title)] sm:text-lg">
           {post?.title || "โพสต์"}
         </h2>
         {post?.excerpt ? (
@@ -165,13 +161,12 @@ export default function CommunityLobby({ posts = [] }) {
     });
   }, [posts, q]);
 
-  /* สไตล์เดียวกับ organic: post-item card border-0 shadow-sm p-3 */
   const cardShell =
-    "post-item group flex h-full flex-col overflow-hidden rounded-lg border-0 bg-white text-left shadow-sm transition hover:shadow-md";
-  const cardClass = `${cardShell} p-3`;
-  /* สัดส่วน 1:1 + ขอบชัด — กรอบรูปแบบหน้าแรก (#latest-blog) */
+    "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
+  const cardClass = `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`;
+  /* แบนเนอร์แนวนอน ~2.6:1 */
   const mediaShell =
-    "relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-[#f1f5f9] shadow-sm ring-1 ring-slate-200/90";
+    "relative aspect-[2.6/1] min-h-[120px] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:min-h-[132px]";
 
   return (
     <div className="space-y-6">
@@ -200,7 +195,7 @@ export default function CommunityLobby({ posts = [] }) {
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-[var(--gl-card-muted)]">ไม่พบโพสต์ที่ตรงกับคำค้น</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((post, i) => (
             <li key={communityCardListKey(post, i)}>
               <CardInner post={post} cardClass={cardClass} mediaShell={mediaShell} />
