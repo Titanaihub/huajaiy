@@ -2286,17 +2286,29 @@
                 var body = document.body;
                 var tail = document.getElementById("huajaiy-organic-embed-tail");
                 var h;
-                if (tail) {
-                  var r = tail.getBoundingClientRect();
-                  var y = window.pageYOffset || doc.scrollTop || 0;
-                  h = Math.ceil(r.bottom + y + 4);
-                } else {
-                  h = Math.max(
+                function fullDocHeight() {
+                  return Math.max(
                     doc.scrollHeight,
                     body ? body.scrollHeight : 0,
                     doc.offsetHeight,
                     body ? body.offsetHeight : 0
                   );
+                }
+                if (tail) {
+                  var cs = window.getComputedStyle(tail);
+                  var hidden =
+                    cs.display === "none" ||
+                    cs.visibility === "hidden" ||
+                    tail.classList.contains("d-none");
+                  var r = tail.getBoundingClientRect();
+                  var y = window.pageYOffset || doc.scrollTop || 0;
+                  if (hidden || (r.height < 1 && r.width < 1)) {
+                    h = fullDocHeight();
+                  } else {
+                    h = Math.ceil(r.bottom + y + 4);
+                  }
+                } else {
+                  h = fullDocHeight();
                 }
                 if (h < 320) h = 320;
                 window.parent.postMessage(
