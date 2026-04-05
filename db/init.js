@@ -854,7 +854,7 @@ async function initDb() {
     `);
 
     console.log(
-      "[db] PostgreSQL schema พร้อม (users, orders, shops, products, hearts, central_games)"
+      "[db] PostgreSQL schema พร้อม — รวมตารางหลักและคอลัมน์เพจสมาชิกบน users (public_page_cover_url, public_page_bio, public_page_listed)"
     );
   } finally {
     client.release();
