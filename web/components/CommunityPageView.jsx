@@ -22,6 +22,32 @@ function postHasPublicContent(post) {
   return Boolean(t || u || ex);
 }
 
+const MEMBER_EXCERPT_LEN = 200;
+
+function memberDirectoryCard(m) {
+  const un = String(m?.username || "").trim();
+  if (!un) return null;
+  const bio = String(m?.publicPageBio || "").trim();
+  let excerpt = bio;
+  if (excerpt.length > MEMBER_EXCERPT_LEN) {
+    excerpt = `${excerpt.slice(0, MEMBER_EXCERPT_LEN).trim()}…`;
+  }
+  if (!excerpt) excerpt = "เปิดดูเพจสมาชิก";
+  const img =
+    String(m?.publicPageCoverUrl || "").trim() ||
+    String(m?.profilePictureUrl || "").trim() ||
+    "";
+  const title = String(m?.displayName || un).trim() || un;
+  return {
+    title,
+    category: "เพจสมาชิก",
+    dateLine: `@${un}`,
+    excerpt,
+    imageUrl: img,
+    href: `/u/${encodeURIComponent(un)}`
+  };
+}
+
 function SmartLink({ href, className, children }) {
   const h = String(href || "").trim();
   if (!h || h === "#") {
@@ -44,7 +70,11 @@ function SmartLink({ href, className, children }) {
 /**
  * เนื้อหาเพจชุมชน — โครงเดียวกับหน้า /game (หัวข้อ + ล็อบบี้การ์ด + ทางลัด)
  */
-export default function CommunityPageView({ blogBlock, communityPage }) {
+export default function CommunityPageView({
+  blogBlock,
+  communityPage,
+  memberPages = []
+}) {
   const rawTitle = blogBlock?.title?.trim() || "";
   const title = normalizeCommunityTitle(rawTitle);
   const rawSub = blogBlock?.subtitle?.trim() || "";
@@ -53,6 +83,11 @@ export default function CommunityPageView({ blogBlock, communityPage }) {
   const cp = communityPage && typeof communityPage === "object" ? communityPage : {};
   const posts = Array.isArray(cp.posts) ? cp.posts : [];
   const visiblePosts = posts.filter(postHasPublicContent);
+  const memberPosts = (Array.isArray(memberPages) ? memberPages : [])
+    .map(memberDirectoryCard)
+    .filter(Boolean)
+    .filter(postHasPublicContent);
+  const lobbyPosts = [...memberPosts, ...visiblePosts];
   const viewHref = String(cp.viewAllHref || "").trim();
   const showViewAll = viewHref && viewHref !== "#";
 
@@ -79,7 +114,7 @@ export default function CommunityPageView({ blogBlock, communityPage }) {
         ) : null}
       </div>
 
-      <CommunityLobby posts={visiblePosts} />
+      <CommunityLobby posts={lobbyPosts} />
 
       <nav
         className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"

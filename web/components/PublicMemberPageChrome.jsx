@@ -24,6 +24,12 @@ export default function PublicMemberPageChrome({ member }) {
     return a || DEFAULT_AVATAR;
   }, [member]);
 
+  const coverUrl = String(member?.publicPageCoverUrl || "").trim();
+  const bioCustom = String(member?.publicPageBio || "").trim();
+  const tagline =
+    bioCustom ||
+    "เพจบน HUAJAIY — แชร์ลิงก์นี้ให้เพื่อนเข้ามาดูโปรไฟล์และเกมของคุณ";
+
   const pageUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
     return `${window.location.origin}/u/${encodeURIComponent(username)}`;
@@ -78,16 +84,30 @@ export default function PublicMemberPageChrome({ member }) {
         <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm">
           {/* ปกเพจ */}
           <div
-            className="relative h-44 bg-gradient-to-br from-rose-500 via-pink-500 to-indigo-600 sm:h-52 md:h-60"
+            className={`relative h-44 overflow-hidden sm:h-52 md:h-60 ${
+              coverUrl ? "bg-slate-900" : "bg-gradient-to-br from-rose-500 via-pink-500 to-indigo-600"
+            }`}
             aria-hidden
           >
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 20% 80%, white 0%, transparent 50%), radial-gradient(circle at 80% 20%, white 0%, transparent 45%)"
-              }}
-            />
+            {coverUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={coverUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+              </>
+            ) : (
+              <div
+                className="absolute inset-0 opacity-30"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle at 20% 80%, white 0%, transparent 50%), radial-gradient(circle at 80% 20%, white 0%, transparent 45%)"
+                }}
+              />
+            )}
           </div>
 
           <div className="relative px-4 pb-2 sm:px-6">
@@ -108,8 +128,8 @@ export default function PublicMemberPageChrome({ member }) {
                     {displayName}
                   </h1>
                   <p className="mt-0.5 text-[15px] text-gray-600">@{username}</p>
-                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray-500">
-                    เพจบน HUAJAIY — แชร์ลิงก์นี้ให้เพื่อนเข้ามาดูโปรไฟล์และเกมของคุณ
+                  <p className="mt-2 max-w-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-500">
+                    {tagline}
                   </p>
                 </div>
               </div>

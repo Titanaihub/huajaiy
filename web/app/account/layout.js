@@ -31,7 +31,12 @@ export default async function AccountLayout({ children }) {
   }
 
   /** โปรไฟล์ = TailAdmin เต็มจอ — ไม่ครอบด้วยหัวเว็บ/ฟุตเตอร์/ชั้นกล่องเดิม */
-  if (pathname === "/account/profile" || minimalShell) {
+  if (
+    pathname === "/account/profile" ||
+    pathname === "/account/my-page" ||
+    pathname.startsWith("/account/my-page/") ||
+    minimalShell
+  ) {
     return <>{children}</>;
   }
 

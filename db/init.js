@@ -128,6 +128,18 @@ async function initDb() {
       ALTER TABLE users
       ADD COLUMN IF NOT EXISTS social_tiktok_url VARCHAR(500);
     `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS public_page_cover_url VARCHAR(1024);
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS public_page_bio TEXT;
+    `);
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS public_page_listed BOOLEAN NOT NULL DEFAULT TRUE;
+    `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */
     await client.query(`
       ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;

@@ -241,7 +241,9 @@
               .split("?")[0]
               .replace(/\/+/g, "/")
               .replace(/\/$/, "") || "/";
-            active = ppU === "/u/" + rawP;
+            active =
+              ppU === "/account/my-page" ||
+              ppU.indexOf("/account/my-page/") === 0;
           }
         } catch (e1) {
           /* cross-origin */
@@ -695,7 +697,7 @@
         : "";
     var ok = PUBLIC_PAGE_USER_RE.test(raw);
     if (ok) {
-      el.setAttribute("href", "/u/" + encodeURIComponent(raw));
+      el.setAttribute("href", "/account/my-page");
       el.removeAttribute("aria-disabled");
       el.removeAttribute("title");
       el.classList.remove("opacity-50", "cursor-default", "pointer-events-none");

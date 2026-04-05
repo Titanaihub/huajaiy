@@ -258,9 +258,7 @@ export default function HomeStylePublicHeader({
                             String(memberUser.username || "").trim().toLowerCase()
                           ) ? (
                             <Link
-                              href={`/u/${encodeURIComponent(
-                                String(memberUser.username).trim().toLowerCase()
-                              )}`}
+                              href="/account/my-page"
                               className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
                               role="menuitem"
                               onClick={() => setMoreOpen(false)}

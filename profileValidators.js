@@ -231,6 +231,38 @@ function validateProfilePatch(body, ctx = {}) {
     socialTiktokUrl = ttRes.value;
   }
 
+  let publicPageCoverUrl = null;
+  let updatePublicPageCover = false;
+  const coverRes = optionalHttpsUrlField(body, "publicPageCoverUrl", 1024);
+  if (coverRes && coverRes.error) return { ok: false, error: coverRes.error };
+  if (coverRes && coverRes.update) {
+    updatePublicPageCover = true;
+    publicPageCoverUrl = coverRes.value;
+  }
+
+  let publicPageBio = null;
+  let updatePublicPageBio = false;
+  if (Object.prototype.hasOwnProperty.call(body, "publicPageBio")) {
+    updatePublicPageBio = true;
+    const rawBio = body.publicPageBio;
+    if (rawBio == null || String(rawBio).trim() === "") {
+      publicPageBio = null;
+    } else {
+      const s = String(rawBio).replace(/\u0000/g, "").trim();
+      if (s.length > 2000) {
+        return { ok: false, error: "คำแนะนำบนเพจยาวเกิน 2,000 ตัวอักษร" };
+      }
+      publicPageBio = s;
+    }
+  }
+
+  let publicPageListed = true;
+  let updatePublicPageListed = false;
+  if (Object.prototype.hasOwnProperty.call(body, "publicPageListed")) {
+    updatePublicPageListed = true;
+    publicPageListed = Boolean(body.publicPageListed);
+  }
+
   return {
     ok: true,
     data: {
@@ -258,7 +290,13 @@ function validateProfilePatch(body, ctx = {}) {
       socialLineUrl,
       updateSocialLine,
       socialTiktokUrl,
-      updateSocialTiktok
+      updateSocialTiktok,
+      publicPageCoverUrl,
+      updatePublicPageCover,
+      publicPageBio,
+      updatePublicPageBio,
+      publicPageListed,
+      updatePublicPageListed
     }
   };
 }

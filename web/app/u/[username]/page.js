@@ -31,9 +31,16 @@ export async function generateMetadata({ params }) {
     return { title: "เพจสมาชิก | HUAJAIY" };
   }
   const name = String(m.displayName || m.username || "").trim() || m.username;
+  const bio = String(m.publicPageBio || "").trim();
+  const desc =
+    bio && bio.length <= 160
+      ? bio
+      : bio
+        ? `${bio.slice(0, 157).trim()}…`
+        : `เพจของ @${m.username} บน HUAJAIY — เกมและโปรไฟล์`;
   return {
     title: `${name} (@${m.username}) | HUAJAIY`,
-    description: `เพจของ @${m.username} บน HUAJAIY — เกมและโปรไฟล์`
+    description: desc
   };
 }
 

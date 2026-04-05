@@ -1,6 +1,7 @@
 import CommunityPageView from "../../components/CommunityPageView";
 import PublicOrganicShell from "../../components/PublicOrganicShell";
 import { fetchOrganicHomePublic } from "../../lib/fetchOrganicHomePublic";
+import { fetchPublicMemberPages } from "../../lib/fetchPublicMemberPages";
 import { mergeOrganicHomeFromApi } from "../../lib/organicHomeFormDefaults";
 import { fetchPublicGameLobbyTheme } from "../../lib/publicGameMeta";
 import { buildSiteRootBackgroundStyle } from "../../lib/siteThemeStyle";
@@ -33,9 +34,10 @@ export async function generateMetadata() {
 }
 
 export default async function CommunityPageRoute() {
-  const [raw, gameLobbyTheme] = await Promise.all([
+  const [raw, gameLobbyTheme, memberPages] = await Promise.all([
     fetchOrganicHomePublic(),
-    fetchPublicGameLobbyTheme()
+    fetchPublicGameLobbyTheme(),
+    fetchPublicMemberPages(24)
   ]);
   const oh = mergeOrganicHomeFromApi(raw || {});
 
@@ -52,6 +54,7 @@ export default async function CommunityPageRoute() {
       <CommunityPageView
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
+        memberPages={memberPages}
       />
     </PublicOrganicShell>
   );

@@ -296,6 +296,31 @@ function heartBalancesPayload(u) {
   };
 }
 
+/** แปลงรายการ directory → การ์ดชุมชนบนหน้าแรก organic (สูงสุด 3 ช่อง) */
+function publicMemberDirectoryPostForOrganic(m) {
+  const un = String(m?.username || "").trim();
+  if (!un) return null;
+  const bio = String(m?.publicPageBio || "").trim();
+  let excerpt = bio;
+  if (excerpt.length > 160) {
+    excerpt = `${excerpt.slice(0, 160).trim()}…`;
+  }
+  if (!excerpt) excerpt = "เปิดดูเพจสมาชิก";
+  const img =
+    String(m?.publicPageCoverUrl || "").trim() ||
+    String(m?.profilePictureUrl || "").trim() ||
+    "";
+  const title = String(m?.displayName || un).trim() || un;
+  return {
+    title,
+    category: "เพจสมาชิก",
+    dateLine: `@${un}`,
+    excerpt,
+    imageUrl: img,
+    href: `/u/${encodeURIComponent(un)}`
+  };
+}
+
 /** โปรไฟล์สาธารณะตาม username — ไม่ส่งเบอร์/ที่อยู่/ยอดหัวใจ */
 app.get("/api/public/members/:username", async (req, res) => {
   try {
@@ -320,8 +345,25 @@ app.get("/api/public/members/:username", async (req, res) => {
       linePictureUrl: u.linePictureUrl || null,
       socialFacebookUrl: u.socialFacebookUrl || null,
       socialLineUrl: u.socialLineUrl || null,
-      socialTiktokUrl: u.socialTiktokUrl || null
+      socialTiktokUrl: u.socialTiktokUrl || null,
+      publicPageCoverUrl: u.publicPageCoverUrl || null,
+      publicPageBio: u.publicPageBio || null
     });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** รายการเพจสมาชิกสำหรับหน้าแรก/ชุมชน */
+app.get("/api/public/member-pages", async (req, res) => {
+  try {
+    const q = req.query?.limit;
+    const limit = Math.min(
+      48,
+      Math.max(1, Math.floor(Number(q != null ? q : 12) || 12))
+    );
+    const members = await userService.listPublicMemberDirectory(limit);
+    return res.json({ ok: true, members });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }
@@ -363,11 +405,34 @@ app.get("/api/public/organic-home", async (_req, res) => {
     } catch (_e) {
       organicGamesPick = [];
     }
+    let organicHome = organicHomeContent.sanitizeOrganicHomeForPublic(
+      theme.organicHome
+    );
+    try {
+      const dirPick = await userService.listPublicMemberDirectory(3);
+      const memberPosts = dirPick
+        .map(publicMemberDirectoryPostForOrganic)
+        .filter(Boolean);
+      if (memberPosts.length > 0) {
+        const cp =
+          organicHome.communityPage && typeof organicHome.communityPage === "object"
+            ? organicHome.communityPage
+            : {};
+        const adminPosts = Array.isArray(cp.posts) ? cp.posts : [];
+        organicHome = {
+          ...organicHome,
+          communityPage: {
+            ...cp,
+            posts: [...memberPosts, ...adminPosts].slice(0, 3)
+          }
+        };
+      }
+    } catch (_mergeErr) {
+      /* คง sanitize เดิม */
+    }
     return res.json({
       ok: true,
-      organicHome: organicHomeContent.sanitizeOrganicHomeForPublic(
-        theme.organicHome
-      ),
+      organicHome,
       organicGamesPick
     });
   } catch (e) {

@@ -124,6 +124,12 @@ function rowToUser(row) {
     socialFacebookUrl: sanitizeHttpsUrlOptional(row.social_facebook_url, 500),
     socialLineUrl: sanitizeHttpsUrlOptional(row.social_line_url, 500),
     socialTiktokUrl: sanitizeHttpsUrlOptional(row.social_tiktok_url, 500),
+    publicPageCoverUrl: sanitizeHttpsUrlOptional(row.public_page_cover_url, 1024),
+    publicPageBio:
+      row.public_page_bio != null && String(row.public_page_bio).trim()
+        ? String(row.public_page_bio).trim().slice(0, 2000)
+        : null,
+    publicPageListed: row.public_page_listed === false ? false : true,
     email:
       row.email != null && String(row.email).trim()
         ? String(row.email).trim().toLowerCase().slice(0, 254)
@@ -186,8 +192,75 @@ function enrichFileUserShipping(u) {
     profilePictureUrl: sanitizeHttpsUrlOptional(u.profilePictureUrl, 1024),
     socialFacebookUrl: sanitizeHttpsUrlOptional(u.socialFacebookUrl, 500),
     socialLineUrl: sanitizeHttpsUrlOptional(u.socialLineUrl, 500),
-    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500)
+    socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500),
+    publicPageCoverUrl: sanitizeHttpsUrlOptional(u.publicPageCoverUrl, 1024),
+    publicPageBio:
+      u.publicPageBio != null && String(u.publicPageBio).trim()
+        ? String(u.publicPageBio).trim().slice(0, 2000)
+        : null,
+    publicPageListed: u.publicPageListed === false ? false : true
   };
+}
+
+function publicDirectoryDisplayName(u) {
+  const fn = String(u.firstName || "").trim();
+  const ln = String(u.lastName || "").trim();
+  const joined = [fn, ln].filter(Boolean).join(" ").trim();
+  return joined || String(u.username || "").trim();
+}
+
+function publicDirectoryAvatarUrl(u) {
+  const p = u.profilePictureUrl;
+  const l = u.linePictureUrl;
+  const a = (p && String(p).trim()) || (l && String(l).trim()) || "";
+  return a || null;
+}
+
+/**
+ * รายชื่อเพจสมาชิกสำหรับหน้าแรก/ชุมชน — ไม่รวมแอดมินและบัญชีปิด
+ */
+async function listPublicMemberDirectory(limit = 12) {
+  const lim = Math.min(48, Math.max(1, Math.floor(Number(limit) || 12)));
+  const pool = getPool();
+  if (!pool) {
+    const rows = userStore.listForAdmin({ q: "", limit: 200, offset: 0 });
+    return rows
+      .filter((u) => !u.accountDisabled && String(u.role || MEMBER) !== ADMIN)
+      .filter((u) => u.publicPageListed !== false)
+      .slice(0, lim)
+      .map((raw) => {
+        const u = enrichFileUserShipping(raw);
+        return {
+          username: u.username,
+          displayName: publicDirectoryDisplayName(u),
+          profilePictureUrl: publicDirectoryAvatarUrl(u),
+          publicPageCoverUrl: u.publicPageCoverUrl || null,
+          publicPageBio: u.publicPageBio || null
+        };
+      });
+  }
+  const r = await pool.query(
+    `SELECT username, first_name, last_name,
+            profile_picture_url, line_picture_url,
+            public_page_cover_url, public_page_bio
+     FROM users
+     WHERE account_disabled = false
+       AND COALESCE(role, 'member') <> 'admin'
+       AND COALESCE(public_page_listed, true) = true
+     ORDER BY created_at DESC NULLS LAST
+     LIMIT $1`,
+    [lim]
+  );
+  return r.rows.map((row) => {
+    const u = rowToUser(row);
+    return {
+      username: u.username,
+      displayName: publicDirectoryDisplayName(u),
+      profilePictureUrl: publicDirectoryAvatarUrl(u),
+      publicPageCoverUrl: u.publicPageCoverUrl || null,
+      publicPageBio: u.publicPageBio || null
+    };
+  });
 }
 
 async function findById(id) {
@@ -469,7 +542,13 @@ function publicUser(u) {
     socialTiktokUrl: sanitizeHttpsUrlOptional(u.socialTiktokUrl, 500),
     lineLoginLinked: Boolean(
       u.lineUserId != null && String(u.lineUserId).trim() !== ""
-    )
+    ),
+    publicPageCoverUrl: sanitizeHttpsUrlOptional(u.publicPageCoverUrl, 1024),
+    publicPageBio:
+      u.publicPageBio != null && String(u.publicPageBio).trim()
+        ? String(u.publicPageBio).trim().slice(0, 2000)
+        : null,
+    publicPageListed: u.publicPageListed === false ? false : true
   };
 }
 
@@ -512,7 +591,13 @@ async function updateProfile(
     socialLineUrl,
     updateSocialLine,
     socialTiktokUrl,
-    updateSocialTiktok
+    updateSocialTiktok,
+    publicPageCoverUrl,
+    updatePublicPageCover,
+    publicPageBio,
+    updatePublicPageBio,
+    publicPageListed,
+    updatePublicPageListed
   },
   opts = {}
 ) {
@@ -614,6 +699,29 @@ async function updateProfile(
   );
   if (updateSocialTiktok) nextSocialTiktok = socialTiktokUrl;
 
+  let nextPublicPageCover = sanitizeHttpsUrlOptional(
+    current.publicPageCoverUrl,
+    1024
+  );
+  if (updatePublicPageCover) nextPublicPageCover = publicPageCoverUrl;
+
+  let nextPublicPageBio =
+    current.publicPageBio != null && String(current.publicPageBio).trim()
+      ? String(current.publicPageBio).trim().slice(0, 2000)
+      : null;
+  if (updatePublicPageBio) {
+    nextPublicPageBio =
+      publicPageBio != null && String(publicPageBio).trim()
+        ? String(publicPageBio).trim().slice(0, 2000)
+        : null;
+  }
+
+  let nextPublicPageListed =
+    current.publicPageListed === false ? false : true;
+  if (updatePublicPageListed) {
+    nextPublicPageListed = Boolean(publicPageListed);
+  }
+
   const pool = getPool();
 
   if (!pool) {
@@ -629,7 +737,10 @@ async function updateProfile(
       profilePictureUrl: nextProfilePictureUrl,
       socialFacebookUrl: nextSocialFacebook,
       socialLineUrl: nextSocialLine,
-      socialTiktokUrl: nextSocialTiktok
+      socialTiktokUrl: nextSocialTiktok,
+      publicPageCoverUrl: nextPublicPageCover,
+      publicPageBio: nextPublicPageBio,
+      publicPageListed: nextPublicPageListed
     };
     patch.shippingAddress = shipDb.shipping_address;
     patch.shippingAddressParts = { ...mergedShipParts };
@@ -686,7 +797,10 @@ async function updateProfile(
         social_facebook_url = $18,
         social_line_url = $19,
         social_tiktok_url = $20,
-        self_service_name_edits = self_service_name_edits + $21
+        self_service_name_edits = self_service_name_edits + $21,
+        public_page_cover_url = $22,
+        public_page_bio = $23,
+        public_page_listed = $24
       WHERE id = $1::uuid`,
       [
         userId,
@@ -709,7 +823,10 @@ async function updateProfile(
         nextSocialFacebook,
         nextSocialLine,
         nextSocialTiktok,
-        nameEditDelta
+        nameEditDelta,
+        nextPublicPageCover,
+        nextPublicPageBio,
+        nextPublicPageListed
       ]
     );
     await client.query("COMMIT");
@@ -1427,6 +1544,7 @@ module.exports = {
   updateProfile,
   updateOfficialNames,
   publicUser,
+  listPublicMemberDirectory,
   adminMemberListItem,
   adminMemberDetail,
   listMembers,
