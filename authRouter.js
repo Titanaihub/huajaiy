@@ -746,6 +746,9 @@ router.get("/my-public-posts/:id/share-stats", authMiddleware, async (req, res) 
         intents: [],
         refClicksByUser: [],
         totalRefClicks: 0,
+        shareIntentTotal: 0,
+        shareIntentAnonymous: 0,
+        shareIntentIdentified: 0,
         dbRequired: true
       });
     }

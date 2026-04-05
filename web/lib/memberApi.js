@@ -564,6 +564,23 @@ export async function apiDeleteMyPublicPost(token, id) {
   return data;
 }
 
+/** กดแชร์จากเว็บขณะไม่ล็อกอิน — นับเป็นผู้เยี่ยมชม */
+export async function apiPublicPostShareIntent(pageUsername, postId, channel) {
+  const r = await fetch(
+    `${apiRoot()}/api/public/members/${encodeURIComponent(pageUsername)}/posts/${encodeURIComponent(postId)}/share-intent`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ channel })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "บันทึกการแชร์ไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiPostShareIntent(token, postId, channel) {
   const r = await fetch(
     `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-intent`,

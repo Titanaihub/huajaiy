@@ -9,6 +9,7 @@ import {
   apiGetPostShareStats,
   apiPatchMyPublicPost,
   apiPostShareIntent,
+  apiPublicPostShareIntent,
   getMemberToken
 } from "../lib/memberApi";
 import {
@@ -193,15 +194,19 @@ function MemberPublicPostCard({
 
   const trackIntent = useCallback(
     async (channel) => {
-      const token = getMemberToken();
-      if (!token || !post?.id) return;
+      if (!post?.id || !pageUsername) return;
       try {
-        await apiPostShareIntent(token, String(post.id), channel);
+        const token = getMemberToken();
+        if (token) {
+          await apiPostShareIntent(token, String(post.id), channel);
+        } else {
+          await apiPublicPostShareIntent(pageUsername, String(post.id), channel);
+        }
       } catch {
         /* ignore */
       }
     },
-    [post?.id]
+    [pageUsername, post?.id]
   );
 
   const loadStats = useCallback(async () => {
@@ -214,7 +219,10 @@ function MemberPublicPostCard({
       setStats({
         intents: data.intents || [],
         refClicksByUser: data.refClicksByUser || [],
-        totalRefClicks: data.totalRefClicks ?? 0
+        totalRefClicks: data.totalRefClicks ?? 0,
+        shareIntentTotal: data.shareIntentTotal ?? 0,
+        shareIntentAnonymous: data.shareIntentAnonymous ?? 0,
+        shareIntentIdentified: data.shareIntentIdentified ?? 0
       });
     } catch (e) {
       setStatsErr(e instanceof Error ? e.message : String(e));
@@ -347,8 +355,8 @@ function MemberPublicPostCard({
             </a>
           </div>
           <p className="mt-1 text-[10px] leading-snug text-gray-500">
-            ล็อกอินแล้วลิงก์จะมี <span className="font-mono">?ref=</span> ชื่อคุณ เพื่อนับการเปิดลิงก์ — แชร์ต่อโดยคนทั่วไปนับได้เมื่อลิงก์ยังมี{" "}
-            <span className="font-mono">ref</span> อยู่
+            ระบบจะนับทุกครั้งที่กด LINE / Facebook / คัดลอกลิงก์ (ทั้งล็อกอินและไม่ล็อกอิน) — ล็อกอินแล้วลิงก์จะมี{" "}
+            <span className="font-mono">?ref=</span> ชื่อคุณ เพื่อระบุตัวผู้แชร์และนับการเปิดลิงก์ต่อ
           </p>
         </div>
       ) : null}
@@ -367,18 +375,35 @@ function MemberPublicPostCard({
               {statsErr ? <p className="text-red-600">{statsErr}</p> : null}
               {stats && !statsLoading ? (
                 <>
+                  <p className="rounded bg-gray-50 px-2 py-1.5 text-[11px] text-gray-700">
+                    กดแชร์จากเว็บรวม <strong>{stats.shareIntentTotal}</strong> ครั้ง — ระบุสมาชิก{" "}
+                    <strong>{stats.shareIntentIdentified}</strong> · ไม่ล็อกอิน{" "}
+                    <strong>{stats.shareIntentAnonymous}</strong>
+                  </p>
+                  <p className="text-[10px] leading-snug text-amber-900/90">
+                    มอบหัวใจรางวัล: ใช้รายการที่ระบุ <span className="font-mono">@username</span> หรือคลิกจากลิงก์{" "}
+                    <span className="font-mono">?ref=</span> — แถว &quot;ผู้เยี่ยมชม&quot; นับได้แต่ไม่รู้ว่าเป็นสมาชิกคนไหน
+                  </p>
                   <div>
-                    <p className="font-semibold text-gray-800">สมาชิกที่กดแชร์จากปุ่มบนเว็บ (ขณะล็อกอิน)</p>
+                    <p className="font-semibold text-gray-800">รายการกดแชร์จากเว็บ (ล่าสุด)</p>
                     {stats.intents.length === 0 ? (
                       <p className="text-gray-500">ยังไม่มีข้อมูล</p>
                     ) : (
                       <ul className="mt-1 max-h-32 list-inside list-disc space-y-0.5 overflow-y-auto text-gray-600">
                         {stats.intents.slice(0, 50).map((row, i) => (
                           <li key={i}>
-                            @{row.username} · {channelLabel(row.channel)} ·{" "}
-                            {row.createdAt
-                              ? new Date(row.createdAt).toLocaleString("th-TH")
-                              : ""}
+                            {row.anonymous ? (
+                              <span>{row.displayName}</span>
+                            ) : (
+                              <span>@{row.username}</span>
+                            )}
+                            <span>
+                              {" "}
+                              · {channelLabel(row.channel)} ·{" "}
+                              {row.createdAt
+                                ? new Date(row.createdAt).toLocaleString("th-TH")
+                                : ""}
+                            </span>
                           </li>
                         ))}
                       </ul>

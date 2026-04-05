@@ -439,6 +439,42 @@ app.post("/api/public/members/:username/posts/:postId/ref-click", async (req, re
   }
 });
 
+/** กดแชร์/คัดลอกจากเว็บโดยไม่ล็อกอิน — นับเป็นผู้เยี่ยมชม */
+app.post(
+  "/api/public/members/:username/posts/:postId/share-intent",
+  async (req, res) => {
+    try {
+      const v = validateUsername(req.params.username);
+      if (!v.ok) {
+        return res.status(400).json({ ok: false, error: v.error });
+      }
+      const pageUser = await userService.findByUsername(v.value);
+      if (!pageUser) {
+        return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+      }
+      const b = req.body && typeof req.body === "object" ? req.body : {};
+      const channel = String(b.channel || "").trim();
+      await memberPublicPostShareService.appendPublicShareIntent(
+        v.value,
+        req.params.postId,
+        channel
+      );
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.json({ ok: true, skipped: true });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
 /** รายการเพจสมาชิกสำหรับหน้าแรก/ชุมชน */
 app.get("/api/public/member-pages", async (req, res) => {
   try {

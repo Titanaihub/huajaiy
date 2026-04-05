@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getApiBase } from "../lib/config";
 import { publicMemberPath } from "../lib/memberPublicUrls";
-import { getMemberToken } from "../lib/memberApi";
+import {
+  apiPostShareIntent,
+  apiPublicPostShareIntent,
+  getMemberToken
+} from "../lib/memberApi";
 import {
   buildMemberPostShareUrl,
   facebookShareUrl,
@@ -66,17 +70,12 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
   }, [origin, username, post.id, viewerUsername]);
 
   const trackIntent = (channel) => {
+    if (!post?.id || !username) return;
     const token = getMemberToken();
-    if (!token || !post?.id) return;
-    const base = getApiBase().replace(/\/$/, "");
-    fetch(`${base}/api/auth/my-public-posts/${encodeURIComponent(String(post.id))}/share-intent`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ channel })
-    }).catch(() => {});
+    const p = token
+      ? apiPostShareIntent(token, String(post.id), channel)
+      : apiPublicPostShareIntent(username, String(post.id), channel);
+    p.catch(() => {});
   };
 
   const onCopyLink = async () => {
@@ -133,9 +132,9 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
         </button>
       </div>
       <p className="text-[11px] leading-relaxed text-gray-500">
-        ถ้าล็อกอินสมาชิกแล้ว ลิงก์จะมี <code className="rounded bg-gray-100 px-1">?ref=ชื่อผู้ใช้</code>{" "}
-        เพื่อนับจำนวนครั้งที่มีคนเปิดลิงก์ผ่านการแชร์ของแต่ละคน — การแชร์ต่อในแอปอื่นจะนับได้เมื่อลิงก์ยังมีพารามิเตอร์นี้
-        (ไลน์และเฟสบุ๊กไม่ส่งข้อมูลกลับว่าใครกดแชร์จริง ระบบจะบันทึกเมื่อกดปุ่มแชร์จากเว็บนี้ขณะล็อกอิน)
+        นับทุกครั้งที่กดปุ่มแชร์หรือคัดลอก (ทั้งล็อกอินและไม่ล็อกอิน) — ล็อกอินแล้วลิงก์จะมี{" "}
+        <code className="rounded bg-gray-100 px-1">?ref=ชื่อผู้ใช้</code> เพื่อระบุผู้แชร์และนับการเปิดลิงก์ต่อ
+        (มอบหัวใจรางวัลตามสมาชิกได้จากแถวที่มี @username หรือจากคลิกลิงก์ที่มี ref — ไลน์/เฟสไม่แจ้งชื่อผู้แชร์กลับมา)
       </p>
     </div>
   ) : null;

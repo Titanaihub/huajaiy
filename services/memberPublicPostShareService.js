@@ -26,11 +26,12 @@ function displayLabel(u) {
 }
 
 /**
- * @param {string} actorUserId
+ * บันทึกการกดแชร์/คัดลอกจากเว็บ — actorUserId เป็น null เมื่อไม่ล็อกอิน
  * @param {string} postId
  * @param {string} channel line|facebook|copy
+ * @param {string|null|undefined} actorUserId
  */
-async function recordShareIntent(actorUserId, postId, channel) {
+async function appendShareIntent(postId, channel, actorUserId) {
   if (!UUID_RE.test(String(postId || "").trim())) {
     const e = new Error("รูปแบบรหัสโพสต์ไม่ถูกต้อง");
     e.code = "VALIDATION";
@@ -51,12 +52,43 @@ async function recordShareIntent(actorUserId, postId, channel) {
     e.code = "NOT_FOUND";
     throw e;
   }
+  const actor =
+    actorUserId != null && String(actorUserId).trim() !== ""
+      ? String(actorUserId).trim()
+      : null;
   await pool.query(
     `INSERT INTO member_public_post_share_intents (post_id, actor_user_id, channel)
      VALUES ($1, $2, $3)`,
-    [postId, actorUserId, ch]
+    [postId, actor, ch]
   );
   return { ok: true };
+}
+
+/**
+ * @param {string} pageUsername
+ * @param {string} postId
+ * @param {string} channel
+ */
+async function appendPublicShareIntent(pageUsername, postId, channel) {
+  const post = await memberPublicPostService.getPublicByUsernameAndPostId(
+    pageUsername,
+    postId
+  );
+  if (!post) {
+    const e = new Error("ไม่พบโพสต์");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  return appendShareIntent(postId, channel, null);
+}
+
+/**
+ * @param {string} actorUserId
+ * @param {string} postId
+ * @param {string} channel
+ */
+async function recordShareIntent(actorUserId, postId, channel) {
+  return appendShareIntent(postId, channel, actorUserId);
 }
 
 /**
@@ -112,12 +144,12 @@ async function getShareStatsForPostOwner(ownerUserId, postId) {
   }
 
   const intentsR = await pool.query(
-    `SELECT s.channel, s.created_at, u.username, u.first_name, u.last_name
+    `SELECT s.channel, s.created_at, s.actor_user_id, u.username, u.first_name, u.last_name
      FROM member_public_post_share_intents s
-     JOIN users u ON u.id = s.actor_user_id
+     LEFT JOIN users u ON u.id = s.actor_user_id
      WHERE s.post_id = $1
      ORDER BY s.created_at DESC
-     LIMIT 400`,
+     LIMIT 500`,
     [postId]
   );
 
@@ -137,16 +169,32 @@ async function getShareStatsForPostOwner(ownerUserId, postId) {
     [postId]
   );
 
-  const intents = intentsR.rows.map((row) => ({
-    channel: row.channel,
-    createdAt: row.created_at,
-    username: row.username,
-    displayName: displayLabel({
-      firstName: row.first_name,
-      lastName: row.last_name,
-      username: row.username
-    })
-  }));
+  const countR = await pool.query(
+    `SELECT
+       COUNT(*)::int AS total,
+       COUNT(*) FILTER (WHERE actor_user_id IS NULL)::int AS anonymous,
+       COUNT(*) FILTER (WHERE actor_user_id IS NOT NULL)::int AS identified
+     FROM member_public_post_share_intents
+     WHERE post_id = $1`,
+    [postId]
+  );
+
+  const intents = intentsR.rows.map((row) => {
+    const hasUser = Boolean(row.username || row.actor_user_id);
+    return {
+      channel: row.channel,
+      createdAt: row.created_at,
+      username: hasUser ? row.username : null,
+      displayName: hasUser
+        ? displayLabel({
+            firstName: row.first_name,
+            lastName: row.last_name,
+            username: row.username
+          })
+        : "ผู้เยี่ยมชม (ไม่ล็อกอิน)",
+      anonymous: !hasUser
+    };
+  });
 
   const refClicksByUser = refR.rows.map((row) => ({
     username: row.username,
@@ -158,14 +206,21 @@ async function getShareStatsForPostOwner(ownerUserId, postId) {
     clickCount: row.click_count
   }));
 
+  const crow = countR.rows[0] || {};
+
   return {
     intents,
     refClicksByUser,
-    totalRefClicks: Number(totalR.rows[0]?.n) || 0
+    totalRefClicks: Number(totalR.rows[0]?.n) || 0,
+    shareIntentTotal: Number(crow.total) || 0,
+    shareIntentAnonymous: Number(crow.anonymous) || 0,
+    shareIntentIdentified: Number(crow.identified) || 0
   };
 }
 
 module.exports = {
+  appendShareIntent,
+  appendPublicShareIntent,
   recordShareIntent,
   recordRefClick,
   getShareStatsForPostOwner

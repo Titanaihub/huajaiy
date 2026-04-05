@@ -880,12 +880,21 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS member_public_post_share_intents (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         post_id UUID NOT NULL REFERENCES member_public_posts(id) ON DELETE CASCADE,
-        actor_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
         channel VARCHAR(16) NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         CONSTRAINT chk_mpp_share_channel CHECK (channel IN ('line', 'facebook', 'copy'))
       );
     `);
+    /** DB เดิมที่สร้างด้วย actor_user_id NOT NULL — ปรับให้นับแชร์แบบไม่ล็อกอินได้ */
+    try {
+      await client.query(`
+        ALTER TABLE member_public_post_share_intents
+        ALTER COLUMN actor_user_id DROP NOT NULL;
+      `);
+    } catch {
+      /* คอลัมน์ nullable อยู่แล้ว หรือสภาพแวดล้อมไม่รองรับ — ข้าม */
+    }
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_mpp_share_intents_post
       ON member_public_post_share_intents(post_id, created_at DESC);
