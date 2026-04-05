@@ -157,14 +157,6 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
           คัดลอกลิงก์
         </button>
       </div>
-      <p className="text-[11px] leading-relaxed text-gray-500">
-        นับทุกครั้งที่กดปุ่มแชร์หรือคัดลอก (ทั้งล็อกอินและไม่ล็อกอิน) — ล็อกอินแล้วลิงก์จะมี{" "}
-        <code className="rounded bg-gray-100 px-1">?ref=ชื่อผู้ใช้</code> เพื่อระบุผู้แชร์และนับการเปิดลิงก์ต่อ
-        {post.shareReward?.status === "active" && post.shareReward?.minRefClicksForReward != null
-          ? ` ถ้ามีรางวัลแชร์ ต้องกดแชร์ขณะล็อกอิน และลิงก์นี้ถูกเปิดมากกว่า ${post.shareReward.minRefClicksForReward - 1} ครั้งจึงจะได้หัวใจ — `
-          : " "}
-        ไลน์/เฟสไม่แจ้งชื่อผู้แชร์กลับมาที่เว็บ
-      </p>
     </div>
   ) : null;
 

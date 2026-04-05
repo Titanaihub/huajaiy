@@ -495,10 +495,6 @@ function MemberPublicPostCard({
               เปิดหน้าโพสต์
             </a>
           </div>
-          <p className="mt-1 text-[10px] leading-snug text-gray-500">
-            ระบบจะนับทุกครั้งที่กด LINE / Facebook / คัดลอกลิงก์ (ทั้งล็อกอินและไม่ล็อกอิน) — ล็อกอินแล้วลิงก์จะมี{" "}
-            <span className="font-mono">?ref=</span> ชื่อคุณ เพื่อระบุตัวผู้แชร์และนับการเปิดลิงก์ต่อ
-          </p>
         </div>
       ) : null}
       {isOwner ? (
