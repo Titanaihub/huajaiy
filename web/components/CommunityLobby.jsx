@@ -73,7 +73,7 @@ function MetaFolderIcon({ className }) {
   );
 }
 
-/** แบนเนอร์แนวนอน (~2.6:1) → แถวเมตา → หัวข้อ → คำอธิบาย — ธีมเดียวกับ GameLobby */
+/** แบนเนอร์แนวนอนกว้าง (~10:3 ใกล้ปกโปรโมชัน/แบนเนอร์เพจ) → เมตา → หัวข้อ → คำอธิบาย */
 function CardInner({ post, cardClass, mediaShell }) {
   const src = resolveCommunityImageSrc(post?.imageUrl);
   const phref = post?.href;
@@ -87,9 +87,9 @@ function CardInner({ post, cardClass, mediaShell }) {
       <img
         src={src || DEFAULT_CENTRAL_GAME_COVER_PATH}
         alt=""
-        className="h-full w-full object-cover transition duration-200 group-hover:opacity-95"
-        width={640}
-        height={246}
+        className="h-full w-full object-cover object-center transition duration-200 group-hover:opacity-95"
+        width={1000}
+        height={300}
       />
     </div>
   );
@@ -164,9 +164,9 @@ export default function CommunityLobby({ posts = [] }) {
   const cardShell =
     "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
   const cardClass = `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`;
-  /* แบนเนอร์แนวนอน ~2.6:1 */
+  /* แบนเนอร์แนวนอนกว้าง ~10:3 — โชว์รูปปกเพจแบบแบนเนอร์ (ไม่ใช่จัตุรัส) */
   const mediaShell =
-    "relative aspect-[2.6/1] min-h-[120px] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:min-h-[132px]";
+    "relative aspect-[10/3] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]";
 
   return (
     <div className="space-y-6">

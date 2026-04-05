@@ -450,11 +450,10 @@ input[type=number]::-webkit-outer-spin-button {
   margin-right: 5px;
 }
 
-/* เพจชุมชนหน้าแรก (organic) — แบนเนอร์แนวนอน + ครอปเต็มกรอบ */
+/* เพจชุมชนหน้าแรก (organic) — แบนเนอร์แนวนอนกว้าง ~10:3 สอดคล้อง /page */
 #latest-blog .huajaiy-community-card-media {
-  aspect-ratio: 2.6 / 1;
-  min-height: 120px;
-  max-height: 200px;
+  aspect-ratio: 10 / 3;
+  max-height: 220px;
   overflow: hidden;
   border-radius: 0.5rem;
   background: #f8f9fa;
