@@ -868,9 +868,37 @@ async function initDb() {
         sort_order INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT chk_member_public_posts_layout CHECK (layout IN ('row', 'stack'))
+        share_red_per_member INTEGER NOT NULL DEFAULT 0,
+        share_red_pool_remaining INTEGER NOT NULL DEFAULT 0,
+        share_red_initial_budget INTEGER NOT NULL DEFAULT 0,
+        share_red_status VARCHAR(16) NOT NULL DEFAULT 'off',
+        share_red_recipients_count INTEGER NOT NULL DEFAULT 0,
+        CONSTRAINT chk_member_public_posts_layout CHECK (layout IN ('row', 'stack')),
+        CONSTRAINT chk_mpp_share_red_status CHECK (share_red_status IN ('off', 'active', 'paused', 'depleted'))
       );
     `);
+    for (const colSql of [
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_per_member INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_pool_remaining INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_initial_budget INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_status VARCHAR(16) NOT NULL DEFAULT 'off'`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_recipients_count INTEGER NOT NULL DEFAULT 0`
+    ]) {
+      try {
+        await client.query(colSql);
+      } catch {
+        /* ignore */
+      }
+    }
+    try {
+      await client.query(`
+        ALTER TABLE member_public_posts
+        ADD CONSTRAINT chk_mpp_share_red_status
+        CHECK (share_red_status IN ('off', 'active', 'paused', 'depleted'));
+      `);
+    } catch {
+      /* มีอยู่แล้ว */
+    }
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_member_public_posts_user_sort
       ON member_public_posts(user_id, sort_order ASC, created_at DESC);
@@ -911,6 +939,21 @@ async function initDb() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_mpp_ref_clicks_post
       ON member_public_post_ref_clicks(post_id, created_at DESC);
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS member_public_post_share_reward_recipients (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        post_id UUID NOT NULL REFERENCES member_public_posts(id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        red_amount INTEGER NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(post_id, user_id)
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_mpp_share_reward_post
+      ON member_public_post_share_reward_recipients(post_id, created_at DESC);
     `);
 
     console.log(

@@ -1,5 +1,11 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
+const userService = require("./userService");
+const {
+  MIN_REF_CLICKS_FOR_SHARE_REWARD
+} = require("./memberPublicPostShareRewardService");
+
+const SHARE_REWARD_COLS = `share_red_per_member, share_red_pool_remaining, share_red_initial_budget, share_red_status, share_red_recipients_count`;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -77,7 +83,61 @@ function sanitizeBodyBlocks(raw) {
   return out;
 }
 
-function rowToPost(row) {
+/**
+ * @param {Record<string, unknown>} row
+ * @param {{ forOwner?: boolean }} opts
+ */
+function shareRewardPayload(row, opts = {}) {
+  const forOwner = opts.forOwner === true;
+  const stRaw = row.share_red_status;
+  const status =
+    stRaw === "active" || stRaw === "paused" || stRaw === "depleted" || stRaw === "off"
+      ? stRaw
+      : "off";
+  const per = Math.max(0, Math.floor(Number(row.share_red_per_member) || 0));
+  const poolRem = Math.max(0, Math.floor(Number(row.share_red_pool_remaining) || 0));
+  const initial = Math.max(0, Math.floor(Number(row.share_red_initial_budget) || 0));
+  const rc = Math.max(0, Math.floor(Number(row.share_red_recipients_count) || 0));
+  const maxSlots = per > 0 && initial > 0 ? Math.floor(initial / per) : 0;
+  const slotsLeft = per > 0 && status === "active" ? Math.floor(poolRem / per) : 0;
+
+  let visitorMessage = null;
+  if (status === "active" && per > 0) {
+    const needRef = MIN_REF_CLICKS_FOR_SHARE_REWARD;
+    visitorMessage = `แชร์ผ่านปุ่มบนเว็บขณะล็อกอิน แล้วให้ลิงก์ที่มี ref ของคุณถูกเปิดมากกว่า ${needRef - 1} ครั้ง — จึงจะได้หัวใจแดง ${per} ดวง (สูงสุด ${maxSlots} คนแรก)`;
+    if (slotsLeft > 0) {
+      visitorMessage += ` — เหลือประมาณ ${slotsLeft} สิทธิ`;
+    }
+  } else if (status === "paused") {
+    visitorMessage = "ผู้โพสต์ระงับการแจกหัวใจก่อนเวลา";
+  } else if (status === "depleted") {
+    visitorMessage = "หัวใจแจกหมดแล้ว";
+  }
+
+  const base = {
+    status,
+    redPerMember: per > 0 ? per : null,
+    initialBudget: initial > 0 ? initial : null,
+    maxRecipientSlots: maxSlots > 0 ? maxSlots : null,
+    recipientsCount: rc,
+    visitorMessage,
+    minRefClicksForReward:
+      status === "active" && per > 0 ? MIN_REF_CLICKS_FOR_SHARE_REWARD : null
+  };
+  if (!forOwner) return base;
+  return {
+    ...base,
+    poolRemaining: poolRem,
+    canStart: status !== "active",
+    canPause: status === "active"
+  };
+}
+
+/**
+ * @param {Record<string, unknown>|null|undefined} row
+ * @param {{ forOwner?: boolean }} opts
+ */
+function rowToPost(row, opts = {}) {
   if (!row) return null;
   let blocks = [];
   try {
@@ -95,7 +155,8 @@ function rowToPost(row) {
     layout: row.layout === "stack" ? "stack" : "row",
     sortOrder: Number(row.sort_order) || 0,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    shareReward: shareRewardPayload(row, { forOwner: opts.forOwner === true })
   };
 }
 
@@ -106,14 +167,16 @@ async function listPublicByUsername(username) {
   const pool = requirePool();
   const un = String(username || "").toLowerCase().trim();
   const r = await pool.query(
-    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at
+    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at,
+            p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
+            p.share_red_status, p.share_red_recipients_count
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
      WHERE u.username = $1
      ORDER BY p.sort_order ASC, p.created_at DESC`,
     [un]
   );
-  return r.rows.map(rowToPost).filter(Boolean);
+  return r.rows.map((row) => rowToPost(row)).filter(Boolean);
 }
 
 /**
@@ -126,7 +189,9 @@ async function getPublicByUsernameAndPostId(username, postId) {
   const pool = requirePool();
   const un = String(username || "").toLowerCase().trim();
   const r = await pool.query(
-    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at
+    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at,
+            p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
+            p.share_red_status, p.share_red_recipients_count
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
      WHERE u.username = $1 AND p.id = $2`,
@@ -141,13 +206,14 @@ async function getPublicByUsernameAndPostId(username, postId) {
 async function listByUserId(userId) {
   const pool = requirePool();
   const r = await pool.query(
-    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at
+    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at,
+            ${SHARE_REWARD_COLS}
      FROM member_public_posts
      WHERE user_id = $1
      ORDER BY sort_order ASC, created_at DESC`,
     [userId]
   );
-  return r.rows.map(rowToPost).filter(Boolean);
+  return r.rows.map((row) => rowToPost(row, { forOwner: true })).filter(Boolean);
 }
 
 /**
@@ -177,11 +243,28 @@ async function createForUser(userId, body) {
     [id, userId, title, cover, JSON.stringify(blocks), layout, sortOrder]
   );
   const get = await pool.query(
-    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at
+    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at,
+            ${SHARE_REWARD_COLS}
      FROM member_public_posts WHERE id = $1`,
     [id]
   );
-  return rowToPost(get.rows[0]);
+  return rowToPost(get.rows[0], { forOwner: true });
+}
+
+/**
+ * @param {string} userId
+ * @param {string} postId
+ */
+async function getForUser(userId, postId) {
+  if (!UUID_RE.test(String(postId || "").trim())) return null;
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at,
+            ${SHARE_REWARD_COLS}
+     FROM member_public_posts WHERE id = $1 AND user_id = $2`,
+    [postId, userId]
+  );
+  return rowToPost(r.rows[0], { forOwner: true });
 }
 
 /**
@@ -258,11 +341,12 @@ async function updateForUser(userId, postId, body) {
   );
 
   const get = await pool.query(
-    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at
+    `SELECT id, title, cover_image_url, body_blocks, layout, sort_order, created_at, updated_at,
+            ${SHARE_REWARD_COLS}
      FROM member_public_posts WHERE id = $1`,
     [postId]
   );
-  return rowToPost(get.rows[0]);
+  return rowToPost(get.rows[0], { forOwner: true });
 }
 
 /**
@@ -276,14 +360,48 @@ async function deleteForUser(userId, postId) {
     throw e;
   }
   const pool = requirePool();
-  const r = await pool.query(
-    `DELETE FROM member_public_posts WHERE id = $1 AND user_id = $2 RETURNING id`,
-    [postId, userId]
-  );
-  if (r.rowCount === 0) {
-    const e = new Error("ไม่พบโพสต์หรือไม่มีสิทธิ์ลบ");
-    e.code = "NOT_FOUND";
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const cur = await client.query(
+      `SELECT user_id, share_red_status, share_red_pool_remaining
+       FROM member_public_posts WHERE id = $1 FOR UPDATE`,
+      [postId]
+    );
+    const row = cur.rows[0];
+    if (!row || String(row.user_id) !== String(userId)) {
+      const e = new Error("ไม่พบโพสต์หรือไม่มีสิทธิ์ลบ");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const st = String(row.share_red_status || "off");
+    const poolRem = Math.floor(Number(row.share_red_pool_remaining) || 0);
+    if (st === "active" && poolRem > 0) {
+      await userService.adjustDualHeartsWithClient(client, userId, 0, poolRem, {
+        kind: "public_post_share_delete_refund",
+        label: "คืนหัวใจแดงที่กันไว้ (ลบโพสต์)",
+        meta: { postId }
+      });
+    }
+    const del = await client.query(
+      `DELETE FROM member_public_posts WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [postId, userId]
+    );
+    if (del.rowCount === 0) {
+      const e = new Error("ไม่พบโพสต์หรือไม่มีสิทธิ์ลบ");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
     throw e;
+  } finally {
+    client.release();
   }
   return { ok: true };
 }
@@ -292,6 +410,7 @@ module.exports = {
   listPublicByUsername,
   getPublicByUsernameAndPostId,
   listByUserId,
+  getForUser,
   createForUser,
   updateForUser,
   deleteForUser,

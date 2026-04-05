@@ -24,11 +24,18 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
   const { user } = useMemberAuth();
   const [expanded, setExpanded] = useState(true);
   const [origin, setOrigin] = useState("");
+  const [grantFlash, setGrantFlash] = useState("");
   const ref = String(refUsername || "").trim();
 
   useEffect(() => {
     setOrigin(typeof window !== "undefined" ? window.location.origin : "");
   }, []);
+
+  useEffect(() => {
+    if (!grantFlash) return undefined;
+    const t = setTimeout(() => setGrantFlash(""), 6000);
+    return () => clearTimeout(t);
+  }, [grantFlash]);
 
   useEffect(() => {
     if (!ref || !post?.id || !username) return;
@@ -72,10 +79,19 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
   const trackIntent = (channel) => {
     if (!post?.id || !username) return;
     const token = getMemberToken();
-    const p = token
-      ? apiPostShareIntent(token, String(post.id), channel)
-      : apiPublicPostShareIntent(username, String(post.id), channel);
-    p.catch(() => {});
+    if (token) {
+      apiPostShareIntent(token, String(post.id), channel)
+        .then((data) => {
+          if (data.shareReward?.granted && data.shareReward.redAmount != null) {
+            setGrantFlash(
+              `คุณได้รับหัวใจแดง ${data.shareReward.redAmount} ดวงจากการแชร์โพสต์นี้`
+            );
+          }
+        })
+        .catch(() => {});
+    } else {
+      apiPublicPostShareIntent(username, String(post.id), channel).catch(() => {});
+    }
   };
 
   const onCopyLink = async () => {
@@ -103,6 +119,16 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
 
   const shareRow = shareUrl ? (
     <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
+      {post.shareReward?.visitorMessage ? (
+        <p className="rounded-md border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-[11px] leading-snug text-amber-950">
+          {post.shareReward.visitorMessage}
+        </p>
+      ) : null}
+      {grantFlash ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-medium text-emerald-900">
+          {grantFlash}
+        </p>
+      ) : null}
       <p className="text-xs font-medium text-gray-600">แชร์โพสต์นี้</p>
       <div className="flex flex-wrap gap-2">
         <a
@@ -134,7 +160,10 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
       <p className="text-[11px] leading-relaxed text-gray-500">
         นับทุกครั้งที่กดปุ่มแชร์หรือคัดลอก (ทั้งล็อกอินและไม่ล็อกอิน) — ล็อกอินแล้วลิงก์จะมี{" "}
         <code className="rounded bg-gray-100 px-1">?ref=ชื่อผู้ใช้</code> เพื่อระบุผู้แชร์และนับการเปิดลิงก์ต่อ
-        (มอบหัวใจรางวัลตามสมาชิกได้จากแถวที่มี @username หรือจากคลิกลิงก์ที่มี ref — ไลน์/เฟสไม่แจ้งชื่อผู้แชร์กลับมา)
+        {post.shareReward?.status === "active" && post.shareReward?.minRefClicksForReward != null
+          ? ` ถ้ามีรางวัลแชร์ ต้องกดแชร์ขณะล็อกอิน และลิงก์นี้ถูกเปิดมากกว่า ${post.shareReward.minRefClicksForReward - 1} ครั้งจึงจะได้หัวใจ — `
+          : " "}
+        ไลน์/เฟสไม่แจ้งชื่อผู้แชร์กลับมาที่เว็บ
       </p>
     </div>
   ) : null;

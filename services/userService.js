@@ -938,39 +938,7 @@ async function adjustDualHearts(userId, pinkDelta = 0, redDelta = 0, ledgerOpts 
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const upd = await client.query(
-      `UPDATE users SET
-        pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
-        red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
-        hearts_balance =
-          GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
-          GREATEST(0, COALESCE(red_hearts_balance, 0) + $3) +
-          COALESCE(red_giveaway_balance, 0)
-      WHERE id = $1
-      RETURNING pink_hearts_balance, red_hearts_balance`,
-      [userId, pd, rd]
-    );
-    if (upd.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return null;
-    }
-    const bal = upd.rows[0];
-    const pAfter = Math.max(0, Math.floor(Number(bal.pink_hearts_balance) || 0));
-    const rAfter = Math.max(0, Math.floor(Number(bal.red_hearts_balance) || 0));
-    const kind = ledgerOpts?.kind || "adjustment";
-    const label =
-      ledgerOpts?.label ||
-      (pd < 0 || rd < 0 ? "หัก / ปรับลดหัวใจ" : "ได้รับ / เพิ่มหัวใจ");
-    await heartLedgerService.insertWithClient(client, {
-      userId,
-      pinkDelta: pd,
-      redDelta: rd,
-      pinkAfter: pAfter,
-      redAfter: rAfter,
-      kind,
-      label,
-      meta: ledgerOpts?.meta ?? null
-    });
+    await adjustDualHeartsWithClient(client, userId, pd, rd, ledgerOpts);
     await client.query("COMMIT");
   } catch (e) {
     try {
@@ -983,6 +951,53 @@ async function adjustDualHearts(userId, pinkDelta = 0, redDelta = 0, ledgerOpts 
     client.release();
   }
   return findById(userId);
+}
+
+/**
+ * ปรับหัวใจชมพู/แดงภายใน transaction ที่ caller เปิด BEGIN แล้ว
+ * @returns {{ pinkAfter: number, redAfter: number }}
+ */
+async function adjustDualHeartsWithClient(client, userId, pinkDelta = 0, redDelta = 0, ledgerOpts = null) {
+  const pd = Math.floor(Number(pinkDelta) || 0);
+  const rd = Math.floor(Number(redDelta) || 0);
+  if (pd === 0 && rd === 0) {
+    return { pinkAfter: 0, redAfter: 0 };
+  }
+  const upd = await client.query(
+    `UPDATE users SET
+      pink_hearts_balance = GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2),
+      red_hearts_balance = GREATEST(0, COALESCE(red_hearts_balance, 0) + $3),
+      hearts_balance =
+        GREATEST(0, COALESCE(pink_hearts_balance, 0) + $2) +
+        GREATEST(0, COALESCE(red_hearts_balance, 0) + $3) +
+        COALESCE(red_giveaway_balance, 0)
+    WHERE id = $1
+    RETURNING pink_hearts_balance, red_hearts_balance`,
+    [userId, pd, rd]
+  );
+  if (upd.rows.length === 0) {
+    const e = new Error("ไม่พบบัญชี");
+    e.code = "NOT_FOUND";
+    throw e;
+  }
+  const bal = upd.rows[0];
+  const pAfter = Math.max(0, Math.floor(Number(bal.pink_hearts_balance) || 0));
+  const rAfter = Math.max(0, Math.floor(Number(bal.red_hearts_balance) || 0));
+  const kind = ledgerOpts?.kind || "adjustment";
+  const label =
+    ledgerOpts?.label ||
+    (pd < 0 || rd < 0 ? "หัก / ปรับลดหัวใจ" : "ได้รับ / เพิ่มหัวใจ");
+  await heartLedgerService.insertWithClient(client, {
+    userId,
+    pinkDelta: pd,
+    redDelta: rd,
+    pinkAfter: pAfter,
+    redAfter: rAfter,
+    kind,
+    label,
+    meta: ledgerOpts?.meta ?? null
+  });
+  return { pinkAfter: pAfter, redAfter: rAfter };
 }
 
 /** ความเข้ากันได้เดิม: ปรับเฉพาะหัวใจชมพู */
@@ -1563,6 +1578,7 @@ module.exports = {
   setPasswordHashOnly,
   adjustHeartsBalance,
   adjustDualHearts,
+  adjustDualHeartsWithClient,
   updateProfile,
   updateOfficialNames,
   publicUser,

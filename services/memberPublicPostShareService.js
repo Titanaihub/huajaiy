@@ -83,12 +83,64 @@ async function appendPublicShareIntent(pageUsername, postId, channel) {
 }
 
 /**
+ * บันทึกแชร์ + (ถ้าล็อกอิน) ลองจ่ายหัวใจแดงรางวัลในธุรกรรมเดียวกัน
  * @param {string} actorUserId
  * @param {string} postId
  * @param {string} channel
+ * @returns {Promise<{ ok: true, shareReward: { granted: boolean, redAmount?: number } }>}
  */
 async function recordShareIntent(actorUserId, postId, channel) {
-  return appendShareIntent(postId, channel, actorUserId);
+  if (!UUID_RE.test(String(postId || "").trim())) {
+    const e = new Error("รูปแบบรหัสโพสต์ไม่ถูกต้อง");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const ch = String(channel || "").toLowerCase().trim();
+  if (!CHANNELS.has(ch)) {
+    const e = new Error("ช่องทางแชร์ไม่ถูกต้อง");
+    e.code = "VALIDATION";
+    throw e;
+  }
+  const pool = requirePool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const chk = await client.query(`SELECT id FROM member_public_posts WHERE id = $1`, [postId]);
+    if (!chk.rows[0]) {
+      const e = new Error("ไม่พบโพสต์");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const actor =
+      actorUserId != null && String(actorUserId).trim() !== ""
+        ? String(actorUserId).trim()
+        : null;
+    await client.query(
+      `INSERT INTO member_public_post_share_intents (post_id, actor_user_id, channel)
+       VALUES ($1, $2, $3)`,
+      [postId, actor, ch]
+    );
+    let shareReward = { granted: false };
+    if (actor) {
+      const memberPublicPostShareRewardService = require("./memberPublicPostShareRewardService");
+      shareReward = await memberPublicPostShareRewardService.tryGrantShareReward(
+        client,
+        postId,
+        actor
+      );
+    }
+    await client.query("COMMIT");
+    return { ok: true, shareReward };
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 /**
@@ -114,11 +166,31 @@ async function recordRefClick(pageUsername, postId, refUsername) {
   if (!refUser) return { ok: true, skipped: true };
 
   const pool = requirePool();
-  await pool.query(
-    `INSERT INTO member_public_post_ref_clicks (post_id, ref_user_id)
-     VALUES ($1, $2)`,
-    [postId, refUser.id]
-  );
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `INSERT INTO member_public_post_ref_clicks (post_id, ref_user_id)
+       VALUES ($1, $2)`,
+      [postId, refUser.id]
+    );
+    const memberPublicPostShareRewardService = require("./memberPublicPostShareRewardService");
+    await memberPublicPostShareRewardService.tryGrantShareReward(
+      client,
+      postId,
+      refUser.id
+    );
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
   return { ok: true };
 }
 

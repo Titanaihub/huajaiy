@@ -19,6 +19,7 @@ const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
 const memberPublicPostService = require("./services/memberPublicPostService");
 const memberPublicPostShareService = require("./services/memberPublicPostShareService");
+const memberPublicPostShareRewardService = require("./services/memberPublicPostShareRewardService");
 const { listCapabilitiesForRole } = require("./permissions");
 const {
   validateProfilePatch,
@@ -711,12 +712,15 @@ router.post("/my-public-posts/:id/share-intent", authMiddleware, async (req, res
   try {
     const b = req.body && typeof req.body === "object" ? req.body : {};
     const channel = String(b.channel || "").trim();
-    await memberPublicPostShareService.recordShareIntent(
+    const result = await memberPublicPostShareService.recordShareIntent(
       req.userId,
       req.params.id,
       channel
     );
-    return res.json({ ok: true });
+    return res.json({
+      ok: true,
+      shareReward: result.shareReward || { granted: false }
+    });
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       return res.status(503).json({ ok: false, error: e.message });
@@ -757,6 +761,65 @@ router.get("/my-public-posts/:id/share-stats", authMiddleware, async (req, res) 
     }
     if (e.code === "FORBIDDEN") {
       return res.status(403).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** เริ่มแคมเปญแจกหัวใจแดงเมื่อแชร์ (กันวงเงินจากเจ้าของโพสต์) */
+router.post("/my-public-posts/:id/share-reward/start", authMiddleware, async (req, res) => {
+  try {
+    const b = req.body && typeof req.body === "object" ? req.body : {};
+    const post = await memberPublicPostShareRewardService.startCampaign(
+      req.userId,
+      req.params.id,
+      b.redPerMember,
+      b.redBudget
+    );
+    return res.json({ ok: true, post });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "INSUFFICIENT_HEARTS") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "CONFLICT") {
+      return res.status(409).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND" || e.code === "FORBIDDEN") {
+      return res.status(e.code === "FORBIDDEN" ? 403 : 404).json({
+        ok: false,
+        error: e.message
+      });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** ระงับแคมเปญแจกหัวใจแดง — คืนวงเงินที่เหลือให้เจ้าของโพสต์ */
+router.post("/my-public-posts/:id/share-reward/pause", authMiddleware, async (req, res) => {
+  try {
+    const post = await memberPublicPostShareRewardService.pauseCampaign(
+      req.userId,
+      req.params.id
+    );
+    return res.json({ ok: true, post });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND" || e.code === "FORBIDDEN") {
+      return res.status(e.code === "FORBIDDEN" ? 403 : 404).json({
+        ok: false,
+        error: e.message
+      });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

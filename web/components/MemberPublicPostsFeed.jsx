@@ -7,9 +7,12 @@ import {
   apiCreateMyPublicPost,
   apiDeleteMyPublicPost,
   apiGetPostShareStats,
+  apiMyPublicPosts,
   apiPatchMyPublicPost,
+  apiPauseShareRewardCampaign,
   apiPostShareIntent,
   apiPublicPostShareIntent,
+  apiStartShareRewardCampaign,
   getMemberToken
 } from "../lib/memberApi";
 import {
@@ -168,7 +171,8 @@ function MemberPublicPostCard({
   viewerUsername,
   isOwner,
   onEdit,
-  onDelete
+  onDelete,
+  onPostUpdated
 }) {
   const [expanded, setExpanded] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -176,10 +180,30 @@ function MemberPublicPostCard({
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsErr, setStatsErr] = useState("");
+  const [rewardPer, setRewardPer] = useState("5");
+  const [rewardBudget, setRewardBudget] = useState("500");
+  const [rewardBusy, setRewardBusy] = useState(false);
+  const [rewardErr, setRewardErr] = useState("");
+  const [grantFlash, setGrantFlash] = useState("");
 
   useEffect(() => {
     setOrigin(typeof window !== "undefined" ? window.location.origin : "");
   }, []);
+
+  useEffect(() => {
+    const sr = post?.shareReward;
+    if (sr && typeof sr === "object") {
+      if (sr.redPerMember != null) setRewardPer(String(sr.redPerMember));
+      if (sr.initialBudget != null) setRewardBudget(String(sr.initialBudget));
+    }
+    setRewardErr("");
+  }, [post?.id, post?.shareReward?.redPerMember, post?.shareReward?.initialBudget]);
+
+  useEffect(() => {
+    if (!grantFlash) return undefined;
+    const t = setTimeout(() => setGrantFlash(""), 6000);
+    return () => clearTimeout(t);
+  }, [grantFlash]);
 
   const layout = post.layout === "stack" ? "stack" : "row";
   const cover = String(post.coverImageUrl || "").trim();
@@ -198,7 +222,12 @@ function MemberPublicPostCard({
       try {
         const token = getMemberToken();
         if (token) {
-          await apiPostShareIntent(token, String(post.id), channel);
+          const data = await apiPostShareIntent(token, String(post.id), channel);
+          if (data.shareReward?.granted && data.shareReward.redAmount != null) {
+            setGrantFlash(
+              `คุณได้รับหัวใจแดง ${data.shareReward.redAmount} ดวงจากการแชร์โพสต์นี้`
+            );
+          }
         } else {
           await apiPublicPostShareIntent(pageUsername, String(post.id), channel);
         }
@@ -208,6 +237,44 @@ function MemberPublicPostCard({
     },
     [pageUsername, post?.id]
   );
+
+  const startShareReward = useCallback(async () => {
+    if (!isOwner || !post?.id || !onPostUpdated) return;
+    const token = getMemberToken();
+    if (!token) return;
+    const per = Math.max(0, Math.floor(Number(rewardPer) || 0));
+    const budget = Math.max(0, Math.floor(Number(rewardBudget) || 0));
+    setRewardBusy(true);
+    setRewardErr("");
+    try {
+      const { post: updated } = await apiStartShareRewardCampaign(token, String(post.id), {
+        redPerMember: per,
+        redBudget: budget
+      });
+      if (updated) onPostUpdated(updated);
+    } catch (e) {
+      setRewardErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRewardBusy(false);
+    }
+  }, [isOwner, onPostUpdated, post?.id, rewardBudget, rewardPer]);
+
+  const pauseShareReward = useCallback(async () => {
+    if (!isOwner || !post?.id || !onPostUpdated) return;
+    const token = getMemberToken();
+    if (!token) return;
+    if (!window.confirm("ระงับการแจกหัวใจและคืนวงเงินที่เหลือให้คุณ?")) return;
+    setRewardBusy(true);
+    setRewardErr("");
+    try {
+      const { post: updated } = await apiPauseShareRewardCampaign(token, String(post.id));
+      if (updated) onPostUpdated(updated);
+    } catch (e) {
+      setRewardErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRewardBusy(false);
+    }
+  }, [isOwner, onPostUpdated, post?.id]);
 
   const loadStats = useCallback(async () => {
     const token = getMemberToken();
@@ -318,6 +385,80 @@ function MemberPublicPostCard({
           {layout === "stack" ? "แบบซ้อน (2 การ์ด/แถว)" : "แบบแถว (1 การ์ด/แถว)"}
         </p>
       ) : null}
+      {post.shareReward?.visitorMessage ? (
+        <p className="mt-2 rounded-md border border-amber-200/80 bg-amber-50/90 px-2.5 py-2 text-[11px] leading-snug text-amber-950">
+          {post.shareReward.visitorMessage}
+        </p>
+      ) : null}
+      {grantFlash ? (
+        <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[11px] font-medium text-emerald-900">
+          {grantFlash}
+        </p>
+      ) : null}
+      {isOwner && post.shareReward ? (
+        <div className="mt-2 rounded-lg border border-rose-100 bg-rose-50/50 px-2.5 py-2">
+          <p className="text-[11px] font-semibold text-gray-800">แจกหัวใจแดงเมื่อแชร์</p>
+          <p className="mt-0.5 text-[10px] leading-snug text-gray-600">
+            กันวงเงินจากคุณทันที — สมาชิกต้องล็อกอิน กดแชร์/คัดลอกจากเว็บ และลิงก์ที่มี{" "}
+            <span className="font-mono">?ref=</span> ของเขาต้องถูกเปิดให้ครบเกณฑ์ (ปัจจุบันมากกว่า{" "}
+            {(post.shareReward.minRefClicksForReward ?? 11) - 1} ครั้ง) จึงจะได้หัวใจคนละครั้งต่อโพสต์
+          </p>
+          {post.shareReward.status === "active" ? (
+            <p className="mt-1.5 text-[11px] text-gray-700">
+              วงเงินคงเหลือในมัดจำ:{" "}
+              <strong>{post.shareReward.poolRemaining ?? 0}</strong> ดวง · จ่ายแล้ว{" "}
+              <strong>{post.shareReward.recipientsCount ?? 0}</strong> คน
+            </p>
+          ) : null}
+          {rewardErr ? (
+            <p className="mt-1 text-[11px] text-red-600">{rewardErr}</p>
+          ) : null}
+          {post.shareReward.canPause ? (
+            <button
+              type="button"
+              disabled={rewardBusy}
+              onClick={pauseShareReward}
+              className="mt-2 rounded-md bg-gray-800 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-gray-900 disabled:opacity-50"
+            >
+              {rewardBusy ? "กำลังดำเนินการ…" : "ระงับการแจกหัวใจ (คืนวงเงินที่เหลือ)"}
+            </button>
+          ) : null}
+          {post.shareReward.canStart ? (
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+              <label className="flex flex-col text-[10px] font-medium text-gray-600">
+                หัวใจแดงต่อ 1 คน (ครบแชร์ + เปิดลิงก์ ref)
+                <input
+                  type="number"
+                  min={1}
+                  className="mt-0.5 w-full max-w-[8rem] rounded border border-gray-200 px-2 py-1 text-sm sm:max-w-[10rem]"
+                  value={rewardPer}
+                  onChange={(e) => setRewardPer(e.target.value)}
+                  disabled={rewardBusy}
+                />
+              </label>
+              <label className="flex flex-col text-[10px] font-medium text-gray-600">
+                วงเงินรวมสูงสุด (กันจากยอดคุณ)
+                <input
+                  type="number"
+                  min={1}
+                  className="mt-0.5 w-full max-w-[8rem] rounded border border-gray-200 px-2 py-1 text-sm sm:max-w-[10rem]"
+                  value={rewardBudget}
+                  onChange={(e) => setRewardBudget(e.target.value)}
+                  disabled={rewardBusy}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={rewardBusy}
+                onClick={startShareReward}
+                className="rounded-md bg-rose-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+              >
+                {rewardBusy ? "กำลังดำเนินการ…" : "เริ่มกันวงเงินและแจกรางวัล"}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {shareUrl ? (
         <div className="mt-2 border-t border-gray-100 pt-2">
           <p className="mb-1.5 text-[11px] font-medium text-gray-600">แชร์โพสต์</p>
@@ -381,8 +522,8 @@ function MemberPublicPostCard({
                     <strong>{stats.shareIntentAnonymous}</strong>
                   </p>
                   <p className="text-[10px] leading-snug text-amber-900/90">
-                    มอบหัวใจรางวัล: ใช้รายการที่ระบุ <span className="font-mono">@username</span> หรือคลิกจากลิงก์{" "}
-                    <span className="font-mono">?ref=</span> — แถว &quot;ผู้เยี่ยมชม&quot; นับได้แต่ไม่รู้ว่าเป็นสมาชิกคนไหน
+                    มอบหัวใจรางวัล: สมาชิกต้องมีแถวกดแชร์ (ล็อกอิน) และการเปิดลิงก์{" "}
+                    <span className="font-mono">?ref=</span> ของคนนั้นต้องถึงเกณฑ์ — แถว &quot;ผู้เยี่ยมชม&quot; ไม่ได้รางวัล
                   </p>
                   <div>
                     <p className="font-semibold text-gray-800">รายการกดแชร์จากเว็บ (ล่าสุด)</p>
@@ -488,6 +629,28 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
     setPosts(sortPosts(initialPosts));
   }, [initialPosts]);
 
+  useEffect(() => {
+    if (!isOwner) return;
+    const token = getMemberToken();
+    if (!token) return;
+    const mine = String(user?.username || "").toLowerCase();
+    const pageUn = String(username || "").toLowerCase();
+    if (!mine || mine !== pageUn) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await apiMyPublicPosts(token);
+        if (cancelled || !Array.isArray(data.posts)) return;
+        setPosts(sortPosts(data.posts));
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOwner, username, user?.username]);
+
   const resetComposer = useCallback(() => {
     setEditingId(null);
     setTitle("");
@@ -512,6 +675,11 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
     },
     []
   );
+
+  const patchPostInList = useCallback((patched) => {
+    if (!patched?.id) return;
+    setPosts((prev) => sortPosts(prev.map((p) => (p.id === patched.id ? patched : p))));
+  }, []);
 
   const onDelete = useCallback(
     async (post) => {
@@ -892,6 +1060,7 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
                 isOwner={isOwner}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onPostUpdated={patchPostInList}
               />
             </div>
           ))}

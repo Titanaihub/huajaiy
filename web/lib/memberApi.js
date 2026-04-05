@@ -581,6 +581,7 @@ export async function apiPublicPostShareIntent(pageUsername, postId, channel) {
   return data;
 }
 
+/** @returns {Promise<{ ok: boolean; shareReward?: { granted: boolean; redAmount?: number } }>} */
 export async function apiPostShareIntent(token, postId, channel) {
   const r = await fetch(
     `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-intent`,
@@ -596,6 +597,43 @@ export async function apiPostShareIntent(token, postId, channel) {
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
     throw new Error(data.error || "บันทึกการแชร์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiStartShareRewardCampaign(token, postId, body) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-reward/start`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "เริ่มแคมเปญไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiPauseShareRewardCampaign(token, postId) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-reward/pause`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ระงับแคมเปญไม่สำเร็จ");
   }
   return data;
 }
