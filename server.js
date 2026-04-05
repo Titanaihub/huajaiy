@@ -595,10 +595,18 @@ app.get("/api/public/organic-home", async (_req, res) => {
     } catch (_mergeErr) {
       /* คง sanitize เดิม */
     }
+    let recentMemberPostCovers = [];
+    try {
+      recentMemberPostCovers =
+        await memberPublicPostService.listRecentPublicPostCoversForHome(12);
+    } catch (_postErr) {
+      recentMemberPostCovers = [];
+    }
     return res.json({
       ok: true,
       organicHome,
-      organicGamesPick
+      organicGamesPick,
+      recentMemberPostCovers
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });

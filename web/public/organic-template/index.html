@@ -164,6 +164,30 @@
       .huajaiy-game-card:hover .huajaiy-game-card-cta {
         color: #d72654;
       }
+      /* โพสต์หน้าแรก — เฉพาะรูปปก ไม่แสดงชื่อบนการ์ด */
+      #huajaiy-member-posts-section .huajaiy-home-post-card {
+        border: 1px solid rgba(240, 214, 220, 0.85);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      #huajaiy-member-posts-section .huajaiy-home-post-card:hover {
+        border-color: rgba(215, 38, 84, 0.35);
+        box-shadow: 0 4px 14px -4px rgba(15, 23, 42, 0.12);
+      }
+      #huajaiy-member-posts-section .huajaiy-home-post-card-media {
+        aspect-ratio: 16 / 10;
+        background-color: #f1f5f9;
+        overflow: hidden;
+      }
+      #huajaiy-member-posts-section .huajaiy-home-post-card-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.22s ease;
+      }
+      #huajaiy-member-posts-section .huajaiy-home-post-card-link:hover .huajaiy-home-post-card-media img {
+        transform: scale(1.03);
+      }
     </style>
 
   </head>
@@ -730,6 +754,17 @@
             </article>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section id="huajaiy-member-posts-section" class="pb-4 d-none" data-huajaiy-block="member-posts" aria-label="โพสต์จากสมาชิก">
+      <div class="container-lg">
+        <div class="row">
+          <div class="section-header my-4">
+            <h2 class="section-title mb-0">โพสต์</h2>
+          </div>
+        </div>
+        <div id="huajaiy-home-posts-grid"></div>
       </div>
     </section>
 

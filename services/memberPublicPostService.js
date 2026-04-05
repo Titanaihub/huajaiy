@@ -163,6 +163,47 @@ function rowToPost(row, opts = {}) {
 /**
  * @param {string} username
  */
+/**
+ * รูปปกโพสต์ล่าสุดสำหรับหน้าแรก — เฉพาะเพจที่ public_page_listed และมีรูปปก https
+ * ไม่ส่งชื่อจริง/หัวข้อโพสต์ (แค่ username + postId สำหรับลิงก์)
+ * @param {number} [limit]
+ */
+async function listRecentPublicPostCoversForHome(limit = 12) {
+  let pool;
+  try {
+    pool = requirePool();
+  } catch (e) {
+    if (e && e.code === "DB_REQUIRED") return [];
+    throw e;
+  }
+  const lim = Math.min(24, Math.max(1, Math.floor(Number(limit) || 12)));
+  const r = await pool.query(
+    `SELECT p.id, u.username, p.cover_image_url
+     FROM member_public_posts p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE u.account_disabled = false
+       AND COALESCE(u.role, 'member') <> 'admin'
+       AND u.public_page_listed = true
+       AND p.cover_image_url IS NOT NULL
+       AND TRIM(p.cover_image_url) <> ''
+       AND p.cover_image_url LIKE 'https://%'
+     ORDER BY p.updated_at DESC NULLS LAST, p.created_at DESC NULLS LAST
+     LIMIT $1`,
+    [lim]
+  );
+  return r.rows
+    .map((row) => {
+      const cover = sanitizeCoverUrl(row.cover_image_url);
+      const un = String(row.username || "")
+        .trim()
+        .toLowerCase();
+      const id = row.id != null ? String(row.id).trim() : "";
+      if (!cover || !un || !UUID_RE.test(id)) return null;
+      return { postId: id, username: un, coverImageUrl: cover };
+    })
+    .filter(Boolean);
+}
+
 async function listPublicByUsername(username) {
   const pool = requirePool();
   const un = String(username || "").toLowerCase().trim();
@@ -407,6 +448,7 @@ async function deleteForUser(userId, postId) {
 }
 
 module.exports = {
+  listRecentPublicPostCoversForHome,
   listPublicByUsername,
   getPublicByUsernameAndPostId,
   listByUserId,

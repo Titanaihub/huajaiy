@@ -455,6 +455,64 @@
     return Boolean(t || u || ex);
   }
 
+  /** โพสต์สมาชิก — แสดงเฉพาะรูปปก ลิงก์ไปหน้าโพสต์ (ไม่แสดงชื่อบนการ์ด) */
+  function applyMemberPostCovers(items) {
+    var sec = $("huajaiy-member-posts-section");
+    var grid = $("huajaiy-home-posts-grid");
+    if (!sec || !grid) return;
+    while (grid.firstChild) {
+      grid.removeChild(grid.firstChild);
+    }
+    var list = Array.isArray(items) ? items : [];
+    var good = [];
+    for (var i = 0; i < list.length; i++) {
+      var it = list[i];
+      if (!it || typeof it !== "object") continue;
+      var pid = it.postId != null ? String(it.postId).trim() : "";
+      var un = it.username != null ? String(it.username).trim().toLowerCase() : "";
+      var url = it.coverImageUrl != null ? String(it.coverImageUrl).trim() : "";
+      if (!pid || !un || !url || !/^https:\/\//i.test(url)) continue;
+      good.push({ postId: pid, username: un, coverImageUrl: url });
+    }
+    if (good.length === 0) {
+      sec.classList.add("d-none");
+      return;
+    }
+    sec.classList.remove("d-none");
+    var row = document.createElement("div");
+    row.className = "row g-3 g-md-4 row-cols-2 row-cols-md-3 row-cols-lg-4";
+    for (var j = 0; j < good.length; j++) {
+      var g = good[j];
+      var col = document.createElement("div");
+      col.className = "col";
+      var card = document.createElement("div");
+      card.className = "card border-0 shadow-sm overflow-hidden rounded-3 huajaiy-home-post-card";
+      var a = document.createElement("a");
+      a.href =
+        "/" +
+        encodeURIComponent(g.username) +
+        "/post/" +
+        encodeURIComponent(g.postId);
+      a.target = "_top";
+      a.rel = "noopener";
+      a.className = "text-decoration-none d-block huajaiy-home-post-card-link";
+      a.setAttribute("aria-label", "เปิดดูโพสต์");
+      var wrap = document.createElement("div");
+      wrap.className = "huajaiy-home-post-card-media";
+      var img = document.createElement("img");
+      img.src = g.coverImageUrl;
+      img.alt = "";
+      img.decoding = "async";
+      img.loading = "lazy";
+      wrap.appendChild(img);
+      a.appendChild(wrap);
+      card.appendChild(a);
+      col.appendChild(card);
+      row.appendChild(col);
+    }
+    grid.appendChild(row);
+  }
+
   function applyCommunityPage(cp) {
     if (!cp || typeof cp !== "object") return;
     var va = $("huajaiy-community-view-all");
@@ -565,6 +623,7 @@
         if (body && body.ok && body.organicHome) {
           applyOrganicHome(body.organicHome);
           applyGameCards(Array.isArray(body.organicGamesPick) ? body.organicGamesPick : []);
+          applyMemberPostCovers(body.recentMemberPostCovers);
         }
         fetchNavGamesList();
         try {
