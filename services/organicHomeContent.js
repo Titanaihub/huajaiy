@@ -225,6 +225,11 @@ function sanitizeOrganicHomeForPublic(organicHome) {
   const posts = cpBase.posts.map((p) =>
     isLegacyDemoCommunityPost(p) ? { ...EMPTY_COMMUNITY_POST } : p
   );
+  const sectionVisibility = {
+    ...normSectionVisibility(organicHome.sectionVisibility),
+    /* ปิดแสดงเพจชุมชนบนหน้าแรกชั่วคราว — ค่าใน DB / แอดมินไม่ถูกลบ */
+    blog: false
+  };
   return {
     ...organicHome,
     sectionHeadings: {
@@ -234,7 +239,8 @@ function sanitizeOrganicHomeForPublic(organicHome) {
     communityPage: {
       ...cpBase,
       posts
-    }
+    },
+    sectionVisibility
   };
 }
 
