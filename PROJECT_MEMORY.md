@@ -50,7 +50,7 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 | **`/login`** | `web/app/login/page.js` | iframe `organic-template/huajaiy-login.html` (LINE + ยูสเซอร์/รหัส) |
 | **`/login/line`** | `web/app/login/line/page.js` | LINE OAuth → แลกโทเค็นสมาชิก |
 | **`/member`** | `web/components/MemberTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe + `postMessage` ข้อมูลสมาชิก |
-| **`/admin`** | `web/components/AdminTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe เหมือนสมาชิก; แผง React เก่า **`/admin/panel`** (`AdminDashboard`) ฝังใน iframe ได้เมื่อตั้ง **`SHOW_LEGACY_ADMIN_PANEL_EMBED = true`** ในไฟล์นี้ (ใช้เฉพาะเมื่อต้องการแผงเดิม) |
+| **`/admin`** | `web/components/AdminTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe; แผง React (`AdminDashboard`) ฝังจาก **`/admin/embed/panel`** เมื่อ **`SHOW_LEGACY_ADMIN_PANEL_EMBED = true`** · **`/admin/panel`** รีไดเร็กต์ไป **`/admin`** |
 
 **สถานะล็อกอิน:** `MemberAuthProvider` + `localStorage` (`huajaiy_member_token`) · เมนูสาธารณะ: `HomeStylePublicHeader` หรือ `SiteHeader` / `GlobalPrimaryNav`
 

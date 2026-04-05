@@ -213,7 +213,7 @@
               }
               var role = data.user && data.user.role;
               window.top.location.href =
-                role === "admin" ? "/admin/panel" : "/member";
+                role === "admin" ? "/admin" : "/member";
             } catch (e) {
               showErr("เครือข่ายผิดพลาด — ลองอีกครั้ง");
             } finally {

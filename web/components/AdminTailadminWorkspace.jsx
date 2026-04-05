@@ -26,7 +26,7 @@ function legacyTailFromQuery(raw) {
 }
 
 /**
- * ฝังแผง React เดิม (/admin/panel) เฉพาะหน้า «ภาพรวม» (/admin) — หน้าย่อยใช้ Vue เต็มพื้นที่
+ * ฝังแผง React (AdminDashboard) จาก /admin/embed/panel เฉพาะหน้า «ภาพรวม» (/admin) — หน้าย่อยใช้ Vue เต็มพื้นที่
  */
 const SHOW_LEGACY_ADMIN_PANEL_EMBED = true;
 
@@ -91,7 +91,7 @@ export default function AdminTailadminWorkspace() {
   const panelUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
     const qs = searchParams.toString();
-    return `${window.location.origin}/admin/panel${qs ? `?${qs}` : ""}`;
+    return `${window.location.origin}/admin/embed/panel${qs ? `?${qs}` : ""}`;
   }, [searchParams]);
 
   const postToIframe = useCallback((payload) => {

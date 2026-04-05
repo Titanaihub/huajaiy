@@ -39,7 +39,7 @@ alwaysApply: true
 - **`/`** → `HomeOrganicChrome` (หัว React + organic iframe `?huajaiy_chrome=1`)
 - **`/login`**, **`/login/line`** → เทมเพลต organic + LINE
 - **`/member`**, **`/admin`** → `MemberTailadminWorkspace` / `AdminTailadminWorkspace` (หัว `HomeStylePublicHeader` + TailAdmin iframe)
-- แผงแอดมินแบบ React เก่า: **`/admin/panel`** — ฝังใน iframe เฉพาะเมื่อ **`SHOW_LEGACY_ADMIN_PANEL_EMBED`** ใน `AdminTailadminWorkspace.jsx` เป็น `true`
+- แผงแอดมิน React (`AdminDashboard`): ฝังใน iframe จาก **`/admin/embed/panel`** เมื่อ **`SHOW_LEGACY_ADMIN_PANEL_EMBED`** ใน `AdminTailadminWorkspace.jsx` เป็น `true` · **`/admin/panel`** → redirect **`/admin`**
 - รายละเอียดตารางและไฟล์: **`PROJECT_MEMORY.md`**
 
 ## เอกสารเพิ่มเติมใน repo

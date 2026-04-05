@@ -4,11 +4,11 @@ export const MEMBER_WORKSPACE_PATH = "/member";
 /** เชลล์แอดมิน (TailAdmin iframe + แผง React ฝังเมื่ออยู่ภาพรวม) */
 export const ADMIN_WORKSPACE_PATH = "/admin";
 
-/** หลังล็อกอินแอดมิน — ใช้เทมเพลตใหม่ที่ `/admin` (ข้อมูลแผงเดิมฝังจาก `/admin/panel`) */
+/** หลังล็อกอินแอดมิน — ใช้ `/admin` (แผง React ฝังจาก `/admin/embed/panel` ภายใน iframe) */
 export const ADMIN_HOME_PATH = "/admin";
 
 /** แผง React เต็มหน้าจอ (ลิงก์ตรง / บุ๊กมาร์กเก่า) */
-export const ADMIN_LEGACY_PANEL_PATH = "/admin/panel";
+export const ADMIN_LEGACY_PANEL_PATH = "/admin/embed/panel";
 
 /** แดชบอร์ดร้านค้าในเทมเพลต TailAdmin (Vue path `/` = Ecommerce) */
 export const TAILADMIN_SHOP_DASHBOARD_START = "/";
