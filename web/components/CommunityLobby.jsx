@@ -139,21 +139,9 @@ function CardInner({ post, cardClass, mediaShell }) {
 
 /**
  * ล็อบบี้เพจชุมชน — โครงเดียวกับ GameLobby (ค้นหา + การ์ด + CSS vars ธีมหน้าเกม)
- * @param {{
- *   posts?: Array<object>;
- *   searchInputId?: string;
- *   searchLabel?: string;
- *   emptyTitle?: string;
- *   emptyHint?: string;
- * }} props
+ * @param {{ posts: Array<object> }} props
  */
-export default function CommunityLobby({
-  posts = [],
-  searchInputId = "community-search",
-  searchLabel = "ค้นหาหัวข้อ คำอธิบาย หรือหมวด",
-  emptyTitle = "ยังไม่มีโพสต์ในหน้านี้",
-  emptyHint = "แอดมินตั้งค่าได้ที่ ธีมเว็บ → ชุมชนเพจ"
-}) {
+export default function CommunityLobby({ posts = [] }) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
@@ -183,14 +171,11 @@ export default function CommunityLobby({
   return (
     <div className="space-y-6">
       <div>
-        <label
-          htmlFor={searchInputId}
-          className="text-sm font-medium text-[var(--gl-search-label)]"
-        >
-          {searchLabel}
+        <label htmlFor="community-search" className="text-sm font-medium text-[var(--gl-search-label)]">
+          ค้นหาหัวข้อ คำอธิบาย หรือหมวด
         </label>
         <input
-          id={searchInputId}
+          id="community-search"
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -202,9 +187,9 @@ export default function CommunityLobby({
 
       {posts.length === 0 ? (
         <div className="rounded-2xl border border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] p-8 text-center text-sm text-[var(--gl-empty-text)] shadow-sm">
-          <p className="font-medium text-[var(--gl-empty-text)]">{emptyTitle}</p>
+          <p className="font-medium text-[var(--gl-empty-text)]">ยังไม่มีโพสต์ในหน้านี้</p>
           <p className="mt-2 text-sm leading-relaxed text-[var(--gl-empty-muted)]">
-            {emptyHint}
+            แอดมินตั้งค่าได้ที่ <span className="font-medium">ธีมเว็บ → ชุมชนเพจ</span>
           </p>
         </div>
       ) : filtered.length === 0 ? (
