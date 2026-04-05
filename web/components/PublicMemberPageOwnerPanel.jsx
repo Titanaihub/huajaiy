@@ -49,6 +49,30 @@ function isProbablyPng(file) {
   );
 }
 
+const TITLE_PLACEHOLDER_MAX_LEN = 72;
+
+/** ตัวอย่างในช่องกรอก — อิงเฉพาะบัญชีที่ล็อกอิน ไม่ใช้ชื่อสมาชิกคนอื่น */
+function buildPublicPageTitlePlaceholder(user) {
+  if (!user || typeof user !== "object") {
+    return "ตั้งชื่อที่แสดงบนหัวเพจ (เว้นว่าง = ใช้ชื่อในบัญชี)";
+  }
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+  if (fullName) {
+    const s = `เช่น ${fullName}`;
+    return s.length > TITLE_PLACEHOLDER_MAX_LEN
+      ? `${s.slice(0, TITLE_PLACEHOLDER_MAX_LEN - 1)}…`
+      : s;
+  }
+  const un = String(user.username || "").trim();
+  if (un) {
+    const s = `เช่น เพจ @${un}`;
+    return s.length > TITLE_PLACEHOLDER_MAX_LEN
+      ? `${s.slice(0, TITLE_PLACEHOLDER_MAX_LEN - 1)}…`
+      : s;
+  }
+  return "ตั้งชื่อที่แสดงบนหัวเพจ (เว้นว่าง = ใช้ชื่อในบัญชี)";
+}
+
 async function uploadBannerImage(file) {
   const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
@@ -93,6 +117,11 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
             String(username || "").toLowerCase()
       ),
     [user, username]
+  );
+
+  const titlePlaceholder = useMemo(
+    () => buildPublicPageTitlePlaceholder(user),
+    [user]
   );
 
   useEffect(() => {
@@ -210,7 +239,7 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
               maxLength={120}
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
-              placeholder="เช่น ก.กุ้งเป็น LINE"
+              placeholder={titlePlaceholder}
               className="mt-1 w-full rounded-lg border border-amber-200/90 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none ring-0 placeholder:text-gray-400 focus:border-amber-400"
             />
             <p className="mt-0.5 text-[11px] text-amber-900/75">
