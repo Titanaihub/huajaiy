@@ -34,6 +34,7 @@ const iconLinkClassGameLobby =
  * @param {string} [lineProfileImageUrl] — รูป LINE แทนไอคอนคนอันแรกทางขวา
  * @param {string} [profileDisplayName] — ชื่อสำหรับ alt
  * @param {boolean} [authPage] — หน้าล็อกอิน: ไม่แสดงแฮมเบอร์เกอร์ + ไอคอนขวา (ไม่ใช้เมนูเก่า)
+ * แฮมเบอร์เกอร์แสดงเฉพาะเมื่อล็อกอินแล้ว (memberUser) — แขกไม่เห็นปุ่มและเมนูเลื่อนซ้ายที่ผูกกับปุ่มนี้
  * @param {boolean} [gameLobbyThemed] — ใช้ CSS variables จากธีมหน้า /game (--gl-*)
  */
 export default function HomeStylePublicHeader({
@@ -108,7 +109,7 @@ export default function HomeStylePublicHeader({
         <div className="flex flex-wrap items-center gap-3 py-3 lg:gap-y-3">
           <div className="flex w-full flex-none items-center justify-center gap-2 sm:w-auto sm:justify-start sm:gap-3 lg:box-border lg:w-[290px] lg:min-w-[290px] lg:max-w-[290px] lg:justify-between lg:gap-2 lg:pl-5 lg:pr-0">
             <BrandLogo variant="header" tone="organic" />
-            {authPage ? (
+            {authPage || !memberUser ? (
               <span className="h-10 w-10 shrink-0 sm:w-0" aria-hidden />
             ) : (
               <button

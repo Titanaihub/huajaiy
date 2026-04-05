@@ -173,11 +173,13 @@ export default function MemberStylePageShell({ children }) {
     </div>
   );
 
+  const showMemberSidebar = Boolean(user);
+
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
       <HomeStylePublicHeader onHamburgerClick={onHamburgerClick} />
       <div className="relative flex min-h-0 flex-1 overflow-hidden bg-slate-100">
-        {mobileNavOpen ? (
+        {showMemberSidebar && mobileNavOpen ? (
           <button
             type="button"
             className="fixed inset-0 z-[1000] bg-black/40 lg:hidden"
@@ -185,19 +187,21 @@ export default function MemberStylePageShell({ children }) {
             onClick={closeMobileNav}
           />
         ) : null}
-        <aside
-          className={[
-            "flex flex-col border-r border-gray-200 bg-white shadow-xl transition-[transform,width,min-width,max-width] duration-300 ease-out",
-            "fixed left-0 top-14 z-[1001] h-[calc(100dvh-3.5rem)] w-[290px] max-w-[85vw] sm:top-[3.75rem] sm:h-[calc(100dvh-3.75rem)]",
-            mobileNavOpen ? "translate-x-0" : "-translate-x-full",
-            "lg:relative lg:top-auto lg:z-0 lg:h-auto lg:max-h-none lg:min-h-0 lg:max-w-none lg:translate-x-0 lg:shadow-none",
-            desktopNavCollapsed
-              ? "lg:w-0 lg:min-w-0 lg:max-w-0 lg:overflow-hidden lg:border-transparent"
-              : "lg:w-[290px] lg:min-w-[290px] lg:max-w-[290px]"
-          ].join(" ")}
-        >
-          {sidebarInner}
-        </aside>
+        {showMemberSidebar ? (
+          <aside
+            className={[
+              "flex flex-col border-r border-gray-200 bg-white shadow-xl transition-[transform,width,min-width,max-width] duration-300 ease-out",
+              "fixed left-0 top-14 z-[1001] h-[calc(100dvh-3.5rem)] w-[290px] max-w-[85vw] sm:top-[3.75rem] sm:h-[calc(100dvh-3.75rem)]",
+              mobileNavOpen ? "translate-x-0" : "-translate-x-full",
+              "lg:relative lg:top-auto lg:z-0 lg:h-auto lg:max-h-none lg:min-h-0 lg:max-w-none lg:translate-x-0 lg:shadow-none",
+              desktopNavCollapsed
+                ? "lg:w-0 lg:min-w-0 lg:max-w-0 lg:overflow-hidden lg:border-transparent"
+                : "lg:w-[290px] lg:min-w-[290px] lg:max-w-[290px]"
+            ].join(" ")}
+          >
+            {sidebarInner}
+          </aside>
+        ) : null}
         <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
