@@ -299,14 +299,6 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                   </h2>
                   <dl className="mt-4 space-y-3 text-sm">
                     <div>
-                      <dt className="font-medium text-gray-500">ชื่อเพจ (บนหัว)</dt>
-                      <dd className="mt-0.5 text-gray-900">{pageHeadline}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium text-gray-500">ชื่อ–นามสกุลในบัญชี</dt>
-                      <dd className="mt-0.5 text-gray-900">{legalDisplayName}</dd>
-                    </div>
-                    <div>
                       <dt className="font-medium text-gray-500">ชื่อผู้ใช้</dt>
                       <dd className="mt-0.5 text-gray-900">@{username}</dd>
                     </div>
