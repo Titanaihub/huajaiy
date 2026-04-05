@@ -51,8 +51,8 @@ function CardInner({ post, cardClass, mediaShell }) {
   const body = (
     <>
       {media}
-      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-4">
-        <h2 className="line-clamp-2 text-base font-semibold leading-snug text-[var(--gl-card-title)]">
+      <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-3.5">
+        <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--gl-card-title)] sm:text-base">
           {post?.title || "โพสต์"}
         </h2>
         <p className="mt-1.5 text-sm text-[var(--gl-card-muted)]">
@@ -117,7 +117,7 @@ export default function CommunityLobby({ posts = [] }) {
     "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
   const cardClass = `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`;
   const mediaShell =
-    "relative aspect-video w-full overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]";
+    "relative h-32 w-full overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)] sm:h-36 md:h-40";
 
   return (
     <div className="space-y-6">
