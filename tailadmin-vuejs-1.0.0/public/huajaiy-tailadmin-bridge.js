@@ -92,9 +92,9 @@
     { key: "prizes", label: "รางวัลของฉัน", kind: "shell", slug: "prizes", start: "/my-prizes" },
     { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", slug: "hearts", start: "/my-hearts" },
     { key: "games", label: "เกมของฉัน", kind: "shell", slug: "game", start: "/my-games" },
-    { key: "shops", label: "ร้านค้าของฉัน", kind: "shell", slug: "shops", start: "/my-shops" },
+    { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", slug: "shops", start: "/my-shops" },
     { key: "page", label: "เพจของฉัน", kind: "publicPage" },
-    { key: "orders", label: "คำสั่งซื้อ", kind: "shell", slug: "orders", start: "/my-orders" },
+    { key: "orders", label: "คำสั่งซื้อ", kind: "closed", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
       label: "คำขอรับรางวัล",

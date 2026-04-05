@@ -9,8 +9,8 @@ import { getApiBase } from "../lib/config";
 import {
   isMemberShellIframeClosedSlug,
   memberAppPathForTail,
+  memberClosedShellPlaceholderText,
   memberTailPathFromSlug,
-  MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE,
   normalizeMemberTailPath,
   parseMemberAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
@@ -110,7 +110,7 @@ export default function MemberTailadminWorkspace() {
       apiBase: getApiBase(),
       user,
       shellPlaceholderText: closedShellSlug
-        ? MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE
+        ? memberClosedShellPlaceholderText(closedShellSlug)
         : "",
       ...(token ? { token } : {})
     });

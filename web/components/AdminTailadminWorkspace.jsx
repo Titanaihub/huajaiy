@@ -9,8 +9,8 @@ import {
   isAdminDashboardShellSlug,
   isMemberShellIframeClosedSlug,
   isValidAdminDashboardTabKey,
+  memberClosedShellPlaceholderText,
   memberTailPathFromSlug,
-  MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE,
   normalizeMemberTailPath,
   parseAdminAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
@@ -143,7 +143,7 @@ export default function AdminTailadminWorkspace() {
       apiBase: getApiBase(),
       user,
       shellPlaceholderText: closedShellSlug
-        ? MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE
+        ? memberClosedShellPlaceholderText(closedShellSlug)
         : "",
       ...(token ? { token } : {})
     });

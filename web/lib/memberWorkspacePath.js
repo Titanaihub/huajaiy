@@ -79,12 +79,15 @@ export const TAILADMIN_CREATE_GAME_START = "/create-game";
 /** ตั้งค่าห้องเกมหลังสร้าง — ฝัง AdminCentralGamePanel (React) ในเชลล์สมาชิก */
 export const TAILADMIN_GAME_STUDIO_START = "/game-studio";
 
-/** ข้อความเมื่อเมนูยังไม่เปิด — เชลล์ Next ไม่โหลด iframe */
+/** ข้อความเมื่อเมนูยังไม่เปิด — แสดงใน iframe (TailAdmin bridge) สำหรับทุกยูสเซอร์ */
 export const MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE =
-  "ยังไม่เปิดให้ใช้งาน";
+  "ยังไม่เปิดให้ใช้บริการ";
 
-/** slug ที่ไม่โหลด iframe (ว่าง = สมาชิกทุกคนเห็น Vue เหมือนกันทุกเมนู) */
-export const MEMBER_SHELL_IFRAME_CLOSED_SLUGS = Object.freeze([]);
+/** ร้านค้าของฉัน · คำสั่งซื้อ — ปิดเนื้อหา Vue; URL สวยยังใช้ได้ แต่โชว์ข้อความแจ้งแทน */
+export const MEMBER_SHELL_IFRAME_CLOSED_SLUGS = Object.freeze([
+  "shops",
+  "orders"
+]);
 
 export function isMemberShellIframeClosedSlug(slug) {
   if (slug == null || String(slug).trim() === "") return false;
@@ -94,6 +97,22 @@ export function isMemberShellIframeClosedSlug(slug) {
     .split("/")
     .filter(Boolean)[0];
   return MEMBER_SHELL_IFRAME_CLOSED_SLUGS.includes(s);
+}
+
+/** ข้อความเต็มบนพื้นที่เนื้อหาเมื่อ slug ปิด — ใช้กับทุกยูสเซอร์ */
+export function memberClosedShellPlaceholderText(slug) {
+  const s = String(slug || "")
+    .trim()
+    .toLowerCase()
+    .split("/")
+    .filter(Boolean)[0];
+  if (s === "shops") {
+    return `${MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE} — ร้านค้าของฉัน`;
+  }
+  if (s === "orders") {
+    return `${MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE} — คำสั่งซื้อ`;
+  }
+  return MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE;
 }
 
 /**
