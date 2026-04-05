@@ -32,6 +32,13 @@ function sanitizeHttpsUrlOptional(v, maxLen) {
   return s.slice(0, maxLen);
 }
 
+/** ชื่อหัวข้อเพจสาธารณะ — ว่างเป็น null */
+function sanitizePublicPageTitle(v) {
+  if (v == null) return null;
+  const s = String(v).replace(/\u0000/g, "").trim().slice(0, 120);
+  return s === "" ? null : s;
+}
+
 function normalizeBirthDate(v) {
   if (v == null) return null;
   if (v instanceof Date) return v.toISOString().slice(0, 10);
@@ -129,6 +136,7 @@ function rowToUser(row) {
       row.public_page_bio != null && String(row.public_page_bio).trim()
         ? String(row.public_page_bio).trim().slice(0, 2000)
         : null,
+    publicPageTitle: sanitizePublicPageTitle(row.public_page_title),
     publicPageListed: row.public_page_listed === false ? false : true,
     email:
       row.email != null && String(row.email).trim()
@@ -198,6 +206,7 @@ function enrichFileUserShipping(u) {
       u.publicPageBio != null && String(u.publicPageBio).trim()
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
+    publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
     publicPageListed: u.publicPageListed === false ? false : true
   };
 }
@@ -232,6 +241,7 @@ async function listPublicMemberDirectory(limit = 12) {
         const u = enrichFileUserShipping(raw);
         return {
           username: u.username,
+          pageTitle: sanitizePublicPageTitle(u.publicPageTitle),
           displayName: publicDirectoryDisplayName(u),
           profilePictureUrl: publicDirectoryAvatarUrl(u),
           publicPageCoverUrl: u.publicPageCoverUrl || null,
@@ -242,7 +252,7 @@ async function listPublicMemberDirectory(limit = 12) {
   const r = await pool.query(
     `SELECT username, first_name, last_name,
             profile_picture_url, line_picture_url,
-            public_page_cover_url, public_page_bio
+            public_page_cover_url, public_page_bio, public_page_title
      FROM users
      WHERE account_disabled = false
        AND COALESCE(role, 'member') <> 'admin'
@@ -255,6 +265,7 @@ async function listPublicMemberDirectory(limit = 12) {
     const u = rowToUser(row);
     return {
       username: u.username,
+      pageTitle: sanitizePublicPageTitle(u.publicPageTitle),
       displayName: publicDirectoryDisplayName(u),
       profilePictureUrl: publicDirectoryAvatarUrl(u),
       publicPageCoverUrl: u.publicPageCoverUrl || null,
@@ -548,6 +559,7 @@ function publicUser(u) {
       u.publicPageBio != null && String(u.publicPageBio).trim()
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
+    publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
     publicPageListed: u.publicPageListed === false ? false : true
   };
 }
@@ -596,6 +608,8 @@ async function updateProfile(
     updatePublicPageCover,
     publicPageBio,
     updatePublicPageBio,
+    publicPageTitle,
+    updatePublicPageTitle,
     publicPageListed,
     updatePublicPageListed
   },
@@ -716,6 +730,11 @@ async function updateProfile(
         : null;
   }
 
+  let nextPublicPageTitle = sanitizePublicPageTitle(current.publicPageTitle);
+  if (updatePublicPageTitle) {
+    nextPublicPageTitle = sanitizePublicPageTitle(publicPageTitle);
+  }
+
   let nextPublicPageListed =
     current.publicPageListed === false ? false : true;
   if (updatePublicPageListed) {
@@ -740,6 +759,7 @@ async function updateProfile(
       socialTiktokUrl: nextSocialTiktok,
       publicPageCoverUrl: nextPublicPageCover,
       publicPageBio: nextPublicPageBio,
+      publicPageTitle: nextPublicPageTitle,
       publicPageListed: nextPublicPageListed
     };
     patch.shippingAddress = shipDb.shipping_address;
@@ -800,7 +820,8 @@ async function updateProfile(
         self_service_name_edits = self_service_name_edits + $21,
         public_page_cover_url = $22,
         public_page_bio = $23,
-        public_page_listed = $24
+        public_page_title = $24,
+        public_page_listed = $25
       WHERE id = $1::uuid`,
       [
         userId,
@@ -826,6 +847,7 @@ async function updateProfile(
         nameEditDelta,
         nextPublicPageCover,
         nextPublicPageBio,
+        nextPublicPageTitle,
         nextPublicPageListed
       ]
     );

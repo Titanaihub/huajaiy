@@ -256,6 +256,22 @@ function validateProfilePatch(body, ctx = {}) {
     }
   }
 
+  let publicPageTitle = null;
+  let updatePublicPageTitle = false;
+  if (Object.prototype.hasOwnProperty.call(body, "publicPageTitle")) {
+    updatePublicPageTitle = true;
+    const rawTitle = body.publicPageTitle;
+    if (rawTitle == null || String(rawTitle).trim() === "") {
+      publicPageTitle = null;
+    } else {
+      const s = String(rawTitle).replace(/\u0000/g, "").trim();
+      if (s.length > 120) {
+        return { ok: false, error: "ชื่อเพจยาวเกิน 120 ตัวอักษร" };
+      }
+      publicPageTitle = s;
+    }
+  }
+
   let publicPageListed = true;
   let updatePublicPageListed = false;
   if (Object.prototype.hasOwnProperty.call(body, "publicPageListed")) {
@@ -295,6 +311,8 @@ function validateProfilePatch(body, ctx = {}) {
       updatePublicPageCover,
       publicPageBio,
       updatePublicPageBio,
+      publicPageTitle,
+      updatePublicPageTitle,
       publicPageListed,
       updatePublicPageListed
     }

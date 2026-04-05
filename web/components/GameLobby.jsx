@@ -14,14 +14,16 @@ function clipDescription(text) {
 }
 
 /**
- * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }>; onBrand?: boolean; gameLobbyThemed?: boolean }} props
+ * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }>; onBrand?: boolean; gameLobbyThemed?: boolean; creatorUsernameFilter?: string }} props
  */
 export default function GameLobby({
   initialGames = [],
   onBrand = false,
-  gameLobbyThemed = false
+  gameLobbyThemed = false,
+  creatorUsernameFilter = ""
 }) {
   const [q, setQ] = useState("");
+  const creatorNeedle = String(creatorUsernameFilter || "").trim().toLowerCase();
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -83,7 +85,9 @@ export default function GameLobby({
               gameLobbyThemed ? "font-medium text-[var(--gl-empty-text)]" : "font-medium text-hui-body"
             }
           >
-            ยังไม่มีเกมที่เปิดแสดง
+            {creatorNeedle
+              ? `ยังไม่มีเกมที่เปิดแสดงจาก @${creatorNeedle}`
+              : "ยังไม่มีเกมที่เปิดแสดง"}
           </p>
           <p
             className={
@@ -92,8 +96,9 @@ export default function GameLobby({
                 : "mt-2 text-sm leading-relaxed text-hui-muted"
             }
           >
-            เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ถ้าใช้ฐานข้อมูล PostgreSQL
-            ตรวจว่า API เชื่อมต่อและมีเกมที่พร้อมเล่น
+            {creatorNeedle
+              ? "เมื่อผู้สร้างเผยแพร่เกมและเปิดแสดงในรายการ เกมจะปรากฏที่นี่"
+              : "เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ถ้าใช้ฐานข้อมูล PostgreSQL ตรวจว่า API เชื่อมต่อและมีเกมที่พร้อมเล่น"}
           </p>
         </div>
       ) : filtered.length === 0 ? (

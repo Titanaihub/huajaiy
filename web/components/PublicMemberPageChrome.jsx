@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import PublicMemberPageOwnerPanel from "./PublicMemberPageOwnerPanel";
 
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
 
@@ -14,8 +15,10 @@ export default function PublicMemberPageChrome({ member }) {
   const [copied, setCopied] = useState(false);
 
   const username = String(member?.username || "").trim();
-  const displayName =
+  const legalDisplayName =
     String(member?.displayName || "").trim() || `@${username}`;
+  const pageHeadline =
+    String(member?.publicPageTitle || "").trim() || legalDisplayName;
 
   const avatarSrc = useMemo(() => {
     const p = member?.profilePictureUrl;
@@ -81,6 +84,7 @@ export default function PublicMemberPageChrome({ member }) {
   return (
     <div className="min-h-full bg-[#f0f2f5] px-3 py-4 sm:px-5 sm:py-6 md:px-6">
       <div className="mx-auto max-w-4xl pb-6">
+        <PublicMemberPageOwnerPanel username={username} member={member} />
         <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm">
           {/* ปกเพจ */}
           <div
@@ -125,7 +129,7 @@ export default function PublicMemberPageChrome({ member }) {
                 </div>
                 <div className="min-w-0 pb-1 sm:pb-2">
                   <h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl md:text-[2rem]">
-                    {displayName}
+                    {pageHeadline}
                   </h1>
                   <p className="mt-0.5 text-[15px] text-gray-600">@{username}</p>
                   <p className="mt-2 max-w-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-500">
@@ -142,10 +146,10 @@ export default function PublicMemberPageChrome({ member }) {
                   {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์เพจ"}
                 </button>
                 <Link
-                  href="/game"
+                  href={`/game?creator=${encodeURIComponent(username)}`}
                   className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700"
                 >
-                  ดูเกมในระบบ
+                  เกมของเพจ
                 </Link>
               </div>
             </div>
@@ -203,8 +207,12 @@ export default function PublicMemberPageChrome({ member }) {
                   </h2>
                   <dl className="mt-4 space-y-3 text-sm">
                     <div>
-                      <dt className="font-medium text-gray-500">ชื่อที่แสดง</dt>
-                      <dd className="mt-0.5 text-gray-900">{displayName}</dd>
+                      <dt className="font-medium text-gray-500">ชื่อเพจ (บนหัว)</dt>
+                      <dd className="mt-0.5 text-gray-900">{pageHeadline}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-gray-500">ชื่อ–นามสกุลในบัญชี</dt>
+                      <dd className="mt-0.5 text-gray-900">{legalDisplayName}</dd>
                     </div>
                     <div>
                       <dt className="font-medium text-gray-500">ชื่อผู้ใช้</dt>

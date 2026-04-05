@@ -37,7 +37,10 @@ function memberDirectoryCard(m) {
     String(m?.publicPageCoverUrl || "").trim() ||
     String(m?.profilePictureUrl || "").trim() ||
     "";
-  const title = String(m?.displayName || un).trim() || un;
+  const title =
+    String(m?.pageTitle || "").trim() ||
+    String(m?.displayName || un).trim() ||
+    un;
   return {
     title,
     category: "เพจสมาชิก",

@@ -138,6 +138,10 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS public_page_title VARCHAR(120);
+    `);
+    await client.query(`
+      ALTER TABLE users
       ADD COLUMN IF NOT EXISTS public_page_listed BOOLEAN NOT NULL DEFAULT TRUE;
     `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */

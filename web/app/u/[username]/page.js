@@ -30,7 +30,9 @@ export async function generateMetadata({ params }) {
   if (!m) {
     return { title: "เพจสมาชิก | HUAJAIY" };
   }
-  const name = String(m.displayName || m.username || "").trim() || m.username;
+  const pageTitle = String(m.publicPageTitle || "").trim();
+  const legal = String(m.displayName || m.username || "").trim();
+  const name = pageTitle || legal || m.username;
   const bio = String(m.publicPageBio || "").trim();
   const desc =
     bio && bio.length <= 160

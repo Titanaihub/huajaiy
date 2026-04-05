@@ -310,7 +310,10 @@ function publicMemberDirectoryPostForOrganic(m) {
     String(m?.publicPageCoverUrl || "").trim() ||
     String(m?.profilePictureUrl || "").trim() ||
     "";
-  const title = String(m?.displayName || un).trim() || un;
+  const title =
+    String(m?.pageTitle || "").trim() ||
+    String(m?.displayName || un).trim() ||
+    un;
   return {
     title,
     category: "เพจสมาชิก",
@@ -347,7 +350,8 @@ app.get("/api/public/members/:username", async (req, res) => {
       socialLineUrl: u.socialLineUrl || null,
       socialTiktokUrl: u.socialTiktokUrl || null,
       publicPageCoverUrl: u.publicPageCoverUrl || null,
-      publicPageBio: u.publicPageBio || null
+      publicPageBio: u.publicPageBio || null,
+      publicPageTitle: u.publicPageTitle || null
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });

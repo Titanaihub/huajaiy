@@ -7,18 +7,40 @@ import { buildSiteRootBackgroundStyle } from "../../lib/siteThemeStyle";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function generateMetadata() {
+export async function generateMetadata({ searchParams }) {
+  const raw =
+    typeof searchParams?.creator === "string"
+      ? searchParams.creator.trim().toLowerCase()
+      : "";
+  if (raw) {
+    return {
+      title: `เกมของ @${raw} | HUAJAIY`,
+      description: `รายการเกมที่เผยแพร่โดย @${raw} — HUAJAIY`
+    };
+  }
   return {
     title: "เกมและรางวัล | HUAJAIY",
     description: "รายการเกมเผยแพร่ — ค้นหาและเข้าเล่นได้จากการ์ด"
   };
 }
 
-export default async function GamePage() {
-  const [games, gameLobbyTheme] = await Promise.all([
+export default async function GamePage({ searchParams }) {
+  const creatorFilter =
+    typeof searchParams?.creator === "string"
+      ? searchParams.creator.trim().toLowerCase()
+      : "";
+
+  const [allGames, gameLobbyTheme] = await Promise.all([
     fetchPublicGameList(),
     fetchPublicGameLobbyTheme()
   ]);
+
+  const games = creatorFilter
+    ? allGames.filter(
+        (g) =>
+          String(g.creatorUsername || "").trim().toLowerCase() === creatorFilter
+      )
+    : allGames;
 
   const mainBgStyle = buildSiteRootBackgroundStyle({
     backgroundImageUrl: gameLobbyTheme.backgroundImageUrl,
@@ -33,11 +55,20 @@ export default async function GamePage() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--gl-page-heading)]">
-            เกมและรางวัล
+            {creatorFilter ? `เกมของ @${creatorFilter}` : "เกมและรางวัล"}
           </h1>
+          {creatorFilter ? (
+            <p className="mt-2 text-sm text-[var(--gl-empty-muted)]">
+              แสดงเฉพาะเกมที่เผยแพร่โดยสมาชิก @{creatorFilter}
+            </p>
+          ) : null}
         </div>
 
-        <GameLobby initialGames={games} gameLobbyThemed />
+        <GameLobby
+          initialGames={games}
+          gameLobbyThemed
+          creatorUsernameFilter={creatorFilter}
+        />
 
         <nav
           className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"

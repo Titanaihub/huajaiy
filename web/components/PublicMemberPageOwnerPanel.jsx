@@ -1,0 +1,256 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getApiBase } from "../lib/config";
+import { useMemberAuth } from "./MemberAuthProvider";
+
+function loadImage(fileBlob) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(fileBlob);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(img);
+    };
+    img.onerror = () => reject(new Error("อ่านรูปไม่ได้"));
+    img.src = objectUrl;
+  });
+}
+
+const JPEG_FLAT_BG = "#f8fafc";
+
+async function compressToJpeg(file) {
+  const img = await loadImage(file);
+  const maxSide = 1920;
+  const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
+  const w = Math.round(img.width * ratio);
+  const h = Math.round(img.height * ratio);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = JPEG_FLAT_BG;
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("บีบอัดไม่สำเร็จ"))),
+      "image/jpeg",
+      0.85
+    );
+  });
+}
+
+function isProbablyPng(file) {
+  return (
+    (file.type && String(file.type).toLowerCase() === "image/png") ||
+    /\.png$/i.test(file.name || "")
+  );
+}
+
+async function uploadBannerImage(file) {
+  const API_BASE = getApiBase().replace(/\/$/, "");
+  const body = new FormData();
+  if (isProbablyPng(file)) {
+    body.append(
+      "image",
+      file,
+      file.name && /\.png$/i.test(file.name) ? file.name : `upload-${Date.now()}.png`
+    );
+  } else {
+    const blob = await compressToJpeg(file);
+    body.append(
+      "image",
+      new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" })
+    );
+  }
+  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+  return data.publicUrl;
+}
+
+/**
+ * @param {{ username: string; member: Record<string, unknown> }} props
+ */
+export default function PublicMemberPageOwnerPanel({ username, member }) {
+  const router = useRouter();
+  const { user, patchProfile } = useMemberAuth();
+  const [open, setOpen] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
+  const [bioDraft, setBioDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const isOwner = useMemo(
+    () =>
+      Boolean(
+        user &&
+          String(user.username || "").toLowerCase() ===
+            String(username || "").toLowerCase()
+      ),
+    [user, username]
+  );
+
+  useEffect(() => {
+    setTitleDraft(String(member?.publicPageTitle || "").trim());
+    setBioDraft(String(member?.publicPageBio || "").trim());
+  }, [member?.publicPageTitle, member?.publicPageBio]);
+
+  const onPickCover = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file || !isOwner) return;
+      setErr("");
+      setMsg("");
+      setUploadBusy(true);
+      try {
+        const url = await uploadBannerImage(file);
+        await patchProfile({ publicPageCoverUrl: url });
+        setMsg("อัปโหลดแบนเนอร์แล้ว");
+        router.refresh();
+      } catch (ce) {
+        setErr(ce instanceof Error ? ce.message : String(ce));
+      } finally {
+        setUploadBusy(false);
+      }
+    },
+    [isOwner, patchProfile, router]
+  );
+
+  const clearCover = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setSaving(true);
+    try {
+      await patchProfile({ publicPageCoverUrl: null });
+      setMsg("เอารูปแบนเนอร์ออกแล้ว");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setSaving(false);
+    }
+  }, [isOwner, patchProfile, router]);
+
+  const saveText = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setSaving(true);
+    try {
+      await patchProfile({
+        publicPageTitle: titleDraft.trim() === "" ? null : titleDraft.trim(),
+        publicPageBio: bioDraft.trim() === "" ? null : bioDraft.trim()
+      });
+      setMsg("บันทึกชื่อเพจและคำอธิบายแล้ว");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setSaving(false);
+    }
+  }, [bioDraft, isOwner, patchProfile, router, titleDraft]);
+
+  if (!isOwner) return null;
+
+  return (
+    <div className="mb-4 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-2 text-left font-semibold text-amber-950"
+      >
+        <span>แก้ไขเพจของฉัน</span>
+        <span className="text-xs font-normal opacity-80">{open ? "ซ่อน" : "เปิด"}</span>
+      </button>
+      {open ? (
+        <div className="mt-3 space-y-4 border-t border-amber-200/80 pt-3">
+          <p className="text-xs leading-relaxed text-amber-900/90">
+            แบนเนอร์: แนะนำความกว้างอย่างน้อย{" "}
+            <strong className="font-semibold">1200 px</strong> อัตราส่วนแนวนอนประมาณ{" "}
+            <strong className="font-semibold">2.6:1 ถึง 3:1</strong> (เช่น{" "}
+            <strong className="font-semibold">1200×450</strong> หรือ{" "}
+            <strong className="font-semibold">1640×624</strong>) — ระบบจะครอปให้พอดีกับแถบปก
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80">
+              {uploadBusy ? "กำลังอัปโหลด…" : "อัปโหลดแบนเนอร์"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                disabled={uploadBusy || saving}
+                onChange={onPickCover}
+              />
+            </label>
+            {String(member?.publicPageCoverUrl || "").trim() ? (
+              <button
+                type="button"
+                disabled={saving || uploadBusy}
+                onClick={clearCover}
+                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80 disabled:opacity-50"
+              >
+                เอารูปแบนเนอร์ออก
+              </button>
+            ) : null}
+          </div>
+          <div>
+            <label htmlFor="public-page-title" className="block text-xs font-medium text-amber-900">
+              ชื่อเพจ (แยกจากชื่อ–นามสกุลในบัญชี)
+            </label>
+            <input
+              id="public-page-title"
+              type="text"
+              maxLength={120}
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              placeholder="เช่น ก.กุ้งเป็น LINE"
+              className="mt-1 w-full rounded-lg border border-amber-200/90 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none ring-0 placeholder:text-gray-400 focus:border-amber-400"
+            />
+            <p className="mt-0.5 text-[11px] text-amber-900/75">
+              ถ้าเว้นว่าง จะใช้ชื่อ–นามสกุลในบัญชีแทน
+            </p>
+          </div>
+          <div>
+            <label htmlFor="public-page-bio" className="block text-xs font-medium text-amber-900">
+              คำอธิบายบนเพจ
+            </label>
+            <textarea
+              id="public-page-bio"
+              rows={3}
+              maxLength={2000}
+              value={bioDraft}
+              onChange={(e) => setBioDraft(e.target.value)}
+              placeholder="เขียนแนะนำเพจของคุณ…"
+              className="mt-1 w-full resize-y rounded-lg border border-amber-200/90 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none placeholder:text-gray-400 focus:border-amber-400"
+            />
+          </div>
+          <button
+            type="button"
+            disabled={saving || uploadBusy}
+            onClick={saveText}
+            className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-700 disabled:opacity-50"
+          >
+            {saving ? "กำลังบันทึก…" : "บันทึกชื่อเพจและคำอธิบาย"}
+          </button>
+          {err ? (
+            <p className="text-xs font-medium text-red-700" role="alert">
+              {err}
+            </p>
+          ) : null}
+          {msg ? (
+            <p className="text-xs font-medium text-emerald-800" role="status">
+              {msg}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
