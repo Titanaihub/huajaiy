@@ -1554,49 +1554,90 @@ export default function FlipGameDemo({
     mode === "api" &&
     apiGameMode === "central" &&
     cards.length > 0;
+  const isCentralLiveUi = mode === "api" && apiGameMode === "central";
   /** หน้า /game/[id] — ลดข้อความซ้ำกับหัวข้อหน้า */
   const compactPlayLayout = Boolean(resolvedGameId);
   const showCompactCentralStatsBar =
     compactPlayLayout && mode === "api" && apiGameMode === "central";
   const compactCentralStatsBar = showCompactCentralStatsBar ? (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4">
+    <div
+      className={
+        isCentralLiveUi
+          ? "rounded-xl border border-amber-600/35 bg-zinc-950/90 px-3 py-3 text-zinc-200 shadow-lg ring-1 ring-amber-500/20 sm:px-4"
+          : "rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4"
+      }
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
         <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="shrink-0 font-medium text-slate-800">{cards.length} ป้าย</span>
+          <span
+            className={
+              isCentralLiveUi
+                ? "shrink-0 font-semibold text-amber-200/90"
+                : "shrink-0 font-medium text-slate-800"
+            }
+          >
+            {cards.length} ป้าย
+          </span>
           {pinkHeartCost > 0 || redHeartCost > 0 ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="text-slate-500">หักต่อรอบ</span>
+              <span className={isCentralLiveUi ? "text-zinc-500" : "text-slate-500"}>หักต่อรอบ</span>
               {pinkHeartCost > 0 ? (
                 <span
-                  className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
+                  className={
+                    isCentralLiveUi
+                      ? "inline-flex items-center gap-2 rounded-lg bg-pink-950/55 px-2.5 py-1.5 text-pink-100 ring-1 ring-pink-500/35"
+                      : "inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
+                  }
                   title="หัวใจชมพู"
                 >
-                  <InlineHeart size="xl" className="text-pink-500" />
+                  <InlineHeart size="xl" className={isCentralLiveUi ? "text-pink-400" : "text-pink-500"} />
                   <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
-                  <span className="text-sm font-semibold text-pink-800">หัวใจชมพู</span>
+                  <span
+                    className={
+                      isCentralLiveUi
+                        ? "text-sm font-semibold text-pink-200/95"
+                        : "text-sm font-semibold text-pink-800"
+                    }
+                  >
+                    หัวใจชมพู
+                  </span>
                 </span>
               ) : null}
               {pinkHeartCost > 0 && redHeartCost > 0 ? (
-                <span className="text-slate-300" aria-hidden>
+                <span className={isCentralLiveUi ? "text-zinc-700" : "text-slate-300"} aria-hidden>
                   ·
                 </span>
               ) : null}
               {redHeartCost > 0 ? (
                 <span
-                  className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
+                  className={
+                    isCentralLiveUi
+                      ? "inline-flex items-center gap-2 rounded-lg bg-red-950/55 px-2.5 py-1.5 text-red-100 ring-1 ring-red-500/40"
+                      : "inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
+                  }
                   title="หัวใจแดงห้องเกม"
                 >
-                  <InlineHeart size="xl" className="text-red-600" />
+                  <InlineHeart size="xl" className={isCentralLiveUi ? "text-red-500" : "text-red-600"} />
                   <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                  <span className="text-sm font-semibold text-red-800">หัวใจแดงห้องเกม</span>
+                  <span
+                    className={
+                      isCentralLiveUi
+                        ? "text-sm font-semibold text-red-100/95"
+                        : "text-sm font-semibold text-red-800"
+                    }
+                  >
+                    หัวใจแดงห้องเกม
+                  </span>
                 </span>
               ) : null}
             </span>
           ) : (
-            <span className="text-slate-500">เริ่มรอบฟรี</span>
+            <span className={isCentralLiveUi ? "text-zinc-500" : "text-slate-500"}>เริ่มรอบฟรี</span>
           )}
         </span>
-        <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
+        <span className={isCentralLiveUi ? "shrink-0 text-amber-200/70" : "shrink-0 text-slate-500"}>
+          เปิดแล้ว {flips} ครั้ง
+        </span>
       </div>
     </div>
   ) : null;
@@ -1632,7 +1673,11 @@ export default function FlipGameDemo({
   }
 
   return (
-    <div className="mt-5 space-y-5 sm:mt-6">
+    <div
+      className={
+        isCentralLiveUi ? "space-y-5" : "mt-5 space-y-5 sm:mt-6"
+      }
+    >
       {serverCentralPublished && mode === "local" && !resolvedGameId ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-semibold">มีเกมส่วนกลางเผยแพร่แล้ว แต่ตอนนี้แสดงโหมดสาธิตในเครื่อง</p>
@@ -1646,37 +1691,69 @@ export default function FlipGameDemo({
         compactPlayLayout ? null : (
           <div
             className={
-              resolvedGameId && centralCanAffordStart
-                ? "rounded-xl border-2 border-emerald-400 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
-                : "rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
+              isCentralLiveUi
+                ? resolvedGameId && centralCanAffordStart
+                  ? "rounded-xl border-2 border-emerald-500/60 bg-gradient-to-br from-emerald-950/80 to-zinc-950 px-4 py-3 text-sm text-zinc-100 shadow-lg ring-1 ring-emerald-500/30"
+                  : "rounded-xl border border-amber-600/35 bg-zinc-900/90 px-4 py-3 text-sm text-zinc-200 shadow-lg ring-1 ring-amber-500/20"
+                : resolvedGameId && centralCanAffordStart
+                  ? "rounded-xl border-2 border-emerald-400 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950"
+                  : "rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
             }
           >
-            <p className="font-semibold">
+            <p
+              className={
+                isCentralLiveUi
+                  ? resolvedGameId && centralCanAffordStart
+                    ? "font-semibold text-emerald-300"
+                    : "font-semibold text-amber-200/90"
+                  : "font-semibold"
+              }
+            >
               {resolvedGameId && centralCanAffordStart
                 ? "พร้อมเริ่มรอบ"
                 : "ดูเกมได้ — เล่นเปิดป้ายเมื่อมีหัวใจพอ"}
             </p>
             <p
               className={
-                resolvedGameId && centralCanAffordStart
-                  ? "mt-1 text-emerald-900/95"
-                  : "mt-1 text-slate-800"
+                isCentralLiveUi
+                  ? resolvedGameId && centralCanAffordStart
+                    ? "mt-1 text-emerald-100/90"
+                    : "mt-1 text-zinc-300"
+                  : resolvedGameId && centralCanAffordStart
+                    ? "mt-1 text-emerald-900/95"
+                    : "mt-1 text-slate-800"
               }
             >
               {playLockReason}
             </p>
             {!resolvedGameId || !centralCanAffordStart ? (
-              <p className="mt-2 text-sm text-slate-800">
+              <p
+                className={
+                  isCentralLiveUi ? "mt-2 text-sm text-zinc-400" : "mt-2 text-sm text-slate-800"
+                }
+              >
                 กด「รีเซ็ตกระดาน」หลังได้รับหัวใจแล้ว ระบบจะกลับมาหน้าจอเริ่มรอบ
               </p>
             ) : null}
             {centralAffordHint && (!resolvedGameId || !centralCanAffordStart) ? (
-              <p className="mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-sm font-medium text-amber-950 ring-1 ring-amber-200/90">
+              <p
+                className={
+                  isCentralLiveUi
+                    ? "mt-2 rounded-md border border-amber-600/40 bg-amber-950/50 px-2 py-1.5 text-sm font-medium text-amber-200 ring-1 ring-amber-500/25"
+                    : "mt-2 rounded-md bg-amber-50 px-2 py-1.5 text-sm font-medium text-amber-950 ring-1 ring-amber-200/90"
+                }
+              >
                 {centralAffordHint}
               </p>
             ) : null}
             {resolvedGameId && centralCanAffordStart ? (
-              <p className="mt-2 text-sm text-emerald-800/90">
+              <p
+                className={
+                  isCentralLiveUi
+                    ? "mt-2 text-sm text-emerald-200/85"
+                    : "mt-2 text-sm text-emerald-800/90"
+                }
+              >
                 กดปุ่ม「เริ่มเล่นเกม」ด้านล่างเพื่อหักหัวใจ (ถ้ามี) แล้วเปิดป้ายได้
               </p>
             ) : null}
@@ -1687,14 +1764,26 @@ export default function FlipGameDemo({
         ? compactCentralStatsBar
         : null}
       {!showCompactCentralStatsBar ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800">
+        <div
+          className={
+            isCentralLiveUi
+              ? "rounded-2xl border border-amber-600/35 bg-gradient-to-b from-zinc-900/95 to-black p-4 text-sm text-zinc-200 shadow-lg ring-1 ring-amber-500/15 sm:p-5"
+              : "rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800"
+          }
+        >
           <div
             className={
               mode === "api" && apiGameMode === "central" ? "flex gap-3" : ""
             }
           >
             {mode === "api" && apiGameMode === "central" ? (
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              <div
+                className={
+                  isCentralLiveUi
+                    ? "h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-amber-600/40 bg-black/40 ring-1 ring-amber-500/25"
+                    : "h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                }
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={centralGameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
@@ -1704,8 +1793,8 @@ export default function FlipGameDemo({
               </div>
             ) : null}
             <div className="min-w-0 flex-1">
-              <p>
-                <strong>
+              <p className={isCentralLiveUi ? "text-zinc-100" : ""}>
+                <strong className={isCentralLiveUi ? "text-amber-200" : ""}>
                   {mode === "api" && apiGameMode === "central"
                     ? centralTitle || "เกมส่วนกลาง"
                     : "โหมดสาธิต"}
@@ -1721,14 +1810,29 @@ export default function FlipGameDemo({
               </p>
             </div>
           </div>
-          {mode === "api" && apiGameMode === "central" && centralDescription ? (
+          {mode === "api" &&
+          apiGameMode === "central" &&
+          centralDescription &&
+          !isCentralLiveUi ? (
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
               {centralDescription}
             </p>
           ) : null}
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          <p
+            className={
+              isCentralLiveUi
+                ? "mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-400"
+                : "mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500"
+            }
+          >
             {mode === "api" ? (
-              <span className="rounded-full bg-slate-50 px-2 py-0.5 text-rose-600">
+              <span
+                className={
+                  isCentralLiveUi
+                    ? "rounded-full border border-amber-600/30 bg-amber-950/40 px-2.5 py-0.5 text-xs font-semibold text-amber-300"
+                    : "rounded-full bg-slate-50 px-2 py-0.5 text-rose-600"
+                }
+              >
                 {apiGameMode === "central"
                   ? playLocked
                     ? resolvedGameId
@@ -1750,14 +1854,30 @@ export default function FlipGameDemo({
                     : "หักต่อรอบ (สาธิตในเครื่อง — หักแยกสีตามที่ตั้ง):"}
                 </span>
                 {pinkHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 text-rose-600">
+                  <span
+                    className={
+                      isCentralLiveUi
+                        ? "inline-flex items-center gap-0.5 text-pink-300"
+                        : "inline-flex items-center gap-0.5 text-rose-600"
+                    }
+                  >
                     <InlineHeart size="sm" className="text-rose-400" />
                     ชมพู {pinkHeartCost}
                   </span>
                 ) : null}
-                {pinkHeartCost > 0 && redHeartCost > 0 ? <span className="text-slate-500">·</span> : null}
+                {pinkHeartCost > 0 && redHeartCost > 0 ? (
+                  <span className={isCentralLiveUi ? "text-zinc-600" : "text-slate-500"}>
+                    ·
+                  </span>
+                ) : null}
                 {redHeartCost > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 text-red-700">
+                  <span
+                    className={
+                      isCentralLiveUi
+                        ? "inline-flex items-center gap-0.5 text-red-300"
+                        : "inline-flex items-center gap-0.5 text-red-700"
+                    }
+                  >
                     <InlineHeart size="sm" className="text-red-600" />
                     แดง {redHeartCost}
                   </span>
@@ -1773,29 +1893,59 @@ export default function FlipGameDemo({
             ) : null}
           </p>
           {bootError ? (
-            <p className="mt-1 text-sm text-amber-700">{bootError}</p>
+            <p
+              className={
+                isCentralLiveUi ? "mt-1 text-sm text-amber-400" : "mt-1 text-sm text-amber-700"
+              }
+            >
+              {bootError}
+            </p>
           ) : null}
-          <p className="mt-1 text-sm text-slate-500">
+          <p className={isCentralLiveUi ? "mt-1 text-sm text-zinc-500" : "mt-1 text-sm text-slate-500"}>
             {mode === "api" && apiGameMode === "central"
               ? setImageCounts.length > 0
                 ? `ป้ายในชุดไม่เท่ากัน: ${setImageCounts.map((x, i) => `ช.${i + 1}=${x}`).join(" · ")} — สุ่มตำแหน่งใหม่ทุกรอบ`
                 : `แต่ละชุดมีสูงสุด ${imagesPerSet} แบบภาพ — สุ่มตำแหน่งใหม่ทุกรอบ`
               : "กระดาน 12 ป้าย = 💵×5 + ☕×4 + 🎫×3 — สุ่มตำแหน่งใหม่ทุกรอบ"}
           </p>
-          <p className="mt-1 text-sm">เปิดป้ายแล้ว: {flips} ครั้ง</p>
+          <p className={isCentralLiveUi ? "mt-1 text-sm text-amber-200/80" : "mt-1 text-sm"}>
+            เปิดป้ายแล้ว: {flips} ครั้ง
+          </p>
         </div>
       ) : null}
 
       {compactPlayLayout && bootError ? (
-        <p className="text-sm text-amber-700">{bootError}</p>
+        <p
+          className={
+            isCentralLiveUi ? "text-sm text-amber-400" : "text-sm text-amber-700"
+          }
+        >
+          {bootError}
+        </p>
       ) : null}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <div
+        className={
+          isCentralLiveUi
+            ? "rounded-2xl border-2 border-amber-500/40 bg-gradient-to-b from-zinc-950 via-zinc-900 to-black p-4 text-sm shadow-[0_20px_50px_-24px_rgba(0,0,0,0.9)] ring-1 ring-amber-500/20 sm:p-5"
+            : "rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+        }
+      >
+        <p
+          className={
+            isCentralLiveUi
+              ? "text-xs font-bold uppercase tracking-[0.22em] text-amber-500"
+              : "text-sm font-semibold uppercase tracking-wide text-slate-500"
+          }
+        >
           {compactPlayLayout ? "กติกา" : "กติกา / ความคืบหน้า"}
         </p>
         {mode === "api" && apiGameMode === "central" ? (
-          <ul className="mt-3 space-y-2.5 text-slate-800">
+          <ul
+            className={
+              isCentralLiveUi ? "mt-4 space-y-3 text-zinc-200" : "mt-3 space-y-2.5 text-slate-800"
+            }
+          >
             {prizeList.map((p) => {
               const setIdx = Math.max(0, Math.floor(Number(p.setIndex)) || 0);
               const opened = setCounts[setIdx] ?? setCounts[p.setIndex] ?? 0;
@@ -1811,9 +1961,19 @@ export default function FlipGameDemo({
               return (
                 <li
                   key={p.key}
-                  className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
+                  className={
+                    isCentralLiveUi
+                      ? "flex gap-3 rounded-xl border border-amber-600/25 bg-black/40 p-3.5 backdrop-blur-sm transition hover:border-amber-500/45 hover:bg-black/50 hover:shadow-lg hover:shadow-amber-950/25 sm:p-4"
+                      : "flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
+                  }
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <div
+                    className={
+                      isCentralLiveUi
+                        ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 border-amber-600/40 bg-black/50 ring-1 ring-amber-500/20"
+                        : "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
+                    }
+                  >
                     {thumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -1824,47 +1984,132 @@ export default function FlipGameDemo({
                         decoding="async"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm font-medium text-slate-500">
+                      <div
+                        className={
+                          isCentralLiveUi
+                            ? "flex h-full items-center justify-center text-xs font-bold text-amber-400/90"
+                            : "flex h-full items-center justify-center text-sm font-medium text-slate-500"
+                        }
+                      >
                         ช.{setIdx + 1}
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1 text-sm leading-relaxed text-slate-800">
+                  <div
+                    className={
+                      isCentralLiveUi
+                        ? "min-w-0 flex-1 text-sm leading-relaxed text-zinc-200"
+                        : "min-w-0 flex-1 text-sm leading-relaxed text-slate-800"
+                    }
+                  >
                     {p.prizeCategory === "none" ? (
                       <>
-                        <p>{centralRuleNoneHeadLine(p, cap)}</p>
+                        <p className={isCentralLiveUi ? "text-zinc-100" : ""}>
+                          {centralRuleNoneHeadLine(p, cap)}
+                        </p>
                         <p className="mt-1.5">
-                          <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-slate-900">
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-medium text-amber-200/55"
+                                : "font-medium text-slate-500"
+                            }
+                          >
+                            เปิดในชุดแล้ว{" "}
+                          </span>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                : "font-mono font-semibold tabular-nums text-slate-900"
+                            }
+                          >
                             {opened}
                           </span>
-                          <span className="font-mono text-slate-500">/</span>
-                          <span className="font-mono font-semibold tabular-nums text-slate-900">
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-mono text-amber-200/40"
+                                : "font-mono text-slate-500"
+                            }
+                          >
+                            /
+                          </span>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                : "font-mono font-semibold tabular-nums text-slate-900"
+                            }
+                          >
                             {cap}
                           </span>
                         </p>
                       </>
                     ) : (
                       <>
-                        <p>{centralRuleSetConditionLine(p, cap)}</p>
-                        <p className="mt-1.5">{centralRulePrizeDescriptionLine(p)}</p>
-                        <p className="mt-1 text-sm text-slate-800">
+                        <p className={isCentralLiveUi ? "font-medium text-red-300/95" : ""}>
+                          {centralRuleSetConditionLine(p, cap)}
+                        </p>
+                        <p className={isCentralLiveUi ? "mt-1.5 text-amber-100/90" : "mt-1.5"}>
+                          {centralRulePrizeDescriptionLine(p)}
+                        </p>
+                        <p
+                          className={
+                            isCentralLiveUi ? "mt-1 text-sm text-zinc-400" : "mt-1 text-sm text-slate-800"
+                          }
+                        >
                           {centralRuleFulfillmentLine(p)}
                         </p>
-                        <p className="mt-1.5 text-slate-800">
-                          <span className="font-medium text-slate-500">เปิดในชุดแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-slate-900">
+                        <p className={isCentralLiveUi ? "mt-1.5 text-zinc-200" : "mt-1.5 text-slate-800"}>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-medium text-amber-200/55"
+                                : "font-medium text-slate-500"
+                            }
+                          >
+                            เปิดในชุดแล้ว{" "}
+                          </span>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                : "font-mono font-semibold tabular-nums text-slate-900"
+                            }
+                          >
                             {opened}/{cap}
                           </span>
-                          <span className="text-slate-500"> , </span>
-                          <span className="font-medium text-slate-500">รางวัลออกไปแล้ว </span>
-                          <span className="font-mono font-semibold tabular-nums text-slate-900">
+                          <span className={isCentralLiveUi ? "text-zinc-600" : "text-slate-500"}>
+                            {" "}
+                            ,{" "}
+                          </span>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-medium text-amber-200/55"
+                                : "font-medium text-slate-500"
+                            }
+                          >
+                            รางวัลออกไปแล้ว{" "}
+                          </span>
+                          <span
+                            className={
+                              isCentralLiveUi
+                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                : "font-mono font-semibold tabular-nums text-slate-900"
+                            }
+                          >
                             {`${Math.max(0, Math.floor(Number(p.prizesGivenSoFar) || 0))}/${centralRulePrizeTotalQty(p)}`}
                           </span>{" "}
                           <button
                             type="button"
                             onClick={() => setRecipientsModalPrize(p)}
-                            className="inline font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
+                            className={
+                              isCentralLiveUi
+                                ? "inline font-semibold text-amber-400 underline decoration-amber-600/60 underline-offset-2 hover:text-amber-300"
+                                : "inline font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
+                            }
                           >
                             ดูรายละเอียด
                           </button>
@@ -1895,8 +2140,20 @@ export default function FlipGameDemo({
           heartCurrencyMode === "either" &&
           acceptsPinkHeartsMeta &&
           (pinkHeartCost > 0 || redHeartCost > 0) ? (
-            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm">
-              <p className="font-medium text-slate-800">เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ</p>
+            <div
+              className={
+                isCentralLiveUi
+                  ? "rounded-xl border border-amber-600/35 bg-zinc-950/90 px-3 py-3 text-sm text-zinc-200 shadow-lg ring-1 ring-amber-500/20"
+                  : "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm"
+              }
+            >
+              <p
+                className={
+                  isCentralLiveUi ? "font-semibold text-amber-200/90" : "font-medium text-slate-800"
+                }
+              >
+                เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ
+              </p>
               <div className="mt-2 flex flex-wrap gap-4">
                 <label className="inline-flex cursor-pointer items-center gap-2">
                   <input
@@ -1905,7 +2162,7 @@ export default function FlipGameDemo({
                     checked={centralPayWith === "pink"}
                     onChange={() => setCentralPayWith("pink")}
                   />
-                  ใช้หัวใจชมพู
+                  <span className={isCentralLiveUi ? "text-pink-200" : ""}>ใช้หัวใจชมพู</span>
                 </label>
                 <label className="inline-flex cursor-pointer items-center gap-2">
                   <input
@@ -1914,7 +2171,7 @@ export default function FlipGameDemo({
                     checked={centralPayWith === "red"}
                     onChange={() => setCentralPayWith("red")}
                   />
-                  ใช้หัวใจแดง
+                  <span className={isCentralLiveUi ? "text-red-200" : ""}>ใช้หัวใจแดง</span>
                 </label>
               </div>
             </div>
@@ -1929,7 +2186,11 @@ export default function FlipGameDemo({
                 !playLocked ||
                 !centralCanAffordStart
               }
-              className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
+              className={
+                isCentralLiveUi
+                  ? "flex-1 rounded-xl border-2 border-amber-500/70 bg-gradient-to-b from-amber-600 to-amber-800 px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-zinc-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] transition hover:from-amber-500 hover:to-amber-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:shadow-none disabled:from-zinc-800 disabled:to-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                  : "flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
+              }
             >
               เริ่มเล่นเกม
             </button>
@@ -1937,7 +2198,11 @@ export default function FlipGameDemo({
               type="button"
               onClick={reset}
               disabled={busy}
-              className="shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
+              className={
+                isCentralLiveUi
+                  ? "shrink-0 rounded-xl border-2 border-amber-700/50 bg-zinc-900/90 px-4 py-3.5 text-sm font-semibold text-amber-100 shadow-md transition hover:border-amber-500/60 hover:bg-zinc-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:px-5"
+                  : "shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
+              }
             >
               รีเซ็ตกระดาน
             </button>
