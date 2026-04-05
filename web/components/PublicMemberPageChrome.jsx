@@ -13,12 +13,17 @@ function trimUrl(v) {
   return s || "";
 }
 
-/** ไอคอนโซเชียลแถวแท็บ — เขียวเมื่อมีลิงก์ (จากโปรไฟล์) เทาเมื่อยังไม่กรอก */
-function SocialTabIcon({ href, label, children }) {
+/** ไอคอนโซเชียลแถวแท็บ — สีแบรนด์เมื่อมีลิงก์, เทาเมื่อยังไม่กรอก */
+function SocialTabIcon({ href, label, platform, children }) {
   const active = Boolean(href);
   const base =
     "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
-  const activeCls = `${base} bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus-visible:ring-emerald-500`;
+  const activeByPlatform = {
+    line: `${base} bg-[#06C755] text-white shadow-sm hover:bg-[#05b64c] focus-visible:ring-[#06C755]/55`,
+    facebook: `${base} bg-[#1877F2] text-white shadow-sm hover:bg-[#166fe5] focus-visible:ring-[#1877F2]/55`,
+    tiktok: `${base} bg-black text-white shadow-sm hover:bg-neutral-900 focus-visible:ring-neutral-600`
+  };
+  const activeCls = activeByPlatform[platform] || activeByPlatform.line;
   const idleCls = `${base} cursor-default bg-gray-100 text-gray-400 focus-visible:ring-gray-300`;
   if (active) {
     return (
@@ -127,18 +132,26 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
     return [
       {
         key: "line",
+        platform: "line",
         label: "LINE",
-        href: trimUrl(member?.socialLineUrl)
+        href: trimUrl(member?.socialLineUrl),
+        linkClass:
+          "break-all text-[#06C755] underline decoration-[#06C755]/35 hover:text-[#05b64c]"
       },
       {
         key: "facebook",
+        platform: "facebook",
         label: "Facebook",
-        href: trimUrl(member?.socialFacebookUrl)
+        href: trimUrl(member?.socialFacebookUrl),
+        linkClass:
+          "break-all text-[#1877F2] underline decoration-[#1877F2]/35 hover:text-[#166fe5]"
       },
       {
         key: "tiktok",
+        platform: "tiktok",
         label: "TikTok",
-        href: trimUrl(member?.socialTiktokUrl)
+        href: trimUrl(member?.socialTiktokUrl),
+        linkClass: "break-all text-gray-900 underline decoration-gray-400 hover:text-black"
       }
     ];
   }, [member]);
@@ -219,7 +232,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
               </div>
             </div>
 
-            {/* แท็บ + ไอคอนโซเชียล (สีเขียว = มีลิงก์ในโปรไฟล์, เทา = ยังไม่กรอก) */}
+            {/* แท็บ + ไอคอนโซเชียล (สีแบรนด์เมื่อมีลิงก์, เทาเมื่อยังไม่กรอก) */}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200">
               <div className="flex min-w-0 gap-0" role="tablist" aria-label="ส่วนเพจ">
                 <button
@@ -254,13 +267,18 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                 aria-label="โซเชียลจากโปรไฟล์"
               >
                 {socialSlots.map((s) => (
-                  <SocialTabIcon key={s.key} href={s.href} label={s.label}>
+                  <SocialTabIcon
+                    key={s.key}
+                    href={s.href}
+                    label={s.label}
+                    platform={s.platform}
+                  >
                     {s.key === "line" ? (
-                      <IconLine className="h-5 w-5" />
+                      <IconLine className="h-[22px] w-[22px]" />
                     ) : s.key === "facebook" ? (
-                      <IconFacebook className="h-5 w-5" />
+                      <IconFacebook className="h-[22px] w-[22px]" />
                     ) : (
-                      <IconTiktok className="h-5 w-5" />
+                      <IconTiktok className="h-[22px] w-[22px]" />
                     )}
                   </SocialTabIcon>
                 ))}
@@ -297,7 +315,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                 <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                   <h2 className="text-lg font-semibold text-gray-900">ช่องทางติดต่อ</h2>
                   <p className="mt-1 text-xs text-gray-500">
-                    ไอคอนสีเขียวด้านบนลิงก์ไปยัง URL ที่ตั้งในโปรไฟล์ — แก้ไขได้ที่เมนูสมาชิก → โปรไฟล์
+                    ไอคอนด้านบนใช้สีตามแบรนด์แต่ละช่องทางเมื่อมีลิงก์ — แก้ไขได้ที่เมนูสมาชิก → โปรไฟล์
                   </p>
                   <ul className="mt-4 space-y-2 text-sm">
                     {socialSlots.map((s) => (
@@ -308,7 +326,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                             href={s.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="break-all text-emerald-700 underline decoration-emerald-600/40 hover:text-emerald-800"
+                            className={s.linkClass}
                           >
                             {s.href}
                           </a>
