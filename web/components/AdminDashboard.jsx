@@ -24,6 +24,7 @@ import {
   apiAdminCreateShop,
   apiAdminGame
 } from "../lib/rolesApi";
+import { adminShellPathForTab } from "../lib/memberWorkspacePath";
 
 const PAGE_SIZE = 25;
 
@@ -55,6 +56,19 @@ const ADMIN_TAB_KEYS = [
   "heartPackages",
   "heartPurchases",
   "nameChanges"
+];
+
+/** ลิงก์แท็บ → URL เชลล์ https://…/admin/{slug} (เปิดด้วย target=_top จาก iframe) */
+const ADMIN_MAIN_NAV = [
+  { tab: "members", label: "สมาชิก" },
+  { tab: "siteTheme", label: "ธีมเว็บ" },
+  { tab: "shops", label: "ร้านทั้งหมด" },
+  { tab: "game", label: "เกมและรางวัล" },
+  { tab: "centralGame", label: "เกมส่วนกลาง" },
+  { tab: "prizePayouts", label: "จ่ายรางวัล" },
+  { tab: "heartPackages", label: "แพ็กขายหัวใจ" },
+  { tab: "heartPurchases", label: "อนุมัติสลิป" },
+  { tab: "nameChanges", label: "คำขอเปลี่ยนชื่อ" }
 ];
 
 function roleLabel(role) {
@@ -502,105 +516,20 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto border-b border-hui-border px-1 pb-3 [scrollbar-width:thin]">
-        <button
-          type="button"
-          onClick={() => setTab("members")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "members"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          สมาชิก
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("siteTheme")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "siteTheme"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          ธีมเว็บ
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("shops")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "shops"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          ร้านทั้งหมด
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("game")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "game"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          เกมและรางวัล
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("centralGame")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "centralGame"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          เกมส่วนกลาง
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("prizePayouts")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "prizePayouts"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          จ่ายรางวัล
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("heartPackages")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "heartPackages"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          แพ็กขายหัวใจ
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("heartPurchases")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "heartPurchases"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          อนุมัติสลิป
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("nameChanges")}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-            tab === "nameChanges"
-              ? "bg-hui-cta text-white shadow-soft"
-              : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
-          }`}
-        >
-          คำขอเปลี่ยนชื่อ
-        </button>
+        {ADMIN_MAIN_NAV.map(({ tab: navTab, label }) => (
+          <Link
+            key={navTab}
+            href={adminShellPathForTab(navTab)}
+            target="_top"
+            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+              tab === navTab
+                ? "bg-hui-cta text-white shadow-soft"
+                : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
+            }`}
+          >
+            {label}
+          </Link>
+        ))}
       </div>
 
       {tab === "members" ? (
@@ -1538,13 +1467,13 @@ export default function AdminDashboard() {
             <p className="mt-1 text-hui-body">
               ไปที่แท็บ <strong>เกมส่วนกลาง</strong> — สร้างเกม อัปโหลดรูป ตั้งกติการางวัล แล้วกดเผยแพร่
             </p>
-            <button
-              type="button"
-              onClick={() => setTab("centralGame")}
-              className="hui-btn-primary mt-3 px-4 py-2 text-sm"
+            <Link
+              href={adminShellPathForTab("centralGame")}
+              target="_top"
+              className="hui-btn-primary mt-3 inline-block px-4 py-2 text-sm"
             >
               ไปตั้งค่าเกมส่วนกลาง
-            </button>
+            </Link>
           </div>
           <p className="text-sm text-hui-body">
             หน้าเกมใช้<strong>เกมส่วนกลาง</strong>เมื่อมีเกมที่เปิดใช้งาน — หากยังไม่ตั้งค่า ระบบจะใช้<strong>กติกาเริ่มต้น</strong>ของเซิร์ฟเวอร์ (อ่านอย่างเดียวด้านล่าง)

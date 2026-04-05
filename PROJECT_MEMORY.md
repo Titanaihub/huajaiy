@@ -50,7 +50,7 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 | **`/login`** | `web/app/login/page.js` | iframe `organic-template/huajaiy-login.html` (LINE + ยูสเซอร์/รหัส) |
 | **`/login/line`** | `web/app/login/line/page.js` | LINE OAuth → แลกโทเค็นสมาชิก |
 | **`/member`** | `web/components/MemberTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe + `postMessage` ข้อมูลสมาชิก |
-| **`/admin`** | `web/components/AdminTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe; แผง React (`AdminDashboard`) ฝังจาก **`/admin/embed/panel`** เมื่อ **`SHOW_LEGACY_ADMIN_PANEL_EMBED = true`** · **`/admin/panel`** รีไดเร็กต์ไป **`/admin`** |
+| **`/admin`** | `web/components/AdminTailadminWorkspace.jsx` | หัวเว็บ + TailAdmin iframe; แผง React ฝังจาก **`/admin/embed/panel?tab=…`** · แท็บแอดมินมี URL เชลล์ **`/admin/members`**, **`/admin/theme`**, **`/admin/all-shops`**, **`/admin/game-settings`**, **`/admin/central-games`**, **`/admin/prize-payouts`**, **`/admin/heart-packs`**, **`/admin/slip-approvals`**, **`/admin/name-changes`** (ดู `ADMIN_DASH_SLUG_TO_TAB` ใน `memberWorkspacePath.js`) · **`/admin/shops`** ยังเป็นเมนู Vue ร้านของฉัน · **`/admin/panel`** → **`/admin`** |
 
 **สถานะล็อกอิน:** `MemberAuthProvider` + `localStorage` (`huajaiy_member_token`) · เมนูสาธารณะ: `HomeStylePublicHeader` หรือ `SiteHeader` / `GlobalPrimaryNav`
 

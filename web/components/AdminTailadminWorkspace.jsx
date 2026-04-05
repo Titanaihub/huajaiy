@@ -5,7 +5,10 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getApiBase } from "../lib/config";
 import {
   adminAppPathForTail,
+  adminDashTabFromSlug,
+  isAdminDashboardShellSlug,
   isMemberShellIframeClosedSlug,
+  isValidAdminDashboardTabKey,
   memberTailPathFromSlug,
   MEMBER_SHELL_CLOSED_PLACEHOLDER_MESSAGE,
   normalizeMemberTailPath,
@@ -49,8 +52,10 @@ export default function AdminTailadminWorkspace() {
     if (!parsed) return TAILADMIN_SHOP_DASHBOARD_START;
     if (parsed.segments.length === 0) return TAILADMIN_SHOP_DASHBOARD_START;
     if (parsed.segments.length > 1) return null;
-    if (isMemberShellIframeClosedSlug(parsed.segments[0])) return null;
-    return memberTailPathFromSlug(parsed.segments[0]);
+    const seg0 = parsed.segments[0];
+    if (isAdminDashboardShellSlug(seg0)) return TAILADMIN_SHOP_DASHBOARD_START;
+    if (isMemberShellIframeClosedSlug(seg0)) return null;
+    return memberTailPathFromSlug(seg0);
   }, [parsed]);
 
   const legacyStart = searchParams.get("huajaiy_start");
@@ -70,8 +75,13 @@ export default function AdminTailadminWorkspace() {
       router.replace("/admin");
       return;
     }
-    if (parsed.segments.length === 1 && tailForIframe === null && !closedShellSlug) {
-      router.replace("/admin");
+    if (parsed.segments.length === 1) {
+      const seg0 = parsed.segments[0];
+      if (isAdminDashboardShellSlug(seg0)) return;
+      if (closedShellSlug) return;
+      if (tailForIframe === null) {
+        router.replace("/admin");
+      }
     }
   }, [parsed, tailForIframe, closedShellSlug, user, router]);
 
@@ -84,15 +94,31 @@ export default function AdminTailadminWorkspace() {
   }, [tailForIframe]);
 
   const showLegacyEmbed = useMemo(() => {
-    if (!parsed || parsed.segments.length !== 0) return false;
-    return SHOW_LEGACY_ADMIN_PANEL_EMBED;
+    if (!parsed) return false;
+    if (parsed.segments.length === 0) return SHOW_LEGACY_ADMIN_PANEL_EMBED;
+    if (parsed.segments.length === 1 && isAdminDashboardShellSlug(parsed.segments[0])) {
+      return SHOW_LEGACY_ADMIN_PANEL_EMBED;
+    }
+    return false;
   }, [parsed]);
+
+  const resolvedEmbedTab = useMemo(() => {
+    if (parsed && parsed.segments.length === 1) {
+      const fromPath = adminDashTabFromSlug(parsed.segments[0]);
+      if (fromPath) return fromPath;
+    }
+    const q = searchParams.get("tab");
+    if (q && isValidAdminDashboardTabKey(q)) return q;
+    return "members";
+  }, [parsed, searchParams]);
 
   const panelUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
-    const qs = searchParams.toString();
-    return `${window.location.origin}/admin/embed/panel${qs ? `?${qs}` : ""}`;
-  }, [searchParams]);
+    const qs = new URLSearchParams(searchParams.toString());
+    qs.set("tab", resolvedEmbedTab);
+    const qstr = qs.toString();
+    return `${window.location.origin}/admin/embed/panel?${qstr}`;
+  }, [searchParams, resolvedEmbedTab]);
 
   const postToIframe = useCallback((payload) => {
     const w = iframeRef.current?.contentWindow;

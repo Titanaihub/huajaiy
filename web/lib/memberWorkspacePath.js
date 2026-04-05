@@ -10,6 +10,51 @@ export const ADMIN_HOME_PATH = "/admin";
 /** แผง React เต็มหน้าจอ (ลิงก์ตรง / บุ๊กมาร์กเก่า) */
 export const ADMIN_LEGACY_PANEL_PATH = "/admin/embed/panel";
 
+/**
+ * path ใต้ `/admin/{slug}` สำหรับแผง React (AdminDashboard) — slug ไม่ทับ MEMBER_SLUG_TO_TAIL
+ * (เช่น ใช้ all-shops แทน shops เพราะ /admin/shops ไป Vue ร้านของฉัน)
+ */
+export const ADMIN_DASH_SLUG_TO_TAB = Object.freeze({
+  members: "members",
+  theme: "siteTheme",
+  "all-shops": "shops",
+  "game-settings": "game",
+  "central-games": "centralGame",
+  "prize-payouts": "prizePayouts",
+  "heart-packs": "heartPackages",
+  "slip-approvals": "heartPurchases",
+  "name-changes": "nameChanges"
+});
+
+/** @param {string | null | undefined} slug */
+export function adminDashTabFromSlug(slug) {
+  if (slug == null) return null;
+  const s = String(slug).trim().toLowerCase();
+  return ADMIN_DASH_SLUG_TO_TAB[s] ?? null;
+}
+
+/** @param {string} tabKey คีย์แท็บ AdminDashboard */
+export function adminShellPathForTab(tabKey) {
+  const slug = Object.keys(ADMIN_DASH_SLUG_TO_TAB).find(
+    (k) => ADMIN_DASH_SLUG_TO_TAB[k] === tabKey
+  );
+  if (!slug) return ADMIN_WORKSPACE_PATH;
+  return `${ADMIN_WORKSPACE_PATH}/${slug}`;
+}
+
+/** ใช้ฝังแผง React บนเชลล์ /admin (ไม่ใช่เมนู Vue) */
+export function isAdminDashboardShellSlug(slug) {
+  if (slug == null) return false;
+  return String(slug).trim().toLowerCase() in ADMIN_DASH_SLUG_TO_TAB;
+}
+
+const ADMIN_DASH_TAB_VALUES = new Set(Object.values(ADMIN_DASH_SLUG_TO_TAB));
+
+/** @param {string | null | undefined} tabKey */
+export function isValidAdminDashboardTabKey(tabKey) {
+  return tabKey != null && ADMIN_DASH_TAB_VALUES.has(String(tabKey));
+}
+
 /** แดชบอร์ดร้านค้าในเทมเพลต TailAdmin (Vue path `/` = Ecommerce) */
 export const TAILADMIN_SHOP_DASHBOARD_START = "/";
 
