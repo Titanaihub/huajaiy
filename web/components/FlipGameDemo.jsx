@@ -1560,84 +1560,44 @@ export default function FlipGameDemo({
   const showCompactCentralStatsBar =
     compactPlayLayout && mode === "api" && apiGameMode === "central";
   const compactCentralStatsBar = showCompactCentralStatsBar ? (
-    <div
-      className={
-        isCentralLiveUi
-          ? "rounded-xl border border-amber-600/35 bg-zinc-950/90 px-3 py-3 text-zinc-200 shadow-lg ring-1 ring-amber-500/20 sm:px-4"
-          : "rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4"
-      }
-    >
+    <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4">
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
         <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span
-            className={
-              isCentralLiveUi
-                ? "shrink-0 font-semibold text-amber-200/90"
-                : "shrink-0 font-medium text-slate-800"
-            }
-          >
-            {cards.length} ป้าย
-          </span>
+          <span className="shrink-0 font-medium text-slate-800">{cards.length} ป้าย</span>
           {pinkHeartCost > 0 || redHeartCost > 0 ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className={isCentralLiveUi ? "text-zinc-500" : "text-slate-500"}>หักต่อรอบ</span>
+              <span className="text-slate-500">หักต่อรอบ</span>
               {pinkHeartCost > 0 ? (
                 <span
-                  className={
-                    isCentralLiveUi
-                      ? "inline-flex items-center gap-2 rounded-lg bg-pink-950/55 px-2.5 py-1.5 text-pink-100 ring-1 ring-pink-500/35"
-                      : "inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
-                  }
+                  className="inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
                   title="หัวใจชมพู"
                 >
-                  <InlineHeart size="xl" className={isCentralLiveUi ? "text-pink-400" : "text-pink-500"} />
+                  <InlineHeart size="xl" className="text-pink-500" />
                   <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
-                  <span
-                    className={
-                      isCentralLiveUi
-                        ? "text-sm font-semibold text-pink-200/95"
-                        : "text-sm font-semibold text-pink-800"
-                    }
-                  >
-                    หัวใจชมพู
-                  </span>
+                  <span className="text-sm font-semibold text-pink-800">หัวใจชมพู</span>
                 </span>
               ) : null}
               {pinkHeartCost > 0 && redHeartCost > 0 ? (
-                <span className={isCentralLiveUi ? "text-zinc-700" : "text-slate-300"} aria-hidden>
+                <span className="text-slate-300" aria-hidden>
                   ·
                 </span>
               ) : null}
               {redHeartCost > 0 ? (
                 <span
-                  className={
-                    isCentralLiveUi
-                      ? "inline-flex items-center gap-2 rounded-lg bg-red-950/55 px-2.5 py-1.5 text-red-100 ring-1 ring-red-500/40"
-                      : "inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
-                  }
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
                   title="หัวใจแดงห้องเกม"
                 >
-                  <InlineHeart size="xl" className={isCentralLiveUi ? "text-red-500" : "text-red-600"} />
+                  <InlineHeart size="xl" className="text-red-600" />
                   <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                  <span
-                    className={
-                      isCentralLiveUi
-                        ? "text-sm font-semibold text-red-100/95"
-                        : "text-sm font-semibold text-red-800"
-                    }
-                  >
-                    หัวใจแดงห้องเกม
-                  </span>
+                  <span className="text-sm font-semibold text-red-800">หัวใจแดงห้องเกม</span>
                 </span>
               ) : null}
             </span>
           ) : (
-            <span className={isCentralLiveUi ? "text-zinc-500" : "text-slate-500"}>เริ่มรอบฟรี</span>
+            <span className="text-slate-500">เริ่มรอบฟรี</span>
           )}
         </span>
-        <span className={isCentralLiveUi ? "shrink-0 text-amber-200/70" : "shrink-0 text-slate-500"}>
-          เปิดแล้ว {flips} ครั้ง
-        </span>
+        <span className="shrink-0 text-slate-500">เปิดแล้ว {flips} ครั้ง</span>
       </div>
     </div>
   ) : null;
@@ -2140,20 +2100,8 @@ export default function FlipGameDemo({
           heartCurrencyMode === "either" &&
           acceptsPinkHeartsMeta &&
           (pinkHeartCost > 0 || redHeartCost > 0) ? (
-            <div
-              className={
-                isCentralLiveUi
-                  ? "rounded-xl border border-amber-600/35 bg-zinc-950/90 px-3 py-3 text-sm text-zinc-200 shadow-lg ring-1 ring-amber-500/20"
-                  : "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm"
-              }
-            >
-              <p
-                className={
-                  isCentralLiveUi ? "font-semibold text-amber-200/90" : "font-medium text-slate-800"
-                }
-              >
-                เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ
-              </p>
+            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm">
+              <p className="font-medium text-slate-800">เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ</p>
               <div className="mt-2 flex flex-wrap gap-4">
                 <label className="inline-flex cursor-pointer items-center gap-2">
                   <input
@@ -2162,7 +2110,7 @@ export default function FlipGameDemo({
                     checked={centralPayWith === "pink"}
                     onChange={() => setCentralPayWith("pink")}
                   />
-                  <span className={isCentralLiveUi ? "text-pink-200" : ""}>ใช้หัวใจชมพู</span>
+                  ใช้หัวใจชมพู
                 </label>
                 <label className="inline-flex cursor-pointer items-center gap-2">
                   <input
@@ -2171,7 +2119,7 @@ export default function FlipGameDemo({
                     checked={centralPayWith === "red"}
                     onChange={() => setCentralPayWith("red")}
                   />
-                  <span className={isCentralLiveUi ? "text-red-200" : ""}>ใช้หัวใจแดง</span>
+                  ใช้หัวใจแดง
                 </label>
               </div>
             </div>
@@ -2186,11 +2134,7 @@ export default function FlipGameDemo({
                 !playLocked ||
                 !centralCanAffordStart
               }
-              className={
-                isCentralLiveUi
-                  ? "flex-1 rounded-xl border-2 border-amber-500/70 bg-gradient-to-b from-amber-600 to-amber-800 px-4 py-3.5 text-sm font-bold uppercase tracking-wide text-zinc-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] transition hover:from-amber-500 hover:to-amber-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:shadow-none disabled:from-zinc-800 disabled:to-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-                  : "flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
-              }
+              className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               เริ่มเล่นเกม
             </button>
@@ -2198,11 +2142,7 @@ export default function FlipGameDemo({
               type="button"
               onClick={reset}
               disabled={busy}
-              className={
-                isCentralLiveUi
-                  ? "shrink-0 rounded-xl border-2 border-amber-700/50 bg-zinc-900/90 px-4 py-3.5 text-sm font-semibold text-amber-100 shadow-md transition hover:border-amber-500/60 hover:bg-zinc-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:px-5"
-                  : "shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
-              }
+              className="shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
             >
               รีเซ็ตกระดาน
             </button>
