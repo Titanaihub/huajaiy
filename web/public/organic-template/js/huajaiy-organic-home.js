@@ -31,13 +31,41 @@
     sec.style.backgroundSize = "cover";
   }
 
+  /** ลิงก์ว่างหรือ # = ไม่นำทาง (กดแล้วไม่เกิดอะไร) */
+  function hasRealNavHref(href) {
+    var h = href != null ? String(href).trim() : "";
+    if (!h) return false;
+    if (h === "#") return false;
+    return true;
+  }
+
+  function bindOptionalNavAnchor(a, href) {
+    if (!a) return;
+    if (!hasRealNavHref(href)) {
+      a.setAttribute("href", "#");
+      a.setAttribute("aria-disabled", "true");
+      a.onclick = function (e) {
+        e.preventDefault();
+        return false;
+      };
+      a.style.cursor = "default";
+      a.removeAttribute("target");
+      a.removeAttribute("rel");
+    } else {
+      a.href = String(href).trim();
+      a.target = "_top";
+      a.rel = "noopener";
+      a.removeAttribute("aria-disabled");
+      a.onclick = null;
+      a.style.cursor = "";
+    }
+  }
+
   function setCta(id, cta) {
     var a = $(id);
     if (!a || !cta) return;
     a.textContent = cta.label || "";
-    a.href = cta.href || "#";
-    a.target = "_top";
-    a.rel = "noopener";
+    bindOptionalNavAnchor(a, cta.href);
     a.style.backgroundColor = cta.bgColor || "";
     a.style.color = cta.textColor || "";
     a.style.borderColor = cta.bgColor || "";
@@ -135,10 +163,7 @@
     if (label !== undefined && label !== null) {
       a.textContent = String(label);
     }
-    var h = href != null ? String(href).trim() : "";
-    a.href = h || "#";
-    a.target = "_top";
-    a.rel = "noopener";
+    bindOptionalNavAnchor(a, href);
   }
 
   function applyPromoBanners(cards) {
@@ -419,11 +444,7 @@
 
   function setCommunityLink(id, href) {
     var a = $(id);
-    if (!a) return;
-    var h = href != null ? String(href).trim() : "";
-    a.href = h || "#";
-    a.target = "_top";
-    a.rel = "noopener";
+    bindOptionalNavAnchor(a, href);
   }
 
   function communityPostHasContent(p) {

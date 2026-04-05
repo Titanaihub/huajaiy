@@ -104,7 +104,7 @@ function shareRewardPayload(row, opts = {}) {
   let visitorMessage = null;
   if (status === "active" && per > 0) {
     const needRef = MIN_REF_CLICKS_FOR_SHARE_REWARD;
-    visitorMessage = `แชร์ผ่านปุ่มบนเว็บขณะล็อกอิน แล้วให้ลิงก์ที่มี ref ของคุณถูกเปิดมากกว่า ${needRef - 1} ครั้ง — จึงจะได้หัวใจแดง ${per} ดวง (สูงสุด ${maxSlots} คนแรก)`;
+    visitorMessage = `แชร์ผ่านปุ่มบนเว็บขณะล็อกอิน แล้วให้ลิงก์ที่มี ref ของคุณถูกเปิดมากกว่า ${needRef - 1} ครั้ง — จึงจะได้หัวใจแดง ${per} ดวง (สูงสุด ${maxSlots} คนแรก) · สมาชิกทุกคนใช้เงื่อนไขเดียวกัน`;
     if (slotsLeft > 0) {
       visitorMessage += ` — เหลือประมาณ ${slotsLeft} สิทธิ`;
     }

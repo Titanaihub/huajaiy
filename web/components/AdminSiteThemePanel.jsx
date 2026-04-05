@@ -506,6 +506,28 @@ export default function AdminSiteThemePanel() {
       {msg ? <p className="text-sm text-green-800">{msg}</p> : null}
 
       <div
+        className="rounded-xl border border-hui-border bg-hui-surface/80 p-3 text-[11px] leading-relaxed text-hui-muted"
+        role="note"
+      >
+        <p className="font-semibold text-hui-body">รูป / ลิงก์ — ใส่ตรงไหน</p>
+        <ul className="mt-1.5 list-inside list-disc space-y-1">
+          <li>
+            <strong className="text-hui-body">พื้นหลังเต็มหน้า</strong> (การ์ด «หน้าแรก» / «หน้าอื่น» / «หน้าเกม»):
+            ช่อง URL รูป + ปุ่มอัปโหลดในการ์ดนั้น
+          </li>
+          <li>
+            <strong className="text-hui-body">รูป + ปุ่มมีลิงก์</strong>: ส่วน «หน้าแรก Organic» — แบนเนอร์โปร 3 ช่อง,
+            ปุ่ม Hero, ลิงก์ดาวน์โหลดแอป, ชุมชนเพจ
+          </li>
+          <li>
+            ช่องที่เป็น <strong className="text-hui-body">ลิงก์</strong>: เว้นว่างหรือใส่แค่{" "}
+            <code className="rounded bg-white/80 px-1">#</code> → บนหน้าเว็บกดแล้ว
+            <strong className="text-hui-body"> ไม่ไปหน้าอื่น</strong> (ไม่มีปฏิกิริยา)
+          </li>
+        </ul>
+      </div>
+
+      <div
         className="rounded-xl border border-hui-cta/35 bg-gradient-to-br from-hui-cta/12 to-transparent p-4 text-sm text-hui-body"
         role="region"
         aria-label="ทางลัดตั้งค่าหน้าแรก"
@@ -602,6 +624,11 @@ export default function AdminSiteThemePanel() {
                 ล้าง URL
               </button>
             </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-hui-muted">
+              ขนาดแนะนำ: <strong className="text-hui-body">1920×1080 px</strong> (16∶9) หรือกว้างอย่างน้อย{" "}
+              <strong className="text-hui-body">1920 px</strong> — ระบบใช้โหมดกรอบครอบ (cover) และไล่สีทับได้ ·
+              ไฟล์ JPG/WebP ประมาณ <strong className="text-hui-body">200–800 KB</strong>
+            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
@@ -707,6 +734,11 @@ export default function AdminSiteThemePanel() {
                 ล้าง URL
               </button>
             </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-hui-muted">
+              เหมือนการ์ดหน้าแรก: <strong className="text-hui-body">1920×1080 px</strong> หรือกว้าง{" "}
+              <strong className="text-hui-body">1920 px</strong> ขึ้นไป · JPG/WebP ~{" "}
+              <strong className="text-hui-body">200–800 KB</strong>
+            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
@@ -824,6 +856,11 @@ export default function AdminSiteThemePanel() {
             รูปพื้นหลังแต่ละช่อง (https หรือ path เช่น{" "}
             <code className="rounded bg-white/80 px-1">images/banner-ad-1.jpg</code>) · ข้อความหัวข้อ/รองใต้หัวข้อตั้งในส่วน «หัวข้อแต่ละบล็อก» ด้านล่าง (แบนเนอร์ 1–3)
           </p>
+          <p className="text-[11px] leading-relaxed text-hui-muted">
+            ขนาดรูปแนะนำต่อช่อง: <strong className="text-hui-body">1600×600 px</strong> หรือ{" "}
+            <strong className="text-hui-body">1200×480 px</strong> (แนวนอน อัตราส่วนประมาณ 8∶3–3∶1) · ความกว้างอย่างน้อย ~{" "}
+            <strong className="text-hui-body">1200 px</strong>
+          </p>
           {[0, 1, 2].map((i) => (
             <div
               key={`promo-${i}`}
@@ -896,6 +933,9 @@ export default function AdminSiteThemePanel() {
                 className="hui-input text-sm font-mono"
                 placeholder="/shop หรือ https://..."
               />
+              <p className="mt-1 text-[10px] leading-snug text-hui-muted">
+                เว้นว่างหรือ # = กดปุ่มแล้วไม่ไปหน้าอื่น
+              </p>
             </div>
           ))}
         </div>
@@ -904,6 +944,10 @@ export default function AdminSiteThemePanel() {
           <h3 className="text-sm font-semibold text-hui-section">แถบจดหมายข่าว / ส่วนลด</h3>
           <p className="text-xs text-hui-muted">
             หัวข้อและข้อความย่อยตั้งในส่วน «หัวข้อแต่ละบล็อก» (จดหมายข่าว) · ถ้าไม่ใส่ URL ส่งฟอร์ม ระบบจะไม่ส่งออกนอกหน้า (กันส่งซ้ำใน iframe)
+          </p>
+          <p className="mb-1 text-[11px] leading-relaxed text-hui-muted">
+            ขนาดรูปแถบแนะนำ: <strong className="text-hui-body">1920×400 px</strong> ถึง{" "}
+            <strong className="text-hui-body">1920×520 px</strong> (กว้างเต็ม สูงปานกลาง)
           </p>
           <label className="hui-label text-xs">URL รูปพื้นหลังแถบ</label>
           <input
@@ -1110,6 +1154,9 @@ export default function AdminSiteThemePanel() {
               />
             </div>
           </div>
+          <p className="mt-2 text-[10px] text-hui-muted">
+            เว้นลิงก์ App Store / Play ว่างหรือ # = กดไอคอนแล้วไม่ไปร้านค้า
+          </p>
         </div>
 
         <div>
@@ -1146,6 +1193,11 @@ export default function AdminSiteThemePanel() {
               ล้าง URL
             </button>
           </div>
+          <p className="mt-1 text-[11px] leading-relaxed text-hui-muted">
+            พื้น Hero เต็มความกว้าง — แนะนำ <strong className="text-hui-body">1920×900 px</strong> ถึง{" "}
+            <strong className="text-hui-body">1920×1080 px</strong> · cover · JPG/WebP ~{" "}
+            <strong className="text-hui-body">200–800 KB</strong>
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -1225,6 +1277,7 @@ export default function AdminSiteThemePanel() {
                 className="hui-input font-mono text-sm"
                 placeholder="/page"
               />
+              <p className="text-[10px] text-hui-muted">ลิงก์ว่างหรือ # = กดแล้วไม่ไปไหน</p>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
@@ -1278,6 +1331,7 @@ export default function AdminSiteThemePanel() {
                 }
                 className="hui-input font-mono text-sm"
               />
+              <p className="text-[10px] text-hui-muted">ลิงก์ว่างหรือ # = กดแล้วไม่ไปไหน</p>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
@@ -1539,6 +1593,7 @@ export default function AdminSiteThemePanel() {
                       className="hui-input font-mono text-xs"
                       placeholder="/community หรือ https://..."
                     />
+                    <p className="mt-0.5 text-[10px] text-hui-muted">เว้นว่างหรือ # = กดแล้วไม่ไปไหน</p>
                   </div>
                 </div>
                 <div className="grid gap-3 md:grid-cols-3">
@@ -1581,6 +1636,10 @@ export default function AdminSiteThemePanel() {
                             : "อัปโหลดรูป"}
                         </label>
                       </div>
+                      <p className="mb-2 text-[10px] text-hui-muted">
+                        หน้าปกแนะนำ <strong className="text-hui-body">800×530 px</strong> หรือ{" "}
+                        <strong className="text-hui-body">1200×675 px</strong> (แนวนอน)
+                      </p>
                       <label className="hui-label text-xs">ลิงก์การ์ด</label>
                       <input
                         type="text"
@@ -1596,10 +1655,13 @@ export default function AdminSiteThemePanel() {
                             return { ...oh, communityPage: { ...m, posts } };
                           })
                         }
-                        className="hui-input mb-2 font-mono text-xs"
+                        className="hui-input mb-1 font-mono text-xs"
                         placeholder="# หรือ /path"
                         autoComplete="off"
                       />
+                      <p className="mb-2 text-[10px] text-hui-muted">
+                        เว้นว่างหรือ # = กดการ์ดแล้วไม่ไปไหน
+                      </p>
                       <label className="hui-label text-xs">วันที่ (บรรทัดเดียว)</label>
                       <input
                         type="text"
@@ -1806,6 +1868,10 @@ export default function AdminSiteThemePanel() {
               ล้าง URL
             </button>
           </div>
+          <p className="mt-1 text-[11px] leading-relaxed text-hui-muted">
+            เหมือนพื้นหลังเต็มหน้า: <strong className="text-hui-body">1920×1080 px</strong> หรือกว้าง{" "}
+            <strong className="text-hui-body">1920 px</strong> · ~<strong className="text-hui-body">200–800 KB</strong>
+          </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <div>
