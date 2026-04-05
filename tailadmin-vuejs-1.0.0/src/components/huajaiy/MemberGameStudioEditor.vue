@@ -178,6 +178,15 @@
               </div>
               <div class="min-w-[200px] flex-1">
                 <label class="text-base font-medium text-gray-800 dark:text-gray-200">อัปโหลดรูปชุดนี้ (1 ไฟล์)</label>
+                <p class="mt-1.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                  แนะนำสี่เหลี่ยมจัตุรัส
+                  <span class="font-medium text-gray-700 dark:text-gray-300">1:1</span>
+                  เช่น
+                  <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">800×800 px</span>
+                  หรือ
+                  <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">1024×1024 px</span>
+                  — แสดงบนกระดานแบบครอปเต็มช่องป้าย
+                </p>
                 <input
                   type="file"
                   accept="image/*"
@@ -245,6 +254,15 @@
             <p class="mt-2 text-base leading-relaxed text-gray-700 dark:text-gray-300">
               แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
             </p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+              แนะนำแนวนอนอัตราส่วนประมาณ
+              <span class="font-medium text-gray-700 dark:text-gray-300">2.6:1</span>
+              (กว้างกว่าสูง) เช่น
+              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">1200×460 px</span>
+              หรือ
+              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">1560×600 px</span>
+              — พอดีกับการ์ดในรายการเกม (ระบบอาจย่อความละเอียดอัตโนมัติ)
+            </p>
             <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end">
               <div class="w-32 shrink-0 sm:w-36">
                 <p class="mb-2 text-base text-gray-500">ตัวอย่าง</p>
@@ -280,6 +298,13 @@
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">รูปหน้าปิดป้าย</h3>
             <p class="mt-2 text-base leading-relaxed text-gray-700 dark:text-gray-300">
               แสดงบนกระดานก่อนผู้เล่นเปิดป้าย — ถ้าไม่อัปโหลดหรือกดคืนค่า ระบบใช้รูปเริ่มต้นของเว็บ
+            </p>
+            <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+              แนะนำสี่เหลี่ยมจัตุรัส
+              <span class="font-medium text-gray-700 dark:text-gray-300">1:1</span>
+              เช่น
+              <span class="whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">800×800 px</span>
+              — ให้ตรงกับช่องป้ายบนกระดาน (แสดงแบบครอปเต็มช่อง)
             </p>
             <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end">
               <div class="w-32 shrink-0 sm:w-36">

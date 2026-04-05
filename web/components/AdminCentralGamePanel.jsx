@@ -1533,6 +1533,18 @@ export default function AdminCentralGamePanel({
                         <label className="text-sm font-medium text-hui-body">
                           อัปโหลดรูปชุดนี้ (1 ไฟล์)
                         </label>
+                        <p className="mt-1 text-xs leading-relaxed text-hui-muted">
+                          แนะนำสี่เหลี่ยมจัตุรัส{" "}
+                          <span className="font-medium text-hui-body/90">1:1</span> เช่น{" "}
+                          <span className="whitespace-nowrap font-medium text-hui-body/90">
+                            800×800 px
+                          </span>{" "}
+                          หรือ{" "}
+                          <span className="whitespace-nowrap font-medium text-hui-body/90">
+                            1024×1024 px
+                          </span>{" "}
+                          — แสดงบนกระดานแบบครอปเต็มช่องป้าย
+                        </p>
                         <input
                           type="file"
                           accept="image/*"
@@ -1633,6 +1645,18 @@ export default function AdminCentralGamePanel({
                 <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
                 </p>
+                <p className="mt-2 text-xs leading-relaxed text-hui-muted">
+                  แนะนำแนวนอนอัตราส่วนประมาณ{" "}
+                  <span className="font-medium text-hui-body/90">2.6:1</span> (กว้างกว่าสูง) เช่น{" "}
+                  <span className="whitespace-nowrap font-medium text-hui-body/90">
+                    1200×460 px
+                  </span>{" "}
+                  หรือ{" "}
+                  <span className="whitespace-nowrap font-medium text-hui-body/90">
+                    1560×600 px
+                  </span>{" "}
+                  — พอดีกับการ์ดในรายการเกม (ระบบอาจย่อความละเอียดอัตโนมัติ)
+                </p>
                 <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="w-28 shrink-0 sm:w-32">
                     <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
@@ -1675,6 +1699,14 @@ export default function AdminCentralGamePanel({
                 <h3 className="text-sm font-semibold text-hui-section">รูปหน้าปิดป้าย</h3>
                 <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนกระดานก่อนผู้เล่นเปิดป้าย — ถ้าไม่อัปโหลดหรือกดคืนค่า ระบบใช้รูปเริ่มต้นของเว็บ
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-hui-muted">
+                  แนะนำสี่เหลี่ยมจัตุรัส{" "}
+                  <span className="font-medium text-hui-body/90">1:1</span> เช่น{" "}
+                  <span className="whitespace-nowrap font-medium text-hui-body/90">
+                    800×800 px
+                  </span>{" "}
+                  — ให้ตรงกับช่องป้ายบนกระดาน (แสดงแบบครอปเต็มช่อง)
                 </p>
                 <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
                   <div className="w-28 shrink-0 sm:w-32">
