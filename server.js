@@ -36,6 +36,7 @@ const { validateUsername } = require("./authValidators");
 const siteThemeService = require("./services/siteThemeService");
 const organicHomeContent = require("./services/organicHomeContent");
 const memberPublicPostService = require("./services/memberPublicPostService");
+const memberPublicPostShareService = require("./services/memberPublicPostShareService");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -375,6 +376,64 @@ app.get("/api/public/members/:username/posts", async (req, res) => {
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       return res.json({ ok: true, posts: [] });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** โพสต์เดียวของเพจสมาชิก — สำหรับลิงก์แชร์ */
+app.get("/api/public/members/:username/posts/:postId", async (req, res) => {
+  try {
+    const v = validateUsername(req.params.username);
+    if (!v.ok) {
+      return res.status(400).json({ ok: false, error: v.error });
+    }
+    const u = await userService.findByUsername(v.value);
+    if (!u) {
+      return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+    }
+    const post = await memberPublicPostService.getPublicByUsernameAndPostId(
+      v.value,
+      req.params.postId
+    );
+    if (!post) {
+      return res.status(404).json({ ok: false, error: "ไม่พบโพสต์" });
+    }
+    return res.json({ ok: true, post });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/**
+ * นับครั้งที่มีคนเปิดลิงก์โพสต์ที่มี ?ref=username (สมาชิกผู้แชร์)
+ * ไคลเอนต์ควรยิงครั้งเดียวต่อเซสชันเพื่อลดซ้ำจากรีเฟรช
+ */
+app.post("/api/public/members/:username/posts/:postId/ref-click", async (req, res) => {
+  try {
+    const v = validateUsername(req.params.username);
+    if (!v.ok) {
+      return res.status(400).json({ ok: false, error: v.error });
+    }
+    const refUsername =
+      req.body && typeof req.body === "object"
+        ? String(req.body.refUsername || "").trim()
+        : "";
+    const result = await memberPublicPostShareService.recordRefClick(
+      v.value,
+      req.params.postId,
+      refUsername || null
+    );
+    if (result && result.error === "not_found") {
+      return res.status(404).json({ ok: false, error: "ไม่พบโพสต์" });
+    }
+    return res.json({ ok: true });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, skipped: true });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

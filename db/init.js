@@ -876,6 +876,34 @@ async function initDb() {
       ON member_public_posts(user_id, sort_order ASC, created_at DESC);
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS member_public_post_share_intents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        post_id UUID NOT NULL REFERENCES member_public_posts(id) ON DELETE CASCADE,
+        actor_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        channel VARCHAR(16) NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT chk_mpp_share_channel CHECK (channel IN ('line', 'facebook', 'copy'))
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_mpp_share_intents_post
+      ON member_public_post_share_intents(post_id, created_at DESC);
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS member_public_post_ref_clicks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        post_id UUID NOT NULL REFERENCES member_public_posts(id) ON DELETE CASCADE,
+        ref_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_mpp_ref_clicks_post
+      ON member_public_post_ref_clicks(post_id, created_at DESC);
+    `);
+
     console.log(
       "[db] PostgreSQL schema พร้อม — รวมตารางหลักและคอลัมน์เพจสมาชิกบน users (public_page_cover_url, public_page_bio, public_page_listed)"
     );

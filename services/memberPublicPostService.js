@@ -117,6 +117,25 @@ async function listPublicByUsername(username) {
 }
 
 /**
+ * โพสต์เดียวตามเพจ (username) + id — สำหรับหน้าแชร์/OG
+ * @param {string} username
+ * @param {string} postId
+ */
+async function getPublicByUsernameAndPostId(username, postId) {
+  if (!UUID_RE.test(String(postId || "").trim())) return null;
+  const pool = requirePool();
+  const un = String(username || "").toLowerCase().trim();
+  const r = await pool.query(
+    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at
+     FROM member_public_posts p
+     JOIN users u ON u.id = p.user_id
+     WHERE u.username = $1 AND p.id = $2`,
+    [un, postId]
+  );
+  return rowToPost(r.rows[0]);
+}
+
+/**
  * @param {string} userId
  */
 async function listByUserId(userId) {
@@ -271,6 +290,7 @@ async function deleteForUser(userId, postId) {
 
 module.exports = {
   listPublicByUsername,
+  getPublicByUsernameAndPostId,
   listByUserId,
   createForUser,
   updateForUser,

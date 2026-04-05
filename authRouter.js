@@ -18,6 +18,7 @@ const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawal
 const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
 const memberPublicPostService = require("./services/memberPublicPostService");
+const memberPublicPostShareService = require("./services/memberPublicPostShareService");
 const { listCapabilitiesForRole } = require("./permissions");
 const {
   validateProfilePatch,
@@ -700,6 +701,59 @@ router.delete("/my-public-posts/:id", authMiddleware, async (req, res) => {
         ok: false,
         error: e.message
       });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** บันทึกว่าสมาชิกกดแชร์จากปุ่มบนเว็บ (ไลน์/เฟสบุ๊ก/คัดลอกลิงก์) */
+router.post("/my-public-posts/:id/share-intent", authMiddleware, async (req, res) => {
+  try {
+    const b = req.body && typeof req.body === "object" ? req.body : {};
+    const channel = String(b.channel || "").trim();
+    await memberPublicPostShareService.recordShareIntent(
+      req.userId,
+      req.params.id,
+      channel
+    );
+    return res.json({ ok: true });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({ ok: false, error: e.message });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** สถิติแชร์/คลิกลิงก์อ้างอิง — เฉพาะเจ้าของโพสต์ */
+router.get("/my-public-posts/:id/share-stats", authMiddleware, async (req, res) => {
+  try {
+    const stats = await memberPublicPostShareService.getShareStatsForPostOwner(
+      req.userId,
+      req.params.id
+    );
+    return res.json({ ok: true, ...stats });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({
+        ok: true,
+        intents: [],
+        refClicksByUser: [],
+        totalRefClicks: 0,
+        dbRequired: true
+      });
+    }
+    if (e.code === "VALIDATION") {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+    if (e.code === "FORBIDDEN") {
+      return res.status(403).json({ ok: false, error: e.message });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

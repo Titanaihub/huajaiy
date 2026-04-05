@@ -563,3 +563,34 @@ export async function apiDeleteMyPublicPost(token, id) {
   }
   return data;
 }
+
+export async function apiPostShareIntent(token, postId, channel) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-intent`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ channel })
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "บันทึกการแชร์ไม่สำเร็จ");
+  }
+  return data;
+}
+
+export async function apiGetPostShareStats(token, postId) {
+  const r = await fetch(
+    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-stats`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "โหลดสถิติไม่สำเร็จ");
+  }
+  return data;
+}

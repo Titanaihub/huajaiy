@@ -6,10 +6,18 @@ import { getApiBase } from "../lib/config";
 import {
   apiCreateMyPublicPost,
   apiDeleteMyPublicPost,
+  apiGetPostShareStats,
   apiPatchMyPublicPost,
+  apiPostShareIntent,
   getMemberToken
 } from "../lib/memberApi";
+import {
+  buildMemberPostShareUrl,
+  facebookShareUrl,
+  lineShareUrl
+} from "../lib/memberPostShare";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { PostBodyBlocks, needsExpand } from "./MemberPublicPostBlocks";
 
 function newClientId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -145,70 +153,93 @@ async function uploadPostImage(file) {
   return data.publicUrl;
 }
 
-function PostBodyBlocks({ blocks, expanded, className }) {
-  const list = Array.isArray(blocks) ? blocks : [];
-  const wrapCls = expanded ? "space-y-3" : "space-y-2 max-h-[7.5rem] overflow-hidden";
-  return (
-    <div className={`text-sm leading-relaxed text-gray-700 ${wrapCls} ${className || ""}`}>
-      {list.map((b, i) => {
-        const t = String(b?.type || "").toLowerCase();
-        if (t === "paragraph") {
-          return (
-            <p key={i} className="whitespace-pre-wrap break-words">
-              {String(b.text ?? "")}
-            </p>
-          );
-        }
-        if (t === "image") {
-          const url = String(b.url || "").trim();
-          if (!/^https:\/\//i.test(url)) return null;
-          return (
-            <div key={i} className="overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="max-h-64 w-full object-contain" />
-            </div>
-          );
-        }
-        if (t === "link") {
-          const url = String(b.url || "").trim();
-          const label = String(b.label || url || "ลิงก์").trim();
-          if (!/^https:\/\//i.test(url)) return null;
-          return (
-            <p key={i}>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-rose-700 underline decoration-rose-400/50 hover:text-rose-900"
-              >
-                {label}
-              </a>
-            </p>
-          );
-        }
-        return null;
-      })}
-    </div>
-  );
+function channelLabel(ch) {
+  if (ch === "line") return "LINE";
+  if (ch === "facebook") return "Facebook";
+  if (ch === "copy") return "คัดลอกลิงก์";
+  return String(ch || "");
 }
 
-function needsExpand(blocks) {
-  const list = Array.isArray(blocks) ? blocks : [];
-  let len = 0;
-  for (const b of list) {
-    const t = String(b?.type || "").toLowerCase();
-    if (t === "paragraph") len += String(b.text || "").length;
-    if (t === "image" || t === "link") len += 80;
-  }
-  return len > 220 || list.some((b) => String(b?.type || "").toLowerCase() === "image");
-}
-
-function MemberPublicPostCard({ post, isOwner, onEdit, onDelete }) {
+function MemberPublicPostCard({
+  post,
+  pageUsername,
+  viewerUsername,
+  isOwner,
+  onEdit,
+  onDelete
+}) {
   const [expanded, setExpanded] = useState(false);
+  const [origin, setOrigin] = useState("");
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsErr, setStatsErr] = useState("");
+
+  useEffect(() => {
+    setOrigin(typeof window !== "undefined" ? window.location.origin : "");
+  }, []);
+
   const layout = post.layout === "stack" ? "stack" : "row";
   const cover = String(post.coverImageUrl || "").trim();
   const title = String(post.title || "").trim();
   const showExpand = needsExpand(post.bodyBlocks);
+
+  const vu = viewerUsername ? String(viewerUsername).trim() : "";
+  const shareUrl = useMemo(() => {
+    if (!origin || !pageUsername || !post?.id) return "";
+    return buildMemberPostShareUrl(origin, pageUsername, String(post.id), vu || null);
+  }, [origin, pageUsername, post.id, vu]);
+
+  const trackIntent = useCallback(
+    async (channel) => {
+      const token = getMemberToken();
+      if (!token || !post?.id) return;
+      try {
+        await apiPostShareIntent(token, String(post.id), channel);
+      } catch {
+        /* ignore */
+      }
+    },
+    [post?.id]
+  );
+
+  const loadStats = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token || !post?.id) return;
+    setStatsLoading(true);
+    setStatsErr("");
+    try {
+      const data = await apiGetPostShareStats(token, String(post.id));
+      setStats({
+        intents: data.intents || [],
+        refClicksByUser: data.refClicksByUser || [],
+        totalRefClicks: data.totalRefClicks ?? 0
+      });
+    } catch (e) {
+      setStatsErr(e instanceof Error ? e.message : String(e));
+      setStats(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [post?.id]);
+
+  const onCopyShareLink = useCallback(async () => {
+    if (!shareUrl) return;
+    await trackIntent("copy");
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      /* ignore */
+    }
+  }, [shareUrl, trackIntent]);
+
+  const toggleStats = useCallback(() => {
+    setStatsOpen((o) => {
+      const next = !o;
+      if (next) loadStats();
+      return next;
+    });
+  }, [loadStats]);
 
   const media = cover ? (
     <div
@@ -277,6 +308,106 @@ function MemberPublicPostCard({ post, isOwner, onEdit, onDelete }) {
           ลำดับแสดง: {Number(post.sortOrder) || 0} ·{" "}
           {layout === "stack" ? "แบบซ้อน (2 การ์ด/แถว)" : "แบบแถว (1 การ์ด/แถว)"}
         </p>
+      ) : null}
+      {shareUrl ? (
+        <div className="mt-2 border-t border-gray-100 pt-2">
+          <p className="mb-1.5 text-[11px] font-medium text-gray-600">แชร์โพสต์</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <a
+              href={lineShareUrl(shareUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackIntent("line")}
+              className="inline-flex rounded-md bg-[#06C755] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-95"
+            >
+              LINE
+            </a>
+            <a
+              href={facebookShareUrl(shareUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackIntent("facebook")}
+              className="inline-flex rounded-md bg-[#1877F2] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-95"
+            >
+              Facebook
+            </a>
+            <button
+              type="button"
+              onClick={onCopyShareLink}
+              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-50"
+            >
+              คัดลอกลิงก์
+            </button>
+            <a
+              href={`/u/${encodeURIComponent(pageUsername)}/post/${encodeURIComponent(String(post.id))}`}
+              className="text-[11px] font-semibold text-rose-600 underline hover:text-rose-800"
+            >
+              เปิดหน้าโพสต์
+            </a>
+          </div>
+          <p className="mt-1 text-[10px] leading-snug text-gray-500">
+            ล็อกอินแล้วลิงก์จะมี <span className="font-mono">?ref=</span> ชื่อคุณ เพื่อนับการเปิดลิงก์ — แชร์ต่อโดยคนทั่วไปนับได้เมื่อลิงก์ยังมี{" "}
+            <span className="font-mono">ref</span> อยู่
+          </p>
+        </div>
+      ) : null}
+      {isOwner ? (
+        <div className="mt-2 border-t border-dashed border-gray-200 pt-2">
+          <button
+            type="button"
+            onClick={toggleStats}
+            className="text-[11px] font-semibold text-gray-700 underline decoration-gray-400 hover:text-gray-900"
+          >
+            {statsOpen ? "ซ่อนสถิติแชร์" : "ดูสถิติแชร์"}
+          </button>
+          {statsOpen ? (
+            <div className="mt-2 space-y-2 text-[11px] text-gray-600">
+              {statsLoading ? <p>กำลังโหลด…</p> : null}
+              {statsErr ? <p className="text-red-600">{statsErr}</p> : null}
+              {stats && !statsLoading ? (
+                <>
+                  <div>
+                    <p className="font-semibold text-gray-800">สมาชิกที่กดแชร์จากปุ่มบนเว็บ (ขณะล็อกอิน)</p>
+                    {stats.intents.length === 0 ? (
+                      <p className="text-gray-500">ยังไม่มีข้อมูล</p>
+                    ) : (
+                      <ul className="mt-1 max-h-32 list-inside list-disc space-y-0.5 overflow-y-auto text-gray-600">
+                        {stats.intents.slice(0, 50).map((row, i) => (
+                          <li key={i}>
+                            @{row.username} · {channelLabel(row.channel)} ·{" "}
+                            {row.createdAt
+                              ? new Date(row.createdAt).toLocaleString("th-TH")
+                              : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      การเปิดลิงก์ที่มี ref (รวม {stats.totalRefClicks} ครั้ง)
+                    </p>
+                    {stats.refClicksByUser.length === 0 ? (
+                      <p className="text-gray-500">ยังไม่มีคลิกจากลิงก์อ้างอิง</p>
+                    ) : (
+                      <ul className="mt-1 space-y-0.5">
+                        {stats.refClicksByUser.map((row, i) => (
+                          <li key={i}>
+                            @{row.username} ({row.displayName}) — {row.clickCount} ครั้ง
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <p className="text-[10px] leading-snug text-gray-500">
+                    ไลน์/เฟสบุ๊กไม่แจ้งว่า &quot;ใคร&quot; แชร์จริง — จึงใช้การกดปุ่มบนเว็บเป็นหลัก และนับการเปิดลิงก์เมื่อลิงก์ยังมี{" "}
+                    <span className="font-mono">?ref=</span>
+                  </p>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -520,6 +651,11 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
           <div className="mt-4 space-y-3">
             <label className="block text-xs font-medium text-gray-600">
               รูปหัวข้อ (ปกโพสต์)
+              <p className="mt-0.5 text-[11px] font-normal leading-snug text-gray-500">
+                {layout === "stack"
+                  ? "แนะนำแนวนอน ประมาณ 1600×1000 px (อัตราส่วน 16∶10) หรือ 1200×675 px — แสดงเต็มความกว้างการ์ดด้านบน"
+                  : "แนะนำแนวนอน ประมาณ 1200×800 px (3∶2) หรือ 1200×630 px — บนจอใหญ่รูปอยู่ด้านข้างข้อความและถูกครอปให้พอดีการ์ด"}
+              </p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <input type="file" accept="image/*" className="max-w-full text-sm" onChange={onPickCover} disabled={uploadBusy || busy} />
                 {uploadBusy ? <span className="text-xs text-gray-500">กำลังอัปโหลด…</span> : null}
@@ -597,6 +733,9 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
                     />
                   ) : b.type === "image" ? (
                     <div className="space-y-2">
+                      <p className="text-[11px] leading-snug text-gray-500">
+                        แนะนำความกว้างประมาณ 900–1200 px แนวนอน (สูงพอประมาณ) — บนหน้าเว็บจำกัดความสูงไม่ให้การ์ดยาวเกินไป
+                      </p>
                       <input
                         className="w-full rounded border border-gray-200 px-2 py-1.5 text-sm"
                         value={b.url}
@@ -722,6 +861,8 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
             >
               <MemberPublicPostCard
                 post={p}
+                pageUsername={username}
+                viewerUsername={user?.username}
                 isOwner={isOwner}
                 onEdit={onEdit}
                 onDelete={onDelete}
