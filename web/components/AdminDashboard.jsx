@@ -522,7 +522,7 @@ export default function AdminDashboard() {
               : "border border-hui-border bg-white/90 text-hui-body hover:bg-hui-surface"
           }`}
         >
-          พื้นหลังเว็บ
+          ธีมเว็บ
         </button>
         <button
           type="button"

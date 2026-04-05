@@ -505,8 +505,60 @@ export default function AdminSiteThemePanel() {
       {err ? <p className="text-sm text-red-600">{err}</p> : null}
       {msg ? <p className="text-sm text-green-800">{msg}</p> : null}
 
+      <div
+        className="rounded-xl border border-hui-cta/35 bg-gradient-to-br from-hui-cta/12 to-transparent p-4 text-sm text-hui-body"
+        role="region"
+        aria-label="ทางลัดตั้งค่าหน้าแรก"
+      >
+        <p className="font-semibold text-hui-section">
+          แบนเนอร์โปร 3 ช่อง · แถบส่วนลด/จดหมายข่าว · รูปและลิงก์
+        </p>
+        <p className="mt-1 text-hui-muted">
+          ตั้งค่าอยู่ด้านล่างของหน้านี้ (หลังส่วนสีพื้นหลังและหน้าเกม) —{" "}
+          <a
+            href="#admin-organic-home"
+            className="font-semibold text-hui-cta underline decoration-hui-cta/50 underline-offset-2 hover:decoration-hui-cta"
+          >
+            กดเพื่อเลื่อนไปที่ «หน้าแรก Organic»
+          </a>
+        </p>
+      </div>
+
+      <nav
+        className="flex flex-wrap gap-2 text-xs font-medium text-hui-body"
+        aria-label="ส่วนตั้งค่าในหน้านี้"
+      >
+        <a
+          href="#admin-theme-home-bg"
+          className="rounded-full border border-hui-border bg-white/80 px-3 py-1.5 hover:bg-hui-surface"
+        >
+          พื้นหลังหน้าแรก (/)
+        </a>
+        <a
+          href="#admin-theme-inner-bg"
+          className="rounded-full border border-hui-border bg-white/80 px-3 py-1.5 hover:bg-hui-surface"
+        >
+          พื้นหลังหน้าอื่น
+        </a>
+        <a
+          href="#admin-theme-game"
+          className="rounded-full border border-hui-border bg-white/80 px-3 py-1.5 hover:bg-hui-surface"
+        >
+          หน้าเกม (/game)
+        </a>
+        <a
+          href="#admin-organic-home"
+          className="rounded-full border border-hui-cta/40 bg-hui-cta/10 px-3 py-1.5 font-semibold text-hui-section hover:bg-hui-cta/15"
+        >
+          แบนเนอร์ · จดหมายข่าว (iframe)
+        </a>
+      </nav>
+
       <div className="grid gap-8 lg:grid-cols-2">
-        <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+        <fieldset
+          id="admin-theme-home-bg"
+          className="min-w-0 scroll-mt-24 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4"
+        >
           <legend className="px-1 text-base font-semibold text-hui-section">
             หน้าแรก <span className="font-normal text-hui-muted">(/)</span>
           </legend>
@@ -608,7 +660,10 @@ export default function AdminSiteThemePanel() {
           </div>
         </fieldset>
 
-        <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+        <fieldset
+          id="admin-theme-inner-bg"
+          className="min-w-0 scroll-mt-24 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4"
+        >
           <legend className="px-1 text-base font-semibold text-hui-section">
             หน้าอื่นทั้งหมด <span className="font-normal text-hui-muted">(รวมแอดมิน ล็อกอิน เกม ฯลฯ)</span>
           </legend>
@@ -711,7 +766,10 @@ export default function AdminSiteThemePanel() {
         </fieldset>
       </div>
 
-      <fieldset className="min-w-0 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4">
+      <fieldset
+        id="admin-theme-game"
+        className="min-w-0 scroll-mt-24 space-y-4 rounded-xl border border-hui-border bg-white/50 p-4"
+      >
         <legend className="px-1 text-base font-semibold text-hui-section">
           หน้าเกมและรางวัล <span className="font-normal text-hui-muted">(/game)</span>
         </legend>
@@ -922,12 +980,20 @@ export default function AdminSiteThemePanel() {
         </div>
       </fieldset>
 
-      <fieldset className="min-w-0 space-y-5 rounded-xl border border-hui-border bg-white/50 p-4">
+      <fieldset
+        id="admin-organic-home"
+        className="min-w-0 scroll-mt-24 space-y-5 rounded-xl border-2 border-hui-cta/25 bg-white/50 p-4"
+      >
         <legend className="px-1 text-base font-semibold text-hui-section">
-          หน้าแรก Organic <span className="font-normal text-hui-muted">(เทมเพลต /organic-template/)</span>
+          หน้าแรก Organic — แบนเนอร์โปร / จดหมายข่าว / ข้อความ{" "}
+          <span className="font-normal text-hui-muted">(iframe /organic-template/)</span>
         </legend>
         <p className="hui-note text-sm">
-          ควบคุมรูปพื้นหลัง hero (แทนพื้นเหลือง/รูปตะกร้า), ข้อความ, สีข้อความ (#RRGGBB — คำอธิบายการ์ดรองรับ rgba), ปุ่ม CTA, สถิติ 3 คอลัมน์, การ์ดฟีเจอร์ 3 ใบ, แบนเนอร์โปร 3 ช่อง, แถบจดหมายข่าว และบล็อกดาวน์โหลดแอป · บันทึกร่วมกับปุ่ม «บันทึกธีมเว็บ» ด้านล่าง
+          ที่นี่แก้ <strong className="font-semibold text-hui-body">รูปแบนเนอร์ 3 ช่อง</strong> (Items on SALE ฯลฯ),{" "}
+          <strong className="font-semibold text-hui-body">แถบส่วนลดใบมิ้นต์</strong>, ปุ่มลิงก์, รูปพื้นหลัง hero,
+          การ์ดฟีเจอร์ และเปิด/ปิดแต่ละแถบ · หัวข้อใหญ่/ข้อความรองของแต่ละแบนเนอร์และจดหมายข่าวอยู่ในส่วน{" "}
+          <strong className="font-semibold text-hui-body">«หัวข้อแต่ละบล็อกในหน้า Organic»</strong> ด้านล่างของบล็อกนี้ ·
+          บันทึกด้วยปุ่ม «บันทึกธีมเว็บ» ท้ายหน้า
         </p>
 
         <div className="space-y-3 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
@@ -963,8 +1029,11 @@ export default function AdminSiteThemePanel() {
           </div>
         </div>
 
-        <div className="space-y-6 rounded-xl border border-hui-border bg-hui-surface/90 p-4">
-          <h3 className="text-sm font-semibold text-hui-section">แบนเนอร์โปร 3 ช่อง</h3>
+        <div
+          id="admin-organic-promo"
+          className="scroll-mt-24 space-y-6 rounded-xl border border-hui-border bg-hui-surface/90 p-4"
+        >
+          <h3 className="text-sm font-semibold text-hui-section">แบนเนอร์โปร 3 ช่อง (รูป + ปุ่มลิงก์)</h3>
           <p className="text-xs text-hui-muted">
             รูปพื้นหลังแต่ละช่อง (https หรือ path เช่น{" "}
             <code className="rounded bg-white/80 px-1">images/banner-ad-1.jpg</code>) · ข้อความหัวข้อ/รองใต้หัวข้อตั้งในส่วน «หัวข้อแต่ละบล็อก» ด้านล่าง (แบนเนอร์ 1–3)
