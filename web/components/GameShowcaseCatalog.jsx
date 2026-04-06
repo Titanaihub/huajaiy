@@ -76,16 +76,18 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
                   className="group relative block h-full rounded-2xl outline-none transition duration-300 ease-out hover:z-10 hover:scale-[1.04] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/50 focus-visible:ring-offset-2"
                 >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition-shadow group-hover:shadow-lg">
-                    <div className="relative aspect-square w-full shrink-0 bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF]">
-                      <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 md:p-10">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                          alt=""
-                          className="max-h-[58%] max-w-[58%] object-contain drop-shadow-sm sm:max-h-[55%] sm:max-w-[55%]"
-                          width={512}
-                          height={512}
-                        />
+                    <div className="flex shrink-0 justify-center px-4 pb-2 pt-4">
+                      <div className="relative aspect-square w-full max-w-[188px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF] shadow-inner ring-1 ring-pink-100/70 sm:max-w-[208px]">
+                        <div className="absolute inset-0 p-2.5 sm:p-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                            alt=""
+                            className="h-full w-full object-contain drop-shadow-sm"
+                            width={512}
+                            height={512}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
