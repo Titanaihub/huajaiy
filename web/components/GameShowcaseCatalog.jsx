@@ -77,7 +77,7 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
                 >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition-shadow group-hover:shadow-lg">
                     <div className="flex shrink-0 justify-center px-4 pb-2 pt-4">
-                      <div className="relative aspect-square w-full max-w-[188px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF] shadow-inner ring-1 ring-pink-100/70 sm:max-w-[208px]">
+                      <div className="relative aspect-square w-full max-w-[400px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF] shadow-inner ring-1 ring-pink-100/70">
                         <div className="absolute inset-0 p-2.5 sm:p-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
