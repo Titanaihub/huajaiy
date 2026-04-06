@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
-import { formatGameShowcaseDeductLine } from "../lib/formatHeartCostLabel";
+import { getGameShowcaseHeartCostSegments } from "../lib/formatHeartCostLabel";
 
 function IconGamepadHeader({ className }) {
   return (
@@ -15,6 +15,12 @@ function IconGamepadHeader({ className }) {
 
 function IconGamepadBtn({ className }) {
   return <IconGamepadHeader className={className} />;
+}
+
+function segmentClass(kind) {
+  if (kind === "red") return "text-red-600";
+  if (kind === "pink") return "text-[#FF2E8C]";
+  return "text-neutral-700";
 }
 
 /**
@@ -62,41 +68,51 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
             const href = `/game/${encodeURIComponent(id)}`;
             const title = String(g.title || "").trim() || "เกม";
             const user = String(g.creatorUsername || "").trim().toLowerCase();
-            const deductLine = formatGameShowcaseDeductLine(g);
+            const costSegments = getGameShowcaseHeartCostSegments(g);
             return (
-              <li key={id}>
-                <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition hover:shadow-lg">
-                  <div className="relative aspect-square w-full shrink-0 bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF]">
-                    <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-5">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                        alt=""
-                        className="max-h-full max-w-full object-contain drop-shadow-sm"
-                        width={512}
-                        height={512}
-                      />
+              <li key={id} className="h-full min-h-0">
+                <Link
+                  href={href}
+                  className="group relative block h-full rounded-2xl outline-none transition duration-300 ease-out hover:z-10 hover:scale-[1.04] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/50 focus-visible:ring-offset-2"
+                >
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition-shadow group-hover:shadow-lg">
+                    <div className="relative aspect-square w-full shrink-0 bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF]">
+                      <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 md:p-10">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                          alt=""
+                          className="max-h-[58%] max-w-[58%] object-contain drop-shadow-sm sm:max-h-[55%] sm:max-w-[55%]"
+                          width={512}
+                          height={512}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-                    <h2 className="text-base font-bold leading-snug text-neutral-900 sm:text-lg">{title}</h2>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      {user ? `@${user}` : "@—"}
-                    </p>
-                    <p className="mt-2 text-sm leading-snug text-neutral-700">{deductLine}</p>
-                    <div className="mt-2">
-                      <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">รางวัล</span>
-                      <p className="mt-0.5 text-sm font-semibold text-[#FF2E8C]">ตามกติกาเกม</p>
+                    <div className="flex flex-1 flex-col px-4 pb-4 pt-3">
+                      <h2 className="text-base font-bold leading-snug text-neutral-900 transition-colors group-hover:text-[#FF2E8C] sm:text-lg">
+                        {title}
+                      </h2>
+                      <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1 text-sm leading-snug">
+                        <span className="shrink-0 font-medium text-red-600">{user ? `@${user}` : "@—"}</span>
+                        <span className="min-w-0 break-words">
+                          {costSegments.map((seg, i) => (
+                            <span key={`${id}-c-${i}`} className={`font-medium ${segmentClass(seg.kind)}`}>
+                              {seg.text}
+                            </span>
+                          ))}
+                        </span>
+                      </p>
+                      <div className="mt-3">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">รางวัล</span>
+                        <p className="mt-0.5 text-sm font-medium text-neutral-700">ตามกติกาเกม</p>
+                      </div>
+                      <span className="mt-4 inline-flex min-h-[2.75rem] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF2D85] to-[#FF6BA8] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/25 transition group-hover:brightness-105">
+                        <IconGamepadBtn className="h-5 w-5 shrink-0 text-white" />
+                        เล่นเลย
+                      </span>
                     </div>
-                    <Link
-                      href={href}
-                      className="mt-4 inline-flex min-h-[2.75rem] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF2D85] to-[#FF6BA8] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/25 transition hover:brightness-105"
-                    >
-                      <IconGamepadBtn className="h-5 w-5 shrink-0 text-white" />
-                      เล่นเลย
-                    </Link>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               </li>
             );
           })}

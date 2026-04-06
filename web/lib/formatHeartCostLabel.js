@@ -69,6 +69,46 @@ export function formatGameShowcaseDeductLine(g) {
   return parts.length ? `หัก ${parts.join(" และ ")}` : "—";
 }
 
+/**
+ * ส่วนข้อความ «หักหัวใจ» สำหรับแสดงคนละสี (แดง / ชมพู) ต่อท้าย @ยูสเซอร์บนการ์ดโชว์
+ * @returns {{ kind: "red" | "pink" | "neutral"; text: string }[]}
+ */
+export function getGameShowcaseHeartCostSegments(g) {
+  const p = Math.max(0, Math.floor(Number(g?.pinkHeartCost) || 0));
+  const r = Math.max(0, Math.floor(Number(g?.redHeartCost) || 0));
+  const mode = String(g?.heartCurrencyMode || "both").toLowerCase();
+  const acc = g?.acceptsPinkHearts !== false;
+
+  const lineRed = (n) => ({ kind: "red", text: `หัก ${n} หัวใจแดง` });
+  const linePink = (n) => ({ kind: "pink", text: `หัก ${n} หัวใจชมพู` });
+  const tailPink = (n) => ({ kind: "pink", text: `${n} หัวใจชมพู` });
+
+  if (p === 0 && r === 0) {
+    return [{ kind: "neutral", text: "ไม่หักหัวใจต่อรอบ" }];
+  }
+  if (mode === "either") {
+    if (!acc && r > 0) return [lineRed(r)];
+    if (acc && p > 0 && r > 0) {
+      return [lineRed(r), { kind: "neutral", text: " หรือ " }, tailPink(p)];
+    }
+    if (p > 0) return [linePink(p)];
+    if (r > 0) return [lineRed(r)];
+    return [{ kind: "neutral", text: "—" }];
+  }
+  if (mode === "pink_only") {
+    return p > 0 ? [linePink(p)] : [{ kind: "neutral", text: "—" }];
+  }
+  if (mode === "red_only") {
+    return r > 0 ? [lineRed(r)] : [{ kind: "neutral", text: "—" }];
+  }
+  if (r > 0 && p > 0) {
+    return [lineRed(r), { kind: "neutral", text: " และ " }, tailPink(p)];
+  }
+  if (r > 0) return [lineRed(r)];
+  if (p > 0) return [linePink(p)];
+  return [{ kind: "neutral", text: "—" }];
+}
+
 /** สรุปสั้นไม่มีคำนำหน้า (เช่น ในแดชบอร์ดที่มีหัวข้อแยกแล้ว) */
 export function formatHeartCostSummary(pinkHeartCost, redHeartCost) {
   const parts = heartCostParts(pinkHeartCost, redHeartCost);
