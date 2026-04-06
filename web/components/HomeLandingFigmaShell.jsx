@@ -126,6 +126,18 @@ function IconStar({ className }) {
   );
 }
 
+function IconShare({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path
+        d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6M16 6l-4-4-4 4M12 2v13"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
   return (
     <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -469,8 +481,9 @@ export default function HomeLandingFigmaShell({
                     </span>
                     <button
                       type="button"
-                      className="font-semibold text-[#FF2E8C] hover:underline"
+                      className="inline-flex items-center gap-1 font-semibold text-[#FF2E8C] hover:underline"
                     >
+                      <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
                       แชร์
                     </button>
                   </div>
