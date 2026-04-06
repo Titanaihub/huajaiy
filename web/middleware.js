@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import { isPathAllowed } from "./lib/routeAllowlist";
 
 const MEMBER_GAME_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** ต้องเป็น NEXT_PUBLIC_* เพื่อให้ Edge middleware อ่านค่าได้ตอน build (Render ตั้งก่อน build) */
+const STRICT_ROUTES =
+  process.env.NEXT_PUBLIC_HUAJAIY_STRICT_ROUTES === "1";
 
 /** ให้ root layout รู้ path ปัจจุบันเพื่อเลือกพื้นหลัง (หน้าแรก vs หน้าอื่น) */
 export function middleware(request) {
@@ -34,19 +39,66 @@ export function middleware(request) {
     return NextResponse.redirect(url, 308);
   }
 
+  /** ลิงก์โปรไฟล์สมาชิกใช้ /member — ส่งต่อจาก /account/heart-history (ยกเว้น giveaway) */
+  if (
+    pathname === "/account/heart-history" ||
+    pathname.startsWith("/account/heart-history/")
+  ) {
+    const isGiveaway =
+      pathname === "/account/heart-history/giveaway" ||
+      pathname.startsWith("/account/heart-history/giveaway/");
+    if (!isGiveaway) {
+      const url = request.nextUrl.clone();
+      if (
+        pathname === "/account/heart-history/play" ||
+        pathname.startsWith("/account/heart-history/play/")
+      ) {
+        url.pathname = "/member/game";
+      } else if (
+        pathname === "/account/heart-history/purchases" ||
+        pathname.startsWith("/account/heart-history/purchases/")
+      ) {
+        url.pathname = "/member/pink-history";
+      } else {
+        url.pathname = "/member/hearts";
+      }
+      return NextResponse.redirect(url, 308);
+    }
+  }
+
+  if (
+    pathname === "/account/prize-withdraw" ||
+    pathname.startsWith("/account/prize-withdraw/")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/account\/prize-withdraw/, "/member/prize-withdraw");
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (
+    pathname === "/account/prize-payouts" ||
+    pathname.startsWith("/account/prize-payouts/")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/account\/prize-payouts/, "/member/prizes");
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (
+    pathname === "/account/profile/legacy" ||
+    pathname.startsWith("/account/profile/legacy/")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/^\/account\/profile\/legacy/, "/member/profile");
+    return NextResponse.redirect(url, 308);
+  }
+
   /**
-   * หน้า React ที่ยังไม่มีใน Vue / มี path ซ้อน — คงที่ /account ไม่ redirect ไป /member
-   * (ไม่งั้น middleware ส่งไป /member/... แล้วเชลล์ยอมแค่ slug เดียว → โดนเตะกลับ /member)
+   * คง /account เฉพาะหน้าจัดการสินค้า React + giveaway — ที่เหลือส่งไป /member
    */
   const stayOnLegacyAccount =
-    pathname === "/account/prize-withdraw" ||
-    pathname.startsWith("/account/prize-withdraw/") ||
-    pathname === "/account/prize-payouts" ||
-    pathname.startsWith("/account/prize-payouts/") ||
-    pathname === "/account/heart-history" ||
-    pathname.startsWith("/account/heart-history/") ||
-    pathname === "/account/profile/legacy" ||
-    pathname.startsWith("/account/profile/legacy/") ||
+    pathname === "/account/heart-history/giveaway" ||
+    pathname.startsWith("/account/heart-history/giveaway/") ||
     pathname.startsWith("/account/shops/");
 
   /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้นหน้าที่ต้องคง React ด้านบน) */
@@ -95,6 +147,11 @@ export function middleware(request) {
     url.pathname = "/login/line";
     return NextResponse.redirect(url);
   }
+
+  if (STRICT_ROUTES && !isPathAllowed(pathname)) {
+    return new NextResponse(null, { status: 404, statusText: "Not Found" });
+  }
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-huajaiy-pathname", pathname);
   /** ฝังในสมาชิก TailAdmin — ไม่ครอบ SiteHeader / หลังบ้านเก่า */
