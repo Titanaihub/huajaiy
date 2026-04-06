@@ -70,10 +70,10 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
             const user = String(g.creatorUsername || "").trim().toLowerCase();
             const costSegments = getGameShowcaseHeartCostSegments(g);
             return (
-              <li key={id} className="h-full min-h-0">
+              <li key={id} className="flex h-full min-h-0 justify-center">
                 <Link
                   href={href}
-                  className="group relative block h-full rounded-2xl outline-none transition duration-300 ease-out hover:z-10 hover:scale-[1.04] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/50 focus-visible:ring-offset-2"
+                  className="group relative block h-full w-[250px] max-w-full shrink-0 rounded-2xl outline-none transition duration-300 ease-out hover:z-10 hover:scale-[1.04] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/50 focus-visible:ring-offset-2"
                 >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition-shadow group-hover:shadow-lg">
                     <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-t-2xl bg-white">
@@ -86,8 +86,8 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
                         height={512}
                       />
                     </div>
-                    <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-4">
-                      <h2 className="text-base font-bold leading-snug text-neutral-900 transition-colors group-hover:text-[#FF2E8C] sm:text-lg">
+                    <div className="flex flex-1 flex-col px-2.5 pb-3 pt-2.5">
+                      <h2 className="text-[0.9375rem] font-bold leading-snug text-neutral-900 transition-colors group-hover:text-[#FF2E8C]">
                         {title}
                       </h2>
                       <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1 text-sm leading-snug">
