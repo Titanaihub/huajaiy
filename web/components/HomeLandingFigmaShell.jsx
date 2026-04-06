@@ -419,6 +419,7 @@ export default function HomeLandingFigmaShell({
           {/* สินค้า */}
           <section aria-labelledby="home-sec-products">
             <SectionHeader
+              id="home-sec-products"
               icon={<IconShop className="h-5 w-5" />}
               title="สินค้า"
               extra="ลดสูงสุด 40%"
@@ -456,6 +457,7 @@ export default function HomeLandingFigmaShell({
           {/* โพสต์ล่าสุด */}
           <section aria-labelledby="home-sec-posts">
             <SectionHeader
+              id="home-sec-posts"
               icon={
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
