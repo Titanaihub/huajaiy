@@ -19,16 +19,6 @@ const nextConfig = {
         source: "/profile",
         destination: "/member",
         permanent: false
-      },
-      {
-        source: "/shop",
-        destination: "/page",
-        permanent: true
-      },
-      {
-        source: "/shop/",
-        destination: "/page",
-        permanent: true
       }
     ];
   },
