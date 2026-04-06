@@ -51,7 +51,16 @@ const ADMIN_FIRST = new Set([
   "hearts-top-up",
   "give-hearts",
   /** แดชบอร์ด Next */
-  "panel"
+  "panel",
+  /** เมนูแอดมินใน TailAdmin / Vue */
+  "theme",
+  "all-shops",
+  "game-settings",
+  "central-games",
+  "prize-payouts",
+  "heart-packs",
+  "slip-approvals",
+  "name-changes"
 ]);
 
 const MEMBER_FIRST = new Set([
