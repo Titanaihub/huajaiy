@@ -2,6 +2,7 @@
 export const GLOBAL_PRIMARY_NAV_BASE = [
   { href: "/", label: "หน้าแรก" },
   { href: "/game", label: "เกมและรางวัล" },
+  { href: "/shop", label: "ร้านค้า" },
   { href: "/page", label: "เพจชุมชน" }
 ];
 

@@ -42,8 +42,8 @@ export default function OwnerPage() {
         <p className="mt-2 max-w-2xl text-sm text-hui-body">
           ระบบขายทำงานแบบมาร์เก็ตเพลส: แอดมินสร้างร้านและผูกบัญชีคุณ → คุณลงสินค้า → ลูกค้าเปิดลิงก์สินค้าโดยตรง
           (/shop/รหัส) หรือไป{" "}
-          <Link href="/page" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
-            เพจชุมชน
+          <Link href="/shop" className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+            ร้านค้า
           </Link>{" "}
           แล้วยืนยันตะกร้าเป็นออเดอร์
         </p>
@@ -132,10 +132,10 @@ export default function OwnerPage() {
                           จัดการสินค้า (ลงขาย)
                         </Link>
                         <Link
-                          href="/page"
+                          href="/shop"
                           className="inline-flex rounded-lg border border-hui-border px-3 py-1.5 text-sm font-medium text-hui-body hover:bg-hui-pageTop"
                         >
-                          ไปเพจชุมชน
+                          ไปร้านค้า
                         </Link>
                         <Link
                           href="/account/shops"

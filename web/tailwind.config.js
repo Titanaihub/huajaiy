@@ -74,10 +74,16 @@ module.exports = {
         "huajaiy-hero-blink": {
           "0%, 100%": { opacity: "0.2", transform: "scale(1)" },
           "50%": { opacity: "0.72", transform: "scale(1.1)" }
+        },
+        "huajaiy-hero-gradient-shift": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" }
         }
       },
       animation: {
-        "huajaiy-hero-blink": "huajaiy-hero-blink 2.5s ease-in-out infinite"
+        "huajaiy-hero-blink": "huajaiy-hero-blink 2.5s ease-in-out infinite",
+        "huajaiy-hero-gradient-shift": "huajaiy-hero-gradient-shift 14s ease-in-out infinite"
       }
     }
   },

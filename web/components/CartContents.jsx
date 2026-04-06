@@ -140,10 +140,10 @@ export default function CartContents() {
       <div className="rounded-2xl border border-dashed border-hui-border bg-hui-surface p-8 text-center text-sm text-hui-muted">
         <p>ตะกร้าว่าง</p>
         <Link
-          href="/page"
+          href="/shop"
           className="mt-3 inline-block font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta hover:brightness-95"
         >
-          ไปเพจชุมชน
+          ไปร้านค้า
         </Link>
       </div>
     );

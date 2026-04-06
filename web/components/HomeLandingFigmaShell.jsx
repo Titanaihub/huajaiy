@@ -339,9 +339,13 @@ export default function HomeLandingFigmaShell({
         </div>
       </header>
 
-      {/* Hero — ไล่เฉดชมพูบานเย็นเข้ม → เหลืองเปลือกกล้วย + ไอคอนกระพริบ */}
+      {/* Hero — ไล่เฉดชมพูเข้ม→อ่อน (โทนปุ่มเข้าสู่ระบบ) + เคลื่อนไหว + ไอคอนกระพริบ */}
       <section
-        className="relative overflow-hidden bg-gradient-to-r from-[#8B1453] via-[#c21b6d] to-[#F0DE7A]"
+        className="relative overflow-hidden bg-[length:400%_100%] bg-no-repeat animate-huajaiy-hero-gradient-shift"
+        style={{
+          backgroundImage:
+            "linear-gradient(90deg, #9d174d, #be185d, #db2777, #e91e8c, #FF2E8C, #f472b6, #fda4d4, #f472b6, #FF2E8C, #db2777, #9d174d)"
+        }}
         aria-labelledby="home-landing-hero-title"
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -370,7 +374,7 @@ export default function HomeLandingFigmaShell({
             >
               ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-neutral-800 sm:text-lg">
+            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.15)] sm:text-lg">
               เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:mt-12 sm:gap-4">
@@ -499,7 +503,7 @@ export default function HomeLandingFigmaShell({
               icon={<IconShop className="h-5 w-5" />}
               title="สินค้า"
               extra="ลดสูงสุด 40%"
-              actionHref="/page"
+              actionHref="/shop"
               actionLabel="ดูทั้งหมด"
             />
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -521,7 +525,7 @@ export default function HomeLandingFigmaShell({
                       ฿{p.was}
                     </p>
                     <Link
-                      href="/page"
+                      href="/shop"
                       className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
                     >
                       ซื้อเลยตอนนี้

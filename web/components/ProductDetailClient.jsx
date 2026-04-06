@@ -44,10 +44,10 @@ export default function ProductDetailClient({ productId }) {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <p className="text-sm text-red-600">{err || "ไม่พบสินค้า"}</p>
         <Link
-          href="/page"
+          href="/shop"
           className="mt-4 inline-block text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
-          ← เพจชุมชน
+          ← ร้านค้า
         </Link>
       </main>
     );
@@ -59,10 +59,10 @@ export default function ProductDetailClient({ productId }) {
     <main className="mx-auto max-w-2xl px-4 py-8">
       <p className="text-sm text-hui-muted">
         <Link
-          href="/page"
+          href="/shop"
           className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
         >
-          เพจชุมชน
+          ร้านค้า
         </Link>
         <span className="mx-1 text-hui-border">/</span>
         <span className="font-medium text-hui-body">{p.shopName}</span>
@@ -112,8 +112,8 @@ export default function ProductDetailClient({ productId }) {
         className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2"
         aria-label="ทางลัดจากหน้าสินค้า"
       >
-        <Link href="/page" className={siteNavLinkClass}>
-          ← เพจชุมชน
+        <Link href="/shop" className={siteNavLinkClass}>
+          ← ร้านค้า
         </Link>
         <Link href="/cart" className={siteNavLinkClass}>
           ไปตะกร้า
