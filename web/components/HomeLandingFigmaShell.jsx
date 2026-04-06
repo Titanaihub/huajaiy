@@ -339,9 +339,9 @@ export default function HomeLandingFigmaShell({
         </div>
       </header>
 
-      {/* Hero — ไล่เฉดชมพูบานเย็น + ไอคอนกระพริบในพื้นหลัง */}
+      {/* Hero — ไล่เฉดชมพูบานเย็นเข้ม → เหลืองเปลือกกล้วย + ไอคอนกระพริบ */}
       <section
-        className="relative overflow-hidden bg-gradient-to-r from-[#ffb8d9] via-[#ff7eb8] to-[#ff4d9a]"
+        className="relative overflow-hidden bg-gradient-to-r from-[#8B1453] via-[#c21b6d] to-[#F0DE7A]"
         aria-labelledby="home-landing-hero-title"
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -362,18 +362,18 @@ export default function HomeLandingFigmaShell({
           ))}
         </div>
 
-        <div className="relative mx-auto max-w-[1200px] px-3 pb-12 pt-10 sm:px-5 sm:pb-16 sm:pt-14">
+        <div className="relative mx-auto max-w-[1200px] px-3 pb-[4.5rem] pt-[3.75rem] sm:px-5 sm:pb-24 sm:pt-[5.25rem]">
           <div className="mx-auto max-w-3xl text-center">
             <h1
               id="home-landing-hero-title"
               className="text-3xl font-bold leading-tight text-[#E60012] [text-shadow:0_0_1px_rgba(255,255,255,0.95),0_1px_2px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.5)] sm:text-4xl md:text-5xl"
             >
-              ยินดีต้อนรับสู่แพลตฟอร์มหัวใจ
+              ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base font-semibold text-[#E60012] [text-shadow:0_0_1px_rgba(255,255,255,0.9),0_1px_3px_rgba(255,255,255,0.75)] sm:text-lg">
+            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-neutral-800 sm:text-lg">
               เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:mt-12 sm:gap-4">
               <Link
                 href="/game"
                 className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-full bg-white px-6 py-3 text-base font-bold text-[#FF2E8C] shadow-lg transition hover:bg-pink-50"
