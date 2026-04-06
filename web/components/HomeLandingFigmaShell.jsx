@@ -399,17 +399,17 @@ export default function HomeLandingFigmaShell({
                 <Link
                   key={g.title}
                   href="/game"
-                  className="group relative flex flex-col rounded-2xl border border-pink-100/80 bg-white p-4 shadow-sm shadow-pink-100/50 transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="group relative flex flex-col rounded-2xl border border-pink-100/80 bg-white p-4 shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.04] hover:shadow-md"
                 >
                   {g.badge ? (
-                    <span className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                    <span className="absolute right-3 top-3 z-[1] rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
                       {g.badge}
                     </span>
                   ) : null}
-                  <div className="mb-3 flex h-24 items-center justify-center rounded-xl bg-gradient-to-br from-pink-50 to-fuchsia-50 text-4xl">
+                  <div className="relative mb-3 flex h-24 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-fuchsia-50 text-4xl">
                     {g.icon}
                   </div>
-                  <p className="text-xs font-medium text-neutral-500">{g.cat}</p>
+                  <p className="text-xs font-semibold text-[#E60012]">{g.cat}</p>
                   <div className="mt-1 flex items-center gap-1 text-amber-500">
                     <IconStar className="h-3.5 w-3.5" />
                     <span className="text-sm font-bold text-neutral-800">{g.rating}</span>
