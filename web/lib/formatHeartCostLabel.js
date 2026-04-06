@@ -40,6 +40,35 @@ export function formatCentralLobbyHeartLine(g) {
   return formatHeartCostPerRoundLine(p, r);
 }
 
+/**
+ * บรรทัด «หักหัวใจ» บนการ์ดโชว์เกม — รูปแบบเช่น หัก 1 หัวใจแดง หรือ 1 หัวใจชมพู
+ * @param {{ pinkHeartCost?: number; redHeartCost?: number; heartCurrencyMode?: string; acceptsPinkHearts?: boolean }} g
+ */
+export function formatGameShowcaseDeductLine(g) {
+  const p = Math.max(0, Math.floor(Number(g?.pinkHeartCost) || 0));
+  const r = Math.max(0, Math.floor(Number(g?.redHeartCost) || 0));
+  const mode = String(g?.heartCurrencyMode || "both").toLowerCase();
+  if (p === 0 && r === 0) return "ไม่หักหัวใจต่อรอบ";
+  if (mode === "either") {
+    const acc = g?.acceptsPinkHearts !== false;
+    if (!acc && r > 0) return `หัก ${r} หัวใจแดง`;
+    if (acc && p > 0 && r > 0) return `หัก ${r} หัวใจแดง หรือ ${p} หัวใจชมพู`;
+    if (p > 0) return `หัก ${p} หัวใจชมพู`;
+    if (r > 0) return `หัก ${r} หัวใจแดง`;
+    return "—";
+  }
+  if (mode === "pink_only") {
+    return p > 0 ? `หัก ${p} หัวใจชมพู` : "—";
+  }
+  if (mode === "red_only") {
+    return r > 0 ? `หัก ${r} หัวใจแดง` : "—";
+  }
+  const parts = [];
+  if (r > 0) parts.push(`${r} หัวใจแดง`);
+  if (p > 0) parts.push(`${p} หัวใจชมพู`);
+  return parts.length ? `หัก ${parts.join(" และ ")}` : "—";
+}
+
 /** สรุปสั้นไม่มีคำนำหน้า (เช่น ในแดชบอร์ดที่มีหัวข้อแยกแล้ว) */
 export function formatHeartCostSummary(pinkHeartCost, redHeartCost) {
   const parts = heartCostParts(pinkHeartCost, redHeartCost);

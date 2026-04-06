@@ -44,7 +44,7 @@ export default async function GamePage({ searchParams }) {
     <GameLandingFigmaShell>
       <div className="bg-[#FFF0F5]">
         <div className="mx-auto max-w-[1200px] px-3 py-8 sm:px-5 sm:py-10">
-          <GameShowcaseCatalog />
+          <GameShowcaseCatalog games={games} creatorFilter={creatorFilter} />
         </div>
       </div>
 
