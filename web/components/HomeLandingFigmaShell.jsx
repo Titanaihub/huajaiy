@@ -253,7 +253,7 @@ export default function HomeLandingFigmaShell({
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
-      <Link href="/page" className={navTopClass}>
+      <Link href="/shop" className={navTopClass}>
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>

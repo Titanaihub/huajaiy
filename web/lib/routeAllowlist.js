@@ -118,6 +118,12 @@ export function isPathAllowed(pathname) {
     return Boolean(id && UUID_RE.test(id));
   }
 
+  if (p === "/shop") return true;
+  if (p.startsWith("/shop/")) {
+    const id = p.slice("/shop/".length).split("/").filter(Boolean)[0];
+    return Boolean(id && UUID_RE.test(id));
+  }
+
   if (p === "/login" || p.startsWith("/login/")) return true;
 
   /** ลิงก์จาก footer หน้า login / ข้อกำหนดทั่วไป */
