@@ -56,11 +56,11 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
           <p className="mt-2 text-sm leading-relaxed text-neutral-600">
             {creatorNeedle
               ? "เมื่อผู้สร้างเผยแพร่เกมและเปิดแสดงในรายการ เกมจะปรากฏที่นี่"
-              : "เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่ · ดูรายการแบบเดิมด้านล่างได้ที่ «เกมจากระบบ»"}
+              : "เมื่อแอดมินเผยแพร่เกมหรือเปิดแสดงในรายการ เกมจะปรากฏที่นี่"}
           </p>
         </div>
       ) : (
-        <ul className="grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 sm:gap-2 md:grid-cols-3 md:gap-2 lg:grid-cols-4 lg:gap-3">
           {games.map((g) => {
             const id = String(g.id || "").trim();
             if (!id) return null;

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import GameLandingFigmaShell from "../../components/GameLandingFigmaShell";
-import GameLobby from "../../components/GameLobby";
 import GameShowcaseCatalog from "../../components/GameShowcaseCatalog";
 import { PUBLIC_SHOP_PATH } from "../../lib/publicNavPaths";
 import { fetchPublicGameList } from "../../lib/publicGameMeta";
@@ -21,7 +20,7 @@ export async function generateMetadata({ searchParams }) {
   }
   return {
     title: "เกมทั้งหมด | HUAJAIY",
-    description: "เลือกเกมที่คุณชอบและเริ่มเล่น — รายการเกมจากระบบด้านล่าง"
+    description: "เลือกเกมที่คุณชอบและเริ่มเล่น — HUAJAIY"
   };
 }
 
@@ -47,33 +46,6 @@ export default async function GamePage({ searchParams }) {
           <GameShowcaseCatalog games={games} creatorFilter={creatorFilter} />
         </div>
       </div>
-
-      <section
-        id="legacy-games"
-        className="scroll-mt-28 border-t border-pink-200/60 bg-white"
-        aria-labelledby="legacy-games-heading"
-      >
-        <div className="mx-auto max-w-[1200px] px-3 py-10 sm:px-5 sm:py-12">
-          <header className="mb-6 border-b border-pink-100 pb-5">
-            <h2 id="legacy-games-heading" className="text-xl font-bold text-neutral-900 sm:text-2xl">
-              เกมจากระบบ <span className="text-sm font-semibold text-neutral-500">(รูปแบบเดิม)</span>
-            </h2>
-            <p className="mt-2 text-sm text-neutral-600">
-              ค้นหาและเข้าเล่นเกมที่เผยแพร่จริงจากแพลตฟอร์ม — รายการด้านล่างนี้เชื่อมกับข้อมูล API
-            </p>
-            {creatorFilter ? (
-              <p className="mt-2 text-sm font-medium text-[#FF2E8C]">
-                กรองเฉพาะเกมจาก @{creatorFilter}
-              </p>
-            ) : null}
-          </header>
-          <GameLobby
-            initialGames={games}
-            gameLobbyThemed={false}
-            creatorUsernameFilter={creatorFilter}
-          />
-        </div>
-      </section>
 
       <nav
         className="border-t border-pink-100 bg-white"
