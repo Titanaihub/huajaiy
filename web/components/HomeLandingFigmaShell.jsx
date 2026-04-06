@@ -3,6 +3,7 @@
 import Link from "next/link";
 import HeartIcon from "./HeartIcon";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -253,7 +254,7 @@ export default function HomeLandingFigmaShell({
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
-      <Link href="/shop" className={navTopClass}>
+      <Link href={PUBLIC_SHOP_PATH} className={navTopClass}>
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
@@ -344,7 +345,7 @@ export default function HomeLandingFigmaShell({
         className="relative overflow-hidden bg-[length:400%_100%] bg-no-repeat animate-huajaiy-hero-gradient-shift"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, #9d174d, #be185d, #db2777, #e91e8c, #FF2E8C, #f472b6, #fda4d4, #f472b6, #FF2E8C, #db2777, #9d174d)"
+            "linear-gradient(90deg, #ec4899, #f43f8c, #FF2E8C, #f472b6, #fb93c9, #fda4d4, #fce7f3, #fda4d4, #fb93c9, #f472b6, #FF2E8C, #ec4899)"
         }}
         aria-labelledby="home-landing-hero-title"
       >
@@ -503,7 +504,7 @@ export default function HomeLandingFigmaShell({
               icon={<IconShop className="h-5 w-5" />}
               title="สินค้า"
               extra="ลดสูงสุด 40%"
-              actionHref="/shop"
+              actionHref={PUBLIC_SHOP_PATH}
               actionLabel="ดูทั้งหมด"
             />
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -525,7 +526,7 @@ export default function HomeLandingFigmaShell({
                       ฿{p.was}
                     </p>
                     <Link
-                      href="/shop"
+                      href={PUBLIC_SHOP_PATH}
                       className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
                     >
                       ซื้อเลยตอนนี้

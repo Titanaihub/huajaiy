@@ -1,8 +1,10 @@
+import { PUBLIC_SHOP_PATH } from "./publicNavPaths";
+
 /** เมนูหลักก่อนช่องเข้า/ออกระบบ — ช่องสุดท้ายสลับใน GlobalPrimaryNav / HomeStylePublicHeader */
 export const GLOBAL_PRIMARY_NAV_BASE = [
   { href: "/", label: "หน้าแรก" },
   { href: "/game", label: "เกมและรางวัล" },
-  { href: "/shop", label: "ร้านค้า" },
+  { href: PUBLIC_SHOP_PATH, label: "ร้านค้า" },
   { href: "/page", label: "เพจชุมชน" }
 ];
 

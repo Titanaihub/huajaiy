@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import HeartIcon from "./HeartIcon";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -293,7 +294,7 @@ export default function GamingShopPage() {
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
-      <Link href="/shop" className={navActive}>
+      <Link href={PUBLIC_SHOP_PATH} className={navActive}>
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
