@@ -185,6 +185,24 @@ function centralRulePrizeTotalQty(p) {
     : 1;
 }
 
+/** กล่องสีซ้ายการ์ดกติกา — สไตล์หน้าโชว์เกม (แดง=เงิน, ชมพู=ของ/บัตร, ส้ม=ไม่มีรางวัล) */
+function centralRulePrizeBadge(p) {
+  if (p.prizeCategory === "none") {
+    return { boxClass: "bg-orange-600", inner: "😞", isEmoji: true };
+  }
+  if (p.prizeCategory === "cash") {
+    const val = [p.prizeValueText, p.prizeUnit].filter(Boolean).join(" ").trim();
+    return { boxClass: "bg-red-600", inner: val || "เงินสด", isEmoji: false };
+  }
+  const title = String(p.prizeTitle || "").trim();
+  const val = [p.prizeValueText, p.prizeUnit].filter(Boolean).join(" ").trim();
+  return {
+    boxClass: "bg-pink-500",
+    inner: title || val || "รางวัล",
+    isEmoji: false
+  };
+}
+
 /** อ่าน setIndex จากคีย์ป้าย เช่น "0-3" */
 function parseCentralTileSetIndex(key) {
   if (key == null || key === "") return null;
@@ -1903,7 +1921,9 @@ export default function FlipGameDemo({
         {mode === "api" && apiGameMode === "central" ? (
           <ul
             className={
-              isCentralLiveUi ? "mt-4 space-y-3 text-zinc-200" : "mt-3 space-y-2.5 text-slate-800"
+              isCentralLiveUi
+                ? "mt-4 grid grid-cols-1 gap-3 text-zinc-200 sm:grid-cols-2 sm:gap-3.5"
+                : "mt-3 space-y-2.5 text-slate-800"
             }
           >
             {prizeList.map((p) => {
@@ -1918,43 +1938,61 @@ export default function FlipGameDemo({
                 rawThumb != null && String(rawThumb).trim() !== ""
                   ? String(rawThumb).trim()
                   : "";
+              const showBadge = isCentralLiveUi;
+              const badge = showBadge ? centralRulePrizeBadge(p) : null;
               return (
                 <li
                   key={p.key}
                   className={
                     isCentralLiveUi
-                      ? "flex gap-3 rounded-xl border border-amber-600/25 bg-black/40 p-3.5 backdrop-blur-sm transition hover:border-amber-500/45 hover:bg-black/50 hover:shadow-lg hover:shadow-amber-950/25 sm:p-4"
+                      ? "flex gap-3 rounded-xl border border-amber-500/40 bg-zinc-950/80 p-3.5 shadow-md ring-1 ring-amber-500/15 transition hover:border-amber-400/55 hover:ring-amber-400/25 sm:p-4"
                       : "flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
                   }
                 >
-                  <div
-                    className={
-                      isCentralLiveUi
-                        ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 border-amber-600/40 bg-black/50 ring-1 ring-amber-500/20"
-                        : "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
-                    }
-                  >
-                    {thumb ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={thumb}
-                        alt=""
-                        className="h-full w-full object-cover object-center"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <div
+                  {showBadge && badge ? (
+                    <div
+                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-amber-600/45 p-1 shadow-inner ring-1 ring-black/20 ${badge.boxClass}`}
+                    >
+                      <span
                         className={
-                          isCentralLiveUi
-                            ? "flex h-full items-center justify-center text-xs font-bold text-amber-400/90"
-                            : "flex h-full items-center justify-center text-sm font-medium text-slate-500"
+                          badge.isEmoji
+                            ? "select-none text-2xl leading-none"
+                            : "line-clamp-4 text-center text-[11px] font-bold leading-tight text-white drop-shadow-sm"
                         }
                       >
-                        ช.{setIdx + 1}
-                      </div>
-                    )}
-                  </div>
+                        {badge.inner}
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      className={
+                        isCentralLiveUi
+                          ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 border-amber-600/40 bg-black/50 ring-1 ring-amber-500/20"
+                          : "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
+                      }
+                    >
+                      {thumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={thumb}
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div
+                          className={
+                            isCentralLiveUi
+                              ? "flex h-full items-center justify-center text-xs font-bold text-amber-400/90"
+                              : "flex h-full items-center justify-center text-sm font-medium text-slate-500"
+                          }
+                        >
+                          ช.{setIdx + 1}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div
                     className={
                       isCentralLiveUi
