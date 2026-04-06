@@ -506,18 +506,20 @@ export default function HomeLandingFigmaShell({
               {PRODUCTS_PLACEHOLDER.map((p) => (
                 <div
                   key={p.name}
-                  className="relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50"
+                  className="relative flex flex-col rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.04] hover:shadow-md"
                 >
-                  <span className="absolute right-3 top-3 z-10 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                  <span className="absolute right-3 top-3 z-[1] rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
                     HOT
                   </span>
-                  <div className="flex h-40 items-center justify-center bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
+                  <div className="flex h-40 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
                     {p.icon}
                   </div>
-                  <div className="flex flex-1 flex-col p-4">
+                  <div className="flex flex-1 flex-col rounded-b-2xl p-4">
                     <h3 className="font-bold text-neutral-900">{p.name}</h3>
                     <p className="mt-2 text-lg font-bold text-[#FF2E8C]">฿{p.price}</p>
-                    <p className="text-sm text-neutral-400 line-through">฿{p.was}</p>
+                    <p className="text-sm font-medium text-[#E60012] line-through decoration-neutral-700 decoration-2">
+                      ฿{p.was}
+                    </p>
                     <Link
                       href="/page"
                       className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
