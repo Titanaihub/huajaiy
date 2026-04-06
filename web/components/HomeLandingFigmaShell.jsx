@@ -151,7 +151,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตตามแม่แบบ (แถบนำทางพื้นขาวแถวบนสุด + hero ไล่สี + เกม/สินค้า/โพสต์ placeholder)
+ * หน้าแรก — เทมเพลตตามแม่แบบ (แถบนำทางพื้นขาวแถวบนสุด + hero ไล่สี + เกม / โพสต์ / สินค้า placeholder)
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ; ข้อมูลการ์ดเป็นตัวอย่างจนกว่าจะผูก API
  */
 export default function HomeLandingFigmaShell({
@@ -424,44 +424,6 @@ export default function HomeLandingFigmaShell({
             </div>
           </section>
 
-          {/* สินค้า */}
-          <section aria-labelledby="home-sec-products">
-            <SectionHeader
-              id="home-sec-products"
-              icon={<IconShop className="h-5 w-5" />}
-              title="สินค้า"
-              extra="ลดสูงสุด 40%"
-              actionHref="/page"
-              actionLabel="ดูทั้งหมด"
-            />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {PRODUCTS_PLACEHOLDER.map((p) => (
-                <div
-                  key={p.name}
-                  className="relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50"
-                >
-                  <span className="absolute right-3 top-3 z-10 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                    HOT
-                  </span>
-                  <div className="flex h-40 items-center justify-center bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
-                    {p.icon}
-                  </div>
-                  <div className="flex flex-1 flex-col p-4">
-                    <h3 className="font-bold text-neutral-900">{p.name}</h3>
-                    <p className="mt-2 text-lg font-bold text-[#FF2E8C]">฿{p.price}</p>
-                    <p className="text-sm text-neutral-400 line-through">฿{p.was}</p>
-                    <Link
-                      href="/page"
-                      className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
-                    >
-                      ซื้อเลยตอนนี้
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* โพสต์ล่าสุด */}
           <section aria-labelledby="home-sec-posts">
             <SectionHeader
@@ -513,6 +475,44 @@ export default function HomeLandingFigmaShell({
                     </button>
                   </div>
                 </article>
+              ))}
+            </div>
+          </section>
+
+          {/* สินค้า */}
+          <section aria-labelledby="home-sec-products">
+            <SectionHeader
+              id="home-sec-products"
+              icon={<IconShop className="h-5 w-5" />}
+              title="สินค้า"
+              extra="ลดสูงสุด 40%"
+              actionHref="/page"
+              actionLabel="ดูทั้งหมด"
+            />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {PRODUCTS_PLACEHOLDER.map((p) => (
+                <div
+                  key={p.name}
+                  className="relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50"
+                >
+                  <span className="absolute right-3 top-3 z-10 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                    HOT
+                  </span>
+                  <div className="flex h-40 items-center justify-center bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
+                    {p.icon}
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <h3 className="font-bold text-neutral-900">{p.name}</h3>
+                    <p className="mt-2 text-lg font-bold text-[#FF2E8C]">฿{p.price}</p>
+                    <p className="text-sm text-neutral-400 line-through">฿{p.was}</p>
+                    <Link
+                      href="/page"
+                      className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
+                    >
+                      ซื้อเลยตอนนี้
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           </section>
