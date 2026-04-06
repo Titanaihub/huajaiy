@@ -161,15 +161,22 @@ export default function HomeLandingFigmaShell({
 }) {
   const { user: memberUser } = useMemberAuth();
 
+  /** พื้นหลัง hero — เฉพาะหัวใจ / กล่องของขวัญ / ดาว (กระพริบด้วย animate-huajaiy-hero-blink) */
   const floatDecor = [
-    { t: "10%", l: "5%", s: 14, o: 0.35, el: "✨" },
-    { t: "18%", l: "22%", s: 12, o: 0.3, el: "💗" },
-    { t: "8%", l: "48%", s: 16, o: 0.25, el: "⭐" },
-    { t: "28%", l: "72%", s: 14, o: 0.28, el: "🎮" },
-    { t: "55%", l: "10%", s: 13, o: 0.3, el: "✨" },
-    { t: "42%", l: "88%", s: 15, o: 0.22, el: "💗" },
-    { t: "70%", l: "35%", s: 12, o: 0.26, el: "⭐" },
-    { t: "78%", l: "60%", s: 14, o: 0.2, el: "🎁" }
+    { t: "12%", l: "6%", s: 15, d: "0s", dur: 2.2, el: "💗" },
+    { t: "22%", l: "18%", s: 13, d: "0.4s", dur: 2.8, el: "⭐" },
+    { t: "8%", l: "38%", s: 17, d: "0.2s", dur: 2.4, el: "🎁" },
+    { t: "32%", l: "52%", s: 14, d: "0.9s", dur: 3, el: "💖" },
+    { t: "18%", l: "72%", s: 16, d: "0.1s", dur: 2.6, el: "⭐" },
+    { t: "58%", l: "8%", s: 14, d: "0.6s", dur: 2.3, el: "🎁" },
+    { t: "48%", l: "28%", s: 12, d: "1.1s", dur: 2.7, el: "💗" },
+    { t: "42%", l: "88%", s: 15, d: "0.3s", dur: 2.5, el: "⭐" },
+    { t: "68%", l: "42%", s: 13, d: "0.7s", dur: 2.9, el: "🎁" },
+    { t: "72%", l: "62%", s: 14, d: "0.5s", dur: 2.2, el: "💗" },
+    { t: "28%", l: "92%", s: 12, d: "1.2s", dur: 2.8, el: "⭐" },
+    { t: "5%", l: "58%", s: 11, d: "0.8s", dur: 3.1, el: "🎁" },
+    { t: "78%", l: "78%", s: 16, d: "0.15s", dur: 2.4, el: "💖" },
+    { t: "52%", l: "95%", s: 13, d: "1s", dur: 2.6, el: "💗" }
   ];
 
   const navTopClass =
@@ -320,23 +327,22 @@ export default function HomeLandingFigmaShell({
         </div>
       </header>
 
-      {/* Hero — ไล่สีเท่านั้น (ไม่มีเมนูซ้อน) */}
+      {/* Hero — ไล่เฉดชมพูบานเย็น + ไอคอนกระพริบในพื้นหลัง */}
       <section
-        className="relative overflow-hidden bg-gradient-to-br from-[#FF2E8C] via-[#d946a6] to-[#7c3aed]"
+        className="relative overflow-hidden bg-gradient-to-r from-[#ffb8d9] via-[#ff7eb8] to-[#ff4d9a]"
         aria-labelledby="home-landing-hero-title"
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
           {floatDecor.map((d, i) => (
             <span
               key={i}
-              className="absolute animate-pulse select-none"
+              className="absolute animate-huajaiy-hero-blink select-none will-change-transform"
               style={{
                 top: d.t,
                 left: d.l,
-                opacity: d.o,
                 fontSize: d.s,
-                animationDuration: "2.8s",
-                animationDelay: `${i * 0.15}s`
+                animationDelay: d.d,
+                animationDuration: `${d.dur}s`
               }}
             >
               {d.el}
@@ -348,11 +354,11 @@ export default function HomeLandingFigmaShell({
           <div className="mx-auto max-w-3xl text-center">
             <h1
               id="home-landing-hero-title"
-              className="text-3xl font-bold leading-tight text-white drop-shadow-md sm:text-4xl md:text-5xl"
+              className="text-3xl font-bold leading-tight text-[#E60012] [text-shadow:0_0_1px_rgba(255,255,255,0.95),0_1px_2px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.5)] sm:text-4xl md:text-5xl"
             >
               ยินดีต้อนรับสู่แพลตฟอร์มหัวใจ
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/95 sm:text-lg">
+            <p className="mx-auto mt-4 max-w-xl text-base font-semibold text-[#E60012] [text-shadow:0_0_1px_rgba(255,255,255,0.9),0_1px_3px_rgba(255,255,255,0.75)] sm:text-lg">
               เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
