@@ -231,15 +231,15 @@ export default function HomeLandingFigmaShell({
       aria-label="เมนูหลัก"
     >
       <Link href="/" className={navTopClass}>
-        <IconHome className="h-4 w-4 shrink-0 text-neutral-600" />
+        <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
       <Link href="/page" className={navTopClass}>
-        <IconShop className="h-4 w-4 shrink-0 text-neutral-600" />
+        <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
       <Link href="/game" className={navTopClass}>
-        <IconGamepad className="h-4 w-4 shrink-0 text-neutral-600" />
+        <IconGamepad className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         <span className="relative inline-block">
           เกม
           <span
@@ -251,11 +251,11 @@ export default function HomeLandingFigmaShell({
         </span>
       </Link>
       <Link href="/page" className={navTopClass}>
-        <IconFeed className="h-4 w-4 shrink-0 text-neutral-600" />
-        ฟีด
+        <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
+        โพสต์
       </Link>
       <Link href="/page" className={navTopClass}>
-        <IconPage className="h-4 w-4 shrink-0 text-neutral-600" />
+        <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         เพจ
       </Link>
     </nav>
@@ -275,9 +275,7 @@ export default function HomeLandingFigmaShell({
                     )
                   : null}
                 <Link href="/" className="group inline-flex min-w-0 items-center gap-2 sm:gap-2.5">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pink-50 ring-2 ring-pink-100 sm:h-11 sm:w-11">
-                    <HeartIcon className="h-6 w-6 text-[#FF2E8C] sm:h-7 sm:w-7" />
-                  </span>
+                  <HeartIcon className="h-9 w-9 shrink-0 text-[#FF2E8C] sm:h-10 sm:w-10" aria-hidden />
                   <span className="font-heading truncate text-lg font-bold uppercase tracking-tight text-neutral-900 sm:text-xl">
                     HUAJAIY
                   </span>
@@ -355,7 +353,7 @@ export default function HomeLandingFigmaShell({
               ยินดีต้อนรับสู่แพลตฟอร์มหัวใจ
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base text-white/95 sm:text-lg">
-              เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามฟีดชุมชน — ครบในที่เดียว
+              เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               <Link
