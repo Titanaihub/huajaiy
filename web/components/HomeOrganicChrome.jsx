@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import HomeStylePublicHeader from "./HomeStylePublicHeader";
+import HomeLandingFigmaShell from "./HomeLandingFigmaShell";
 import OrganicPublicFooter from "./OrganicPublicFooter";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const IFRAME_HEIGHT_INITIAL = 960;
 
 /**
- * หน้าแรก production: หัวเว็บเดียวกับ /member /admin (MemberAuthProvider)
+ * หน้าแรก production: แถบโปรโม + เมนู + Hero (Next — HomeLandingFigmaShell)
  * + iframe organic (?huajaiy_chrome=1) ส่งความสูงเอกสารจริง → เลื่อนทั้งหน้า สกอร์บาร์เดียว ฟุตเตอร์ท้ายเนื้อหา
  */
 export default function HomeOrganicChrome() {
@@ -41,7 +41,7 @@ export default function HomeOrganicChrome() {
 
   return (
     <div className="flex w-full flex-col bg-white">
-      <HomeStylePublicHeader
+      <HomeLandingFigmaShell
         onHamburgerClick={toggleOrganicNav}
         lineProfileImageUrl={user?.linePictureUrl || undefined}
         profileDisplayName={

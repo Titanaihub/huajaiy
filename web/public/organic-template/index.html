@@ -29,8 +29,12 @@
       })();
     </script>
     <style>
-      /* โหลดใน iframe ใต้ HomeStylePublicHeader — ไม่ให้ซ้ำแถบเมนู (สถานะล็อกอินอยู่ที่ parent) */
+      /* โหลดใน iframe ใต้ HomeLandingFigmaShell — ไม่ให้ซ้ำแถบเมนู (สถานะล็อกอินอยู่ที่ parent) */
       html.huajaiy-chrome-hide header.sticky-top.border-bottom {
+        display: none !important;
+      }
+      /* Hero อยู่ที่ Next ด้านบน iframe — ซ่อนบล็อก hero ใน organic */
+      html.huajaiy-chrome-hide #huajaiy-hero-section {
         display: none !important;
       }
       /* ความสูง iframe ปรับตามเอกสาร — ลดสกอร์บาร์ซ้อนใน iframe */
