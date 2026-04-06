@@ -76,21 +76,17 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
                   className="group relative block h-full rounded-2xl outline-none transition duration-300 ease-out hover:z-10 hover:scale-[1.04] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/50 focus-visible:ring-offset-2"
                 >
                   <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-md shadow-pink-100/40 transition-shadow group-hover:shadow-lg">
-                    <div className="flex shrink-0 justify-center px-2 pb-1.5 pt-2">
-                      <div className="relative aspect-square w-full max-w-[250px] overflow-hidden rounded-2xl bg-gradient-to-b from-[#FFE8F2] via-[#FFF0F7] to-[#FFE4EF] shadow-inner ring-1 ring-pink-100/70">
-                        <div className="absolute inset-0 p-2.5 sm:p-3">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                            alt=""
-                            className="h-full w-full object-contain drop-shadow-sm"
-                            width={512}
-                            height={512}
-                          />
-                        </div>
-                      </div>
+                    <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-t-2xl bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover"
+                        width={512}
+                        height={512}
+                      />
                     </div>
-                    <div className="flex flex-1 flex-col px-2 pb-4 pt-2.5">
+                    <div className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-4">
                       <h2 className="text-base font-bold leading-snug text-neutral-900 transition-colors group-hover:text-[#FF2E8C] sm:text-lg">
                         {title}
                       </h2>
