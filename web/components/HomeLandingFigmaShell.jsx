@@ -151,7 +151,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตตามแม่แบบ (เมนูใน hero + เกม / สินค้า / โพสต์ placeholder)
+ * หน้าแรก — เทมเพลตตามแม่แบบ (แถบนำทางพื้นขาวแถวบนสุด + hero ไล่สี + เกม/สินค้า/โพสต์ placeholder)
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ; ข้อมูลการ์ดเป็นตัวอย่างจนกว่าจะผูก API
  */
 export default function HomeLandingFigmaShell({
@@ -172,8 +172,8 @@ export default function HomeLandingFigmaShell({
     { t: "78%", l: "60%", s: 14, o: 0.2, el: "🎁" }
   ];
 
-  const navHeroClass =
-    "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-white/95 transition hover:bg-white/15 sm:gap-2 sm:px-4";
+  const navTopClass =
+    "relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-sm font-semibold text-neutral-800 transition hover:bg-pink-50 hover:text-[#FF2E8C] sm:gap-2 sm:px-3";
 
   function hamburgerButton(className) {
     return (
@@ -193,31 +193,136 @@ export default function HomeLandingFigmaShell({
     );
   }
 
+  const heartsPill = (
+    <div
+      className="flex items-center gap-2.5 rounded-full border border-pink-200/90 bg-gradient-to-r from-pink-50 to-fuchsia-50 px-3 py-1.5 shadow-sm sm:gap-3 sm:px-4 sm:py-2"
+      aria-label="ยอดหัวใจตัวอย่าง"
+    >
+      <span className="inline-flex items-center gap-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={HEART_PINK_SRC} alt="" width={20} height={20} className="h-5 w-5" />
+        <span className="text-sm font-bold tabular-nums text-pink-600">0</span>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={HEART_RED_SRC} alt="" width={20} height={20} className="h-5 w-5" />
+        <span className="text-sm font-bold tabular-nums text-red-600">0</span>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={HEART_RED_SRC}
+          alt=""
+          width={20}
+          height={20}
+          className="h-5 w-5 rounded-full ring-2 ring-red-200"
+        />
+        <span className="text-sm font-bold tabular-nums text-red-800">0</span>
+      </span>
+    </div>
+  );
+
+  const iconBtnClass =
+    "inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-700 transition hover:bg-pink-50 hover:text-[#FF2E8C] sm:h-10 sm:w-10";
+
+  const mainNav = (
+    <nav
+      className="flex flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:justify-center"
+      aria-label="เมนูหลัก"
+    >
+      <Link href="/" className={navTopClass}>
+        <IconHome className="h-4 w-4 shrink-0 text-neutral-600" />
+        หน้าแรก
+      </Link>
+      <Link href="/page" className={navTopClass}>
+        <IconShop className="h-4 w-4 shrink-0 text-neutral-600" />
+        ร้านค้า
+      </Link>
+      <Link href="/game" className={navTopClass}>
+        <IconGamepad className="h-4 w-4 shrink-0 text-neutral-600" />
+        <span className="relative inline-block">
+          เกม
+          <span
+            className="absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF2E8C] text-[9px] leading-none text-white shadow-sm"
+            aria-hidden
+          >
+            ★
+          </span>
+        </span>
+      </Link>
+      <Link href="/page" className={navTopClass}>
+        <IconFeed className="h-4 w-4 shrink-0 text-neutral-600" />
+        ฟีด
+      </Link>
+      <Link href="/page" className={navTopClass}>
+        <IconPage className="h-4 w-4 shrink-0 text-neutral-600" />
+        เพจ
+      </Link>
+    </nav>
+  );
+
   return (
     <div className="shrink-0">
-      {/* แถบบน — พื้นขาว ตามแบบ */}
-      <div className="border-b border-pink-100/80 bg-white">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-5">
-          <p className="text-xs font-medium text-neutral-600 sm:text-sm">Game Social Feed Marketplace</p>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/page"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-700 transition hover:bg-pink-50 hover:text-[#FF2E8C]"
-              aria-label="ค้นหา"
-            >
-              <IconSearch className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2 text-xs font-bold text-white shadow-sm shadow-pink-400/30 transition hover:brightness-105 sm:px-5 sm:text-sm"
-            >
-              เข้าสู่ระบบ / สมัคร
-            </Link>
+      {/* แถบนำทางบนสุด — พื้นขาว (โลโก้ | เมนู | หัวใจ + ไอคอน) */}
+      <header className="sticky top-0 z-[1040] border-b border-pink-100 bg-white shadow-[0_1px_0_0_rgba(233,30,140,0.06)]">
+        <div className="mx-auto max-w-[1200px] px-3 py-2.5 sm:px-5 sm:py-3">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,auto)_1fr_minmax(0,auto)] lg:items-center lg:gap-5">
+            <div className="flex items-center justify-between gap-2 lg:justify-start">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                {memberUser
+                  ? hamburgerButton(
+                      "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-800 hover:bg-pink-50 lg:hidden"
+                    )
+                  : null}
+                <Link href="/" className="group inline-flex min-w-0 items-center gap-2 sm:gap-2.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pink-50 ring-2 ring-pink-100 sm:h-11 sm:w-11">
+                    <HeartIcon className="h-6 w-6 text-[#FF2E8C] sm:h-7 sm:w-7" />
+                  </span>
+                  <span className="font-heading truncate text-lg font-bold uppercase tracking-tight text-neutral-900 sm:text-xl">
+                    HUAJAIY
+                  </span>
+                </Link>
+              </div>
+              <Link
+                href="/login"
+                className="shrink-0 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:px-4 sm:text-sm"
+              >
+                เข้าสู่ระบบ / สมัคร
+              </Link>
+            </div>
+
+            {mainNav}
+
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:justify-end">
+              {heartsPill}
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <Link href="/page" className={iconBtnClass} aria-label="ค้นหา">
+                  <IconSearch className="h-5 w-5" />
+                </Link>
+                <Link href="/login" className={iconBtnClass} aria-label="โปรไฟล์">
+                  <IconUser className="h-5 w-5" />
+                </Link>
+                <Link href="/cart" className={iconBtnClass} aria-label="ตะกร้า">
+                  <IconCart className="h-5 w-5" />
+                </Link>
+              </div>
+              <Link
+                href="/login"
+                className="hidden rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
+              >
+                เข้าสู่ระบบ / สมัคร
+              </Link>
+              {memberUser
+                ? hamburgerButton(
+                    "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-800 hover:bg-pink-50 lg:inline-flex"
+                  )
+                : null}
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Hero + เมนูหลักบน gradient */}
+      {/* Hero — ไล่สีเท่านั้น (ไม่มีเมนูซ้อน) */}
       <section
         className="relative overflow-hidden bg-gradient-to-br from-[#FF2E8C] via-[#d946a6] to-[#7c3aed]"
         aria-labelledby="home-landing-hero-title"
@@ -241,109 +346,8 @@ export default function HomeLandingFigmaShell({
           ))}
         </div>
 
-        <div className="relative mx-auto max-w-[1200px] px-3 pb-12 pt-4 sm:px-5 sm:pb-16 sm:pt-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex flex-wrap items-center gap-3">
-              {memberUser
-                ? hamburgerButton(
-                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white hover:bg-white/10 lg:hidden"
-                  )
-                : null}
-              <Link href="/" className="group inline-flex items-center gap-2.5">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 shadow-inner ring-2 ring-white/30">
-                  <HeartIcon className="h-7 w-7 text-white drop-shadow-sm" />
-                </span>
-                <span className="font-heading text-xl font-bold uppercase tracking-tight text-white drop-shadow-sm sm:text-2xl">
-                  HUAJAIY
-                </span>
-              </Link>
-            </div>
-
-            <nav
-              className="flex flex-wrap items-center justify-center gap-1 sm:gap-0 lg:justify-end"
-              aria-label="เมนูหลัก"
-            >
-              <Link href="/" className={navHeroClass}>
-                <IconHome className="h-4 w-4 shrink-0 opacity-90" />
-                หน้าแรก
-              </Link>
-              <Link href="/page" className={navHeroClass}>
-                <IconShop className="h-4 w-4 shrink-0 opacity-90" />
-                ร้านค้า
-              </Link>
-              <Link href="/game" className={navHeroClass}>
-                <IconGamepad className="h-4 w-4 shrink-0 opacity-90" />
-                เกม
-              </Link>
-              <Link href="/page" className={navHeroClass}>
-                <IconFeed className="h-4 w-4 shrink-0 opacity-90" />
-                ฟีด
-              </Link>
-              <Link href="/page" className={navHeroClass}>
-                <IconPage className="h-4 w-4 shrink-0 opacity-90" />
-                เพจ
-              </Link>
-            </nav>
-
-            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
-              <div
-                className="flex items-center gap-3 rounded-2xl border border-white/25 bg-white/10 px-3 py-2 backdrop-blur-sm sm:px-4"
-                aria-label="ยอดหัวใจตัวอย่าง"
-              >
-                <span className="inline-flex items-center gap-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={HEART_PINK_SRC} alt="" width={20} height={20} className="h-5 w-5" />
-                  <span className="text-sm font-bold tabular-nums text-white">0</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={HEART_RED_SRC} alt="" width={20} height={20} className="h-5 w-5" />
-                  <span className="text-sm font-bold tabular-nums text-white">0</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={HEART_RED_SRC}
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 rounded-full ring-2 ring-white/40"
-                  />
-                  <span className="text-sm font-bold tabular-nums text-white">0</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Link
-                  href="/page"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white hover:bg-white/15"
-                  aria-label="ค้นหา"
-                >
-                  <IconSearch className="h-5 w-5" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white hover:bg-white/15"
-                  aria-label="โปรไฟล์"
-                >
-                  <IconUser className="h-5 w-5" />
-                </Link>
-                <Link
-                  href="/cart"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full text-white hover:bg-white/15"
-                  aria-label="ตะกร้า"
-                >
-                  <IconCart className="h-5 w-5" />
-                </Link>
-              </div>
-              {memberUser
-                ? hamburgerButton(
-                    "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white hover:bg-white/10 lg:inline-flex"
-                  )
-                : null}
-            </div>
-          </div>
-
-          <div className="mx-auto mt-10 max-w-3xl text-center sm:mt-14">
+        <div className="relative mx-auto max-w-[1200px] px-3 pb-12 pt-10 sm:px-5 sm:pb-16 sm:pt-14">
+          <div className="mx-auto max-w-3xl text-center">
             <h1
               id="home-landing-hero-title"
               className="text-3xl font-bold leading-tight text-white drop-shadow-md sm:text-4xl md:text-5xl"
