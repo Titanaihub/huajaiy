@@ -288,7 +288,7 @@ export default function MemberHomeProfileLanding({ user }) {
   }
 
   return (
-    <div className="border-b border-pink-100 bg-white">
+    <div className="border-b border-pink-100 bg-transparent">
       {/* การ์ดหัวใจ — แถวบนสุด (เหมือนแม่แบบ) */}
       <div className="mx-auto grid max-w-[960px] gap-3 px-3 pb-4 pt-4 sm:grid-cols-3 sm:gap-4 sm:px-5 sm:pb-5 sm:pt-5">
         <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">

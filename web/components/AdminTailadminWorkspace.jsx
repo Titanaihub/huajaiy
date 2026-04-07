@@ -182,7 +182,7 @@ export default function AdminTailadminWorkspace() {
 
   if (loading || !user) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังโหลด…
       </main>
     );
@@ -190,7 +190,7 @@ export default function AdminTailadminWorkspace() {
 
   if (user.role !== "admin") {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังเปลี่ยนเส้นทางไประบบสมาชิก…
       </main>
     );
@@ -213,7 +213,7 @@ export default function AdminTailadminWorkspace() {
       mainClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#fce7f3]/45"
     >
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100/80">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-transparent">
           <iframe
             key={iframeSrc}
             ref={iframeRef}

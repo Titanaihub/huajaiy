@@ -137,7 +137,7 @@ export default function MemberTailadminWorkspace() {
 
   if (loading || !user) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังโหลด…
       </main>
     );
@@ -145,7 +145,7 @@ export default function MemberTailadminWorkspace() {
 
   if (hasLegacyQuery) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังเปลี่ยนเส้นทาง…
       </main>
     );
@@ -153,7 +153,7 @@ export default function MemberTailadminWorkspace() {
 
   if (!parsed) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังโหลด…
       </main>
     );
@@ -164,7 +164,7 @@ export default function MemberTailadminWorkspace() {
     (parsed.segments.length === 1 && tailForIframe === null && !closedShellSlug)
   ) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังไปหน้าภาพรวม…
       </main>
     );
@@ -207,7 +207,7 @@ export default function MemberTailadminWorkspace() {
         className="flex min-h-0 w-full min-w-0 flex-1 flex-col"
         aria-label="ระบบสมาชิก"
       >
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100/80">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-transparent">
           <iframe
             key={iframeSrc}
             ref={iframeRef}
