@@ -29,7 +29,7 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
-  { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
+  { key: "hearts", label: "ห้องเกม (หัวใจแดง)", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   {
     key: "pinkHistory",
     label: "ประวัติหัวใจชมพู",
