@@ -305,15 +305,46 @@ async function getActiveGameSnapshot() {
 /** แสดงในหน้าเกม: เผยแพร่แล้ว หรือเป็นเกมที่กำลังเปิดใช้ (รองรับข้อมูลเก่าก่อนมีคอลัมน์ is_published) */
 async function listPublishedGamesForPublic() {
   const pool = requirePool();
-  const r = await pool.query(
-    `SELECT g.*, u.username AS creator_username
-     FROM central_games g
-     LEFT JOIN users u ON u.id = g.created_by
-     WHERE g.is_published = TRUE OR g.is_active = TRUE
-     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`
-  );
+  const sqlWithPlays = `
+    SELECT g.*, u.username AS creator_username,
+      COALESCE(ps.c, 0)::int AS play_count
+    FROM central_games g
+    LEFT JOIN users u ON u.id = g.created_by
+    LEFT JOIN (
+      SELECT
+        (meta->>'gameId')::uuid AS game_id,
+        COUNT(*)::int AS c
+      FROM heart_ledger
+      WHERE kind = 'game_start'
+        AND (meta->>'gameMode') = 'central'
+        AND meta ? 'gameId'
+        AND (meta->>'gameId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      GROUP BY (meta->>'gameId')::uuid
+    ) ps ON ps.game_id = g.id
+    WHERE g.is_published = TRUE OR g.is_active = TRUE
+    ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`;
+  const sqlSimple = `
+    SELECT g.*, u.username AS creator_username
+    FROM central_games g
+    LEFT JOIN users u ON u.id = g.created_by
+    WHERE g.is_published = TRUE OR g.is_active = TRUE
+    ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`;
+  let r;
+  try {
+    r = await pool.query(sqlWithPlays);
+  } catch (e) {
+    if (e && e.code === "42P01") {
+      r = await pool.query(sqlSimple);
+    } else {
+      throw e;
+    }
+  }
   return r.rows.map((row) => {
     const game = rowGame(row);
+    const playCount =
+      row.play_count != null
+        ? Math.max(0, Math.floor(Number(row.play_count)) || 0)
+        : 0;
     return {
       id: game.id,
       title: game.title,
@@ -323,7 +354,8 @@ async function listPublishedGamesForPublic() {
       pinkHeartCost: game.pinkHeartCost,
       redHeartCost: game.redHeartCost,
       heartCurrencyMode: game.heartCurrencyMode,
-      acceptsPinkHearts: game.acceptsPinkHearts
+      acceptsPinkHearts: game.acceptsPinkHearts,
+      playCount
     };
   });
 }

@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useMemo } from "react";
 import HeartIcon from "./HeartIcon";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
-
-const GAMES_PLACEHOLDER = [
-  { title: "Farm Life", cat: "@Simulation", rating: "4.4", users: "1.2k", badge: "NEW", icon: "🏡" },
-  { title: "Strike Zone", cat: "@Shooter", rating: "4.6", users: "890", badge: "HOT", icon: "🎯" },
-  { title: "Blade Arena", cat: "@Action", rating: "4.3", users: "2.1k", badge: "HOT", icon: "⚔️" },
-  { title: "Speed Rush", cat: "@Racing", rating: "4.5", users: "756", badge: null, icon: "🏎️" }
-];
 
 const PRODUCTS_PLACEHOLDER = [
   { name: "คอนโทรลเลอร์ไร้สาย", price: "3,900", was: "4,500", icon: "🎮" },
@@ -119,14 +114,6 @@ function IconUser({ className }) {
   );
 }
 
-function IconStar({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6-4.6-6 4.6 2.3-7-6-4.6h7.6L12 2z" />
-    </svg>
-  );
-}
-
 function IconShare({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -165,14 +152,39 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 
 /**
  * หน้าแรก — เทมเพลตตามแม่แบบ (แถบนำทางพื้นขาวแถวบนสุด + hero ไล่สี + เกม / โพสต์ / สินค้า placeholder)
- * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ; ข้อมูลการ์ดเป็นตัวอย่างจนกว่าจะผูก API
+ * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ · เกมแนะนำดึงจาก API สาธารณะ
  */
 export default function HomeLandingFigmaShell({
   onHamburgerClick,
+  recommendedGames = [],
   lineProfileImageUrl: _lineProfileImageUrl,
   profileDisplayName: _profileDisplayName
 }) {
   const { user: memberUser } = useMemberAuth();
+
+  const gamesToShow = useMemo(() => {
+    const list = Array.isArray(recommendedGames) ? recommendedGames : [];
+    return list.filter((g) => g && String(g.id || "").trim()).slice(0, 4);
+  }, [recommendedGames]);
+
+  const shareRecommendedGame = useCallback(async (e, game) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = String(game?.id || "").trim();
+    if (!id) return;
+    const title = String(game?.title || "").trim() || "เกม HUAJAIY";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const url = `${origin}/game/${encodeURIComponent(id)}`;
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({ title, text: "ชวนเล่นเกมนี้บน HUAJAIY", url });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch {
+      /* ยกเลิกแชร์หรือคัดลอกไม่ได้ */
+    }
+  }, []);
 
   /** พื้นหลัง hero — เฉพาะหัวใจ / กล่องของขวัญ / ดาว (กระพริบด้วย animate-huajaiy-hero-blink) */
   const floatDecor = [
@@ -414,32 +426,57 @@ export default function HomeLandingFigmaShell({
               actionLabel="ดูทั้งหมด"
             />
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {GAMES_PLACEHOLDER.map((g) => (
-                <Link
-                  key={g.title}
-                  href="/game"
-                  className="group relative flex flex-col rounded-2xl border border-pink-100/80 bg-white p-4 shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.04] hover:shadow-md"
-                >
-                  {g.badge ? (
-                    <span className="absolute right-3 top-3 z-[1] rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                      {g.badge}
-                    </span>
-                  ) : null}
-                  <div className="relative mb-3 flex h-24 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-pink-50 to-fuchsia-50 text-4xl">
-                    {g.icon}
-                  </div>
-                  <p className="text-xs font-semibold text-[#E60012]">{g.cat}</p>
-                  <div className="mt-1 flex items-center gap-1 text-amber-500">
-                    <IconStar className="h-3.5 w-3.5" />
-                    <span className="text-sm font-bold text-neutral-800">{g.rating}</span>
-                  </div>
-                  <h3 className="mt-2 text-lg font-bold text-neutral-900 group-hover:text-[#FF2E8C]">{g.title}</h3>
-                  <p className="mt-2 flex items-center gap-1 text-sm text-neutral-500">
-                    <span aria-hidden>👤</span>
-                    {g.users} คนเล่น
-                  </p>
-                </Link>
-              ))}
+              {gamesToShow.length === 0 ? (
+                <p className="col-span-full rounded-2xl border border-dashed border-pink-200 bg-white/80 py-10 text-center text-sm text-neutral-600">
+                  ยังไม่มีเกมที่เปิดแสดง —{" "}
+                  <Link href="/game" className="font-semibold text-[#FF2E8C] underline-offset-2 hover:underline">
+                    ไปหน้าเกมทั้งหมด
+                  </Link>
+                </p>
+              ) : (
+                gamesToShow.map((g) => {
+                  const id = String(g.id || "").trim();
+                  const cover = String(g.gameCoverUrl || "").trim();
+                  const creator = String(g.creatorUsername || "").trim().toLowerCase();
+                  const title = String(g.title || "").trim() || "เกม";
+                  const plays = Math.max(0, Math.floor(Number(g.playCount) || 0));
+                  const playLabel = `เล่นแล้ว ${plays.toLocaleString("th-TH")} รอบ`;
+                  return (
+                    <div
+                      key={id}
+                      className="group relative flex flex-col rounded-2xl border border-pink-100/80 bg-white p-4 pb-14 shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.03] hover:shadow-md"
+                    >
+                      <Link href={`/game/${encodeURIComponent(id)}`} className="flex min-h-0 flex-col">
+                        <div className="mx-auto mb-3 h-[150px] w-[150px] shrink-0 overflow-hidden rounded-xl bg-pink-50 ring-1 ring-pink-100/80">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                            alt=""
+                            width={150}
+                            height={150}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <p className="text-xs font-semibold text-red-600">
+                          {creator ? `@${creator}` : "@—"}
+                        </p>
+                        <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-base font-bold leading-snug text-neutral-900 group-hover:text-[#FF2E8C]">
+                          {title}
+                        </h3>
+                        <p className="mt-2 text-sm text-neutral-600">{playLabel}</p>
+                      </Link>
+                      <button
+                        type="button"
+                        className="absolute bottom-3 right-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
+                        aria-label={`แชร์ ${title}`}
+                        onClick={(e) => shareRecommendedGame(e, g)}
+                      >
+                        <IconShare className="h-4 w-4 shrink-0" />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
 
