@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiGetMyHeartLedger,
   apiGetMyRoomRedRedemptions,
-  apiListPublishedGames,
   apiRedeemRoomRedGiftCode,
   getMemberToken
 } from "../lib/memberApi";
@@ -42,32 +41,11 @@ function buildRowsWithBalance(bal, creatorId, roomHistoryByCreator) {
 export default function AccountMyHeartsSection({ hideShellPageTitle = false } = {}) {
   const router = useRouter();
   const { user, loading, refresh } = useMemberAuth();
-  const [games, setGames] = useState([]);
-  const [gamesErr, setGamesErr] = useState("");
-  const [gamesLoading, setGamesLoading] = useState(true);
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemBusy, setRedeemBusy] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState("");
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [redemptionRows, setRedemptionRows] = useState([]);
-
-  const loadGames = useCallback(async () => {
-    setGamesErr("");
-    setGamesLoading(true);
-    try {
-      const data = await apiListPublishedGames();
-      setGames(Array.isArray(data.games) ? data.games : []);
-    } catch (e) {
-      setGamesErr(e?.message || "โหลดรายการเกมไม่สำเร็จ");
-      setGames([]);
-    } finally {
-      setGamesLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadGames();
-  }, [loadGames]);
 
   const loadLedger = useCallback(async () => {
     const token = getMemberToken();
@@ -111,16 +89,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
   }, [loading, user, router]);
 
   const roomRows = Array.isArray(user?.roomGiftRed) ? user.roomGiftRed : [];
-
-  /** เกมแรกในล็อบบี้ต่อผู้สร้าง — ใช้รูปปกและลิงก์เล่น */
-  const lobbyFirstGameByCreatorNorm = useMemo(() => {
-    const m = new Map();
-    for (const game of games) {
-      const n = normUser(game.creatorUsername);
-      if (n && !m.has(n)) m.set(n, game);
-    }
-    return m;
-  }, [games]);
 
   const roomRowsSorted = useMemo(() => {
     const list = [...roomRows];
@@ -229,42 +197,12 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
         {hideShellPageTitle ? null : (
           <h2 className="hui-h2">หัวใจแดงจากผู้สร้างเกม</h2>
         )}
-        <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-2"}`}>
-          สรุปตาม<strong>เจ้าของห้อง / ผู้สร้างเกม</strong> ที่คุณรับหัวใจแดงจากรหัสห้อง — กดการ์ดเพื่อดู
-          วันที่รับหรือใช้ เล่นเกมอะไร และยอดคงเหลือ เกมใด ๆ ของ @ เดียวกันใช้ยอดเดียวกัน
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-          <button
-            type="button"
-            onClick={() => refresh()}
-            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-          >
-            รีเฟรชยอด
-          </button>
-          <Link
-            href="/game"
-            className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-          >
-            ดูเกมทั้งหมด (ล็อบบี้)
-          </Link>
-        </div>
       </header>
 
-      <section className="max-w-4xl" aria-busy={gamesLoading}>
-        {gamesErr ? (
-          <p className="mb-3 text-sm text-red-700" role="alert">
-            {gamesErr} (รูปปกเกมอาจไม่แสดง)
-          </p>
-        ) : null}
+      <section className="max-w-4xl">
         {roomRowsSorted.length === 0 ? (
           <div className="rounded-2xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
             <p>ยังไม่มียอดหัวใจแดงจากรหัสห้อง — ใส่รหัสในช่องด้านล่างเมื่อได้รับจากเจ้าของห้อง</p>
-            <Link
-              href="/game"
-              className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-            >
-              ดูเกมในล็อบบี้
-            </Link>
           </div>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
@@ -272,13 +210,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
               const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
               const label = g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง";
               const creatorId = g.creatorId != null ? String(g.creatorId) : "";
-              const n = normUser(g.creatorUsername);
-              const lobbyGame = n ? lobbyFirstGameByCreatorNorm.get(n) : null;
-              const noLobby = Boolean(n && !lobbyGame);
-              const cover =
-                lobbyGame?.gameCoverUrl != null && String(lobbyGame.gameCoverUrl).trim() !== ""
-                  ? String(lobbyGame.gameCoverUrl).trim()
-                  : null;
               const rowsWithBalance = buildRowsWithBalance(bal, creatorId, roomHistoryByCreator);
 
               return (
@@ -286,30 +217,10 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                   key={String(g.creatorId ?? label)}
                   className="flex flex-col overflow-hidden rounded-2xl border border-hui-border bg-hui-surface shadow-soft"
                 >
-                  <div className="relative aspect-[16/10] w-full bg-hui-pageTop">
-                    {cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cover} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-1 px-4 text-center text-sm text-hui-muted">
-                        <InlineHeart size="xl" className="text-red-400/90" />
-                        <span>ไม่มีรูปปกในล็อบบี้</span>
-                      </div>
-                    )}
-                  </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
                     <h3 className="text-base font-semibold leading-snug text-hui-section">
                       หัวใจแดงจาก {label}
                     </h3>
-                    {lobbyGame ? (
-                      <p className="text-sm text-hui-muted line-clamp-2">
-                        เกมในล็อบบี้: {lobbyGame.title || "เกมไม่มีชื่อ"}
-                      </p>
-                    ) : noLobby ? (
-                      <p className="text-xs font-medium text-amber-900/90">
-                        ยังไม่มีเกมของผู้สร้างนี้ในล็อบบี้ — ยอดจากรหัสยังใช้ได้เมื่อมีเกม
-                      </p>
-                    ) : null}
                     <p className="flex flex-wrap items-center gap-2 text-sm">
                       <span className="text-hui-muted">เหลือ</span>
                       <span className="inline-flex items-center gap-1 text-lg font-bold tabular-nums text-red-800">
@@ -329,7 +240,7 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                       </p>
                     ) : null}
 
-                    <details className="mt-auto rounded-xl border border-hui-border bg-hui-pageTop/60 p-3">
+                    <details className="mt-2 rounded-xl border border-hui-border bg-hui-pageTop/60 p-3">
                       <summary className="cursor-pointer text-sm font-semibold text-hui-section">
                         ดูรายละเอียด (วันที่ · เกม · คงเหลือ)
                       </summary>
@@ -380,15 +291,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                         )}
                       </div>
                     </details>
-
-                    {lobbyGame ? (
-                      <Link
-                        href={`/game/${encodeURIComponent(lobbyGame.id)}`}
-                        className="hui-btn-primary inline-flex w-full justify-center py-2.5 text-sm"
-                      >
-                        เข้าเล่นเกมในล็อบบี้
-                      </Link>
-                    ) : null}
                   </div>
                 </li>
               );
