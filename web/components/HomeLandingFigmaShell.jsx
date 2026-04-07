@@ -3,9 +3,18 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
+import { useHearts } from "./HeartsProvider";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
+import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
+import {
+  TAILADMIN_MY_HEARTS_START,
+  TAILADMIN_PROFILE_START,
+  workspaceShellUrl
+} from "../lib/memberWorkspacePath";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -180,10 +189,80 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 export default function HomeLandingFigmaShell({
   onHamburgerClick,
   recommendedGames = [],
-  lineProfileImageUrl: _lineProfileImageUrl,
-  profileDisplayName: _profileDisplayName
+  lineProfileImageUrl,
+  profileDisplayName
 }) {
-  const { user: memberUser } = useMemberAuth();
+  const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
+  const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    function close(e) {
+      if (moreRef.current && !moreRef.current.contains(e.target)) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [moreOpen]);
+
+  function renderMoreMenuItems() {
+    if (!memberUser) return null;
+    return MEMBER_SHELL_MENU_ITEMS.map((item) =>
+      item.kind === "empty" ? (
+        <span
+          key={item.key}
+          className="block cursor-default px-3 py-2 text-sm text-gray-400"
+          role="menuitem"
+        >
+          {item.label}
+        </span>
+      ) : item.kind === "publicPage" ? (
+        /^[a-z0-9_]{3,32}$/.test(String(memberUser.username || "").trim().toLowerCase()) ? (
+          <Link
+            key={item.key}
+            href={publicMemberPath(memberUser.username)}
+            className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+            role="menuitem"
+            onClick={() => setMoreOpen(false)}
+          >
+            {item.label}
+          </Link>
+        ) : (
+          <span
+            key={item.key}
+            className="block cursor-default px-3 py-2 text-sm text-gray-400"
+            role="menuitem"
+            title="ตั้งชื่อผู้ใช้ในโปรไฟล์ก่อน"
+          >
+            {item.label}
+          </span>
+        )
+      ) : item.kind === "legacy" && item.href ? (
+        <Link
+          key={item.key}
+          href={item.href}
+          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+          role="menuitem"
+          onClick={() => setMoreOpen(false)}
+        >
+          {item.label}
+        </Link>
+      ) : (
+        <Link
+          key={item.key}
+          href={workspaceShellUrl(item.tailStart, memberUser.role)}
+          className="block px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+          role="menuitem"
+          onClick={() => setMoreOpen(false)}
+        >
+          {item.label}
+        </Link>
+      )
+    );
+  }
 
   const gamesToShow = useMemo(() => {
     const list = Array.isArray(recommendedGames) ? recommendedGames : [];
@@ -280,22 +359,47 @@ export default function HomeLandingFigmaShell({
     );
   }
 
-  const heartsPill = (
-    <div
-      className="flex items-center gap-2.5 rounded-full border border-pink-200/90 bg-gradient-to-r from-pink-50 to-fuchsia-50 px-3 py-1.5 shadow-sm sm:gap-3 sm:px-4 sm:py-2"
-      aria-label="ยอดหัวใจตัวอย่าง"
-    >
-      <span className="inline-flex items-center gap-1">
+  let pinkShown = 0;
+  let redFromUsersShown = 0;
+  let giveawayRedShown = 0;
+  let heartsLoading = false;
+  if (memberLoading) {
+    heartsLoading = true;
+  } else if (memberUser) {
+    const t = heartTotalsFromPublicUser(memberUser);
+    pinkShown = t.pink;
+    redFromUsersShown = t.redFromUsers;
+    giveawayRedShown = t.giveawayRed;
+  } else if (heartsReady) {
+    pinkShown = pinkHearts;
+    redFromUsersShown = redHearts;
+    giveawayRedShown = 0;
+  }
+
+  const heartsHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
+    : "/login";
+  const profileHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
+    : "/login";
+
+  const heartsPillInner = (
+    <>
+      <span className="inline-flex items-center gap-1" title="หัวใจชมพู">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={HEART_PINK_SRC} alt="" width={20} height={20} className="h-5 w-5" />
-        <span className="text-sm font-bold tabular-nums text-pink-600">0</span>
+        <span className="text-sm font-bold tabular-nums text-pink-600">
+          {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
+        </span>
       </span>
-      <span className="inline-flex items-center gap-1">
+      <span className="inline-flex items-center gap-1" title="หัวใจแดงจากผู้เล่น">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={HEART_RED_SRC} alt="" width={20} height={20} className="h-5 w-5" />
-        <span className="text-sm font-bold tabular-nums text-red-600">0</span>
+        <span className="text-sm font-bold tabular-nums text-red-600">
+          {heartsLoading ? "…" : redFromUsersShown.toLocaleString("th-TH")}
+        </span>
       </span>
-      <span className="inline-flex items-center gap-1">
+      <span className="inline-flex items-center gap-1" title="หัวใจแดงสำหรับแจก">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={HEART_RED_SRC}
@@ -304,9 +408,22 @@ export default function HomeLandingFigmaShell({
           height={20}
           className="h-5 w-5 rounded-full ring-2 ring-red-200"
         />
-        <span className="text-sm font-bold tabular-nums text-red-800">0</span>
+        <span className="text-sm font-bold tabular-nums text-red-800">
+          {heartsLoading ? "…" : giveawayRedShown.toLocaleString("th-TH")}
+        </span>
       </span>
-    </div>
+    </>
+  );
+
+  const heartsPill = (
+    <Link
+      href={heartsHref}
+      className="flex items-center gap-2.5 rounded-full border border-pink-200/90 bg-gradient-to-r from-pink-50 to-fuchsia-50 px-3 py-1.5 shadow-sm transition hover:brightness-[1.02] sm:gap-3 sm:px-4 sm:py-2"
+      aria-label={memberUser ? "ยอดหัวใจ — ไปหน้าหัวใจ" : "เข้าสู่ระบบเพื่อดูยอดหัวใจ"}
+      title={memberUser ? "หัวใจชมพู · แดงจากผู้เล่น · แดงแจก" : "เข้าสู่ระบบเพื่อดูยอดหัวใจ"}
+    >
+      {heartsPillInner}
+    </Link>
   );
 
   const iconBtnClass =
@@ -341,7 +458,7 @@ export default function HomeLandingFigmaShell({
       </Link>
       <Link href="/page#community-lobby" className={navLinkClass}>
         <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
-        โพสต์
+        ฟีด
       </Link>
       <Link href="/page#member-pages" className={navLinkClass}>
         <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
@@ -370,12 +487,14 @@ export default function HomeLandingFigmaShell({
                   </span>
                 </Link>
               </div>
-              <Link
-                href="/login"
-                className="shrink-0 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:px-4 sm:text-sm"
-              >
-                เข้าสู่ระบบ / สมัคร
-              </Link>
+              {!memberUser ? (
+                <Link
+                  href="/login"
+                  className="shrink-0 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:px-4 sm:text-sm"
+                >
+                  เข้าสู่ระบบ / สมัคร
+                </Link>
+              ) : null}
             </div>
 
             {mainNav}
@@ -386,19 +505,72 @@ export default function HomeLandingFigmaShell({
                 <Link href="/page" className={iconBtnClass} aria-label="ค้นหา">
                   <IconSearch className="h-5 w-5" />
                 </Link>
-                <Link href="/login" className={iconBtnClass} aria-label="โปรไฟล์">
-                  <IconUser className="h-5 w-5" />
-                </Link>
+                {memberUser && lineProfileImageUrl ? (
+                  <Link
+                    href={profileHref}
+                    className={`${iconBtnClass} rounded-full`}
+                    title={profileDisplayName || "โปรไฟล์"}
+                    aria-label={profileDisplayName || "โปรไฟล์"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={lineProfileImageUrl}
+                      alt=""
+                      className="h-9 w-9 rounded-full object-cover"
+                      width={36}
+                      height={36}
+                      referrerPolicy="no-referrer"
+                    />
+                  </Link>
+                ) : (
+                  <Link href={profileHref} className={iconBtnClass} aria-label="โปรไฟล์">
+                    <IconUser className="h-5 w-5" />
+                  </Link>
+                )}
                 <Link href="/cart" className={iconBtnClass} aria-label="ตะกร้า">
                   <IconCart className="h-5 w-5" />
                 </Link>
               </div>
-              <Link
-                href="/login"
-                className="hidden rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
-              >
-                เข้าสู่ระบบ / สมัคร
-              </Link>
+              {memberUser ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => logout()}
+                    className="whitespace-nowrap rounded-md px-2 py-1.5 text-sm font-semibold text-neutral-800 transition hover:text-[#FF2E8C]"
+                  >
+                    ออกจากระบบ
+                  </button>
+                  <div className="relative z-[1100]" ref={moreRef}>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-pink-100 bg-white px-3 py-2 text-sm font-semibold text-neutral-800 shadow-sm transition hover:border-pink-200 hover:text-[#FF2E8C]"
+                      aria-expanded={moreOpen}
+                      aria-haspopup="true"
+                      onClick={() => setMoreOpen((o) => !o)}
+                    >
+                      เพิ่มเติม
+                      <span className="text-xs opacity-70" aria-hidden>
+                        ▾
+                      </span>
+                    </button>
+                    {moreOpen ? (
+                      <ul
+                        className="absolute right-0 z-[1100] mt-1 min-w-[14rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                        role="menu"
+                      >
+                        {renderMoreMenuItems()}
+                      </ul>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="hidden rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
+                >
+                  เข้าสู่ระบบ / สมัคร
+                </Link>
+              )}
               {memberUser
                 ? hamburgerButton(
                     "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-800 hover:bg-pink-50 lg:inline-flex"
@@ -653,6 +825,28 @@ export default function HomeLandingFigmaShell({
               ))}
             </div>
           </section>
+        </div>
+
+        {/* เทมเพลตเดิม (organic) — พับได้ อยู่ด้านล่างเนื้อหาหลัก */}
+        <div className="border-t border-pink-100 bg-[#f0f0f2]">
+          <details className="mx-auto max-w-[1200px] px-3 py-4 sm:px-5">
+            <summary className="cursor-pointer list-none text-center text-sm font-semibold text-neutral-600 marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="inline-flex items-center gap-2 rounded-full border border-pink-200/80 bg-white px-4 py-2 shadow-sm">
+                แสดงหน้าแรกแบบเดิม (เทมเพลตเก่า)
+                <span className="text-xs text-neutral-400" aria-hidden>
+                  ▾
+                </span>
+              </span>
+            </summary>
+            <div className="mt-4 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-inner">
+              <iframe
+                title="HUAJAIY — เทมเพลต organic เดิม"
+                src="/organic-template/index.html"
+                className="h-[min(70vh,720px)] w-full border-0"
+                loading="lazy"
+              />
+            </div>
+          </details>
         </div>
 
         {/* ฟุตเตอร์ตามแบบ */}
