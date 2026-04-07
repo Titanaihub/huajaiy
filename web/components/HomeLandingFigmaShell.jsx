@@ -130,38 +130,20 @@ function IconShare({ className }) {
 const REC_GAME_CARD_PX = 200;
 const REC_GAME_GRID_GAP_PX = 6;
 
-/** การ์ดเชิญชวนสร้างเกม — ขยาย `colSpan` เติมช่องว่างแถวสุดท้าย หรือเต็มแถวเมื่อเกมครบแถวแล้ว */
-function RecommendedCreateGameCard({ colSpan }) {
-  const wide = colSpan > 1;
-  if (wide) {
-    return (
-      <Link
-        href="/account/create-game"
-        className="flex min-h-[140px] flex-row items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed border-pink-300 bg-gradient-to-br from-pink-50 via-white to-purple-50/90 px-5 py-4 text-left shadow-sm transition hover:border-[#FF2E8C] hover:shadow-md"
-        style={{ gridColumn: `span ${colSpan}` }}
-      >
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-[#FF2E8C] shadow-inner ring-1 ring-pink-100">
-          <IconGamepad className="h-9 w-9" />
-        </span>
-        <div className="min-w-0 text-left">
-          <span className="text-base font-bold leading-snug text-[#FF2E8C]">สร้างเกมเองเลย</span>
-          <span className="mt-0.5 block text-sm text-neutral-600">เริ่มออกแบบเกมของคุณบน HUAJAIY</span>
-        </div>
-      </Link>
-    );
-  }
+/** การ์ดเชิญชวนสร้างเกม — โครงสร้างเดียวกับการ์ดเกมแนะนำ (200×200 + ข้อความ) */
+function RecommendedCreateGameCard() {
   return (
     <Link
       href="/account/create-game"
-      className="relative flex w-[200px] max-w-full flex-col overflow-hidden rounded-2xl border-2 border-dashed border-pink-300 bg-white shadow-sm transition hover:border-[#FF2E8C] hover:shadow-md"
-      style={{ gridColumn: `span ${colSpan}` }}
+      className="group relative flex w-[200px] max-w-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 outline-none transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
     >
-      <div className="flex h-[200px] w-[200px] max-w-full shrink-0 items-center justify-center bg-gradient-to-br from-pink-100/90 to-white">
-        <IconGamepad className="h-16 w-16 text-[#FF2E8C]" aria-hidden />
+      <div className="relative flex h-[200px] w-[200px] max-w-full shrink-0 items-center justify-center overflow-hidden bg-neutral-100">
+        <span className="flex h-[140px] w-[140px] items-center justify-center rounded-2xl bg-white text-[#FF2E8C] shadow-sm ring-1 ring-pink-100/80">
+          <IconGamepad className="h-[72px] w-[72px]" aria-hidden />
+        </span>
       </div>
       <div className="flex flex-col gap-1 px-2 pb-4 pt-2.5 text-center">
-        <span className="text-base font-bold leading-snug text-[#FF2E8C]">สร้างเกมเองเลย</span>
-        <span className="text-xs text-neutral-600">เชิญชวนให้มาสร้างเกม</span>
+        <span className="line-clamp-3 text-sm font-bold leading-snug text-[#FF2E8C]">คุณกำหนดสร้างเกมเองได้</span>
       </div>
     </Link>
   );
@@ -228,12 +210,16 @@ export default function HomeLandingFigmaShell({
     return () => ro.disconnect();
   }, []);
 
-  /** จำนวนคอลัมน์ที่การ์ด CTA จะ span เพื่อเติมช่องว่างแถวสุดท้าย (หรือเต็มแถวถ้าเกมครบแถวแล้ว) */
-  const recGameCtaSpan = useMemo(() => {
+  /**
+   * จำนวนการ์ด «สร้างเกม» — ช่องว่างที่เหลือในแถวสุดท้าย (เช่น เหลือ 2 ช่อง = 2 การ์ด)
+   * ถ้าเกมครบแถวพอดี ให้การ์ดเชิญชวน 1 ใบในแถวถัดไป
+   */
+  const recGameCtaCount = useMemo(() => {
     const n = gamesToShow.length;
-    if (n === 0) return recGameCols;
+    if (n === 0) return 1;
     const mod = n % recGameCols;
-    return mod === 0 ? recGameCols : recGameCols - mod;
+    if (mod === 0) return 1;
+    return recGameCols - mod;
   }, [gamesToShow.length, recGameCols]);
 
   const shareRecommendedGame = useCallback(async (e, game) => {
@@ -513,7 +499,7 @@ export default function HomeLandingFigmaShell({
                       ไปหน้าเกมทั้งหมด
                     </Link>
                   </p>
-                  <RecommendedCreateGameCard colSpan={recGameCols} />
+                  <RecommendedCreateGameCard />
                 </>
               ) : (
                 <>
@@ -564,7 +550,9 @@ export default function HomeLandingFigmaShell({
                       </div>
                     );
                   })}
-                  <RecommendedCreateGameCard colSpan={recGameCtaSpan} />
+                  {Array.from({ length: recGameCtaCount }, (_, i) => (
+                    <RecommendedCreateGameCard key={`rec-cta-${i}`} />
+                  ))}
                 </>
               )}
             </div>
