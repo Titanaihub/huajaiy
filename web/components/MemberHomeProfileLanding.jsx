@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { apiPatchPassword } from "../lib/memberApi";
+import { getApiBase } from "../lib/config";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -41,13 +43,66 @@ function normalizeSocialUrl(v) {
   return `https://${s}`;
 }
 
+async function uploadImage(file) {
+  const apiBase = getApiBase().replace(/\/$/, "");
+  const body = new FormData();
+  body.append("image", file);
+  const res = await fetch(`${apiBase}/upload`, { method: "POST", body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok || !data.publicUrl) {
+    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
+  }
+  return data.publicUrl;
+}
+
 /**
  * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
  * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
  */
 export default function MemberHomeProfileLanding({ user }) {
   const { patchProfile } = useMemberAuth();
-  const [savingEdit, setSavingEdit] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPersonal, setSavingPersonal] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editPersonalOpen, setEditPersonalOpen] = useState(false);
+  const [editAddressOpen, setEditAddressOpen] = useState(false);
+  const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+
+  const [profileDraft, setProfileDraft] = useState({
+    publicPageTitle: "",
+    publicPageBio: "",
+    username: "",
+    socialLineUrl: "",
+    socialFacebookUrl: "",
+    socialTiktokUrl: ""
+  });
+  const [personalDraft, setPersonalDraft] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "",
+    birthDate: "",
+    phone: "",
+    email: ""
+  });
+  const [addressDraft, setAddressDraft] = useState({
+    houseNo: "",
+    moo: "",
+    road: "",
+    subdistrict: "",
+    district: "",
+    province: "",
+    postalCode: ""
+  });
+  const [passwordDraft, setPasswordDraft] = useState({
+    currentPassword: "",
+    newPassword: "",
+    newPasswordConfirm: ""
+  });
   const displayTitle = (() => {
     const t = String(user?.publicPageTitle || "").trim();
     if (t) return t;
@@ -80,82 +135,145 @@ export default function MemberHomeProfileLanding({ user }) {
   const socialFacebook = normalizeSocialUrl(user?.socialFacebookUrl);
   const socialTiktok = normalizeSocialUrl(user?.socialTiktokUrl);
 
-  async function handleQuickEdit(section) {
-    if (savingEdit) return;
+  useEffect(() => {
+    setProfileDraft({
+      publicPageTitle: String(user?.publicPageTitle || ""),
+      publicPageBio: String(user?.publicPageBio || ""),
+      username: String(user?.username || ""),
+      socialLineUrl: String(user?.socialLineUrl || ""),
+      socialFacebookUrl: String(user?.socialFacebookUrl || ""),
+      socialTiktokUrl: String(user?.socialTiktokUrl || "")
+    });
+    setPersonalDraft({
+      firstName: String(user?.firstName || ""),
+      lastName: String(user?.lastName || ""),
+      gender: String(user?.gender || ""),
+      birthDate: String(user?.birthDate || ""),
+      phone: String(user?.phone || ""),
+      email: String(user?.email || "")
+    });
+    const sp = user?.shippingAddressParts || {};
+    setAddressDraft({
+      houseNo: String(sp.houseNo || ""),
+      moo: String(sp.moo || ""),
+      road: String(sp.road || ""),
+      subdistrict: String(sp.subdistrict || ""),
+      district: String(sp.district || ""),
+      province: String(sp.province || ""),
+      postalCode: String(sp.postalCode || "")
+    });
+  }, [user]);
+
+  async function saveProfileSection() {
     try {
-      setSavingEdit(true);
-      if (section === "profile") {
-        const nextTitle = window.prompt("ชื่อแสดงบนโปรไฟล์", String(user?.publicPageTitle || ""));
-        if (nextTitle == null) return;
-        const nextUsername = window.prompt("ยูสเซอร์ (a-z 0-9 _)", String(user?.username || ""));
-        if (nextUsername == null) return;
-        const nextBio = window.prompt("แนะนำตัว", String(user?.publicPageBio || ""));
-        if (nextBio == null) return;
-        await patchProfile({
-          publicPageTitle: nextTitle.trim() || null,
-          username: nextUsername.trim(),
-          publicPageBio: nextBio.trim() || null
-        });
-        return;
-      }
-      if (section === "personal") {
-        const nextFirst = window.prompt("ชื่อ", String(user?.firstName || ""));
-        if (nextFirst == null) return;
-        const nextLast = window.prompt("นามสกุล", String(user?.lastName || ""));
-        if (nextLast == null) return;
-        const nextGender = window.prompt("เพศ", String(user?.gender || ""));
-        if (nextGender == null) return;
-        const nextBirthDate = window.prompt(
-          "วันเกิด (YYYY-MM-DD)",
-          String(user?.birthDate || "")
-        );
-        if (nextBirthDate == null) return;
-        const nextPhone = window.prompt("โทรศัพท์", String(user?.phone || ""));
-        if (nextPhone == null) return;
-        const nextEmail = window.prompt("อีเมล", String(user?.email || ""));
-        if (nextEmail == null) return;
-        await patchProfile({
-          firstName: nextFirst.trim(),
-          lastName: nextLast.trim(),
-          gender: nextGender.trim() || null,
-          birthDate: nextBirthDate.trim() || null,
-          phone: nextPhone.trim(),
-          email: nextEmail.trim() || null
-        });
-        return;
-      }
-      if (section === "address") {
-        const parts = user?.shippingAddressParts || {};
-        const houseNo = window.prompt("บ้านเลขที่", String(parts.houseNo || ""));
-        if (houseNo == null) return;
-        const moo = window.prompt("หมู่", String(parts.moo || ""));
-        if (moo == null) return;
-        const road = window.prompt("ถนน", String(parts.road || ""));
-        if (road == null) return;
-        const subdistrict = window.prompt("ตำบล", String(parts.subdistrict || ""));
-        if (subdistrict == null) return;
-        const district = window.prompt("อำเภอ", String(parts.district || ""));
-        if (district == null) return;
-        const province = window.prompt("จังหวัด", String(parts.province || ""));
-        if (province == null) return;
-        const postalCode = window.prompt("รหัสไปรษณีย์", String(parts.postalCode || ""));
-        if (postalCode == null) return;
-        await patchProfile({
-          shippingAddressParts: {
-            houseNo: houseNo.trim(),
-            moo: moo.trim(),
-            road: road.trim(),
-            subdistrict: subdistrict.trim(),
-            district: district.trim(),
-            province: province.trim(),
-            postalCode: postalCode.trim()
-          }
-        });
-      }
+      setErr("");
+      setMsg("");
+      setSavingProfile(true);
+      await patchProfile({
+        publicPageTitle: profileDraft.publicPageTitle.trim() || null,
+        publicPageBio: profileDraft.publicPageBio.trim() || null,
+        username: profileDraft.username.trim().toLowerCase(),
+        socialLineUrl: profileDraft.socialLineUrl.trim() || null,
+        socialFacebookUrl: profileDraft.socialFacebookUrl.trim() || null,
+        socialTiktokUrl: profileDraft.socialTiktokUrl.trim() || null
+      });
+      setMsg("บันทึกข้อมูลโปรไฟล์แล้ว");
     } catch (e) {
-      window.alert(e?.message || "บันทึกไม่สำเร็จ");
+      setErr(e?.message || "บันทึกไม่สำเร็จ");
     } finally {
-      setSavingEdit(false);
+      setSavingProfile(false);
+    }
+  }
+
+  async function savePersonalSection() {
+    try {
+      setErr("");
+      setMsg("");
+      setSavingPersonal(true);
+      await patchProfile({
+        firstName: personalDraft.firstName.trim(),
+        lastName: personalDraft.lastName.trim(),
+        gender: personalDraft.gender.trim() || null,
+        birthDate: personalDraft.birthDate.trim() || null,
+        phone: personalDraft.phone.trim(),
+        email: personalDraft.email.trim() || null
+      });
+      setMsg("บันทึกข้อมูลส่วนตัวแล้ว");
+    } catch (e) {
+      setErr(e?.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSavingPersonal(false);
+    }
+  }
+
+  async function saveAddressSection() {
+    try {
+      setErr("");
+      setMsg("");
+      setSavingAddress(true);
+      await patchProfile({
+        shippingAddressParts: {
+          houseNo: addressDraft.houseNo.trim(),
+          moo: addressDraft.moo.trim(),
+          road: addressDraft.road.trim(),
+          subdistrict: addressDraft.subdistrict.trim(),
+          district: addressDraft.district.trim(),
+          province: addressDraft.province.trim(),
+          postalCode: addressDraft.postalCode.trim()
+        }
+      });
+      setMsg("บันทึกที่อยู่แล้ว");
+    } catch (e) {
+      setErr(e?.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSavingAddress(false);
+    }
+  }
+
+  async function savePasswordSection() {
+    try {
+      setErr("");
+      setMsg("");
+      setSavingPassword(true);
+      await apiPatchPassword(localStorage.getItem("huajaiy_member_token"), passwordDraft);
+      setPasswordDraft({ currentPassword: "", newPassword: "", newPasswordConfirm: "" });
+      setMsg("เปลี่ยนรหัสผ่านแล้ว");
+    } catch (e) {
+      setErr(e?.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    } finally {
+      setSavingPassword(false);
+    }
+  }
+
+  async function onUploadAvatar(file) {
+    if (!file) return;
+    try {
+      setErr("");
+      setMsg("");
+      setUploadingImage(true);
+      const url = await uploadImage(file);
+      await patchProfile({ profilePictureUrl: url });
+      setMsg("อัปโหลดรูปโปรไฟล์แล้ว");
+    } catch (e) {
+      setErr(e?.message || "อัปโหลดรูปไม่สำเร็จ");
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  async function onUploadCover(file) {
+    if (!file) return;
+    try {
+      setErr("");
+      setMsg("");
+      setUploadingImage(true);
+      const url = await uploadImage(file);
+      await patchProfile({ publicPageCoverUrl: url });
+      setMsg("อัปโหลดรูปปกแล้ว");
+    } catch (e) {
+      setErr(e?.message || "อัปโหลดรูปไม่สำเร็จ");
+    } finally {
+      setUploadingImage(false);
     }
   }
 
@@ -319,16 +437,57 @@ export default function MemberHomeProfileLanding({ user }) {
               </div>
               <button
                 type="button"
-                onClick={() => handleQuickEdit("profile")}
+                onClick={() => setEditProfileOpen((v) => !v)}
                 className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm transition hover:border-pink-300 hover:bg-pink-50 sm:self-auto"
-                disabled={savingEdit}
+                disabled={savingProfile || uploadingImage}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {savingEdit ? "กำลังบันทึก…" : "แก้ไขโปรไฟล์"}
+                แก้ไขโปรไฟล์
               </button>
             </div>
+            {editProfileOpen ? (
+              <div className="mt-4 grid gap-3 border-t border-pink-100 pt-4 text-sm sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-neutral-500">ชื่อแสดงบนโปรไฟล์</label>
+                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.publicPageTitle} onChange={(e) => setProfileDraft((s) => ({ ...s, publicPageTitle: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">ยูสเซอร์</label>
+                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.username} onChange={(e) => setProfileDraft((s) => ({ ...s, username: e.target.value.replace(/[^a-z0-9_]/gi, "").toLowerCase() }))} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs text-neutral-500">คำแนะนำตัว</label>
+                  <textarea className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" rows={2} value={profileDraft.publicPageBio} onChange={(e) => setProfileDraft((s) => ({ ...s, publicPageBio: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">ลิงก์ LINE</label>
+                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.socialLineUrl} onChange={(e) => setProfileDraft((s) => ({ ...s, socialLineUrl: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">ลิงก์ Facebook</label>
+                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.socialFacebookUrl} onChange={(e) => setProfileDraft((s) => ({ ...s, socialFacebookUrl: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">ลิงก์ TikTok</label>
+                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.socialTiktokUrl} onChange={(e) => setProfileDraft((s) => ({ ...s, socialTiktokUrl: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">รูปโปรไฟล์</label>
+                  <input type="file" accept="image/*" className="mt-1 block w-full text-xs" onChange={(e) => void onUploadAvatar(e.target.files?.[0])} />
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500">รูปปก</label>
+                  <input type="file" accept="image/*" className="mt-1 block w-full text-xs" onChange={(e) => void onUploadCover(e.target.files?.[0])} />
+                </div>
+                <div className="sm:col-span-2">
+                  <button type="button" onClick={saveProfileSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingProfile || uploadingImage}>
+                    {savingProfile || uploadingImage ? "กำลังบันทึก…" : "บันทึกโปรไฟล์"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -340,9 +499,9 @@ export default function MemberHomeProfileLanding({ user }) {
             <h2 className="text-lg font-bold text-neutral-900">โปรไฟล์สมาชิก</h2>
             <button
               type="button"
-              onClick={() => handleQuickEdit("profile")}
+              onClick={() => setEditProfileOpen((v) => !v)}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
-              disabled={savingEdit}
+              disabled={savingProfile}
             >
               แก้ไข
             </button>
@@ -364,9 +523,9 @@ export default function MemberHomeProfileLanding({ user }) {
             <h2 className="text-lg font-bold text-neutral-900">ข้อมูลส่วนตัว</h2>
             <button
               type="button"
-              onClick={() => handleQuickEdit("personal")}
+              onClick={() => setEditPersonalOpen((v) => !v)}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
-              disabled={savingEdit}
+              disabled={savingPersonal}
             >
               แก้ไข
             </button>
@@ -393,6 +552,23 @@ export default function MemberHomeProfileLanding({ user }) {
               <p className="font-semibold text-neutral-900">{user?.email || "ยังไม่ได้กรอก"}</p>
             </div>
           </div>
+          {editPersonalOpen ? (
+            <div className="grid gap-3 border-t border-pink-100 pt-4 text-sm sm:grid-cols-2">
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="ชื่อ" value={personalDraft.firstName} onChange={(e) => setPersonalDraft((s) => ({ ...s, firstName: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="นามสกุล" value={personalDraft.lastName} onChange={(e) => setPersonalDraft((s) => ({ ...s, lastName: e.target.value }))} />
+              <select className="rounded-lg border border-pink-100 px-3 py-2" value={personalDraft.gender} onChange={(e) => setPersonalDraft((s) => ({ ...s, gender: e.target.value }))}>
+                <option value="">ไม่ระบุเพศ</option><option value="male">ชาย</option><option value="female">หญิง</option><option value="other">อื่นๆ</option>
+              </select>
+              <input type="date" className="rounded-lg border border-pink-100 px-3 py-2" value={personalDraft.birthDate} onChange={(e) => setPersonalDraft((s) => ({ ...s, birthDate: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="โทรศัพท์" value={personalDraft.phone} onChange={(e) => setPersonalDraft((s) => ({ ...s, phone: e.target.value }))} />
+              <input type="email" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="อีเมล" value={personalDraft.email} onChange={(e) => setPersonalDraft((s) => ({ ...s, email: e.target.value }))} />
+              <div className="sm:col-span-2">
+                <button type="button" onClick={savePersonalSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingPersonal}>
+                  {savingPersonal ? "กำลังบันทึก…" : "บันทึกข้อมูลส่วนตัว"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
@@ -400,9 +576,9 @@ export default function MemberHomeProfileLanding({ user }) {
             <h2 className="text-lg font-bold text-neutral-900">ที่อยู่</h2>
             <button
               type="button"
-              onClick={() => handleQuickEdit("address")}
+              onClick={() => setEditAddressOpen((v) => !v)}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
-              disabled={savingEdit}
+              disabled={savingAddress}
             >
               แก้ไข
             </button>
@@ -419,7 +595,52 @@ export default function MemberHomeProfileLanding({ user }) {
           ) : (
             <p className="text-sm text-neutral-500">ยังไม่ได้กรอกที่อยู่</p>
           )}
+          {editAddressOpen ? (
+            <div className="grid gap-3 border-t border-pink-100 pt-4 text-sm sm:grid-cols-2">
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="บ้านเลขที่" value={addressDraft.houseNo} onChange={(e) => setAddressDraft((s) => ({ ...s, houseNo: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="หมู่" value={addressDraft.moo} onChange={(e) => setAddressDraft((s) => ({ ...s, moo: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2 sm:col-span-2" placeholder="ถนน" value={addressDraft.road} onChange={(e) => setAddressDraft((s) => ({ ...s, road: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="ตำบล/แขวง" value={addressDraft.subdistrict} onChange={(e) => setAddressDraft((s) => ({ ...s, subdistrict: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="อำเภอ/เขต" value={addressDraft.district} onChange={(e) => setAddressDraft((s) => ({ ...s, district: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="จังหวัด" value={addressDraft.province} onChange={(e) => setAddressDraft((s) => ({ ...s, province: e.target.value }))} />
+              <input className="rounded-lg border border-pink-100 px-3 py-2" placeholder="รหัสไปรษณีย์" value={addressDraft.postalCode} onChange={(e) => setAddressDraft((s) => ({ ...s, postalCode: e.target.value.replace(/\D/g, "") }))} />
+              <div className="sm:col-span-2">
+                <button type="button" onClick={saveAddressSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingAddress}>
+                  {savingAddress ? "กำลังบันทึก…" : "บันทึกที่อยู่"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
+
+        <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-neutral-900">รหัสผ่าน</h2>
+            <button
+              type="button"
+              onClick={() => setEditPasswordOpen((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+              disabled={savingPassword}
+            >
+              แก้ไข
+            </button>
+          </div>
+          {editPasswordOpen ? (
+            <div className="grid gap-3 border-t border-pink-100 pt-4 text-sm">
+              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="รหัสผ่านปัจจุบัน" value={passwordDraft.currentPassword} onChange={(e) => setPasswordDraft((s) => ({ ...s, currentPassword: e.target.value }))} />
+              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="รหัสผ่านใหม่" value={passwordDraft.newPassword} onChange={(e) => setPasswordDraft((s) => ({ ...s, newPassword: e.target.value }))} />
+              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="ยืนยันรหัสผ่านใหม่" value={passwordDraft.newPasswordConfirm} onChange={(e) => setPasswordDraft((s) => ({ ...s, newPasswordConfirm: e.target.value }))} />
+              <div>
+                <button type="button" onClick={savePasswordSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingPassword}>
+                  {savingPassword ? "กำลังบันทึก…" : "บันทึกรหัสผ่านใหม่"}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {err ? <p className="mt-3 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-700">{err}</p> : null}
+        {msg ? <p className="mt-3 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-emerald-700">{msg}</p> : null}
       </div>
     </div>
   );
