@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { apiPatchPassword } from "../lib/memberApi";
+import { apiPatchPassword, getMemberToken } from "../lib/memberApi";
 import { getApiBase } from "../lib/config";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
@@ -56,8 +56,7 @@ async function uploadImage(file) {
 }
 
 /**
- * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
- * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
+ * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจ + หัวโปรไฟล์ (ชื่อ–นามสกุลจริง) + แก้ไขข้อมูล
  */
 export default function MemberHomeProfileLanding({ user }) {
   const { patchProfile } = useMemberAuth();
@@ -74,7 +73,6 @@ export default function MemberHomeProfileLanding({ user }) {
   const [editPasswordOpen, setEditPasswordOpen] = useState(false);
 
   const [profileDraft, setProfileDraft] = useState({
-    publicPageTitle: "",
     publicPageBio: "",
     username: "",
     socialLineUrl: "",
@@ -103,19 +101,10 @@ export default function MemberHomeProfileLanding({ user }) {
     newPassword: "",
     newPasswordConfirm: ""
   });
-  const displayTitle = (() => {
-    const t = String(user?.publicPageTitle || "").trim();
-    if (t) return t;
-    const n = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim();
-    if (n) return n;
-    return user?.username ? `@${user.username}` : "สมาชิก";
-  })();
-
   const bio =
     String(user?.publicPageBio || "").trim() ||
     "แก้ไขโปรไฟล์เพื่อเพิ่มแนะนำตัว — แชร์เรื่องราวและติดตามชุมชนได้ที่เพจ";
 
-  const coverUrl = String(user?.publicPageCoverUrl || "").trim();
   const avatarUrl =
     String(user?.profilePictureUrl || "").trim() ||
     String(user?.linePictureUrl || "").trim() ||
@@ -137,7 +126,6 @@ export default function MemberHomeProfileLanding({ user }) {
 
   useEffect(() => {
     setProfileDraft({
-      publicPageTitle: String(user?.publicPageTitle || ""),
       publicPageBio: String(user?.publicPageBio || ""),
       username: String(user?.username || ""),
       socialLineUrl: String(user?.socialLineUrl || ""),
@@ -170,7 +158,6 @@ export default function MemberHomeProfileLanding({ user }) {
       setMsg("");
       setSavingProfile(true);
       await patchProfile({
-        publicPageTitle: profileDraft.publicPageTitle.trim() || null,
         publicPageBio: profileDraft.publicPageBio.trim() || null,
         username: profileDraft.username.trim().toLowerCase(),
         socialLineUrl: profileDraft.socialLineUrl.trim() || null,
@@ -235,7 +222,9 @@ export default function MemberHomeProfileLanding({ user }) {
       setErr("");
       setMsg("");
       setSavingPassword(true);
-      await apiPatchPassword(localStorage.getItem("huajaiy_member_token"), passwordDraft);
+      const token = getMemberToken();
+      if (!token) throw new Error("ไม่ได้เข้าสู่ระบบ");
+      await apiPatchPassword(token, passwordDraft);
       setPasswordDraft({ currentPassword: "", newPassword: "", newPasswordConfirm: "" });
       setMsg("เปลี่ยนรหัสผ่านแล้ว");
     } catch (e) {
@@ -254,22 +243,6 @@ export default function MemberHomeProfileLanding({ user }) {
       const url = await uploadImage(file);
       await patchProfile({ profilePictureUrl: url });
       setMsg("อัปโหลดรูปโปรไฟล์แล้ว");
-    } catch (e) {
-      setErr(e?.message || "อัปโหลดรูปไม่สำเร็จ");
-    } finally {
-      setUploadingImage(false);
-    }
-  }
-
-  async function onUploadCover(file) {
-    if (!file) return;
-    try {
-      setErr("");
-      setMsg("");
-      setUploadingImage(true);
-      const url = await uploadImage(file);
-      await patchProfile({ publicPageCoverUrl: url });
-      setMsg("อัปโหลดรูปปกแล้ว");
     } catch (e) {
       setErr(e?.message || "อัปโหลดรูปไม่สำเร็จ");
     } finally {
@@ -334,34 +307,13 @@ export default function MemberHomeProfileLanding({ user }) {
         </div>
       </div>
 
-      {/* ปก + โปรไฟล์ — ข้อมูลจาก GET /api/auth/me (รีเฟรชตอนเข้าหน้า) */}
+      {/* หัวโปรไฟล์ — ใช้ชื่อ–นามสกุลจริง (ไม่ใช้ชื่อสมาชิกแยก) · ไม่มีแบนเนอร์ */}
       <div className="relative mx-auto max-w-[960px] px-3 pb-8 pt-0 sm:px-5">
         <div className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/30">
-          <div
-            className="relative h-36 overflow-hidden sm:h-44 md:h-52"
-            style={
-              coverUrl
-                ? undefined
-                : {
-                    background:
-                      "linear-gradient(90deg, #ec4899 0%, #d946ef 45%, #7c3aed 100%)"
-                  }
-            }
-          >
-            {coverUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={coverUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            ) : null}
-          </div>
-
-          <div className="relative bg-white px-4 pb-6 pt-0 sm:px-6">
-            <div className="relative -mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between md:-mt-16">
+          <div className="relative bg-white px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
-                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-white bg-neutral-100 shadow-md sm:h-28 sm:w-28 md:h-32 md:w-32">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-pink-100 bg-neutral-100 shadow-md sm:h-28 sm:w-28 md:h-32 md:w-32">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={avatarUrl}
@@ -372,7 +324,7 @@ export default function MemberHomeProfileLanding({ user }) {
                 </div>
                 <div className="min-w-0 pb-0.5">
                   <h1 className="truncate text-xl font-bold text-neutral-900 sm:text-2xl">
-                    {displayTitle}
+                    {fullName}
                   </h1>
                   {username ? (
                     <p className="mt-0.5 text-sm text-neutral-500">
@@ -449,16 +401,12 @@ export default function MemberHomeProfileLanding({ user }) {
             </div>
             {editProfileOpen ? (
               <div className="mt-4 grid gap-3 border-t border-pink-100 pt-4 text-sm sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs text-neutral-500">ชื่อแสดงบนโปรไฟล์</label>
-                  <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.publicPageTitle} onChange={(e) => setProfileDraft((s) => ({ ...s, publicPageTitle: e.target.value }))} />
-                </div>
                 <div>
                   <label className="block text-xs text-neutral-500">ยูสเซอร์</label>
                   <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.username} onChange={(e) => setProfileDraft((s) => ({ ...s, username: e.target.value.replace(/[^a-z0-9_]/gi, "").toLowerCase() }))} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-xs text-neutral-500">คำแนะนำตัว</label>
+                  <label className="block text-xs text-neutral-500">คำแนะนำตัว (เพจสาธารณะ)</label>
                   <textarea className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" rows={2} value={profileDraft.publicPageBio} onChange={(e) => setProfileDraft((s) => ({ ...s, publicPageBio: e.target.value }))} />
                 </div>
                 <div>
@@ -477,10 +425,6 @@ export default function MemberHomeProfileLanding({ user }) {
                   <label className="block text-xs text-neutral-500">รูปโปรไฟล์</label>
                   <input type="file" accept="image/*" className="mt-1 block w-full text-xs" onChange={(e) => void onUploadAvatar(e.target.files?.[0])} />
                 </div>
-                <div>
-                  <label className="block text-xs text-neutral-500">รูปปก</label>
-                  <input type="file" accept="image/*" className="mt-1 block w-full text-xs" onChange={(e) => void onUploadCover(e.target.files?.[0])} />
-                </div>
                 <div className="sm:col-span-2">
                   <button type="button" onClick={saveProfileSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingProfile || uploadingImage}>
                     {savingProfile || uploadingImage ? "กำลังบันทึก…" : "บันทึกโปรไฟล์"}
@@ -492,32 +436,7 @@ export default function MemberHomeProfileLanding({ user }) {
         </div>
       </div>
 
-      {/* ข้อมูลโปรไฟล์ — ย้ายจากหน้าโปรไฟล์มาไว้หน้า /member */}
       <div className="mx-auto max-w-[960px] px-3 pb-6 sm:px-5">
-        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-neutral-900">โปรไฟล์สมาชิก</h2>
-            <button
-              type="button"
-              onClick={() => setEditProfileOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
-              disabled={savingProfile}
-            >
-              แก้ไข
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-pink-100 bg-pink-50/30 p-3">
-              <p className="text-xs text-neutral-500">ชื่อแสดงบนโปรไฟล์</p>
-              <p className="mt-1 font-semibold text-neutral-900">{displayTitle}</p>
-            </div>
-            <div className="rounded-xl border border-pink-100 bg-pink-50/30 p-3">
-              <p className="text-xs text-neutral-500">ยูสเซอร์</p>
-              <p className="mt-1 font-semibold text-neutral-900">{username ? `@${username}` : "ยังไม่ได้ตั้งค่า"}</p>
-            </div>
-          </div>
-        </div>
-
         <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">ข้อมูลส่วนตัว</h2>
