@@ -429,39 +429,45 @@ export default function HuajaiyCentralTemplate({
 
       <div className={mainClassName}>{children}</div>
 
-      <footer className="mt-auto border-t border-pink-100 bg-white">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-3 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <HeartIcon className="h-8 w-8 text-[#FF2E8C]" />
-            <span className="font-heading text-lg font-bold uppercase text-[#FF2E8C]">HUAJAIY</span>
+      <footer className="mt-auto border-t border-pink-100/90 bg-white">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 sm:py-3.5">
+          <Link href="/" className="inline-flex shrink-0 items-center gap-1.5">
+            <HeartIcon className="h-7 w-7 shrink-0 text-[#FF2E8C]" />
+            <span className="font-heading text-base font-bold uppercase tracking-tight text-[#FF2E8C] sm:text-[1.05rem]">
+              HUAJAIY
+            </span>
           </Link>
-          <p className="text-center text-sm text-neutral-600 sm:text-left">
-            © {new Date().getFullYear()} HUAJAIY สงวนลิขสิทธิ์ทั้งหมด
-          </p>
+          <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 sm:px-3">
+            <nav
+              className="flex max-w-full flex-wrap justify-center gap-x-1.5 text-[11px] leading-snug text-neutral-500 sm:gap-x-2 sm:text-xs"
+              aria-label="ลิงก์กฎหมาย"
+            >
+              <Link href="/privacy" className="shrink-0 hover:text-[#FF2E8C] hover:underline">
+                นโยบายความเป็นส่วนตัว
+              </Link>
+              <span aria-hidden className="text-neutral-400">
+                ·
+              </span>
+              <Link href="/terms" className="shrink-0 hover:text-[#FF2E8C] hover:underline">
+                ข้อกำหนดการให้บริการ
+              </Link>
+              <span aria-hidden className="text-neutral-400">
+                ·
+              </span>
+              <Link href="/data-deletion" className="shrink-0 hover:text-[#FF2E8C] hover:underline">
+                การลบข้อมูล
+              </Link>
+            </nav>
+            <p className="text-center text-[11px] leading-snug text-neutral-500 sm:text-xs">
+              © {new Date().getFullYear()} HUAJAIY สงวนลิขสิทธิ์ทั้งหมด
+            </p>
+          </div>
           <Link
             href="/contact"
-            className="inline-flex w-fit items-center justify-center self-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/25 transition hover:brightness-105 sm:self-auto"
+            className="inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-pink-400/20 transition hover:brightness-105 sm:px-5 sm:py-2 sm:text-sm"
           >
             ติดต่อเรา
           </Link>
-        </div>
-        <div className="border-t border-pink-50 bg-pink-50/30">
-          <nav
-            className="mx-auto flex max-w-[1200px] flex-wrap justify-center gap-x-4 gap-y-2 px-3 py-3 text-xs text-neutral-500 sm:px-5"
-            aria-label="ลิงก์กฎหมาย"
-          >
-            <Link href="/privacy" className="hover:text-[#FF2E8C] hover:underline">
-              นโยบายความเป็นส่วนตัว
-            </Link>
-            <span aria-hidden>·</span>
-            <Link href="/terms" className="hover:text-[#FF2E8C] hover:underline">
-              ข้อกำหนดการให้บริการ
-            </Link>
-            <span aria-hidden>·</span>
-            <Link href="/data-deletion" className="hover:text-[#FF2E8C] hover:underline">
-              การลบข้อมูล
-            </Link>
-          </nav>
         </div>
       </footer>
     </div>
