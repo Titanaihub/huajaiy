@@ -255,56 +255,60 @@ export default function MemberHomeProfileLanding({ user }) {
     <div className="border-b border-pink-100 bg-white">
       {/* การ์ดหัวใจ — แถวบนสุด (เหมือนแม่แบบ) */}
       <div className="mx-auto grid max-w-[960px] gap-3 px-3 pb-4 pt-4 sm:grid-cols-3 sm:gap-4 sm:px-5 sm:pb-5 sm:pt-5">
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <div className="flex gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+              className="flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-xl bg-pink-100"
               aria-hidden
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={HEART_PINK_SRC} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
             </span>
-            <div className="min-w-0 text-pink-600">
+            <div className="min-w-0 flex-1 text-pink-600">
               <p className="text-2xl font-bold tabular-nums text-pink-700">
                 {pinkShown.toLocaleString("th-TH")}
               </p>
-              <p className="text-sm font-medium">หัวใจชมพู</p>
+              <div className="mt-0.5 flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจชมพู</p>
+                <Link
+                  href={HEART_HISTORY_PINK}
+                  className="shrink-0 pt-0.5 text-sm font-semibold text-pink-600 underline-offset-2 hover:text-pink-700 hover:underline"
+                >
+                  ประวัติ
+                </Link>
+              </div>
             </div>
           </div>
-          <Link
-            href={HEART_HISTORY_PINK}
-            className="shrink-0 text-sm font-semibold text-pink-600 underline-offset-2 hover:text-pink-700 hover:underline"
-          >
-            ประวัติ
-          </Link>
         </div>
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <div className="flex gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+              className="flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-xl bg-pink-100"
               aria-hidden
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={HEART_RED_SRC} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
             </span>
-            <div className="min-w-0 text-red-600">
+            <div className="min-w-0 flex-1 text-red-600">
               <p className="text-2xl font-bold tabular-nums text-red-700">
                 {redFromUsersShown.toLocaleString("th-TH")}
               </p>
-              <p className="text-sm font-medium">หัวใจแดง</p>
+              <div className="mt-0.5 flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจแดง</p>
+                <Link
+                  href={HEART_HISTORY_RED_WALLET}
+                  className="shrink-0 pt-0.5 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
+                >
+                  ประวัติ
+                </Link>
+              </div>
             </div>
           </div>
-          <Link
-            href={HEART_HISTORY_RED_WALLET}
-            className="shrink-0 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
-          >
-            ประวัติ
-          </Link>
         </div>
-        <div className="flex items-center justify-between gap-2 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <div className="flex gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+              className="flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-xl bg-pink-100"
               aria-hidden
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -316,19 +320,21 @@ export default function MemberHomeProfileLanding({ user }) {
                 className="h-7 w-7 rounded-full object-contain ring-2 ring-red-200"
               />
             </span>
-            <div className="min-w-0 text-red-600">
+            <div className="min-w-0 flex-1 text-red-600">
               <p className="text-2xl font-bold tabular-nums text-red-700">
                 {giveawayRedShown.toLocaleString("th-TH")}
               </p>
-              <p className="text-sm font-medium">หัวใจแดงสำหรับแจก</p>
+              <div className="mt-0.5 flex min-w-0 items-start justify-between gap-2">
+                <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจแดงสำหรับแจก</p>
+                <Link
+                  href={HEART_HISTORY_GIVEAWAY}
+                  className="shrink-0 pt-0.5 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
+                >
+                  ประวัติ
+                </Link>
+              </div>
             </div>
           </div>
-          <Link
-            href={HEART_HISTORY_GIVEAWAY}
-            className="shrink-0 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
-          >
-            ประวัติ
-          </Link>
         </div>
       </div>
 
