@@ -7,6 +7,7 @@ import {
   TAILADMIN_MY_ORDERS_START,
   TAILADMIN_MY_PRIZES_START,
   TAILADMIN_MY_SHOPS_START,
+  TAILADMIN_PINK_HISTORY_START,
   TAILADMIN_PRIZE_WITHDRAW_START,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "./memberWorkspacePath";
@@ -27,6 +28,12 @@ export const MEMBER_SHELL_MENU_ITEMS = [
   },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
   { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
+  {
+    key: "pinkHistory",
+    label: "ประวัติหัวใจชมพู",
+    kind: "shell",
+    tailStart: TAILADMIN_PINK_HISTORY_START
+  },
   { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
   { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", tailStart: TAILADMIN_MY_SHOPS_START },
   { key: "page", label: "เพจของฉัน", kind: "publicPage" },
@@ -48,7 +55,6 @@ export const MEMBER_SHELL_MENU_ITEMS = [
 
 /** slug หลัง `/member/{slug}` → ชื่อเมนูภาษาไทย (สำหรับหัวข้อบนเทมเพลตกลาง) */
 const EXTRA_SLUG_LABELS = Object.freeze({
-  "pink-history": "ประวัติหัวใจชมพู",
   "create-game": "สร้างเกม",
   "game-studio": "สตูดิโอเกม"
 });

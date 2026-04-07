@@ -11,7 +11,7 @@ export default function ThemeLabCentralPage() {
       onHamburgerClick={() => router.push("/member")}
       mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
     >
-      <CentralTemplatePreviewDemo />
+      <CentralTemplatePreviewDemo variant="preview" />
     </HuajaiyCentralTemplate>
   );
 }

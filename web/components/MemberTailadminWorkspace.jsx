@@ -180,6 +180,10 @@ export default function MemberTailadminWorkspace() {
         pinkBarMenuLabel="ข้อมูลสมาชิก"
         mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
       >
+        <CentralTemplatePreviewDemo
+          variant="memberProfileTop"
+          sectionLabel="ข้อมูลสมาชิก"
+        />
         <MemberHomeProfileLanding user={user} />
       </HuajaiyCentralTemplate>
     );
@@ -201,7 +205,7 @@ export default function MemberTailadminWorkspace() {
     >
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
         <section className="shrink-0" aria-label="เทมเพลตกลาง">
-          <CentralTemplatePreviewDemo />
+          <CentralTemplatePreviewDemo variant="memberShellTop" />
         </section>
 
         <section
