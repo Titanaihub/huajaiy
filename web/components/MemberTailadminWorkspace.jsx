@@ -177,6 +177,7 @@ export default function MemberTailadminWorkspace() {
           [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
           "สมาชิก"
         }
+        pinkBarMenuLabel="ข้อมูลสมาชิก"
         mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
       >
         <MemberHomeProfileLanding user={user} />
@@ -195,13 +196,12 @@ export default function MemberTailadminWorkspace() {
         [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
         "สมาชิก"
       }
+      pinkBarMenuLabel={sectionLabel || undefined}
       mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
     >
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
         <section className="shrink-0" aria-label="เทมเพลตกลาง">
-          <CentralTemplatePreviewDemo
-            sectionLabel={sectionLabel || undefined}
-          />
+          <CentralTemplatePreviewDemo />
         </section>
 
         <section

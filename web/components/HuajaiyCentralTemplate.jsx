@@ -111,6 +111,8 @@ export default function HuajaiyCentralTemplate({
   onHamburgerClick,
   lineProfileImageUrl,
   profileDisplayName,
+  /** แสดงในแถบชมพูด้านล่างเฮดเดอร์ ต่อท้ายโลโก้/ชื่อเว็บ (เช่น ชื่อเมนูหน้าสมาชิก) */
+  pinkBarMenuLabel,
   mainClassName = "flex min-w-0 flex-1 flex-col"
 }) {
   const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
@@ -278,6 +280,8 @@ export default function HuajaiyCentralTemplate({
 
   const navLinkClass = `${navTopClass} cursor-pointer`;
 
+  const pinkBarSuffix = String(pinkBarMenuLabel || "").trim();
+
   const mainNav = (
     <nav
       className="relative z-20 flex w-full min-w-0 flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:flex-1 lg:justify-center"
@@ -427,8 +431,31 @@ export default function HuajaiyCentralTemplate({
         </div>
       </header>
 
-      {/* แถบตกแต่ง — สีเดียวกับโลโก้หัวใจ (#FF2E8C) */}
-      <div className="h-20 w-full shrink-0 bg-[#FF2E8C]" aria-hidden />
+      {/* แถบแบรนด์ — โลโก้ + ชื่อเว็บ + (ถ้ามี) ชื่อเมนูหน้า */}
+      <div
+        className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C] px-3 sm:px-5"
+        aria-label={pinkBarSuffix ? `HUAJAIY ${pinkBarSuffix}` : "HUAJAIY"}
+      >
+        <div className="mx-auto flex w-full max-w-[1200px] min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
+          <HeartIcon
+            className="h-8 w-8 shrink-0 text-white sm:h-9 sm:w-9"
+            aria-hidden
+          />
+          <span className="font-heading shrink-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
+            HUAJAIY
+          </span>
+          {pinkBarSuffix ? (
+            <>
+              <span className="shrink-0 select-none text-white/70" aria-hidden>
+                ·
+              </span>
+              <span className="min-w-0 truncate text-base font-semibold text-white sm:text-lg">
+                {pinkBarSuffix}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </div>
 
       <div className={mainClassName}>{children}</div>
 
