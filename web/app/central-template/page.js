@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import CentralTemplatePreviewDemo from "../../../components/CentralTemplatePreviewDemo";
-import HuajaiyCentralTemplate from "../../../components/HuajaiyCentralTemplate";
+import CentralTemplatePreviewDemo from "../../components/CentralTemplatePreviewDemo";
+import HuajaiyCentralTemplate from "../../components/HuajaiyCentralTemplate";
 
-export default function ThemeLabCentralPage() {
+export default function CentralTemplatePage() {
   const router = useRouter();
   return (
     <HuajaiyCentralTemplate
