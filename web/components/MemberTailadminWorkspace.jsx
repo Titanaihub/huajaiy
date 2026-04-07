@@ -16,9 +16,11 @@ import {
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
 import { getMemberToken } from "../lib/memberApi";
+import CentralTemplatePreviewDemo from "./CentralTemplatePreviewDemo";
 import HuajaiyCentralTemplate from "./HuajaiyCentralTemplate";
 import MemberHomeProfileLanding from "./MemberHomeProfileLanding";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { memberShellLabelForSlug } from "../lib/memberSidebarNav";
 
 function legacyTailFromQuery(raw) {
   if (raw == null || String(raw).trim() === "") {
@@ -182,26 +184,50 @@ export default function MemberTailadminWorkspace() {
     );
   }
 
+  const shellSlug = parsed.segments[0] || "";
+  const sectionLabel = memberShellLabelForSlug(shellSlug);
+
   return (
-    <div className="flex h-dvh min-h-0 w-full flex-col overflow-hidden bg-white">
-      <HomeStylePublicHeader
-        onHamburgerClick={toggleIframeSidebar}
-        lineProfileImageUrl={user.linePictureUrl || undefined}
-        profileDisplayName={
-          [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-          "สมาชิก"
-        }
-      />
-      <main className="min-h-0 flex-1 overflow-hidden bg-slate-100">
-        <iframe
-          key={iframeSrc}
-          ref={iframeRef}
-          title="ระบบสมาชิก HUAJAIY"
-          src={iframeSrc}
-          className="h-full w-full border-0"
-          onLoad={pushMemberToIframe}
-        />
-      </main>
-    </div>
+    <HuajaiyCentralTemplate
+      onHamburgerClick={toggleIframeSidebar}
+      lineProfileImageUrl={user.linePictureUrl || undefined}
+      profileDisplayName={
+        [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+        "สมาชิก"
+      }
+      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
+    >
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+        <section className="shrink-0" aria-label="เทมเพลตกลาง">
+          <CentralTemplatePreviewDemo
+            sectionLabel={sectionLabel || undefined}
+          />
+        </section>
+
+        <section
+          className="mt-1 flex min-h-0 w-full flex-1 flex-col border-t border-pink-200/90 bg-white/50"
+          aria-label="เนื้อหาระบบเดิม"
+        >
+          <div className="border-b border-pink-100/90 bg-white/80 px-3 py-2 text-center sm:px-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              ระบบเดิม · ลิงก์เดิม
+            </p>
+            <p className="mt-0.5 text-[11px] text-neutral-500">
+              TailAdmin / เมนูเดิม — ใช้งานเหมือนเปิดจากเมนูก่อนหน้า
+            </p>
+          </div>
+          <div className="min-h-0 w-full flex-1 bg-slate-100/80">
+            <iframe
+              key={iframeSrc}
+              ref={iframeRef}
+              title={`ระบบสมาชิก HUAJAIY — ${sectionLabel || shellSlug || "สมาชิก"}`}
+              src={iframeSrc}
+              className="h-[min(78dvh,880px)] min-h-[360px] w-full border-0 sm:min-h-[420px]"
+              onLoad={pushMemberToIframe}
+            />
+          </div>
+        </section>
+      </div>
+    </HuajaiyCentralTemplate>
   );
 }

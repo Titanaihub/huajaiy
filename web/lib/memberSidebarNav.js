@@ -1,4 +1,5 @@
 import {
+  MEMBER_SLUG_TO_TAIL,
   TAILADMIN_GIVE_HEARTS_START,
   TAILADMIN_HEARTS_TOP_UP_START,
   TAILADMIN_MY_GAMES_START,
@@ -44,3 +45,27 @@ export const MEMBER_SHELL_MENU_ITEMS = [
   },
   { key: "giveHearts", label: "แจกหัวใจแดง", kind: "shell", tailStart: TAILADMIN_GIVE_HEARTS_START }
 ];
+
+/** slug หลัง `/member/{slug}` → ชื่อเมนูภาษาไทย (สำหรับหัวข้อบนเทมเพลตกลาง) */
+const EXTRA_SLUG_LABELS = Object.freeze({
+  "pink-history": "ประวัติหัวใจชมพู",
+  "create-game": "สร้างเกม",
+  "game-studio": "สตูดิโอเกม"
+});
+
+/** @param {string | null | undefined} slug */
+export function memberShellLabelForSlug(slug) {
+  const first = String(slug || "")
+    .split("/")
+    .filter(Boolean)[0]
+    ?.toLowerCase();
+  if (!first) return "";
+  const tail = MEMBER_SLUG_TO_TAIL[first];
+  if (tail == null) {
+    return EXTRA_SLUG_LABELS[first] || "";
+  }
+  const item = MEMBER_SHELL_MENU_ITEMS.find(
+    (it) => "tailStart" in it && it.tailStart === tail
+  );
+  return item?.label || EXTRA_SLUG_LABELS[first] || "";
+}
