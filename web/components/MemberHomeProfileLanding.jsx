@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
+
+const HEART_PINK_SRC = "/hearts/pink-heart.png";
+const HEART_RED_SRC = "/hearts/red-heart.png";
 
 /**
- * หน้าแรกหลังเข้า `/member` — โปรไฟล์สไตล์ Figma (ปก + สถิติ + กล่องโพสต์)
- * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE
+ * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
+ * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
  */
 export default function MemberHomeProfileLanding({ user }) {
   const displayTitle = (() => {
@@ -26,10 +30,70 @@ export default function MemberHomeProfileLanding({ user }) {
 
   const profileHref = "/member/profile";
 
+  const hearts = heartTotalsFromPublicUser(user);
+  const pinkShown = hearts.pink;
+  const redFromUsersShown = hearts.redFromUsers;
+  const giveawayRedShown = hearts.giveawayRed;
+
   return (
     <div className="border-b border-pink-100 bg-white">
+      {/* การ์ดหัวใจ — แถวบนสุด (เหมือนแม่แบบ) */}
+      <div className="mx-auto grid max-w-[960px] gap-3 px-3 pb-4 pt-4 sm:grid-cols-3 sm:gap-4 sm:px-5 sm:pb-5 sm:pt-5">
+        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+            aria-hidden
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={HEART_PINK_SRC} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
+          </span>
+          <div>
+            <p className="text-2xl font-bold tabular-nums text-neutral-900">
+              {pinkShown.toLocaleString("th-TH")}
+            </p>
+            <p className="text-sm font-medium text-neutral-600">หัวใจชมพู</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+            aria-hidden
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={HEART_RED_SRC} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
+          </span>
+          <div>
+            <p className="text-2xl font-bold tabular-nums text-neutral-900">
+              {redFromUsersShown.toLocaleString("th-TH")}
+            </p>
+            <p className="text-sm font-medium text-neutral-600">หัวใจแดง</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100"
+            aria-hidden
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={HEART_RED_SRC}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded-full object-contain ring-2 ring-red-200"
+            />
+          </span>
+          <div>
+            <p className="text-2xl font-bold tabular-nums text-neutral-900">
+              {giveawayRedShown.toLocaleString("th-TH")}
+            </p>
+            <p className="text-sm font-medium text-neutral-600">หัวใจแดงสำหรับแจก</p>
+          </div>
+        </div>
+      </div>
+
       {/* ปก + โปรไฟล์ */}
-      <div className="relative mx-auto max-w-[960px] px-3 pb-8 pt-2 sm:px-5">
+      <div className="relative mx-auto max-w-[960px] px-3 pb-8 pt-0 sm:px-5">
         <div
           className="relative h-36 overflow-hidden rounded-2xl sm:h-44 md:h-52"
           style={
@@ -91,37 +155,6 @@ export default function MemberHomeProfileLanding({ user }) {
             </svg>
             แก้ไขโปรไฟล์
           </Link>
-        </div>
-      </div>
-
-      {/* การ์ดสถิติ — ตัวเลขจะต่อ API ได้ภายหลัง */}
-      <div className="mx-auto grid max-w-[960px] gap-3 px-3 pb-6 sm:grid-cols-3 sm:gap-4 sm:px-5">
-        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100 text-xl" aria-hidden>
-            🏆
-          </span>
-          <div>
-            <p className="text-2xl font-bold tabular-nums text-neutral-900">0</p>
-            <p className="text-sm font-medium text-neutral-600">เกมที่เล่น</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100 text-xl" aria-hidden>
-            🛍️
-          </span>
-          <div>
-            <p className="text-2xl font-bold tabular-nums text-neutral-900">0</p>
-            <p className="text-sm font-medium text-neutral-600">ไอเทมที่ซื้อ</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-pink-100 text-xl" aria-hidden>
-            💬
-          </span>
-          <div>
-            <p className="text-2xl font-bold tabular-nums text-neutral-900">0</p>
-            <p className="text-sm font-medium text-neutral-600">โพสต์</p>
-          </div>
         </div>
       </div>
 
