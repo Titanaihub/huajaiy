@@ -425,7 +425,7 @@ export default function HomeLandingFigmaShell({
               actionHref="/game"
               actionLabel="ดูทั้งหมด"
             />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4 lg:gap-3">
               {gamesToShow.length === 0 ? (
                 <p className="col-span-full rounded-2xl border border-dashed border-pink-200 bg-white/80 py-10 text-center text-sm text-neutral-600">
                   ยังไม่มีเกมที่เปิดแสดง —{" "}
@@ -440,34 +440,38 @@ export default function HomeLandingFigmaShell({
                   const creator = String(g.creatorUsername || "").trim().toLowerCase();
                   const title = String(g.title || "").trim() || "เกม";
                   const plays = Math.max(0, Math.floor(Number(g.playCount) || 0));
-                  const playLabel = `เล่นแล้ว ${plays.toLocaleString("th-TH")} รอบ`;
                   return (
                     <div
                       key={id}
-                      className="group relative flex flex-col rounded-2xl border border-pink-100/80 bg-white p-4 pb-14 shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.03] hover:shadow-md"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
                     >
-                      <Link href={`/game/${encodeURIComponent(id)}`} className="flex min-h-0 flex-col">
-                        <div className="mx-auto mb-3 h-[150px] w-[150px] shrink-0 overflow-hidden rounded-xl bg-pink-50 ring-1 ring-pink-100/80">
+                      <Link
+                        href={`/game/${encodeURIComponent(id)}`}
+                        className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
+                      >
+                        <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-neutral-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
                             alt=""
-                            width={150}
-                            height={150}
+                            width={400}
+                            height={400}
                             className="h-full w-full object-cover"
                           />
                         </div>
-                        <p className="text-xs font-semibold text-red-600">
-                          {creator ? `@${creator}` : "@—"}
-                        </p>
-                        <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] text-base font-bold leading-snug text-neutral-900 group-hover:text-[#FF2E8C]">
-                          {title}
-                        </h3>
-                        <p className="mt-2 text-sm text-neutral-600">{playLabel}</p>
+                        <div className="flex flex-col gap-1 px-3 pb-11 pt-2.5">
+                          <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
+                          <p className="text-sm text-neutral-500">
+                            {plays.toLocaleString("th-TH")} รอบ
+                          </p>
+                          <p className="text-xs font-medium text-red-600">
+                            {creator ? `@${creator}` : "@—"}
+                          </p>
+                        </div>
                       </Link>
                       <button
                         type="button"
-                        className="absolute bottom-3 right-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
+                        className="absolute bottom-2.5 right-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
                         aria-label={`แชร์ ${title}`}
                         onClick={(e) => shareRecommendedGame(e, g)}
                       >
