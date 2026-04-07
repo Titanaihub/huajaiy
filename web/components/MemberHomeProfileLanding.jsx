@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
+import { publicMemberPath } from "../lib/memberPublicUrls";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
+const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
 
 /**
  * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
@@ -26,9 +28,12 @@ export default function MemberHomeProfileLanding({ user }) {
   const coverUrl = String(user?.publicPageCoverUrl || "").trim();
   const avatarUrl =
     String(user?.profilePictureUrl || "").trim() ||
-    String(user?.linePictureUrl || "").trim();
+    String(user?.linePictureUrl || "").trim() ||
+    DEFAULT_AVATAR;
 
   const profileHref = "/member/profile";
+  const username = String(user?.username || "").trim();
+  const publicHref = username ? publicMemberPath(username) : "";
 
   const hearts = heartTotalsFromPublicUser(user);
   const pinkShown = hearts.pink;
@@ -92,69 +97,80 @@ export default function MemberHomeProfileLanding({ user }) {
         </div>
       </div>
 
-      {/* ปก + โปรไฟล์ */}
+      {/* ปก + โปรไฟล์ — ข้อมูลจาก GET /api/auth/me (รีเฟรชตอนเข้าหน้า) */}
       <div className="relative mx-auto max-w-[960px] px-3 pb-8 pt-0 sm:px-5">
-        <div
-          className="relative h-36 overflow-hidden rounded-2xl sm:h-44 md:h-52"
-          style={
-            coverUrl
-              ? undefined
-              : {
-                  background:
-                    "linear-gradient(90deg, #ec4899 0%, #d946ef 45%, #7c3aed 100%)"
-                }
-          }
-        >
-          {coverUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={coverUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : null}
-        </div>
+        <div className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/30">
+          <div
+            className="relative h-36 overflow-hidden sm:h-44 md:h-52"
+            style={
+              coverUrl
+                ? undefined
+                : {
+                    background:
+                      "linear-gradient(90deg, #ec4899 0%, #d946ef 45%, #7c3aed 100%)"
+                  }
+            }
+          >
+            {coverUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={coverUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : null}
+          </div>
 
-        <div className="relative -mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between md:-mt-16">
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-white bg-neutral-200 shadow-md sm:h-28 sm:w-28 md:h-32 md:w-32">
-              {avatarUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={avatarUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div
-                  className="flex h-full w-full items-center justify-center text-neutral-400"
-                  aria-hidden
-                >
-                  <svg className="h-14 w-14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
+          <div className="relative bg-white px-4 pb-6 pt-0 sm:px-6">
+            <div className="relative -mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between md:-mt-16">
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-white bg-neutral-100 shadow-md sm:h-28 sm:w-28 md:h-32 md:w-32">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
-              )}
-            </div>
-            <div className="min-w-0 pb-0.5">
-              <h1 className="truncate text-xl font-bold text-neutral-900 sm:text-2xl">
-                {displayTitle}
-              </h1>
-              <p className="mt-1 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-                {bio}
-              </p>
+                <div className="min-w-0 pb-0.5">
+                  <h1 className="truncate text-xl font-bold text-neutral-900 sm:text-2xl">
+                    {displayTitle}
+                  </h1>
+                  {username ? (
+                    <p className="mt-0.5 text-sm text-neutral-500">
+                      @{username}
+                      {publicHref ? (
+                        <>
+                          <span className="mx-2 text-neutral-300" aria-hidden>
+                            ·
+                          </span>
+                          <Link
+                            href={publicHref}
+                            className="font-medium text-[#FF2E8C] hover:underline"
+                          >
+                            ดูเพจสาธารณะ
+                          </Link>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
+                    {bio}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={profileHref}
+                className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm transition hover:border-pink-300 hover:bg-pink-50 sm:self-auto"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                แก้ไขโปรไฟล์
+              </Link>
             </div>
           </div>
-          <Link
-            href={profileHref}
-            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm transition hover:border-pink-300 hover:bg-pink-50 sm:self-auto"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            แก้ไขโปรไฟล์
-          </Link>
         </div>
       </div>
 
@@ -163,16 +179,8 @@ export default function MemberHomeProfileLanding({ user }) {
         <div className="rounded-2xl border border-pink-100 bg-white p-4 shadow-md shadow-pink-100/40 sm:p-5">
           <div className="flex gap-3">
             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-200">
-              {avatarUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-neutral-400" aria-hidden>
-                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
             </div>
             <div className="min-w-0 flex-1">
               <label htmlFor="member-home-post-placeholder" className="sr-only">
