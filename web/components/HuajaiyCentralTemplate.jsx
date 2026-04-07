@@ -431,19 +431,21 @@ export default function HuajaiyCentralTemplate({
         </div>
       </header>
 
-      {/* แถบแบรนด์ — โลโก้ + ชื่อเว็บ + (ถ้ามี) ชื่อเมนูหน้า */}
+      {/* แถบแบรนด์ — จองพื้นที่โลโก้เดิม (มองไม่เห็น) เพื่อไม่ให้ชื่อเมนูเลื่อน */}
       <div
         className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C] px-3 sm:px-5"
-        aria-label={pinkBarSuffix ? `HUAJAIY ${pinkBarSuffix}` : "HUAJAIY"}
+        aria-label={pinkBarSuffix ? pinkBarSuffix : "HUAJAIY"}
       >
         <div className="mx-auto flex w-full max-w-[1200px] min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
-          <HeartIcon
-            className="h-8 w-8 shrink-0 text-white sm:h-9 sm:w-9"
+          <div
+            className="invisible flex shrink-0 items-center gap-2 sm:gap-3"
             aria-hidden
-          />
-          <span className="font-heading shrink-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
-            HUAJAIY
-          </span>
+          >
+            <HeartIcon className="h-8 w-8 shrink-0 text-white sm:h-9 sm:w-9" />
+            <span className="font-heading shrink-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
+              HUAJAIY
+            </span>
+          </div>
           {pinkBarSuffix ? (
             <>
               <span className="shrink-0 select-none text-white/70" aria-hidden>
