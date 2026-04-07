@@ -425,7 +425,7 @@ export default function HomeLandingFigmaShell({
               actionHref="/game"
               actionLabel="ดูทั้งหมด"
             />
-            <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4 lg:gap-3">
+            <div className="grid justify-items-center gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4 lg:gap-3">
               {gamesToShow.length === 0 ? (
                 <p className="col-span-full rounded-2xl border border-dashed border-pink-200 bg-white/80 py-10 text-center text-sm text-neutral-600">
                   ยังไม่มีเกมที่เปิดแสดง —{" "}
@@ -443,24 +443,24 @@ export default function HomeLandingFigmaShell({
                   return (
                     <div
                       key={id}
-                      className="group relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
+                      className="group relative flex w-[150px] max-w-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
                     >
                       <Link
                         href={`/game/${encodeURIComponent(id)}`}
                         className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
                       >
-                        {/* หัวการ์ด: รูปเต็มความกว้างการ์ด สูง 150px — ไม่มี padding ซ้าย/ขวา/บน เพื่อไม่ให้มีแถบขาวล้อมรูป */}
-                        <div className="relative h-[150px] w-full shrink-0 overflow-hidden bg-neutral-100">
+                        {/* พื้นที่ใส่ภาพ 150×150 px ชิดขอบการ์ด (การ์ดกว้าง 150px — ไม่มีแถบขาวรอบรูป) */}
+                        <div className="relative h-[150px] w-[150px] max-w-full shrink-0 overflow-hidden bg-neutral-100">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
                             alt=""
-                            width={600}
+                            width={150}
                             height={150}
                             className="h-full w-full object-cover"
                           />
                         </div>
-                        <div className="flex flex-col gap-1 px-3 pb-11 pt-2.5">
+                        <div className="flex flex-col gap-1 px-2 pb-11 pt-2.5">
                           <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
                           <p className="text-sm text-neutral-500">
                             {plays.toLocaleString("th-TH")} รอบ
