@@ -7,6 +7,12 @@ import { getApiBase } from "../lib/config";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
+import {
+  COUNTRY_NON_TH,
+  COUNTRY_TH,
+  validateNamesForCountry,
+  validatePhoneClient
+} from "../lib/registerValidation";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -69,7 +75,8 @@ export default function MemberHomeProfileLanding({ user }) {
   const [savingAddress, setSavingAddress] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [err, setErr] = useState("");
+  const [saveAlertOpen, setSaveAlertOpen] = useState(false);
+  const [saveAlertText, setSaveAlertText] = useState("");
   const [msg, setMsg] = useState("");
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editPersonalOpen, setEditPersonalOpen] = useState(false);
@@ -150,9 +157,18 @@ export default function MemberHomeProfileLanding({ user }) {
     });
   }, [user]);
 
+  function openSaveAlert(text) {
+    setSaveAlertText(String(text || "").trim() || "บันทึกไม่สำเร็จ");
+    setSaveAlertOpen(true);
+  }
+
+  function closeSaveAlert() {
+    setSaveAlertOpen(false);
+  }
+
   async function saveProfileSection() {
     try {
-      setErr("");
+      closeSaveAlert();
       setMsg("");
       setSavingProfile(true);
       await patchProfile({
@@ -163,16 +179,36 @@ export default function MemberHomeProfileLanding({ user }) {
       });
       setMsg("บันทึกข้อมูลโปรไฟล์แล้ว");
     } catch (e) {
-      setErr(e?.message || "บันทึกไม่สำเร็จ");
+      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
     } finally {
       setSavingProfile(false);
     }
   }
 
   async function savePersonalSection() {
+    closeSaveAlert();
+    setMsg("");
+    const rawCc = String(user?.countryCode || "TH").toUpperCase();
+    const countryForNames =
+      rawCc === COUNTRY_NON_TH ? COUNTRY_NON_TH : COUNTRY_TH;
+    const names = validateNamesForCountry(
+      countryForNames,
+      personalDraft.firstName,
+      personalDraft.lastName
+    );
+    if (!names.ok) {
+      openSaveAlert(names.error);
+      return;
+    }
+    const phoneTrim = personalDraft.phone.trim();
+    if (phoneTrim) {
+      const pv = validatePhoneClient(phoneTrim);
+      if (!pv.ok) {
+        openSaveAlert(pv.error);
+        return;
+      }
+    }
     try {
-      setErr("");
-      setMsg("");
       setSavingPersonal(true);
       await patchProfile({
         firstName: personalDraft.firstName.trim(),
@@ -184,7 +220,7 @@ export default function MemberHomeProfileLanding({ user }) {
       });
       setMsg("บันทึกข้อมูลส่วนตัวแล้ว");
     } catch (e) {
-      setErr(e?.message || "บันทึกไม่สำเร็จ");
+      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
     } finally {
       setSavingPersonal(false);
     }
@@ -192,7 +228,7 @@ export default function MemberHomeProfileLanding({ user }) {
 
   async function saveAddressSection() {
     try {
-      setErr("");
+      closeSaveAlert();
       setMsg("");
       setSavingAddress(true);
       await patchProfile({
@@ -208,7 +244,7 @@ export default function MemberHomeProfileLanding({ user }) {
       });
       setMsg("บันทึกที่อยู่แล้ว");
     } catch (e) {
-      setErr(e?.message || "บันทึกไม่สำเร็จ");
+      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
     } finally {
       setSavingAddress(false);
     }
@@ -216,7 +252,7 @@ export default function MemberHomeProfileLanding({ user }) {
 
   async function saveSetPassword() {
     try {
-      setErr("");
+      closeSaveAlert();
       setMsg("");
       setSavingPassword(true);
       const token = getMemberToken();
@@ -229,7 +265,7 @@ export default function MemberHomeProfileLanding({ user }) {
       setPasswordDraft({ newPassword: "", newPasswordConfirm: "" });
       setMsg("บันทึกรหัสผ่านแล้ว");
     } catch (e) {
-      setErr(e?.message || "บันทึกรหัสผ่านไม่สำเร็จ");
+      openSaveAlert(e?.message || "บันทึกรหัสผ่านไม่สำเร็จ");
     } finally {
       setSavingPassword(false);
     }
@@ -238,14 +274,14 @@ export default function MemberHomeProfileLanding({ user }) {
   async function onUploadAvatar(file) {
     if (!file) return;
     try {
-      setErr("");
+      closeSaveAlert();
       setMsg("");
       setUploadingImage(true);
       const url = await uploadImage(file);
       await patchProfile({ profilePictureUrl: url });
       setMsg("อัปโหลดรูปโปรไฟล์แล้ว");
     } catch (e) {
-      setErr(e?.message || "อัปโหลดรูปไม่สำเร็จ");
+      openSaveAlert(e?.message || "อัปโหลดรูปไม่สำเร็จ");
     } finally {
       setUploadingImage(false);
     }
@@ -596,9 +632,41 @@ export default function MemberHomeProfileLanding({ user }) {
           ) : null}
         </div>
 
-        {err ? <p className="mt-3 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-700">{err}</p> : null}
         {msg ? <p className="mt-3 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-emerald-700">{msg}</p> : null}
       </div>
+
+      {saveAlertOpen ? (
+        <div
+          className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 p-4"
+          role="presentation"
+          onClick={closeSaveAlert}
+        >
+          <div
+            className="max-w-md rounded-2xl border border-pink-100 bg-white p-6 shadow-xl"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="member-save-alert-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="member-save-alert-title"
+              className="text-lg font-bold text-neutral-900"
+            >
+              บันทึกไม่สำเร็จ
+            </h2>
+            <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-700">
+              {saveAlertText}
+            </p>
+            <button
+              type="button"
+              className="mt-6 w-full rounded-full bg-[#FF2E8C] py-2.5 text-sm font-semibold text-white"
+              onClick={closeSaveAlert}
+            >
+              ตกลง
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
