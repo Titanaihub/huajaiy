@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * แผงแอดมิน React (AdminDashboard) สำหรับฝังใน iframe จาก /admin เท่านั้น
- * ผู้ใช้ทั่วไปเข้า /admin — ไม่ต้องเปิด URL นี้โดยตรง
+ * แผงแอดมิน React (AdminDashboard) สำหรับฝังใน iframe จาก /admin
+ * หน้านี้ตั้งใจไม่มีเชลล์หัวเว็บ — เพื่อไม่ซ้อนกับเทมเพลตที่ /admin
  */
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";

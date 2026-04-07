@@ -180,10 +180,6 @@ export default function MemberTailadminWorkspace() {
         pinkBarMenuLabel="ข้อมูลสมาชิก"
         mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
       >
-        <CentralTemplatePreviewDemo
-          variant="memberProfileTop"
-          sectionLabel="ข้อมูลสมาชิก"
-        />
         <MemberHomeProfileLanding user={user} />
       </HuajaiyCentralTemplate>
     );

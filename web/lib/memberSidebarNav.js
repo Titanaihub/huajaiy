@@ -1,5 +1,7 @@
 import {
+  isAdminDashboardShellSlug,
   MEMBER_SLUG_TO_TAIL,
+  parseAdminAppPath,
   TAILADMIN_GIVE_HEARTS_START,
   TAILADMIN_HEARTS_TOP_UP_START,
   TAILADMIN_MY_GAMES_START,
@@ -74,4 +76,28 @@ export function memberShellLabelForSlug(slug) {
     (it) => "tailStart" in it && it.tailStart === tail
   );
   return item?.label || EXTRA_SLUG_LABELS[first] || "";
+}
+
+/** slug `/admin/{slug}` ที่เปิดแท็บแผง React — ชื่อบนแถบชมพู */
+const ADMIN_SHELL_SLUG_LABELS = Object.freeze({
+  members: "จัดการสมาชิก",
+  theme: "ธีมเว็บไซต์",
+  "all-shops": "ร้านค้าทั้งหมด",
+  "game-settings": "ตั้งค่าเกม",
+  "central-games": "เกมส่วนกลาง",
+  "prize-payouts": "จ่ายรางวัล",
+  "heart-packs": "แพ็กหัวใจ",
+  "slip-approvals": "อนุมัติสลิป",
+  "name-changes": "คำขอเปลี่ยนชื่อ"
+});
+
+/** @param {string | null | undefined} pathname */
+export function adminPinkBarMenuLabelFromPathname(pathname) {
+  const p = parseAdminAppPath(pathname);
+  if (!p || p.segments.length === 0) return "ภาพรวมแอดมิน";
+  const seg = p.segments[0]?.toLowerCase() || "";
+  if (isAdminDashboardShellSlug(seg)) {
+    return ADMIN_SHELL_SLUG_LABELS[seg] || seg;
+  }
+  return memberShellLabelForSlug(seg) || "แอดมิน";
 }
