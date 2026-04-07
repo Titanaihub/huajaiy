@@ -53,14 +53,14 @@ export function middleware(request) {
         pathname === "/account/heart-history/play" ||
         pathname.startsWith("/account/heart-history/play/")
       ) {
-        url.pathname = "/member/game";
+        url.pathname = "/member/pink-history";
       } else if (
         pathname === "/account/heart-history/purchases" ||
         pathname.startsWith("/account/heart-history/purchases/")
       ) {
-        url.pathname = "/member/pink-history";
-      } else {
         url.pathname = "/member/hearts";
+      } else {
+        url.pathname = "/member/pink-history";
       }
       return NextResponse.redirect(url, 308);
     }

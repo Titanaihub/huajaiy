@@ -80,7 +80,7 @@ export default function AccountDashboardOverview() {
                 หัวใจแดงห้องเกม (แยกตามเจ้าห้อง · เข้าเล่นเกม)
               </Link>
               <Link
-                href="/account/heart-history/play"
+                href="/member/pink-history"
                 className="text-sm font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
               >
                 ประวัติหัวใจ (เล่นเกม)

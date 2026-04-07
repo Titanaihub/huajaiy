@@ -225,7 +225,7 @@ export default function AccountMyHeartsSection() {
           </button>
           <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <Link
-              href="/account/heart-history/play"
+              href="/member/pink-history"
               className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               ประวัติหัวใจชมพู

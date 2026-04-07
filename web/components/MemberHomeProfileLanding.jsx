@@ -17,8 +17,8 @@ import {
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
-/** ลิงก์ประวัติเดียวกับหน้า account (AccountMyHeartsSection / AccountHeartHistorySection) */
-const HEART_HISTORY_PINK = "/account/heart-history/play";
+/** ประวัติหัวใจชมพู — เชลล์สมาชิก /member/pink-history (TailAdmin /pink-history) */
+const HEART_HISTORY_PINK = "/member/pink-history";
 const HEART_HISTORY_RED_WALLET = "/account/heart-history/purchases";
 const HEART_HISTORY_GIVEAWAY = "/account/heart-history/giveaway";
 
@@ -308,7 +308,7 @@ export default function MemberHomeProfileLanding({ user }) {
                 <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจชมพู</p>
                 <Link
                   href={HEART_HISTORY_PINK}
-                  title="เปิดประวัติหัวใจชมพู (วันที่ รายการ จำนวน คงเหลือ)"
+                  title="เปิดประวัติหัวใจชมพู — /member/pink-history"
                   aria-label="ประวัติหัวใจชมพู"
                   className="shrink-0 pt-0.5 text-sm font-semibold text-pink-600 underline-offset-2 hover:text-pink-700 hover:underline"
                 >
