@@ -245,36 +245,38 @@ export default function HomeLandingFigmaShell({
   const iconBtnClass =
     "inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-700 transition hover:bg-pink-50 hover:text-[#FF2E8C] sm:h-10 sm:w-10";
 
+  const navLinkClass = `${navTopClass} cursor-pointer`;
+
   const mainNav = (
     <nav
-      className="flex flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:justify-center"
+      className="relative z-20 flex w-full min-w-0 flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:flex-1 lg:justify-center"
       aria-label="เมนูหลัก"
     >
-      <Link href="/" className={navTopClass}>
+      <Link href="/" className={navLinkClass}>
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
-      <Link href={PUBLIC_SHOP_PATH} className={navTopClass}>
+      <Link href={PUBLIC_SHOP_PATH} className={navLinkClass}>
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
-      <Link href="/game" className={navTopClass}>
+      <Link href="/game" className={navLinkClass}>
         <IconGamepad className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         <span className="relative inline-block">
           เกม
           <span
-            className="absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF2E8C] text-[9px] leading-none text-white shadow-sm"
+            className="pointer-events-none absolute -right-2 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FF2E8C] text-[9px] leading-none text-white shadow-sm"
             aria-hidden
           >
             ★
           </span>
         </span>
       </Link>
-      <Link href="/page" className={navTopClass}>
+      <Link href="/page#community-lobby" className={navLinkClass}>
         <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         โพสต์
       </Link>
-      <Link href="/page" className={navTopClass}>
+      <Link href="/page#member-pages" className={navLinkClass}>
         <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         เพจ
       </Link>
@@ -286,8 +288,8 @@ export default function HomeLandingFigmaShell({
       {/* แถบนำทางบนสุด — พื้นขาว (โลโก้ | เมนู | หัวใจ + ไอคอน) */}
       <header className="sticky top-0 z-[1040] border-b border-pink-100 bg-white shadow-[0_1px_0_0_rgba(233,30,140,0.06)]">
         <div className="mx-auto max-w-[1200px] px-3 py-2.5 sm:px-5 sm:py-3">
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,auto)_1fr_minmax(0,auto)] lg:items-center lg:gap-5">
-            <div className="flex items-center justify-between gap-2 lg:justify-start">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+            <div className="flex items-center justify-between gap-2 lg:shrink-0">
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                 {memberUser
                   ? hamburgerButton(
@@ -311,7 +313,7 @@ export default function HomeLandingFigmaShell({
 
             {mainNav}
 
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:justify-end">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:shrink-0 lg:justify-end">
               {heartsPill}
               <div className="flex items-center gap-0.5 sm:gap-1">
                 <Link href="/page" className={iconBtnClass} aria-label="ค้นหา">

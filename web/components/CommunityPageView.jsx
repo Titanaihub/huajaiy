@@ -129,7 +129,10 @@ export default function CommunityPageView({
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div
+        id="member-pages"
+        className="mb-8 scroll-mt-28 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+      >
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--gl-page-heading)]">
             {title}
@@ -150,7 +153,9 @@ export default function CommunityPageView({
         ) : null}
       </div>
 
-      <CommunityLobby posts={lobbyPosts} />
+      <div id="community-lobby" className="scroll-mt-24">
+        <CommunityLobby posts={lobbyPosts} />
+      </div>
 
       <nav
         className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"
