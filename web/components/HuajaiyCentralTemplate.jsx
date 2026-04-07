@@ -104,7 +104,7 @@ export function IconShare({ className }) {
 }
 
 /**
- * โครงหน้าแบบกลาง: แถบบน (โลโก้ เมนู หัวใจ ปุ่มเข้าสู่ระบบ/เพิ่มเติม) + เนื้อหา + ฟุตเตอร์
+ * โครงหน้าแบบกลาง: แถบบน + แถบไล่เฉดชมพู–ม่วง (150px เต็มความกว้าง) + เนื้อหา + ฟุตเตอร์
  */
 export default function HuajaiyCentralTemplate({
   children,
@@ -426,6 +426,12 @@ export default function HuajaiyCentralTemplate({
           </div>
         </div>
       </header>
+
+      {/* แถบตกแต่งเทมเพลตกลาง — ยาวเต็มแทมเพลต ไล่สีชมพู → ม่วง */}
+      <div
+        className="h-[150px] w-full shrink-0 bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-600"
+        aria-hidden
+      />
 
       <div className={mainClassName}>{children}</div>
 
