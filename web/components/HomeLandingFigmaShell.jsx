@@ -458,7 +458,7 @@ export default function HomeLandingFigmaShell({
       </Link>
       <Link href="/page#community-lobby" className={navLinkClass}>
         <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
-        ฟีด
+        โพสต์
       </Link>
       <Link href="/page#member-pages" className={navLinkClass}>
         <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
