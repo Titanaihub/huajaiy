@@ -22,19 +22,21 @@ function normUser(s) {
     .replace(/^@+/, "");
 }
 
-/** หัวใจแดงจากรหัสห้องที่เหลือ — ผูกกับเจ้าของห้อง (ใช้ร่วมทุกเกมของ @creator เดียวกัน) */
-function roomRedBalanceForCreator(roomGiftRows, creatorUsername) {
-  const un = normUser(creatorUsername);
-  if (!un) return 0;
-  const rows = Array.isArray(roomGiftRows) ? roomGiftRows : [];
-  const row = rows.find((x) => normUser(x.creatorUsername) === un);
-  return row ? Math.max(0, Math.floor(Number(row.balance) || 0)) : 0;
-}
-
 function asDateMs(v) {
   if (!v) return 0;
   const ms = new Date(v).getTime();
   return Number.isFinite(ms) ? ms : 0;
+}
+
+/** ประวัติเรียงใหม่ → เก่า; rewind จากยอดคงเหลือปัจจุบัน */
+function buildRowsWithBalance(bal, creatorId, roomHistoryByCreator) {
+  const rows = creatorId ? roomHistoryByCreator.get(creatorId) || [] : [];
+  let rewind = bal;
+  return rows.map((r) => {
+    const after = rewind;
+    rewind = rewind - (r.isPlus ? r.amount : -r.amount);
+    return { ...r, balanceAfter: Math.max(0, Math.floor(Number(after) || 0)) };
+  });
 }
 
 export default function AccountMyHeartsSection({ hideShellPageTitle = false } = {}) {
@@ -110,28 +112,29 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
 
   const roomRows = Array.isArray(user?.roomGiftRed) ? user.roomGiftRed : [];
 
-  const gamesSorted = useMemo(() => {
-    const list = [...games];
+  /** เกมแรกในล็อบบี้ต่อผู้สร้าง — ใช้รูปปกและลิงก์เล่น */
+  const lobbyFirstGameByCreatorNorm = useMemo(() => {
+    const m = new Map();
+    for (const game of games) {
+      const n = normUser(game.creatorUsername);
+      if (n && !m.has(n)) m.set(n, game);
+    }
+    return m;
+  }, [games]);
+
+  const roomRowsSorted = useMemo(() => {
+    const list = [...roomRows];
     list.sort((a, b) => {
-      const diff =
-        roomRedBalanceForCreator(roomRows, b.creatorUsername) -
-        roomRedBalanceForCreator(roomRows, a.creatorUsername);
-      if (diff !== 0) return diff;
-      return String(a.title || "").localeCompare(String(b.title || ""), "th");
+      const db = Math.max(0, Math.floor(Number(b.balance) || 0));
+      const da = Math.max(0, Math.floor(Number(a.balance) || 0));
+      if (db !== da) return db - da;
+      return String(normUser(a.creatorUsername)).localeCompare(
+        String(normUser(b.creatorUsername)),
+        "th"
+      );
     });
     return list;
-  }, [games, roomRows]);
-
-  const orphanRoomGifts = useMemo(() => {
-    const creatorsInLobby = new Set(
-      games.map((g) => normUser(g.creatorUsername)).filter(Boolean)
-    );
-    return roomRows.filter((row) => {
-      const n = normUser(row.creatorUsername);
-      if (!n) return true;
-      return !creatorsInLobby.has(n);
-    });
-  }, [games, roomRows]);
+  }, [roomRows]);
 
   const roomHistoryByCreator = useMemo(() => {
     const out = new Map();
@@ -224,12 +227,11 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
     <div className="space-y-8">
       <header className="max-w-4xl">
         {hideShellPageTitle ? null : (
-          <h2 className="hui-h2">ห้องเกม — หัวใจแดงในห้อง</h2>
+          <h2 className="hui-h2">หัวใจแดงจากผู้สร้างเกม</h2>
         )}
         <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-2"}`}>
-          รายการเกมที่เปิดให้เล่นในล็อบบี้ — แสดง{" "}
-          <strong>หัวใจแดงที่เหลือในห้องของแต่ละเจ้าของห้อง</strong> (จากรหัสห้อง) เกมใด ๆ
-          ของ @ เดียวกันใช้ยอดเดียวกัน
+          สรุปตาม<strong>เจ้าของห้อง / ผู้สร้างเกม</strong> ที่คุณรับหัวใจแดงจากรหัสห้อง — กดการ์ดเพื่อดู
+          วันที่รับหรือใช้ เล่นเกมอะไร และยอดคงเหลือ เกมใด ๆ ของ @ เดียวกันใช้ยอดเดียวกัน
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
           <button
@@ -248,39 +250,40 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
         </div>
       </header>
 
-      <section className="max-w-4xl">
-        {gamesLoading ? (
-          <p className="text-sm text-hui-muted" aria-live="polite">
-            กำลังโหลดรายการห้องเกม…
+      <section className="max-w-4xl" aria-busy={gamesLoading}>
+        {gamesErr ? (
+          <p className="mb-3 text-sm text-red-700" role="alert">
+            {gamesErr} (รูปปกเกมอาจไม่แสดง)
           </p>
-        ) : gamesErr ? (
-          <p className="text-sm text-red-700" role="alert">
-            {gamesErr}
-          </p>
-        ) : gamesSorted.length === 0 ? (
+        ) : null}
+        {roomRowsSorted.length === 0 ? (
           <div className="rounded-2xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
-            <p>ยังไม่มีเกมในล็อบบี้ตอนนี้</p>
+            <p>ยังไม่มียอดหัวใจแดงจากรหัสห้อง — ใส่รหัสในช่องด้านล่างเมื่อได้รับจากเจ้าของห้อง</p>
             <Link
               href="/game"
-              className="mt-2 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              className="mt-3 inline-block font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
-              ไปหน้ารายการเกม
+              ดูเกมในล็อบบี้
             </Link>
           </div>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
-            {gamesSorted.map((game) => {
-              const roomBal = roomRedBalanceForCreator(roomRows, game.creatorUsername);
+            {roomRowsSorted.map((g) => {
+              const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
+              const label = g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง";
+              const creatorId = g.creatorId != null ? String(g.creatorId) : "";
+              const n = normUser(g.creatorUsername);
+              const lobbyGame = n ? lobbyFirstGameByCreatorNorm.get(n) : null;
+              const noLobby = Boolean(n && !lobbyGame);
               const cover =
-                game.gameCoverUrl != null && String(game.gameCoverUrl).trim() !== ""
-                  ? String(game.gameCoverUrl).trim()
+                lobbyGame?.gameCoverUrl != null && String(lobbyGame.gameCoverUrl).trim() !== ""
+                  ? String(lobbyGame.gameCoverUrl).trim()
                   : null;
-              const creatorLabel = game.creatorUsername
-                ? `@${String(game.creatorUsername).replace(/^@+/, "")}`
-                : "ไม่ระบุเจ้าของห้อง";
+              const rowsWithBalance = buildRowsWithBalance(bal, creatorId, roomHistoryByCreator);
+
               return (
                 <li
-                  key={game.id}
+                  key={String(g.creatorId ?? label)}
                   className="flex flex-col overflow-hidden rounded-2xl border border-hui-border bg-hui-surface shadow-soft"
                 >
                   <div className="relative aspect-[16/10] w-full bg-hui-pageTop">
@@ -288,32 +291,104 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={cover} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-hui-muted">
-                        ไม่มีรูปปก
+                      <div className="flex h-full flex-col items-center justify-center gap-1 px-4 text-center text-sm text-hui-muted">
+                        <InlineHeart size="xl" className="text-red-400/90" />
+                        <span>ไม่มีรูปปกในล็อบบี้</span>
                       </div>
                     )}
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
-                    <h3 className="text-base font-semibold leading-snug text-hui-section line-clamp-2">
-                      {game.title || "เกมไม่มีชื่อ"}
+                    <h3 className="text-base font-semibold leading-snug text-hui-section">
+                      หัวใจแดงจาก {label}
                     </h3>
-                    <p className="text-sm text-hui-muted">เจ้าของห้อง {creatorLabel}</p>
+                    {lobbyGame ? (
+                      <p className="text-sm text-hui-muted line-clamp-2">
+                        เกมในล็อบบี้: {lobbyGame.title || "เกมไม่มีชื่อ"}
+                      </p>
+                    ) : noLobby ? (
+                      <p className="text-xs font-medium text-amber-900/90">
+                        ยังไม่มีเกมของผู้สร้างนี้ในล็อบบี้ — ยอดจากรหัสยังใช้ได้เมื่อมีเกม
+                      </p>
+                    ) : null}
                     <p className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-hui-muted">หัวใจแดงในห้อง (เหลือ)</span>
+                      <span className="text-hui-muted">เหลือ</span>
                       <span className="inline-flex items-center gap-1 text-lg font-bold tabular-nums text-red-800">
                         <InlineHeart className="text-red-600" />
-                        {roomBal.toLocaleString("th-TH")}
+                        {bal.toLocaleString("th-TH")}
                       </span>
                       <span className="text-hui-muted">ดวง</span>
                     </p>
-                    <div className="mt-auto pt-2">
+                    {g.creatorUsername ? (
+                      <p className="text-sm text-hui-muted">
+                        <Link
+                          href={publicMemberPath(normUser(g.creatorUsername))}
+                          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                        >
+                          หน้าโปรไฟล์ @{g.creatorUsername}
+                        </Link>
+                      </p>
+                    ) : null}
+
+                    <details className="mt-auto rounded-xl border border-hui-border bg-hui-pageTop/60 p-3">
+                      <summary className="cursor-pointer text-sm font-semibold text-hui-section">
+                        ดูรายละเอียด (วันที่ · เกม · คงเหลือ)
+                      </summary>
+                      <div className="mt-2 overflow-x-auto">
+                        {rowsWithBalance.length === 0 ? (
+                          <p className="text-sm text-hui-muted">
+                            ยังไม่มีประวัติการรับ/ใช้หัวใจของผู้สร้างนี้
+                          </p>
+                        ) : (
+                          <table className="min-w-full text-left text-sm">
+                            <thead>
+                              <tr className="border-b border-hui-border text-hui-muted">
+                                <th className="px-1 py-1">วันที่</th>
+                                <th className="px-1 py-1">รหัส</th>
+                                <th className="px-1 py-1">รายการ</th>
+                                <th className="px-1 py-1 text-right">จำนวน</th>
+                                <th className="px-1 py-1 text-right">คงเหลือ</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rowsWithBalance.map((r, idx) => (
+                                <tr key={`${r.createdAt || "na"}-${idx}`} className="border-b border-hui-border/60">
+                                  <td className="whitespace-nowrap px-1 py-1 text-hui-body">
+                                    {r.createdAt
+                                      ? new Date(r.createdAt).toLocaleString("th-TH", {
+                                          dateStyle: "short",
+                                          timeStyle: "short"
+                                        })
+                                      : "—"}
+                                  </td>
+                                  <td className="px-1 py-1 font-mono text-hui-body">{r.code || "—"}</td>
+                                  <td className="px-1 py-1 text-hui-body">{r.item}</td>
+                                  <td
+                                    className={`px-1 py-1 text-right tabular-nums font-semibold ${
+                                      r.isPlus ? "text-emerald-700" : "text-red-700"
+                                    }`}
+                                  >
+                                    {r.isPlus ? "+" : "-"}
+                                    {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
+                                  </td>
+                                  <td className="px-1 py-1 text-right tabular-nums font-semibold text-hui-section">
+                                    {Math.max(0, Math.floor(Number(r.balanceAfter) || 0)).toLocaleString("th-TH")}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </details>
+
+                    {lobbyGame ? (
                       <Link
-                        href={`/game/${encodeURIComponent(game.id)}`}
+                        href={`/game/${encodeURIComponent(lobbyGame.id)}`}
                         className="hui-btn-primary inline-flex w-full justify-center py-2.5 text-sm"
                       >
-                        เข้าเล่น
+                        เข้าเล่นเกมในล็อบบี้
                       </Link>
-                    </div>
+                    ) : null}
                   </div>
                 </li>
               );
@@ -321,26 +396,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
           </ul>
         )}
       </section>
-
-      {orphanRoomGifts.length > 0 ? (
-        <section className="max-w-4xl rounded-2xl border border-amber-200/90 bg-amber-50/80 p-4 text-sm text-amber-950 shadow-soft">
-          <p className="font-semibold text-hui-section">มีหัวใจจากรหัส แต่ยังไม่มีเกมในล็อบบี้</p>
-          <p className="mt-1 text-hui-body">
-            ยอดด้านล่างยังใช้ได้เมื่อเจ้าของห้องเผยแพร่เกม — ดูรายละเอียดใน「ประวัติตามเจ้าของห้อง」
-          </p>
-          <ul className="mt-3 space-y-2">
-            {orphanRoomGifts.map((g, idx) => (
-              <li
-                key={`orphan-${String(g.creatorId ?? "")}-${normUser(g.creatorUsername)}-${idx}`}
-                className="tabular-nums"
-              >
-                {g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง"} — เหลือ{" "}
-                {Math.max(0, Math.floor(Number(g.balance) || 0)).toLocaleString("th-TH")} ดวง
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <details className="max-w-2xl rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
         <summary className="cursor-pointer text-sm font-semibold text-hui-section">
@@ -405,112 +460,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
         </div>
       </section>
 
-      <section className="max-w-2xl">
-        <h3 className="hui-h3">ประวัติตามเจ้าของห้อง</h3>
-        <div className="mt-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
-          {roomRows.length > 0 ? (
-            <ul className="space-y-4">
-              {roomRows.map((g) => {
-                const bal = Math.max(0, Math.floor(Number(g.balance) || 0));
-                const label = g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง";
-                const creatorId = g.creatorId != null ? String(g.creatorId) : "";
-                const rows = creatorId ? roomHistoryByCreator.get(creatorId) || [] : [];
-                let rewind = bal;
-                const rowsWithBalance = rows.map((r) => {
-                  const after = rewind;
-                  rewind = rewind - (r.isPlus ? r.amount : -r.amount);
-                  return { ...r, balanceAfter: Math.max(0, Math.floor(Number(after) || 0)) };
-                });
-
-                return (
-                  <li
-                    key={g.creatorId}
-                    className="rounded-xl border border-amber-200/90 bg-amber-50/80 px-4 py-3 shadow-sm"
-                  >
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="font-semibold text-amber-950">{label}</p>
-                      <p className="text-lg font-bold tabular-nums text-red-800">
-                        <span className="inline-flex items-center gap-1">
-                          <InlineHeart className="text-red-600" />
-                          {bal.toLocaleString("th-TH")}
-                        </span>{" "}
-                        <span className="text-sm font-normal text-amber-900/80">ดวงคงเหลือ</span>
-                      </p>
-                    </div>
-                    {g.creatorUsername ? (
-                      <p className="mt-1 text-sm text-amber-900/80">
-                        <Link
-                          href={publicMemberPath(normUser(g.creatorUsername))}
-                          className="font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                        >
-                          หน้าโปรไฟล์ @{g.creatorUsername}
-                        </Link>
-                      </p>
-                    ) : null}
-                    <p className="mt-2 text-sm text-amber-900/85">
-                      เกมของห้องนี้อยู่ในรายการ「ห้องเกม」ด้านบน — แต่ละเกมแสดงยอดเดียวกันสำหรับ @ เดียวกัน
-                    </p>
-
-                    <details className="mt-3 rounded-lg border border-amber-200 bg-white/90 p-3">
-                      <summary className="cursor-pointer text-sm font-semibold text-amber-900">
-                        ดูประวัติรับ/ใช้
-                      </summary>
-                      <div className="mt-2 overflow-x-auto">
-                        {rowsWithBalance.length === 0 ? (
-                          <p className="text-sm text-amber-900/80">ยังไม่มีประวัติการรับ/ใช้หัวใจของห้องนี้</p>
-                        ) : (
-                          <table className="min-w-full text-left text-sm">
-                            <thead>
-                              <tr className="border-b border-amber-100 text-amber-900/80">
-                                <th className="px-1 py-1">วันที่</th>
-                                <th className="px-1 py-1">รหัส</th>
-                                <th className="px-1 py-1">รายการ</th>
-                                <th className="px-1 py-1 text-right">จำนวน</th>
-                                <th className="px-1 py-1 text-right">คงเหลือ</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {rowsWithBalance.map((r, idx) => (
-                                <tr key={`${r.createdAt || "na"}-${idx}`} className="border-b border-amber-50">
-                                  <td className="whitespace-nowrap px-1 py-1 text-hui-body">
-                                    {r.createdAt
-                                      ? new Date(r.createdAt).toLocaleString("th-TH", {
-                                          dateStyle: "short",
-                                          timeStyle: "short"
-                                        })
-                                      : "—"}
-                                  </td>
-                                  <td className="px-1 py-1 font-mono text-hui-body">{r.code || "—"}</td>
-                                  <td className="px-1 py-1 text-hui-body">{r.item}</td>
-                                  <td
-                                    className={`px-1 py-1 text-right tabular-nums font-semibold ${
-                                      r.isPlus ? "text-emerald-700" : "text-red-700"
-                                    }`}
-                                  >
-                                    {r.isPlus ? "+" : "-"}
-                                    {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
-                                  </td>
-                                  <td className="px-1 py-1 text-right tabular-nums font-semibold text-amber-900">
-                                    {Math.max(0, Math.floor(Number(r.balanceAfter) || 0)).toLocaleString("th-TH")}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        )}
-                      </div>
-                    </details>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-sm text-hui-muted">
-              ยังไม่มียอดหัวใจแดงจากรหัสห้อง — ใส่รหัสในช่องด้านบนเมื่อได้รับจากเจ้าของห้อง
-            </p>
-          )}
-        </div>
-      </section>
     </div>
   );
 }
