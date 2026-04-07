@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
@@ -126,6 +126,47 @@ function IconShare({ className }) {
   );
 }
 
+/** เกมแนะนำ: ขนาดการ์ด (รูปสี่เหลี่ยม) + ช่องว่างระหว่างการ์ด — ใช้คำนวณจำนวนการ์ดต่อแถว */
+const REC_GAME_CARD_PX = 200;
+const REC_GAME_GRID_GAP_PX = 6;
+
+/** การ์ดเชิญชวนสร้างเกม — ขยาย `colSpan` เติมช่องว่างแถวสุดท้าย หรือเต็มแถวเมื่อเกมครบแถวแล้ว */
+function RecommendedCreateGameCard({ colSpan }) {
+  const wide = colSpan > 1;
+  if (wide) {
+    return (
+      <Link
+        href="/account/create-game"
+        className="flex min-h-[140px] flex-row items-center justify-center gap-4 overflow-hidden rounded-2xl border-2 border-dashed border-pink-300 bg-gradient-to-br from-pink-50 via-white to-purple-50/90 px-5 py-4 text-left shadow-sm transition hover:border-[#FF2E8C] hover:shadow-md"
+        style={{ gridColumn: `span ${colSpan}` }}
+      >
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/90 text-[#FF2E8C] shadow-inner ring-1 ring-pink-100">
+          <IconGamepad className="h-9 w-9" />
+        </span>
+        <div className="min-w-0 text-left">
+          <span className="text-base font-bold leading-snug text-[#FF2E8C]">สร้างเกมเองเลย</span>
+          <span className="mt-0.5 block text-sm text-neutral-600">เริ่มออกแบบเกมของคุณบน HUAJAIY</span>
+        </div>
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href="/account/create-game"
+      className="relative flex w-[200px] max-w-full flex-col overflow-hidden rounded-2xl border-2 border-dashed border-pink-300 bg-white shadow-sm transition hover:border-[#FF2E8C] hover:shadow-md"
+      style={{ gridColumn: `span ${colSpan}` }}
+    >
+      <div className="flex h-[200px] w-[200px] max-w-full shrink-0 items-center justify-center bg-gradient-to-br from-pink-100/90 to-white">
+        <IconGamepad className="h-16 w-16 text-[#FF2E8C]" aria-hidden />
+      </div>
+      <div className="flex flex-col gap-1 px-2 pb-4 pt-2.5 text-center">
+        <span className="text-base font-bold leading-snug text-[#FF2E8C]">สร้างเกมเองเลย</span>
+        <span className="text-xs text-neutral-600">เชิญชวนให้มาสร้างเกม</span>
+      </div>
+    </Link>
+  );
+}
+
 function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
   return (
     <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -166,6 +207,34 @@ export default function HomeLandingFigmaShell({
     const list = Array.isArray(recommendedGames) ? recommendedGames : [];
     return list.filter((g) => g && String(g.id || "").trim()).slice(0, 4);
   }, [recommendedGames]);
+
+  const gamesGridRef = useRef(null);
+  const [recGameCols, setRecGameCols] = useState(4);
+
+  useEffect(() => {
+    const el = gamesGridRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const measure = () => {
+      const w = el.getBoundingClientRect().width;
+      const cols = Math.max(
+        1,
+        Math.floor((w + REC_GAME_GRID_GAP_PX) / (REC_GAME_CARD_PX + REC_GAME_GRID_GAP_PX))
+      );
+      setRecGameCols(cols);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  /** จำนวนคอลัมน์ที่การ์ด CTA จะ span เพื่อเติมช่องว่างแถวสุดท้าย (หรือเต็มแถวถ้าเกมครบแถวแล้ว) */
+  const recGameCtaSpan = useMemo(() => {
+    const n = gamesToShow.length;
+    if (n === 0) return recGameCols;
+    const mod = n % recGameCols;
+    return mod === 0 ? recGameCols : recGameCols - mod;
+  }, [gamesToShow.length, recGameCols]);
 
   const shareRecommendedGame = useCallback(async (e, game) => {
     e.preventDefault();
@@ -425,62 +494,78 @@ export default function HomeLandingFigmaShell({
               actionHref="/game"
               actionLabel="ดูทั้งหมด"
             />
-            <div className="grid justify-items-center gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4 lg:gap-3">
+            <div
+              ref={gamesGridRef}
+              className="grid gap-1.5"
+              style={{
+                gridTemplateColumns: `repeat(${recGameCols}, ${REC_GAME_CARD_PX}px)`,
+                justifyContent: "start"
+              }}
+            >
               {gamesToShow.length === 0 ? (
-                <p className="col-span-full rounded-2xl border border-dashed border-pink-200 bg-white/80 py-10 text-center text-sm text-neutral-600">
-                  ยังไม่มีเกมที่เปิดแสดง —{" "}
-                  <Link href="/game" className="font-semibold text-[#FF2E8C] underline-offset-2 hover:underline">
-                    ไปหน้าเกมทั้งหมด
-                  </Link>
-                </p>
+                <>
+                  <p
+                    className="rounded-2xl border border-dashed border-pink-200 bg-white/80 py-10 text-center text-sm text-neutral-600"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
+                    ยังไม่มีเกมที่เปิดแสดง —{" "}
+                    <Link href="/game" className="font-semibold text-[#FF2E8C] underline-offset-2 hover:underline">
+                      ไปหน้าเกมทั้งหมด
+                    </Link>
+                  </p>
+                  <RecommendedCreateGameCard colSpan={recGameCols} />
+                </>
               ) : (
-                gamesToShow.map((g) => {
-                  const id = String(g.id || "").trim();
-                  const cover = String(g.gameCoverUrl || "").trim();
-                  const creator = String(g.creatorUsername || "").trim().toLowerCase();
-                  const title = String(g.title || "").trim() || "เกม";
-                  const plays = Math.max(0, Math.floor(Number(g.playCount) || 0));
-                  return (
-                    <div
-                      key={id}
-                      className="group relative flex w-[150px] max-w-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
-                    >
-                      <Link
-                        href={`/game/${encodeURIComponent(id)}`}
-                        className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
+                <>
+                  {gamesToShow.map((g) => {
+                    const id = String(g.id || "").trim();
+                    const cover = String(g.gameCoverUrl || "").trim();
+                    const creator = String(g.creatorUsername || "").trim().toLowerCase();
+                    const title = String(g.title || "").trim() || "เกม";
+                    const plays = Math.max(0, Math.floor(Number(g.playCount) || 0));
+                    return (
+                      <div
+                        key={id}
+                        className="group relative flex w-[200px] max-w-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
                       >
-                        {/* พื้นที่ใส่ภาพ 150×150 px ชิดขอบการ์ด (การ์ดกว้าง 150px — ไม่มีแถบขาวรอบรูป) */}
-                        <div className="relative h-[150px] w-[150px] max-w-full shrink-0 overflow-hidden bg-neutral-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                            alt=""
-                            width={150}
-                            height={150}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1 px-2 pb-11 pt-2.5">
-                          <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
-                          <p className="text-sm text-neutral-500">
-                            {plays.toLocaleString("th-TH")} รอบ
-                          </p>
-                          <p className="text-xs font-medium text-red-600">
-                            {creator ? `@${creator}` : "@—"}
-                          </p>
-                        </div>
-                      </Link>
-                      <button
-                        type="button"
-                        className="absolute bottom-2.5 right-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
-                        aria-label={`แชร์ ${title}`}
-                        onClick={(e) => shareRecommendedGame(e, g)}
-                      >
-                        <IconShare className="h-4 w-4 shrink-0" />
-                      </button>
-                    </div>
-                  );
-                })
+                        <Link
+                          href={`/game/${encodeURIComponent(id)}`}
+                          className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
+                        >
+                          {/* พื้นที่ใส่ภาพ 200×200 px ชิดขอบการ์ด */}
+                          <div className="relative h-[200px] w-[200px] max-w-full shrink-0 overflow-hidden bg-neutral-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                              alt=""
+                              width={200}
+                              height={200}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1 px-2 pb-11 pt-2.5">
+                            <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
+                            <p className="text-sm text-neutral-500">
+                              {plays.toLocaleString("th-TH")} รอบ
+                            </p>
+                            <p className="text-xs font-medium text-red-600">
+                              {creator ? `@${creator}` : "@—"}
+                            </p>
+                          </div>
+                        </Link>
+                        <button
+                          type="button"
+                          className="absolute bottom-2.5 right-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
+                          aria-label={`แชร์ ${title}`}
+                          onClick={(e) => shareRecommendedGame(e, g)}
+                        >
+                          <IconShare className="h-4 w-4 shrink-0" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <RecommendedCreateGameCard colSpan={recGameCtaSpan} />
+                </>
               )}
             </div>
           </section>
