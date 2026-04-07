@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div
+    class="huajaiy-tailadmin-breadcrumb flex flex-wrap items-center justify-between gap-3 mb-6"
+  >
     <h2
       class="font-semibold text-gray-800 dark:text-white/90"
       :class="prominent ? 'text-2xl md:text-3xl' : 'text-xl'"

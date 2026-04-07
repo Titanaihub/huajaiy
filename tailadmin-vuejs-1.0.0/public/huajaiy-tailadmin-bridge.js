@@ -474,8 +474,11 @@
       "html.huajaiy-member-chrome #app aside.fixed+div.fixed," +
       "html.huajaiy-member-chrome #app div.fixed.inset-0.z-9999," +
       "html.huajaiy-member-chrome #app div.fixed.inset-0[class*=\"z-9999\"]{display:none!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1 .mx-auto{" +
-      "max-width:100%!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1>div.mx-auto{" +
+      "max-width:min(100%,1200px)!important;margin-left:auto!important;margin-right:auto!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1>div.mx-auto>div:has(>nav>ol){" +
+      "display:none!important;}" +
+      "html.huajaiy-member-chrome .huajaiy-tailadmin-breadcrumb{display:none!important;}" +
       "html.huajaiy-member-chrome #app{min-height:0!important;}" +
       "html.huajaiy-member-chrome #app .min-h-screen{min-height:100%!important;}";
   }
