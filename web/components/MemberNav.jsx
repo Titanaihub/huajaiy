@@ -171,11 +171,11 @@ export default function MemberNav() {
                 หัวใจแดงห้องเกม
               </Link>
               <Link
-                href="/member/profile"
-                className={`${cls} ${isActivePath(p, "/member/profile") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
+                href="/member"
+                className={`${cls} ${isActivePath(p, "/member") ? "bg-hui-pageTop font-semibold text-hui-section" : ""}`}
                 role="menuitem"
               >
-                ข้อมูลส่วนตัว
+                ข้อมูลส่วนตัว (หน้าใหม่)
               </Link>
               <Link
                 href="/account/profile/legacy"

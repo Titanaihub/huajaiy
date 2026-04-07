@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
+import { useMemberAuth } from "./MemberAuthProvider";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -44,6 +46,8 @@ function normalizeSocialUrl(v) {
  * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
  */
 export default function MemberHomeProfileLanding({ user }) {
+  const { patchProfile } = useMemberAuth();
+  const [savingEdit, setSavingEdit] = useState(false);
   const displayTitle = (() => {
     const t = String(user?.publicPageTitle || "").trim();
     if (t) return t;
@@ -62,7 +66,6 @@ export default function MemberHomeProfileLanding({ user }) {
     String(user?.linePictureUrl || "").trim() ||
     DEFAULT_AVATAR;
 
-  const profileHref = "/member/profile";
   const username = String(user?.username || "").trim();
   const publicHref = username ? publicMemberPath(username) : "";
 
@@ -76,6 +79,85 @@ export default function MemberHomeProfileLanding({ user }) {
   const socialLine = normalizeSocialUrl(user?.socialLineUrl);
   const socialFacebook = normalizeSocialUrl(user?.socialFacebookUrl);
   const socialTiktok = normalizeSocialUrl(user?.socialTiktokUrl);
+
+  async function handleQuickEdit(section) {
+    if (savingEdit) return;
+    try {
+      setSavingEdit(true);
+      if (section === "profile") {
+        const nextTitle = window.prompt("ชื่อแสดงบนโปรไฟล์", String(user?.publicPageTitle || ""));
+        if (nextTitle == null) return;
+        const nextUsername = window.prompt("ยูสเซอร์ (a-z 0-9 _)", String(user?.username || ""));
+        if (nextUsername == null) return;
+        const nextBio = window.prompt("แนะนำตัว", String(user?.publicPageBio || ""));
+        if (nextBio == null) return;
+        await patchProfile({
+          publicPageTitle: nextTitle.trim() || null,
+          username: nextUsername.trim(),
+          publicPageBio: nextBio.trim() || null
+        });
+        return;
+      }
+      if (section === "personal") {
+        const nextFirst = window.prompt("ชื่อ", String(user?.firstName || ""));
+        if (nextFirst == null) return;
+        const nextLast = window.prompt("นามสกุล", String(user?.lastName || ""));
+        if (nextLast == null) return;
+        const nextGender = window.prompt("เพศ", String(user?.gender || ""));
+        if (nextGender == null) return;
+        const nextBirthDate = window.prompt(
+          "วันเกิด (YYYY-MM-DD)",
+          String(user?.birthDate || "")
+        );
+        if (nextBirthDate == null) return;
+        const nextPhone = window.prompt("โทรศัพท์", String(user?.phone || ""));
+        if (nextPhone == null) return;
+        const nextEmail = window.prompt("อีเมล", String(user?.email || ""));
+        if (nextEmail == null) return;
+        await patchProfile({
+          firstName: nextFirst.trim(),
+          lastName: nextLast.trim(),
+          gender: nextGender.trim() || null,
+          birthDate: nextBirthDate.trim() || null,
+          phone: nextPhone.trim(),
+          email: nextEmail.trim() || null
+        });
+        return;
+      }
+      if (section === "address") {
+        const parts = user?.shippingAddressParts || {};
+        const houseNo = window.prompt("บ้านเลขที่", String(parts.houseNo || ""));
+        if (houseNo == null) return;
+        const moo = window.prompt("หมู่", String(parts.moo || ""));
+        if (moo == null) return;
+        const road = window.prompt("ถนน", String(parts.road || ""));
+        if (road == null) return;
+        const subdistrict = window.prompt("ตำบล", String(parts.subdistrict || ""));
+        if (subdistrict == null) return;
+        const district = window.prompt("อำเภอ", String(parts.district || ""));
+        if (district == null) return;
+        const province = window.prompt("จังหวัด", String(parts.province || ""));
+        if (province == null) return;
+        const postalCode = window.prompt("รหัสไปรษณีย์", String(parts.postalCode || ""));
+        if (postalCode == null) return;
+        await patchProfile({
+          shippingAddressParts: {
+            houseNo: houseNo.trim(),
+            moo: moo.trim(),
+            road: road.trim(),
+            subdistrict: subdistrict.trim(),
+            district: district.trim(),
+            province: province.trim(),
+            postalCode: postalCode.trim()
+          }
+        });
+      }
+    } catch (e) {
+      window.alert(e?.message || "บันทึกไม่สำเร็จ");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   return (
     <div className="border-b border-pink-100 bg-white">
@@ -235,15 +317,17 @@ export default function MemberHomeProfileLanding({ user }) {
                   </div>
                 </div>
               </div>
-              <Link
-                href={profileHref}
+              <button
+                type="button"
+                onClick={() => handleQuickEdit("profile")}
                 className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm transition hover:border-pink-300 hover:bg-pink-50 sm:self-auto"
+                disabled={savingEdit}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                แก้ไขโปรไฟล์
-              </Link>
+                {savingEdit ? "กำลังบันทึก…" : "แก้ไขโปรไฟล์"}
+              </button>
             </div>
           </div>
         </div>
@@ -254,12 +338,14 @@ export default function MemberHomeProfileLanding({ user }) {
         <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">โปรไฟล์สมาชิก</h2>
-            <Link
-              href={profileHref}
+            <button
+              type="button"
+              onClick={() => handleQuickEdit("profile")}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+              disabled={savingEdit}
             >
               แก้ไข
-            </Link>
+            </button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-pink-100 bg-pink-50/30 p-3">
@@ -276,12 +362,14 @@ export default function MemberHomeProfileLanding({ user }) {
         <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">ข้อมูลส่วนตัว</h2>
-            <Link
-              href={profileHref}
+            <button
+              type="button"
+              onClick={() => handleQuickEdit("personal")}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+              disabled={savingEdit}
             >
               แก้ไข
-            </Link>
+            </button>
           </div>
           <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
             <div>
@@ -310,12 +398,14 @@ export default function MemberHomeProfileLanding({ user }) {
         <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">ที่อยู่</h2>
-            <Link
-              href={profileHref}
+            <button
+              type="button"
+              onClick={() => handleQuickEdit("address")}
               className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+              disabled={savingEdit}
             >
               แก้ไข
-            </Link>
+            </button>
           </div>
           {hasShipping ? (
             <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">

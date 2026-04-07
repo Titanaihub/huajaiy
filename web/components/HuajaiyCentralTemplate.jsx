@@ -11,7 +11,7 @@ import { publicMemberPath } from "../lib/memberPublicUrls";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 import {
   TAILADMIN_MY_HEARTS_START,
-  TAILADMIN_PROFILE_START,
+  TAILADMIN_SHOP_DASHBOARD_START,
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
 
@@ -227,7 +227,7 @@ export default function HuajaiyCentralTemplate({
     ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
     : "/login";
   const profileHref = memberUser
-    ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
+    ? workspaceShellUrl(TAILADMIN_SHOP_DASHBOARD_START, memberUser.role)
     : "/login";
 
   const heartsPillInner = (

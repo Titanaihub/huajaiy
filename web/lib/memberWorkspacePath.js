@@ -120,7 +120,6 @@ export function memberClosedShellPlaceholderText(slug) {
  * @type {Readonly<Record<string, string>>}
  */
 export const MEMBER_SLUG_TO_TAIL = Object.freeze({
-  profile: TAILADMIN_PROFILE_START,
   prizes: TAILADMIN_MY_PRIZES_START,
   hearts: TAILADMIN_MY_HEARTS_START,
   "pink-history": TAILADMIN_PINK_HISTORY_START,

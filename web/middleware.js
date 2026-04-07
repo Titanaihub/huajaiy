@@ -89,7 +89,7 @@ export function middleware(request) {
     pathname.startsWith("/account/profile/legacy/")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = pathname.replace(/^\/account\/profile\/legacy/, "/member/profile");
+    url.pathname = pathname.replace(/^\/account\/profile\/legacy/, "/member");
     return NextResponse.redirect(url, 308);
   }
 

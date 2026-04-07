@@ -67,7 +67,6 @@ const MEMBER_FIRST = new Set([
   "pink-history",
   "hearts",
   "hearts-top-up",
-  "profile",
   "prizes",
   "game",
   "game-studio",

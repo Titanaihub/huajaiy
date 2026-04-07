@@ -6,7 +6,6 @@ import {
   TAILADMIN_MY_ORDERS_START,
   TAILADMIN_MY_PRIZES_START,
   TAILADMIN_MY_SHOPS_START,
-  TAILADMIN_PROFILE_START,
   TAILADMIN_PRIZE_WITHDRAW_START,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "./memberWorkspacePath";
@@ -25,7 +24,6 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     kind: "shell",
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
-  { key: "profile", label: "โปรไฟล์", kind: "shell", tailStart: TAILADMIN_PROFILE_START },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
   { key: "hearts", label: "หัวใจแดงห้องเกม", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },

@@ -16,7 +16,7 @@ import {
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
 import { getMemberToken } from "../lib/memberApi";
-import HomeStylePublicHeader from "./HomeStylePublicHeader";
+import HuajaiyCentralTemplate from "./HuajaiyCentralTemplate";
 import MemberHomeProfileLanding from "./MemberHomeProfileLanding";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -168,17 +168,17 @@ export default function MemberTailadminWorkspace() {
   const isMemberRoot = parsed.segments.length === 0;
   if (isMemberRoot) {
     return (
-      <div className="flex min-h-dvh w-full flex-col bg-slate-100">
-        <HomeStylePublicHeader
-          onHamburgerClick={toggleIframeSidebar}
-          lineProfileImageUrl={user.linePictureUrl || undefined}
-          profileDisplayName={
-            [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-            "สมาชิก"
-          }
-        />
+      <HuajaiyCentralTemplate
+        onHamburgerClick={toggleIframeSidebar}
+        lineProfileImageUrl={user.linePictureUrl || undefined}
+        profileDisplayName={
+          [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+          "สมาชิก"
+        }
+        mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
+      >
         <MemberHomeProfileLanding user={user} />
-      </div>
+      </HuajaiyCentralTemplate>
     );
   }
 
