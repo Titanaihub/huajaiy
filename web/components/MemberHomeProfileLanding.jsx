@@ -8,6 +8,30 @@ const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
 
+function formatBirthDate(v) {
+  if (!v) return "ยังไม่ได้กรอก";
+  try {
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return "ยังไม่ได้กรอก";
+    return d.toLocaleDateString("th-TH", { dateStyle: "long" });
+  } catch {
+    return "ยังไม่ได้กรอก";
+  }
+}
+
+function shippingRows(parts) {
+  if (!parts || typeof parts !== "object") return [];
+  return [
+    ["บ้านเลขที่", parts.houseNo],
+    ["หมู่", parts.moo],
+    ["ถนน", parts.road],
+    ["ตำบล", parts.subdistrict],
+    ["อำเภอ", parts.district],
+    ["จังหวัด", parts.province],
+    ["รหัสไปรษณีย์", parts.postalCode]
+  ];
+}
+
 /**
  * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
  * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
@@ -39,6 +63,9 @@ export default function MemberHomeProfileLanding({ user }) {
   const pinkShown = hearts.pink;
   const redFromUsersShown = hearts.redFromUsers;
   const giveawayRedShown = hearts.giveawayRed;
+  const shipping = shippingRows(user?.shippingAddressParts);
+  const hasShipping = shipping.some(([, v]) => String(v || "").trim() !== "");
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "สมาชิก";
 
   return (
     <div className="border-b border-pink-100 bg-white">
@@ -171,6 +198,89 @@ export default function MemberHomeProfileLanding({ user }) {
               </Link>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ข้อมูลโปรไฟล์ — ย้ายจากหน้าโปรไฟล์มาไว้หน้า /member */}
+      <div className="mx-auto max-w-[960px] px-3 pb-6 sm:px-5">
+        <div className="space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-neutral-900">โปรไฟล์สมาชิก</h2>
+            <Link
+              href={profileHref}
+              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+            >
+              แก้ไข
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-pink-100 bg-pink-50/30 p-3">
+              <p className="text-xs text-neutral-500">ชื่อแสดงบนโปรไฟล์</p>
+              <p className="mt-1 font-semibold text-neutral-900">{displayTitle}</p>
+            </div>
+            <div className="rounded-xl border border-pink-100 bg-pink-50/30 p-3">
+              <p className="text-xs text-neutral-500">ยูสเซอร์</p>
+              <p className="mt-1 font-semibold text-neutral-900">{username ? `@${username}` : "ยังไม่ได้ตั้งค่า"}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-neutral-900">ข้อมูลส่วนตัว</h2>
+            <Link
+              href={profileHref}
+              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+            >
+              แก้ไข
+            </Link>
+          </div>
+          <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-neutral-500">ชื่อ–นามสกุล</p>
+              <p className="font-semibold text-neutral-900">{fullName}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">เพศ</p>
+              <p className="font-semibold text-neutral-900">{user?.gender || "ยังไม่ได้กรอก"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">วันเกิด</p>
+              <p className="font-semibold text-neutral-900">{formatBirthDate(user?.birthDate)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500">โทรศัพท์</p>
+              <p className="font-semibold text-neutral-900">{user?.phone || "ยังไม่ได้กรอก"}</p>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs text-neutral-500">อีเมล</p>
+              <p className="font-semibold text-neutral-900">{user?.email || "ยังไม่ได้กรอก"}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-neutral-900">ที่อยู่</h2>
+            <Link
+              href={profileHref}
+              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
+            >
+              แก้ไข
+            </Link>
+          </div>
+          {hasShipping ? (
+            <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+              {shipping.map(([label, value]) => (
+                <div key={label}>
+                  <p className="text-xs text-neutral-500">{label}</p>
+                  <p className="font-semibold text-neutral-900">{String(value || "—")}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-500">ยังไม่ได้กรอกที่อยู่</p>
+          )}
         </div>
       </div>
 
