@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   apiCancelPrizeWithdrawalRequest,
+  apiGetMyCentralPrizeAwards,
   apiGetMyPrizeWithdrawals,
   apiGetPrizeWithdrawalAvailable,
   apiPostPrizeWithdrawalRequest,
@@ -35,6 +36,11 @@ export default function PrizeWithdrawForm() {
     () => parseRefCreator(searchParams.get("ref")),
     [searchParams]
   );
+  const [pickedCreator, setPickedCreator] = useState("");
+  const [creatorChoices, setCreatorChoices] = useState([]);
+  const [creatorLoading, setCreatorLoading] = useState(false);
+  const [creatorErr, setCreatorErr] = useState("");
+  const effectiveCreator = refCreator || pickedCreator;
 
   const [avail, setAvail] = useState(null);
   const [availErr, setAvailErr] = useState("");
@@ -60,14 +66,14 @@ export default function PrizeWithdrawForm() {
 
   const loadAvail = useCallback(async () => {
     const token = getMemberToken();
-    if (!token || !refCreator) {
+    if (!token || !effectiveCreator) {
       setAvail(null);
       return;
     }
     setLoadingAvail(true);
     setAvailErr("");
     try {
-      const data = await apiGetPrizeWithdrawalAvailable(token, refCreator);
+      const data = await apiGetPrizeWithdrawalAvailable(token, effectiveCreator);
       setAvail(data);
     } catch (e) {
       setAvail(null);
@@ -75,11 +81,11 @@ export default function PrizeWithdrawForm() {
     } finally {
       setLoadingAvail(false);
     }
-  }, [refCreator]);
+  }, [effectiveCreator]);
 
   const loadWithdrawals = useCallback(async () => {
     const token = getMemberToken();
-    if (!token || !refCreator) {
+    if (!token || !effectiveCreator) {
       setWithdrawals([]);
       return;
     }
@@ -87,7 +93,7 @@ export default function PrizeWithdrawForm() {
     try {
       const data = await apiGetMyPrizeWithdrawals(token);
       const list = Array.isArray(data.withdrawals) ? data.withdrawals : [];
-      const cu = refCreator.toLowerCase();
+      const cu = effectiveCreator.toLowerCase();
       setWithdrawals(
         list.filter(
           (w) => String(w.creatorUsername || "").trim().toLowerCase() === cu
@@ -98,13 +104,52 @@ export default function PrizeWithdrawForm() {
     } finally {
       setLoadingWd(false);
     }
-  }, [refCreator]);
+  }, [effectiveCreator]);
+
+  const loadCreatorChoices = useCallback(async () => {
+    const token = getMemberToken();
+    if (!token || refCreator) return;
+    setCreatorLoading(true);
+    setCreatorErr("");
+    try {
+      const data = await apiGetMyCentralPrizeAwards(token);
+      const awards = Array.isArray(data.awards) ? data.awards : [];
+      const cash = awards.filter((a) => String(a?.prizeCategory || "") === "cash");
+      const byRecent = [...cash].sort(
+        (a, b) => new Date(b?.wonAt || 0).getTime() - new Date(a?.wonAt || 0).getTime()
+      );
+      const seen = new Set();
+      const choices = [];
+      for (const a of byRecent) {
+        const cu = parseRefCreator(a?.creatorUsername);
+        if (!cu || seen.has(cu)) continue;
+        seen.add(cu);
+        choices.push(cu);
+      }
+      setCreatorChoices(choices);
+      if (!pickedCreator && choices.length > 0) {
+        setPickedCreator(choices[0]);
+      }
+    } catch (e) {
+      setCreatorErr(e?.message || "โหลดผู้สร้างเกมไม่สำเร็จ");
+      setCreatorChoices([]);
+    } finally {
+      setCreatorLoading(false);
+    }
+  }, [refCreator, pickedCreator]);
 
   useEffect(() => {
     if (authLoading || !user) return;
     void loadAvail();
     void loadWithdrawals();
   }, [authLoading, user, loadAvail, loadWithdrawals]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    if (!refCreator) {
+      void loadCreatorChoices();
+    }
+  }, [authLoading, user, refCreator, loadCreatorChoices]);
 
   async function handleCancelRequest(id) {
     const token = getMemberToken();
@@ -133,7 +178,7 @@ export default function PrizeWithdrawForm() {
       setSubmitErr("กรุณาเข้าสู่ระบบ");
       return;
     }
-    if (!refCreator) {
+    if (!effectiveCreator) {
       setSubmitErr("ไม่พบผู้สร้างเกม — เปิดหน้านี้จากลิงก์ในหน้ารางวัลของฉัน");
       return;
     }
@@ -159,7 +204,7 @@ export default function PrizeWithdrawForm() {
     setBusy(true);
     try {
       const res = await apiPostPrizeWithdrawalRequest(token, {
-        creatorUsername: refCreator,
+        creatorUsername: effectiveCreator,
         amountThb: amt,
         accountHolderName: accountHolderName.trim(),
         accountNumber: an,
@@ -195,16 +240,37 @@ export default function PrizeWithdrawForm() {
     );
   }
 
-  if (!refCreator) {
+  if (!effectiveCreator) {
     return (
       <div className="rounded-xl border border-hui-border bg-hui-pageTop px-4 py-4 text-sm text-hui-body">
-        <p className="font-medium text-hui-section">ไม่พบข้อมูลผู้สร้างเกม</p>
-        <p className="mt-2">
-          เปิดหน้านี้จากปุ่ม「ถอนเงินรางวัล」ในหน้า{" "}
-          <Link href="/account/prizes" className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
-            รางวัลของฉัน
-          </Link>
-        </p>
+        <p className="font-medium text-hui-section">เลือกผู้สร้างเกมที่จะถอนเงินรางวัล</p>
+        {creatorLoading ? <p className="mt-2 text-hui-muted">กำลังโหลดรายการ…</p> : null}
+        {creatorErr ? (
+          <p className="mt-2 text-red-700" role="alert">
+            {creatorErr}
+          </p>
+        ) : null}
+        {creatorChoices.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {creatorChoices.map((cu) => (
+              <button
+                key={cu}
+                type="button"
+                onClick={() => setPickedCreator(cu)}
+                className="rounded-xl border border-hui-border bg-white px-3 py-1.5 text-sm font-semibold text-hui-section hover:bg-hui-pageTop"
+              >
+                @{cu}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2">
+            ยังไม่พบรางวัลเงินสดสำหรับถอน — ดูรายละเอียดที่{" "}
+            <Link href="/member/prizes" className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+              รางวัลของฉัน
+            </Link>
+          </p>
+        )}
       </div>
     );
   }
@@ -214,7 +280,7 @@ export default function PrizeWithdrawForm() {
       <div>
         <h2 className="text-lg font-semibold text-hui-section">ถอนเงินรางวัล (เงินสด)</h2>
         <p className="mt-1 text-sm text-hui-body">
-          คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-hui-cta">@{refCreator}</span>{" "}
+          คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-hui-cta">@{effectiveCreator}</span>{" "}
           เพื่อโอนเงิน — หลังจ่ายแล้วผู้สร้างจะกดอนุมัติในระบบ
         </p>
       </div>
@@ -252,7 +318,7 @@ export default function PrizeWithdrawForm() {
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
-              href="/account/prizes"
+              href="/member/prizes"
               className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
             >
               กลับหน้ารางวัลของฉัน
@@ -261,7 +327,7 @@ export default function PrizeWithdrawForm() {
               type="button"
               onClick={() => {
                 setDone(false);
-                router.push("/account/prizes");
+                router.push("/member/prizes");
               }}
               className="text-sm font-semibold text-hui-body underline"
             >
@@ -361,7 +427,7 @@ export default function PrizeWithdrawForm() {
       <PrizeWithdrawalHistoryTable
         withdrawals={withdrawals}
         loading={loadingWd}
-        creatorRefLabel={refCreator}
+        creatorRefLabel={effectiveCreator}
         onRefresh={loadWithdrawals}
         allowCancel
         onCancelRequest={handleCancelRequest}
