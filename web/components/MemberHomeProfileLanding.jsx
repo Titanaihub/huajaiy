@@ -308,6 +308,8 @@ export default function MemberHomeProfileLanding({ user }) {
                 <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจชมพู</p>
                 <Link
                   href={HEART_HISTORY_PINK}
+                  title="เปิดประวัติหัวใจชมพู (วันที่ รายการ จำนวน คงเหลือ)"
+                  aria-label="ประวัติหัวใจชมพู"
                   className="shrink-0 pt-0.5 text-sm font-semibold text-pink-600 underline-offset-2 hover:text-pink-700 hover:underline"
                 >
                   ประวัติ
@@ -333,6 +335,8 @@ export default function MemberHomeProfileLanding({ user }) {
                 <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจแดง</p>
                 <Link
                   href={HEART_HISTORY_RED_WALLET}
+                  title="เปิดประวัติหัวใจแดง (กระเป๋าและห้อง)"
+                  aria-label="ประวัติหัวใจแดง กระเป๋าและห้อง"
                   className="shrink-0 pt-0.5 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
                 >
                   ประวัติ
@@ -364,6 +368,8 @@ export default function MemberHomeProfileLanding({ user }) {
                 <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจแดงสำหรับแจก</p>
                 <Link
                   href={HEART_HISTORY_GIVEAWAY}
+                  title="เปิดประวัติหัวใจแดงสำหรับแจก"
+                  aria-label="ประวัติหัวใจแดงสำหรับแจก"
                   className="shrink-0 pt-0.5 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
                 >
                   ประวัติ
