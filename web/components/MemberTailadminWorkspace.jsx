@@ -1,23 +1,18 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-const MEMBER_GAME_UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { getApiBase } from "../lib/config";
+import { useEffect, useMemo } from "react";
 import {
   isMemberShellIframeClosedSlug,
   memberAppPathForTail,
   memberClosedShellPlaceholderText,
   memberTailPathFromSlug,
-  normalizeMemberTailPath,
   parseMemberAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
-import { getMemberToken } from "../lib/memberApi";
 import HuajaiyCentralTemplate from "./HuajaiyCentralTemplate";
 import MemberHomeProfileLanding from "./MemberHomeProfileLanding";
+import MemberWorkspaceMainPanels from "./MemberWorkspaceMainPanels";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { memberShellLabelForSlug } from "../lib/memberSidebarNav";
 
@@ -30,13 +25,13 @@ function legacyTailFromQuery(raw) {
   return s.startsWith("/") ? s : `/${s}`;
 }
 
-/** พื้นที่สมาชิก production — หัวเว็บ + TailAdmin iframe (URL สวย /member/shops) */
+function noopHamburger() {}
+
+/** พื้นที่สมาชิก production — หัวเว็บ + เนื้อหา React ใต้ HuajaiyCentralTemplate (ไม่ใช้ iframe) */
 export default function MemberTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const iframeRef = useRef(null);
 
   const parsed = useMemo(() => parseMemberAppPath(pathname), [pathname]);
 
@@ -54,6 +49,7 @@ export default function MemberTailadminWorkspace() {
     return memberTailPathFromSlug(parsed.segments[0]);
   }, [parsed]);
 
+  const searchParams = useSearchParams();
   const legacyStart = searchParams.get("huajaiy_start");
   const hasLegacyQuery =
     legacyStart != null && String(legacyStart).trim() !== "";
@@ -76,64 +72,12 @@ export default function MemberTailadminWorkspace() {
     }
   }, [parsed, tailForIframe, closedShellSlug, user, router]);
 
-  const iframeSrc = useMemo(() => {
-    const start =
-      tailForIframe == null
-        ? TAILADMIN_SHOP_DASHBOARD_START
-        : normalizeMemberTailPath(tailForIframe);
-    let src = `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
-    const gameQ = searchParams.get("game");
-    if (gameQ && MEMBER_GAME_UUID_RE.test(String(gameQ).trim())) {
-      src += `&member_game=${encodeURIComponent(String(gameQ).trim())}`;
-    }
-    return src;
-  }, [tailForIframe, searchParams]);
-
-  const postToIframe = useCallback((payload) => {
-    const w = iframeRef.current?.contentWindow;
-    if (!w) return;
-    try {
-      w.postMessage(payload, window.location.origin);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const toggleIframeSidebar = useCallback(() => {
-    postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
-  }, [postToIframe]);
-
-  const pushMemberToIframe = useCallback(() => {
-    if (!user) return;
-    postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
-    const token = typeof window !== "undefined" ? getMemberToken() : null;
-    postToIframe({
-      type: "HUAJAIY_MEMBER",
-      apiBase: getApiBase(),
-      user,
-      shellPlaceholderText: closedShellSlug
-        ? memberClosedShellPlaceholderText(closedShellSlug)
-        : "",
-      ...(token ? { token } : {})
-    });
-  }, [user, postToIframe, closedShellSlug]);
-
   useEffect(() => {
     if (loading) return;
     if (!user) {
       router.replace("/login");
     }
   }, [loading, user, router]);
-
-  useEffect(() => {
-    if (!user) return;
-    pushMemberToIframe();
-    const delays = [80, 200, 500, 1200, 2800];
-    const ids = delays.map((ms) =>
-      window.setTimeout(() => pushMemberToIframe(), ms)
-    );
-    return () => ids.forEach((id) => window.clearTimeout(id));
-  }, [user, pushMemberToIframe, iframeSrc, closedShellSlug]);
 
   if (loading || !user) {
     return (
@@ -170,54 +114,48 @@ export default function MemberTailadminWorkspace() {
     );
   }
 
-  /** `/member` เท่านั้น — หน้าโปรไฟล์รวมแบบใหม่ */
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ").trim() || "สมาชิก";
+
+  const templateShell = (children, pinkBarMenuLabel) => (
+    <HuajaiyCentralTemplate
+      onHamburgerClick={noopHamburger}
+      lineProfileImageUrl={user.linePictureUrl || undefined}
+      profileDisplayName={displayName}
+      pinkBarMenuLabel={pinkBarMenuLabel}
+      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
+    >
+      {children}
+    </HuajaiyCentralTemplate>
+  );
+
+  /** `/member` — ภาพรวมบัญชี */
   const isMemberRoot = parsed.segments.length === 0;
   if (isMemberRoot) {
-    return (
-      <HuajaiyCentralTemplate
-        onHamburgerClick={toggleIframeSidebar}
-        lineProfileImageUrl={user.linePictureUrl || undefined}
-        profileDisplayName={
-          [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-          "สมาชิก"
-        }
-        pinkBarMenuLabel="ข้อมูลสมาชิก"
-        mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
-      >
-        <MemberHomeProfileLanding user={user} />
-      </HuajaiyCentralTemplate>
+    return templateShell(
+      <MemberHomeProfileLanding user={user} />,
+      "ข้อมูลสมาชิก"
     );
   }
 
   const shellSlug = parsed.segments[0] || "";
   const sectionLabel = memberShellLabelForSlug(shellSlug);
 
-  return (
-    <HuajaiyCentralTemplate
-      onHamburgerClick={toggleIframeSidebar}
-      lineProfileImageUrl={user.linePictureUrl || undefined}
-      profileDisplayName={
-        [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-        "สมาชิก"
-      }
-      pinkBarMenuLabel={sectionLabel || undefined}
-      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#fce7f3]/45"
-    >
-      <div
-        className="flex min-h-0 w-full min-w-0 flex-1 flex-col"
-        aria-label="ระบบสมาชิก"
-      >
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-transparent">
-          <iframe
-            key={iframeSrc}
-            ref={iframeRef}
-            title={`ระบบสมาชิก HUAJAIY — ${sectionLabel || shellSlug || "สมาชิก"}`}
-            src={iframeSrc}
-            className="absolute inset-0 h-full w-full min-h-0 border-0"
-            onLoad={pushMemberToIframe}
-          />
-        </div>
-      </div>
-    </HuajaiyCentralTemplate>
+  if (closedShellSlug) {
+    return templateShell(
+      <div className="mx-auto flex min-h-[40vh] w-full max-w-[1200px] flex-1 items-center justify-center px-3 py-10 sm:px-5">
+        <p className="text-center text-lg font-semibold text-slate-700">
+          {memberClosedShellPlaceholderText(closedShellSlug)}
+        </p>
+      </div>,
+      sectionLabel || undefined
+    );
+  }
+
+  return templateShell(
+    <div className="mx-auto w-full max-w-[1200px] flex-1 min-h-0 overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
+      <MemberWorkspaceMainPanels slug={shellSlug} />
+    </div>,
+    sectionLabel || undefined
   );
 }
