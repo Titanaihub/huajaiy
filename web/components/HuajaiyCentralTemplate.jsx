@@ -104,7 +104,7 @@ export function IconShare({ className }) {
 }
 
 /**
- * โครงหน้าแบบกลาง: แถบบน + แถบไล่เฉดชมพู–ม่วง (150px เต็มความกว้าง) + เนื้อหา + ฟุตเตอร์
+ * โครงหน้าแบบกลาง: แถบบน + แถบไล่เฉดชมพูบานเย็นอ่อนผสมเทา (150px) + เนื้อหา + ฟุตเตอร์
  */
 export default function HuajaiyCentralTemplate({
   children,
@@ -427,9 +427,9 @@ export default function HuajaiyCentralTemplate({
         </div>
       </header>
 
-      {/* แถบตกแต่งเทมเพลตกลาง — ยาวเต็มแทมเพลต ไล่สีชมพู → ม่วง */}
+      {/* แถบตกแต่ง — ชมพูบานเย็นอ่อนเป็นหลัก ปลายไล่เทาอ่อน */}
       <div
-        className="h-[150px] w-full shrink-0 bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-600"
+        className="h-[150px] w-full shrink-0 bg-[linear-gradient(90deg,#fff7f9_0%,#fce7f3_32%,#f8d7e4_62%,#ebe6e8_100%)]"
         aria-hidden
       />
 
