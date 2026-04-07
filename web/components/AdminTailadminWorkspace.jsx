@@ -1,23 +1,20 @@
 "use client";
 
+import { Suspense, useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { getApiBase } from "../lib/config";
 import {
   adminAppPathForTail,
-  adminDashTabFromSlug,
   isAdminDashboardShellSlug,
   isMemberShellIframeClosedSlug,
-  isValidAdminDashboardTabKey,
   memberClosedShellPlaceholderText,
   memberTailPathFromSlug,
-  normalizeMemberTailPath,
   parseAdminAppPath,
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
-import { getMemberToken } from "../lib/memberApi";
 import { adminPinkBarMenuLabelFromPathname } from "../lib/memberSidebarNav";
+import AdminDashboard from "./AdminDashboard";
 import HuajaiyCentralTemplate from "./HuajaiyCentralTemplate";
+import MemberWorkspaceMainPanels from "./MemberWorkspaceMainPanels";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function legacyTailFromQuery(raw) {
@@ -29,17 +26,14 @@ function legacyTailFromQuery(raw) {
   return s.startsWith("/") ? s : `/${s}`;
 }
 
-/**
- * ฝังแผง React (AdminDashboard) จาก /admin/embed/panel เฉพาะหน้า «ภาพรวม» (/admin) — หน้าย่อยใช้ Vue เต็มพื้นที่
- */
-const SHOW_LEGACY_ADMIN_PANEL_EMBED = true;
+function noopHamburger() {}
 
+/** พื้นที่แอดมิน — HuajaiyCentralTemplate + แผง React (ไม่ใช้ TailAdmin iframe) */
 export default function AdminTailadminWorkspace() {
   const { user, loading } = useMemberAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const iframeRef = useRef(null);
 
   const parsed = useMemo(() => parseAdminAppPath(pathname), [pathname]);
 
@@ -91,79 +85,6 @@ export default function AdminTailadminWorkspace() {
     }
   }, [parsed, tailForIframe, closedShellSlug, user, router]);
 
-  const iframeSrc = useMemo(() => {
-    const start =
-      tailForIframe == null
-        ? TAILADMIN_SHOP_DASHBOARD_START
-        : normalizeMemberTailPath(tailForIframe);
-    return `/tailadmin-template/?huajaiy_start=${encodeURIComponent(start)}`;
-  }, [tailForIframe]);
-
-  const showLegacyEmbed = useMemo(() => {
-    if (!parsed) return false;
-    if (parsed.segments.length === 0) return SHOW_LEGACY_ADMIN_PANEL_EMBED;
-    if (parsed.segments.length === 1 && isAdminDashboardShellSlug(parsed.segments[0])) {
-      return SHOW_LEGACY_ADMIN_PANEL_EMBED;
-    }
-    return false;
-  }, [parsed]);
-
-  const resolvedEmbedTab = useMemo(() => {
-    if (parsed && parsed.segments.length === 1) {
-      const fromPath = adminDashTabFromSlug(parsed.segments[0]);
-      if (fromPath) return fromPath;
-    }
-    const q = searchParams.get("tab");
-    if (q && isValidAdminDashboardTabKey(q)) return q;
-    return "members";
-  }, [parsed, searchParams]);
-
-  const panelUrl = useMemo(() => {
-    if (typeof window === "undefined") return "";
-    const qs = new URLSearchParams(searchParams.toString());
-    qs.set("tab", resolvedEmbedTab);
-    const qstr = qs.toString();
-    return `${window.location.origin}/admin/embed/panel?${qstr}`;
-  }, [searchParams, resolvedEmbedTab]);
-
-  const postToIframe = useCallback((payload) => {
-    const w = iframeRef.current?.contentWindow;
-    if (!w) return;
-    try {
-      w.postMessage(payload, window.location.origin);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const toggleIframeSidebar = useCallback(() => {
-    postToIframe({ type: "HUAJAIY_TOGGLE_SIDEBAR" });
-  }, [postToIframe]);
-
-  const syncIframe = useCallback(() => {
-    if (!user) return;
-    postToIframe({ type: "HUAJAIY_MEMBER_CHROME" });
-    const token = typeof window !== "undefined" ? getMemberToken() : null;
-    postToIframe({
-      type: "HUAJAIY_MEMBER",
-      apiBase: getApiBase(),
-      user,
-      shellPlaceholderText: closedShellSlug
-        ? memberClosedShellPlaceholderText(closedShellSlug)
-        : "",
-      ...(token ? { token } : {})
-    });
-    if (
-      user.role === "admin" &&
-      showLegacyEmbed &&
-      panelUrl
-    ) {
-      postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: panelUrl });
-    } else {
-      postToIframe({ type: "HUAJAIY_ADMIN_EMBED", url: "" });
-    }
-  }, [user, panelUrl, postToIframe, showLegacyEmbed, closedShellSlug]);
-
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -174,11 +95,6 @@ export default function AdminTailadminWorkspace() {
       router.replace("/member");
     }
   }, [loading, user, router]);
-
-  useEffect(() => {
-    if (!user || loading) return;
-    syncIframe();
-  }, [user, loading, panelUrl, syncIframe, iframeSrc, closedShellSlug]);
 
   if (loading || !user) {
     return (
@@ -196,34 +112,87 @@ export default function AdminTailadminWorkspace() {
     );
   }
 
-  const isAdmin = user.role === "admin";
+  if (hasLegacyQuery) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
+        กำลังเปลี่ยนเส้นทาง…
+      </main>
+    );
+  }
+
+  if (!parsed) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
+        กำลังโหลด…
+      </main>
+    );
+  }
+
+  if (
+    parsed.segments.length > 1 ||
+    (parsed.segments.length === 1 && tailForIframe === null && !closedShellSlug)
+  ) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
+        กำลังไปหน้าแอดมิน…
+      </main>
+    );
+  }
+
   const displayName =
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.username ||
-    (isAdmin ? "แอดมิน" : "สมาชิก");
+    "แอดมิน";
 
-  const shellSlug = parsed?.segments?.[0] || "";
-
-  return (
+  const templateShell = (children) => (
     <HuajaiyCentralTemplate
-      onHamburgerClick={toggleIframeSidebar}
+      onHamburgerClick={noopHamburger}
       lineProfileImageUrl={user.linePictureUrl || undefined}
       profileDisplayName={displayName}
       pinkBarMenuLabel={pinkBarLabel}
-      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#fce7f3]/45"
+      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
     >
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-transparent">
-          <iframe
-            key={iframeSrc}
-            ref={iframeRef}
-            title={`ระบบแอดมิน HUAJAIY — ${pinkBarLabel}${shellSlug ? ` · ${shellSlug}` : ""}`}
-            src={iframeSrc}
-            className="absolute inset-0 h-full w-full min-h-0 border-0"
-            onLoad={syncIframe}
-          />
-        </div>
-      </div>
+      {children}
     </HuajaiyCentralTemplate>
+  );
+
+  /** แผงแอดมิน React — /admin หรือ /admin/members ฯลฯ */
+  const isAdminDashRoute =
+    parsed.segments.length === 0 ||
+    (parsed.segments.length === 1 &&
+      isAdminDashboardShellSlug(parsed.segments[0]));
+
+  if (isAdminDashRoute) {
+    return templateShell(
+      <div className="mx-auto w-full max-w-[1200px] flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-5 sm:py-6">
+        <Suspense
+          fallback={
+            <p className="text-sm text-slate-600" aria-live="polite">
+              กำลังโหลดแผงแอดมิน…
+            </p>
+          }
+        >
+          <AdminDashboard />
+        </Suspense>
+      </div>
+    );
+  }
+
+  const shellSlug = parsed.segments[0] || "";
+
+  if (closedShellSlug) {
+    return templateShell(
+      <div className="mx-auto flex min-h-[40vh] w-full max-w-[1200px] flex-1 items-center justify-center px-3 py-10 sm:px-5">
+        <p className="text-center text-lg font-semibold text-slate-700">
+          {memberClosedShellPlaceholderText(closedShellSlug)}
+        </p>
+      </div>
+    );
+  }
+
+  return templateShell(
+    <div className="mx-auto w-full max-w-[1200px] flex-1 min-h-0 overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
+      <MemberWorkspaceMainPanels slug={shellSlug} />
+    </div>
   );
 }

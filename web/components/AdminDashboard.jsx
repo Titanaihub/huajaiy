@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
@@ -24,7 +24,11 @@ import {
   apiAdminCreateShop,
   apiAdminGame
 } from "../lib/rolesApi";
-import { adminShellPathForTab } from "../lib/memberWorkspacePath";
+import {
+  adminDashTabFromSlug,
+  adminShellPathForTab,
+  parseAdminAppPath
+} from "../lib/memberWorkspacePath";
 
 const PAGE_SIZE = 25;
 
@@ -78,6 +82,7 @@ function roleLabel(role) {
 }
 
 export default function AdminDashboard() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState("members");
 
@@ -139,11 +144,19 @@ export default function AdminDashboard() {
   const [shopCreateMsg, setShopCreateMsg] = useState("");
 
   useEffect(() => {
+    const p = parseAdminAppPath(pathname || "");
+    if (p?.segments?.length === 1) {
+      const fromSlug = adminDashTabFromSlug(p.segments[0]);
+      if (fromSlug && ADMIN_TAB_KEYS.includes(fromSlug)) {
+        setTab(fromSlug);
+        return;
+      }
+    }
     const tabParam = searchParams.get("tab");
     if (tabParam && ADMIN_TAB_KEYS.includes(tabParam)) {
       setTab(tabParam);
     }
-  }, [searchParams]);
+  }, [searchParams, pathname]);
 
   /** @type {null | { ok: boolean, heartCost: number, legacy: object, central: object | null, persistenceNote?: string }} */
   const [gameInfo, setGameInfo] = useState(null);

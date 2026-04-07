@@ -1,10 +1,10 @@
 /** ระบบสมาชิกหลัก (iframe TailAdmin) — หลังล็อกอิน · URL นี้ = เมนู «ภาพรวมบัญชี» (Vue /) */
 export const MEMBER_WORKSPACE_PATH = "/member";
 
-/** เชลล์แอดมิน (TailAdmin iframe + แผง React ฝังเมื่ออยู่ภาพรวม) */
+/** เชลล์แอดมิน — HuajaiyCentralTemplate + แผง React */
 export const ADMIN_WORKSPACE_PATH = "/admin";
 
-/** หลังล็อกอินแอดมิน — ใช้ `/admin` (แผง React ฝังจาก `/admin/embed/panel` ภายใน iframe) */
+/** หลังล็อกอินแอดมิน — `/admin` (แผง React โดยตรง) */
 export const ADMIN_HOME_PATH = "/admin";
 
 /** แผง React เต็มหน้าจอ (ลิงก์ตรง / บุ๊กมาร์กเก่า) */
@@ -42,7 +42,7 @@ export function adminShellPathForTab(tabKey) {
   return `${ADMIN_WORKSPACE_PATH}/${slug}`;
 }
 
-/** ใช้ฝังแผง React บนเชลล์ /admin (ไม่ใช่เมนู Vue) */
+/** slug ใต้ `/admin/{slug}` สำหรับแท็บ AdminDashboard */
 export function isAdminDashboardShellSlug(slug) {
   if (slug == null) return false;
   return String(slug).trim().toLowerCase() in ADMIN_DASH_SLUG_TO_TAB;
