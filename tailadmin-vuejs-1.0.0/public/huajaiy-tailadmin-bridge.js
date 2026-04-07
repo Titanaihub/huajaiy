@@ -873,6 +873,11 @@
         } catch (e) {
           /* ignore */
         }
+        try {
+          window.dispatchEvent(new CustomEvent("huajaiy-member-token-ready"));
+        } catch (e2) {
+          /* ignore */
+        }
       }
       if (d.shellPlaceholderText !== undefined) {
         shellPlaceholderText =

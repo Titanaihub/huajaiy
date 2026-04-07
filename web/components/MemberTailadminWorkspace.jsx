@@ -128,6 +128,11 @@ export default function MemberTailadminWorkspace() {
   useEffect(() => {
     if (!user) return;
     pushMemberToIframe();
+    const delays = [80, 200, 500, 1200, 2800];
+    const ids = delays.map((ms) =>
+      window.setTimeout(() => pushMemberToIframe(), ms)
+    );
+    return () => ids.forEach((id) => window.clearTimeout(id));
   }, [user, pushMemberToIframe, iframeSrc, closedShellSlug]);
 
   if (loading || !user) {

@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { PrizeAward, PrizeWithdrawalRow } from '@/utils/memberPrizeUtils'
 import { groupAwardsByCreator, groupItemAwardsByCreatorAndPrize } from '@/utils/memberPrizeUtils'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
@@ -167,7 +167,30 @@ async function loadAll() {
   }
 }
 
+function onBridgeUser() {
+  void loadAll()
+}
+
+function onBridgeTokenReady() {
+  void loadAll()
+}
+
+let retryTimers: ReturnType<typeof setTimeout>[] = []
+
 onMounted(() => {
   void loadAll()
+  /* parent ส่ง JWT หลัง iframe load — โหลดซ้ำเมื่อ bridge ใส่ token / ส่ง user */
+  window.addEventListener('huajaiy-member-user', onBridgeUser)
+  window.addEventListener('huajaiy-member-token-ready', onBridgeTokenReady)
+  retryTimers = [80, 250, 600, 1500].map((ms) =>
+    window.setTimeout(() => void loadAll(), ms)
+  )
+})
+
+onUnmounted(() => {
+  window.removeEventListener('huajaiy-member-user', onBridgeUser)
+  window.removeEventListener('huajaiy-member-token-ready', onBridgeTokenReady)
+  retryTimers.forEach((id) => window.clearTimeout(id))
+  retryTimers = []
 })
 </script>
