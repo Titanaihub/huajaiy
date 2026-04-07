@@ -70,10 +70,8 @@ export default function MemberHomeProfileLanding({ user }) {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editPersonalOpen, setEditPersonalOpen] = useState(false);
   const [editAddressOpen, setEditAddressOpen] = useState(false);
-  const [editPasswordOpen, setEditPasswordOpen] = useState(false);
 
   const [profileDraft, setProfileDraft] = useState({
-    publicPageBio: "",
     username: "",
     socialLineUrl: "",
     socialFacebookUrl: "",
@@ -97,13 +95,10 @@ export default function MemberHomeProfileLanding({ user }) {
     postalCode: ""
   });
   const [passwordDraft, setPasswordDraft] = useState({
-    currentPassword: "",
     newPassword: "",
     newPasswordConfirm: ""
   });
-  const bio =
-    String(user?.publicPageBio || "").trim() ||
-    "แก้ไขโปรไฟล์เพื่อเพิ่มแนะนำตัว — แชร์เรื่องราวและติดตามชุมชนได้ที่เพจ";
+  const publicBio = String(user?.publicPageBio || "").trim();
 
   const avatarUrl =
     String(user?.profilePictureUrl || "").trim() ||
@@ -126,7 +121,6 @@ export default function MemberHomeProfileLanding({ user }) {
 
   useEffect(() => {
     setProfileDraft({
-      publicPageBio: String(user?.publicPageBio || ""),
       username: String(user?.username || ""),
       socialLineUrl: String(user?.socialLineUrl || ""),
       socialFacebookUrl: String(user?.socialFacebookUrl || ""),
@@ -158,7 +152,6 @@ export default function MemberHomeProfileLanding({ user }) {
       setMsg("");
       setSavingProfile(true);
       await patchProfile({
-        publicPageBio: profileDraft.publicPageBio.trim() || null,
         username: profileDraft.username.trim().toLowerCase(),
         socialLineUrl: profileDraft.socialLineUrl.trim() || null,
         socialFacebookUrl: profileDraft.socialFacebookUrl.trim() || null,
@@ -217,18 +210,22 @@ export default function MemberHomeProfileLanding({ user }) {
     }
   }
 
-  async function savePasswordSection() {
+  async function saveSetPassword() {
     try {
       setErr("");
       setMsg("");
       setSavingPassword(true);
       const token = getMemberToken();
       if (!token) throw new Error("ไม่ได้เข้าสู่ระบบ");
-      await apiPatchPassword(token, passwordDraft);
-      setPasswordDraft({ currentPassword: "", newPassword: "", newPasswordConfirm: "" });
-      setMsg("เปลี่ยนรหัสผ่านแล้ว");
+      const np = passwordDraft.newPassword.trim();
+      const nc = passwordDraft.newPasswordConfirm.trim();
+      if (!np) throw new Error("กรุณากรอกรหัสผ่านใหม่");
+      if (np !== nc) throw new Error("รหัสผ่านยืนยันไม่ตรงกัน");
+      await apiPatchPassword(token, { newPassword: np, newPasswordConfirm: nc });
+      setPasswordDraft({ newPassword: "", newPasswordConfirm: "" });
+      setMsg("บันทึกรหัสผ่านแล้ว");
     } catch (e) {
-      setErr(e?.message || "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+      setErr(e?.message || "บันทึกรหัสผ่านไม่สำเร็จ");
     } finally {
       setSavingPassword(false);
     }
@@ -344,9 +341,11 @@ export default function MemberHomeProfileLanding({ user }) {
                       ) : null}
                     </p>
                   ) : null}
-                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-                    {bio}
-                  </p>
+                  {publicBio ? (
+                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
+                      {publicBio}
+                    </p>
+                  ) : null}
                   <div className="mt-3 flex items-center gap-2">
                     {socialLine ? (
                       <a
@@ -406,8 +405,34 @@ export default function MemberHomeProfileLanding({ user }) {
                   <input className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" value={profileDraft.username} onChange={(e) => setProfileDraft((s) => ({ ...s, username: e.target.value.replace(/[^a-z0-9_]/gi, "").toLowerCase() }))} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-xs text-neutral-500">คำแนะนำตัว (เพจสาธารณะ)</label>
-                  <textarea className="mt-1 w-full rounded-lg border border-pink-100 px-3 py-2" rows={2} value={profileDraft.publicPageBio} onChange={(e) => setProfileDraft((s) => ({ ...s, publicPageBio: e.target.value }))} />
+                  <label className="block text-xs text-neutral-500">กำหนดรหัสผ่าน</label>
+                  <p className="mt-0.5 text-[11px] text-neutral-500">
+                    เข้าสมัครผ่าน LINE ไม่มีรหัสเดิม — ใส่รหัสใหม่กับยืนยันได้เลย ครั้งต่อไปเปลี่ยนรหัสก็ใช้ช่องนี้
+                  </p>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    className="mt-2 w-full rounded-lg border border-pink-100 px-3 py-2"
+                    placeholder="รหัสผ่านใหม่"
+                    value={passwordDraft.newPassword}
+                    onChange={(e) => setPasswordDraft((s) => ({ ...s, newPassword: e.target.value }))}
+                  />
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    className="mt-2 w-full rounded-lg border border-pink-100 px-3 py-2"
+                    placeholder="ยืนยันรหัสผ่าน"
+                    value={passwordDraft.newPasswordConfirm}
+                    onChange={(e) => setPasswordDraft((s) => ({ ...s, newPasswordConfirm: e.target.value }))}
+                  />
+                  <button
+                    type="button"
+                    onClick={saveSetPassword}
+                    className="mt-2 rounded-full border border-pink-200 bg-pink-50 px-4 py-2 text-sm font-semibold text-[#FF2E8C] transition hover:bg-pink-100 disabled:opacity-60"
+                    disabled={savingPassword}
+                  >
+                    {savingPassword ? "กำลังบันทึก…" : "บันทึกรหัสผ่าน"}
+                  </button>
                 </div>
                 <div>
                   <label className="block text-xs text-neutral-500">ลิงก์ LINE</label>
@@ -426,7 +451,12 @@ export default function MemberHomeProfileLanding({ user }) {
                   <input type="file" accept="image/*" className="mt-1 block w-full text-xs" onChange={(e) => void onUploadAvatar(e.target.files?.[0])} />
                 </div>
                 <div className="sm:col-span-2">
-                  <button type="button" onClick={saveProfileSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingProfile || uploadingImage}>
+                  <button
+                    type="button"
+                    onClick={saveProfileSection}
+                    className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60"
+                    disabled={savingProfile || uploadingImage || savingPassword}
+                  >
                     {savingProfile || uploadingImage ? "กำลังบันทึก…" : "บันทึกโปรไฟล์"}
                   </button>
                 </div>
@@ -526,32 +556,6 @@ export default function MemberHomeProfileLanding({ user }) {
               <div className="sm:col-span-2">
                 <button type="button" onClick={saveAddressSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingAddress}>
                   {savingAddress ? "กำลังบันทึก…" : "บันทึกที่อยู่"}
-                </button>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-neutral-900">รหัสผ่าน</h2>
-            <button
-              type="button"
-              onClick={() => setEditPasswordOpen((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-full border border-pink-200 px-3 py-1.5 text-xs font-semibold text-[#FF2E8C] transition hover:bg-pink-50"
-              disabled={savingPassword}
-            >
-              แก้ไข
-            </button>
-          </div>
-          {editPasswordOpen ? (
-            <div className="grid gap-3 border-t border-pink-100 pt-4 text-sm">
-              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="รหัสผ่านปัจจุบัน" value={passwordDraft.currentPassword} onChange={(e) => setPasswordDraft((s) => ({ ...s, currentPassword: e.target.value }))} />
-              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="รหัสผ่านใหม่" value={passwordDraft.newPassword} onChange={(e) => setPasswordDraft((s) => ({ ...s, newPassword: e.target.value }))} />
-              <input type="password" className="rounded-lg border border-pink-100 px-3 py-2" placeholder="ยืนยันรหัสผ่านใหม่" value={passwordDraft.newPasswordConfirm} onChange={(e) => setPasswordDraft((s) => ({ ...s, newPasswordConfirm: e.target.value }))} />
-              <div>
-                <button type="button" onClick={savePasswordSection} className="rounded-full bg-[#FF2E8C] px-4 py-2 text-white disabled:opacity-60" disabled={savingPassword}>
-                  {savingPassword ? "กำลังบันทึก…" : "บันทึกรหัสผ่านใหม่"}
                 </button>
               </div>
             </div>
