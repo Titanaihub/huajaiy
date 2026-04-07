@@ -1,4 +1,4 @@
-/** ระบบสมาชิกหลัก (iframe TailAdmin) — หลังล็อกอิน LINE */
+/** ระบบสมาชิกหลัก (iframe TailAdmin) — หลังล็อกอิน · URL นี้ = เมนู «ภาพรวมบัญชี» (Vue /) */
 export const MEMBER_WORKSPACE_PATH = "/member";
 
 /** เชลล์แอดมิน (TailAdmin iframe + แผง React ฝังเมื่ออยู่ภาพรวม) */

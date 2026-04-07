@@ -6,7 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import HomeStylePublicHeader from "../../../components/HomeStylePublicHeader";
 import PublicLegalFooter from "../../../components/PublicLegalFooter";
-import { ADMIN_HOME_PATH } from "../../../lib/memberWorkspacePath";
+import {
+  ADMIN_HOME_PATH,
+  MEMBER_WORKSPACE_PATH
+} from "../../../lib/memberWorkspacePath";
+import { sanitizePostLoginNext } from "../../../lib/postLoginRedirect";
 import { clearMemberToken, setMemberToken } from "../../../lib/memberApi";
 
 const NEXT_AUTH_ERROR_TH = {
@@ -22,8 +26,14 @@ const NEXT_AUTH_ERROR_TH = {
   Default: "เข้าสู่ระบบไม่สำเร็จ"
 };
 
-function workspacePathAfterLineLink(user) {
-  return user?.role === "admin" ? ADMIN_HOME_PATH : "/member";
+function workspacePathAfterLineLink(user, nextParam) {
+  const next = sanitizePostLoginNext(nextParam);
+  if (user?.role === "admin") {
+    if (next && String(next).startsWith("/admin")) return next;
+    return ADMIN_HOME_PATH;
+  }
+  if (next) return next;
+  return MEMBER_WORKSPACE_PATH;
 }
 
 function isLineSession(session) {
@@ -85,7 +95,9 @@ function LineLoginContent() {
           return;
         }
         setMemberToken(data.token);
-        window.location.assign(workspacePathAfterLineLink(data.user));
+        window.location.assign(
+          workspacePathAfterLineLink(data.user, searchParams.get("next"))
+        );
       } catch (e) {
         if (e.name === "AbortError") return;
         if (!ac.signal.aborted) {
@@ -94,7 +106,7 @@ function LineLoginContent() {
       }
     })();
     return () => ac.abort();
-  }, [status, session, exchangeRetry]);
+  }, [status, session, exchangeRetry, searchParams]);
 
   const handleLineSignIn = useCallback(async () => {
     setAuthError("");

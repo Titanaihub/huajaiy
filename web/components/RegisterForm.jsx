@@ -13,6 +13,7 @@ import {
   validateNamesForCountry,
   validateRegisterFormClient
 } from "../lib/registerValidation";
+import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const inputBase =
@@ -127,7 +128,7 @@ export default function RegisterForm() {
         passwordConfirm,
         duplicateNameAcknowledged
       });
-      router.push("/");
+      router.push(MEMBER_WORKSPACE_PATH);
     } catch (err) {
       setError(err.message || "สมัครไม่สำเร็จ");
     } finally {
