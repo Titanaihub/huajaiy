@@ -55,7 +55,27 @@
           <div class="col-lg-6 offset-lg-3 col-xs-12">
             <div class="login">
               <h4 class="login_register_title">เข้าสู่ระบบ</h4>
-              <p class="text-center text-muted small mb-4">แนะนำให้เข้าด้วยบัญชี LINE</p>
+              <p class="text-center text-muted small mb-2">แนะนำให้เข้าด้วยบัญชี LINE</p>
+              <p class="text-center small mb-3">
+                <a href="/login" target="_top" class="text-muted">สมาชิก</a>
+                <span class="text-muted"> · </span>
+                <a href="/login?admin=1" target="_top" class="text-muted">ผู้ดูแลระบบ (แอดมิน)</a>
+              </p>
+              <div
+                id="hui-admin-banner"
+                class="rounded border border-pink-200 bg-pink-50/90 px-3 py-2 small mb-3"
+                style="display: none"
+                role="status"
+              >
+                <strong class="text-dark">เข้าสู่ระบบผู้ดูแล</strong>
+                <span class="d-block mt-1 text-muted">
+                  ใช้ชื่อผู้ใช้และรหัสผ่านของบัญชีที่มีสิทธิ์แอดมิน หากยังไม่มีบัญชี ให้ตั้งค่า
+                  <code class="small">BOOTSTRAP_ADMIN_USERNAME</code> /
+                  <code class="small">BOOTSTRAP_ADMIN_PASSWORD</code> /
+                  <code class="small">BOOTSTRAP_ADMIN_PHONE</code>
+                  บนเซิร์ฟเวอร์ API แล้วรีสตาร์ท (ดู <code class="small">bootstrapAdminFromEnv</code> ใน repo)
+                </span>
+              </div>
 
               <div class="form-group col-lg-12 px-0">
                 <a
@@ -179,6 +199,11 @@
           try {
             var p = new URLSearchParams(window.location.search);
             if (p.get("expand") === "1" || p.get("expand") === "user") expandAltLogin();
+            if (p.get("admin") === "1") {
+              expandAltLogin();
+              var b = document.getElementById("hui-admin-banner");
+              if (b) b.style.display = "block";
+            }
           } catch (e) {}
         });
         var btn = document.getElementById("hui-login-btn");

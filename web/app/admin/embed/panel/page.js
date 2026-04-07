@@ -4,7 +4,6 @@
  * แผงแอดมิน React (AdminDashboard) สำหรับฝังใน iframe จาก /admin เท่านั้น
  * ผู้ใช้ทั่วไปเข้า /admin — ไม่ต้องเปิด URL นี้โดยตรง
  */
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import AdminDashboard from "../../../../components/AdminDashboard";
@@ -15,8 +14,13 @@ function AdminEmbedPanelBody() {
   const { user, loading } = useMemberAuth();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login");
+    if (loading) return;
+    if (!user) {
+      router.replace("/login?admin=1");
+      return;
+    }
+    if (user.role !== "admin") {
+      router.replace("/member");
     }
   }, [loading, user, router]);
 
@@ -30,11 +34,8 @@ function AdminEmbedPanelBody() {
 
   if (user.role !== "admin") {
     return (
-      <main className="mx-auto max-w-lg px-4 py-8">
-        <p className="text-sm text-slate-700">บัญชีนี้ไม่มีสิทธิ์แอดมิน</p>
-        <Link href="/admin" className="mt-4 inline-block text-sm font-medium text-blue-600 underline">
-          กลับหน้าแอดมิน
-        </Link>
+      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+        กำลังเปลี่ยนเส้นทาง…
       </main>
     );
   }

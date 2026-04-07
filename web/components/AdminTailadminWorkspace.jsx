@@ -161,7 +161,11 @@ export default function AdminTailadminWorkspace() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      router.replace("/login?admin=1");
+      return;
+    }
+    if (user.role !== "admin") {
+      router.replace("/member");
     }
   }, [loading, user, router]);
 
@@ -174,6 +178,14 @@ export default function AdminTailadminWorkspace() {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
         กำลังโหลด…
+      </main>
+    );
+  }
+
+  if (user.role !== "admin") {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
+        กำลังเปลี่ยนเส้นทางไประบบสมาชิก…
       </main>
     );
   }

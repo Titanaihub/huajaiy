@@ -5,10 +5,18 @@ export const metadata = {
 
 export default function LoginPage({ searchParams }) {
   const expand = searchParams?.expand;
-  const src =
-    expand != null && String(expand).length > 0
-      ? `/organic-template/huajaiy-login.html?expand=${encodeURIComponent(String(expand))}`
-      : "/organic-template/huajaiy-login.html";
+  const admin = searchParams?.admin;
+  const params = new URLSearchParams();
+  if (expand != null && String(expand).length > 0) {
+    params.set("expand", String(expand));
+  }
+  if (admin === "1" || admin === "true") {
+    params.set("admin", "1");
+  }
+  const q = params.toString();
+  const src = q
+    ? `/organic-template/huajaiy-login.html?${q}`
+    : "/organic-template/huajaiy-login.html";
 
   return (
     <main className="h-dvh min-h-0 w-full overflow-hidden bg-slate-100">
