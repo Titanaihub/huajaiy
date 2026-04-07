@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getApiBase } from "../lib/config";
+import { getApiBase, uploadUrl } from "../lib/config";
 
 export default function UploadForm({ showCardHeader = true }) {
   const [file, setFile] = useState(null);
@@ -67,7 +67,7 @@ export default function UploadForm({ showCardHeader = true }) {
       });
       body.append("image", uploadFile);
 
-      const res = await fetch(`${API_BASE}/upload`, {
+      const res = await fetch(uploadUrl(), {
         method: "POST",
         body
       });

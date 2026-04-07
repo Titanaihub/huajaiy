@@ -58,6 +58,15 @@ const nextConfig = {
       {
         source: "/api/public/:path*",
         destination: `${api}/api/public/:path*`
+      },
+      /** อัปโหลดรูป — ให้เรียก same-origin `/upload` ได้เมื่อตั้งค่าให้ชี้ API ในเครื่อง */
+      {
+        source: "/upload",
+        destination: `${api}/upload`
+      },
+      {
+        source: "/upload/",
+        destination: `${api}/upload`
       }
     ];
   }

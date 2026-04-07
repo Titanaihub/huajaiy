@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiPatchPassword, getMemberToken } from "../lib/memberApi";
-import { getApiBase } from "../lib/config";
+import { uploadUrl } from "../lib/config";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -54,10 +54,9 @@ function normalizeSocialUrl(v) {
 }
 
 async function uploadImage(file) {
-  const apiBase = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   body.append("image", file);
-  const res = await fetch(`${apiBase}/upload`, { method: "POST", body });
+  const res = await fetch(uploadUrl(), { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok || !data.publicUrl) {
     throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
@@ -290,7 +289,7 @@ export default function MemberHomeProfileLanding({ user }) {
   return (
     <div className="border-b border-pink-100 bg-transparent">
       {/* การ์ดหัวใจ — แถวบนสุด (เหมือนแม่แบบ) */}
-      <div className="mx-auto grid max-w-[960px] gap-3 px-3 pb-4 pt-4 sm:grid-cols-3 sm:gap-4 sm:px-5 sm:pb-5 sm:pt-5">
+      <div className="grid w-full gap-3 pb-4 pt-4 sm:grid-cols-3 sm:gap-4 sm:pb-5 sm:pt-5">
         <div className="rounded-2xl border border-pink-100 bg-gradient-to-br from-pink-50 to-white px-4 py-4 shadow-sm">
           <div className="flex gap-3">
             <span
@@ -381,7 +380,7 @@ export default function MemberHomeProfileLanding({ user }) {
       </div>
 
       {/* หัวโปรไฟล์ — ใช้ชื่อ–นามสกุลจริง (ไม่ใช้ชื่อสมาชิกแยก) · ไม่มีแบนเนอร์ */}
-      <div className="relative mx-auto max-w-[960px] px-3 pb-8 pt-0 sm:px-5">
+      <div className="relative w-full pb-8 pt-0">
         <div className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/30">
           <div className="relative bg-white px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -542,7 +541,7 @@ export default function MemberHomeProfileLanding({ user }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[960px] px-3 pb-6 sm:px-5">
+      <div className="w-full pb-6">
         <div className="mt-3 space-y-3 rounded-2xl border border-pink-100 bg-white p-4 shadow-sm shadow-pink-100/30 sm:p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold text-neutral-900">ข้อมูลส่วนตัว</h2>

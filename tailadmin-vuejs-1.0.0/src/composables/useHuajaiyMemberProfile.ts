@@ -108,7 +108,7 @@ export function useHuajaiyMemberProfile() {
     try {
       const fd = new FormData()
       fd.append('image', file)
-      const r = await fetch(`${apiBase()}/upload`, {
+      const r = await fetch('/upload', {
         method: 'POST',
         body: fd
       })

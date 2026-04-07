@@ -1,5 +1,3 @@
-import { huajaiyApiBase } from './huajaiyApiBase'
-
 function loadImage(fileBlob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -40,14 +38,13 @@ export async function compressImageToJpegBlob(originalFile: File): Promise<Blob>
   })
 }
 
-/** POST /upload — returns publicUrl */
+/** POST /upload — same-origin; Next rewrites ไป API (ใช้กับ API ในเครื่องได้) */
 export async function uploadSlipImageFile(file: File): Promise<string> {
-  const API_BASE = huajaiyApiBase().replace(/\/$/, '')
   const body = new FormData()
   const compressed = await compressImageToJpegBlob(file)
   const uploadFile = new File([compressed], `${Date.now()}.jpg`, { type: 'image/jpeg' })
   body.append('image', uploadFile)
-  const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body })
+  const res = await fetch('/upload', { method: 'POST', body })
   const data = (await res.json().catch(() => ({}))) as { ok?: boolean; publicUrl?: string; error?: string }
   if (!res.ok || !data.ok || !data.publicUrl) {
     throw new Error(data.error || 'อัปโหลดสลิปไม่สำเร็จ')

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getApiBase } from "../lib/config";
+import { uploadUrl } from "../lib/config";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function loadImage(fileBlob) {
@@ -74,7 +74,6 @@ function buildPublicPageTitlePlaceholder(user) {
 }
 
 async function uploadBannerImage(file) {
-  const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   if (isProbablyPng(file)) {
     body.append(
@@ -89,7 +88,7 @@ async function uploadBannerImage(file) {
       new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" })
     );
   }
-  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const res = await fetch(uploadUrl(), { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
   return data.publicUrl;

@@ -133,7 +133,9 @@ export default function MemberTailadminWorkspace() {
   const isMemberRoot = parsed.segments.length === 0;
   if (isMemberRoot) {
     return templateShell(
-      <MemberHomeProfileLanding user={user} />,
+      <div className="mx-auto w-full max-w-[1200px] flex-1 min-h-0 overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
+        <MemberHomeProfileLanding user={user} />
+      </div>,
       "ข้อมูลสมาชิก"
     );
   }

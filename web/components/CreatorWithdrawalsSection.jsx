@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { getApiBase } from "../lib/config";
+import { uploadUrl } from "../lib/config";
 import {
   apiGetIncomingPrizeAwards,
   apiGetIncomingPrizeWithdrawals,
@@ -76,14 +76,13 @@ async function compressImage(originalFile) {
 }
 
 async function uploadSlipFile(file) {
-  const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   const compressed = await compressImage(file);
   const uploadFile = new File([compressed], `${Date.now()}.jpg`, {
     type: "image/jpeg"
   });
   body.append("image", uploadFile);
-  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const res = await fetch(uploadUrl(), { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) {
     throw new Error(data.error || "อัปโหลดสลิปไม่สำเร็จ");

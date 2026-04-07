@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getApiBase } from "../lib/config";
+import { getApiBase, uploadUrl } from "../lib/config";
 import {
   apiCreateMyPublicPost,
   apiDeleteMyPublicPost,
@@ -152,7 +152,7 @@ async function uploadPostImage(file) {
       new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" })
     );
   }
-  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const res = await fetch(uploadUrl(), { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
   return data.publicUrl;

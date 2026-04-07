@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getApiBase } from "../lib/config";
+import { getApiBase, uploadUrl } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCentralGamesList,
@@ -220,7 +220,7 @@ async function uploadSlipFile(file) {
     type: "image/jpeg"
   });
   body.append("image", uploadFile);
-  const res = await fetch(`${API_BASE}/upload`, { method: "POST", body });
+  const res = await fetch(uploadUrl(), { method: "POST", body });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) {
     throw new Error(data.error || "อัปโหลดสลิปไม่สำเร็จ");

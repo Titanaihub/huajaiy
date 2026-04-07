@@ -431,31 +431,30 @@ export default function HuajaiyCentralTemplate({
         </div>
       </header>
 
-      {/* แถบแบรนด์ — จองพื้นที่โลโก้เดิม (มองไม่เห็น) เพื่อไม่ให้ชื่อเมนูเลื่อน */}
+      {/* แถบแบรนด์ — จัดแนวเดียวกับแถวโลโก้ในเฮดเดอร์ (สเปซแฮมเบอร์เกอร์ + ไอคอน + ชื่อหน้า) */}
       <div
-        className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C] px-3 sm:px-5"
+        className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C]"
         aria-label={pinkBarSuffix ? pinkBarSuffix : "HUAJAIY"}
       >
-        <div className="mx-auto flex w-full max-w-[1200px] min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
-          <div
-            className="invisible flex shrink-0 items-center gap-2 sm:gap-3"
-            aria-hidden
-          >
-            <HeartIcon className="h-8 w-8 shrink-0 text-white sm:h-9 sm:w-9" />
-            <span className="font-heading shrink-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
-              HUAJAIY
-            </span>
-          </div>
-          {pinkBarSuffix ? (
-            <>
-              <span className="shrink-0 select-none text-white/70" aria-hidden>
-                ·
-              </span>
+        <div className="mx-auto flex h-full w-full max-w-[1200px] min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5">
+          {memberUser ? (
+            <div className="h-10 w-10 shrink-0 lg:hidden" aria-hidden />
+          ) : null}
+          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <HeartIcon
+              className="h-9 w-9 shrink-0 text-white sm:h-10 sm:w-10"
+              aria-hidden
+            />
+            {pinkBarSuffix ? (
               <span className="min-w-0 truncate text-base font-semibold text-white sm:text-lg">
                 {pinkBarSuffix}
               </span>
-            </>
-          ) : null}
+            ) : (
+              <span className="font-heading min-w-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
+                HUAJAIY
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

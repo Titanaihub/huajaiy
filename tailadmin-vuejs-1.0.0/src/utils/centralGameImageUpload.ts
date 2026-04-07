@@ -43,12 +43,11 @@ function isProbablyPng(file: File): boolean {
 }
 
 export async function uploadGameImageFile(
-  apiBase: string,
+  _apiBase: string,
   file: File,
   opts?: { maxCompressSide?: number }
 ): Promise<string> {
   const side = opts?.maxCompressSide ?? 1200
-  const base = apiBase.replace(/\/$/, '')
   const body = new FormData()
   if (isProbablyPng(file)) {
     body.append(
@@ -60,7 +59,7 @@ export async function uploadGameImageFile(
     const blob = await compressToJpeg(file, side)
     body.append('image', new File([blob], `${Date.now()}.jpg`, { type: 'image/jpeg' }))
   }
-  const res = await fetch(`${base}/upload`, { method: 'POST', body })
+  const res = await fetch('/upload', { method: 'POST', body })
   const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; publicUrl?: string }
   if (!res.ok || !data.ok) throw new Error(data.error || 'อัปโหลดไม่สำเร็จ')
   return String(data.publicUrl || '')
