@@ -17,6 +17,7 @@ import {
 } from "../lib/memberWorkspacePath";
 import { getMemberToken } from "../lib/memberApi";
 import HomeStylePublicHeader from "./HomeStylePublicHeader";
+import MemberHomeProfileLanding from "./MemberHomeProfileLanding";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function legacyTailFromQuery(raw) {
@@ -160,6 +161,46 @@ export default function MemberTailadminWorkspace() {
       <main className="flex min-h-dvh items-center justify-center bg-slate-100 text-sm text-slate-600">
         กำลังไปหน้าภาพรวม…
       </main>
+    );
+  }
+
+  /** `/member` เท่านั้น — แทมเพลตโปรไฟล์แบบ Figma + ภาพรวม TailAdmin เดิมด้านล่าง (พับได้) */
+  const isMemberRoot = parsed.segments.length === 0;
+  if (isMemberRoot) {
+    return (
+      <div className="flex min-h-dvh w-full flex-col bg-slate-100">
+        <HomeStylePublicHeader
+          onHamburgerClick={toggleIframeSidebar}
+          lineProfileImageUrl={user.linePictureUrl || undefined}
+          profileDisplayName={
+            [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+            "สมาชิก"
+          }
+        />
+        <MemberHomeProfileLanding user={user} />
+        <div className="border-t border-pink-200 bg-[#ececf0]">
+          <details className="mx-auto max-w-[1200px] px-3 py-3 sm:px-5">
+            <summary className="cursor-pointer list-none text-center text-sm font-semibold text-neutral-600 marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="inline-flex items-center gap-2 rounded-full border border-pink-200/80 bg-white px-4 py-2 shadow-sm">
+                แสดงภาพรวมบัญชีแบบเดิม (TailAdmin)
+                <span className="text-xs text-neutral-400" aria-hidden>
+                  ▾
+                </span>
+              </span>
+            </summary>
+            <div className="mt-3 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-inner">
+              <iframe
+                key={iframeSrc}
+                ref={iframeRef}
+                title="ระบบสมาชิก HUAJAIY — ภาพรวมเดิม"
+                src={iframeSrc}
+                className="h-[min(75vh,820px)] w-full border-0"
+                onLoad={pushMemberToIframe}
+              />
+            </div>
+          </details>
+        </div>
+      </div>
     );
   }
 
