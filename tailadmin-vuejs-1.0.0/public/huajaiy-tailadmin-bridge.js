@@ -267,98 +267,9 @@
   function installHuajaiyMemberSidebarNav() {
     if (!document.documentElement.classList.contains("huajaiy-member-chrome"))
       return;
-    var aside = document.querySelector("#app aside.fixed");
-    if (!aside) return;
-    var scrollHost =
-      aside.querySelector("div.flex.flex-col.overflow-y-auto") ||
-      aside.children[1];
-    if (!scrollHost) return;
-
-    var nav = document.getElementById("huajaiy-member-sidebar-nav");
-    if (!nav) {
-      nav = document.createElement("nav");
-      nav.id = "huajaiy-member-sidebar-nav";
-      nav.className = "huajaiy-member-sidebar-nav mb-6";
-      nav.setAttribute("aria-label", "เมนูสมาชิก");
-      var h2 = document.createElement("h2");
-      h2.className =
-        "mb-4 text-xs uppercase leading-[20px] text-gray-400 justify-start";
-      h2.textContent = "เมนู";
-      nav.appendChild(h2);
-      var ul = document.createElement("ul");
-      ul.className = "flex flex-col gap-4";
-      MEMBER_SIDEBAR_MENU.forEach(function (item) {
-        var li = document.createElement("li");
-        if (item.kind === "empty") {
-          var dis = document.createElement("span");
-          dis.className =
-            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start cursor-default opacity-50";
-          dis.setAttribute("data-huajaiy-key", item.key);
-          dis.setAttribute("aria-disabled", "true");
-          dis.title = "ยังไม่มีหน้าในเทมเพลต";
-          var sp0 = document.createElement("span");
-          sp0.className = "menu-item-text";
-          sp0.textContent = item.label;
-          dis.appendChild(sp0);
-          li.appendChild(dis);
-        } else if (item.kind === "legacy" && item.href) {
-          var la = document.createElement("a");
-          la.className =
-            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
-          la.setAttribute("data-huajaiy-key", item.key);
-          la.href = String(item.href);
-          la.target = "_parent";
-          la.rel = "noopener noreferrer";
-          la.title = "หน้าเดิมบนเว็บหลัก";
-          var lsp = document.createElement("span");
-          lsp.className = "menu-item-text";
-          lsp.textContent = item.label;
-          la.appendChild(lsp);
-          li.appendChild(la);
-        } else if (item.kind === "publicPage") {
-          var ppa = document.createElement("a");
-          ppa.className =
-            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
-          ppa.setAttribute("data-huajaiy-key", item.key);
-          ppa.setAttribute("data-huajaiy-public-page", "1");
-          ppa.href = "#";
-          ppa.target = "_parent";
-          ppa.rel = "noopener noreferrer";
-          var psp = document.createElement("span");
-          psp.className = "menu-item-text";
-          psp.textContent = item.label;
-          ppa.appendChild(psp);
-          li.appendChild(ppa);
-        } else {
-          var a = document.createElement("a");
-          a.className =
-            "menu-item group menu-item-inactive huajaiy-member-sidebar-link justify-start lg:justify-start";
-          a.setAttribute("data-huajaiy-key", item.key);
-          a.setAttribute("data-huajaiy-start", item.start);
-          a.setAttribute("data-huajaiy-slug", item.slug != null ? item.slug : "");
-          a.href = memberShellHref(item);
-          a.target = "_parent";
-          a.rel = "noopener noreferrer";
-          var span = document.createElement("span");
-          span.className = "menu-item-text";
-          span.textContent = item.label;
-          a.appendChild(span);
-          li.appendChild(a);
-        }
-        ul.appendChild(li);
-      });
-      nav.appendChild(ul);
-      scrollHost.insertBefore(nav, scrollHost.firstChild);
-    } else {
-      MEMBER_SIDEBAR_MENU.forEach(function (item) {
-        if (item.kind !== "shell" && item.kind !== "closed") return;
-        var el = nav.querySelector("[data-huajaiy-key=\"" + item.key + "\"]");
-        if (el && el.tagName === "A") {
-          el.setAttribute("href", memberShellHref(item));
-        }
-      });
-    }
-    updateMemberSidebarActive();
+    /* เมนูสมาชิกใช้ที่หัวเว็บ (เพิ่มเติม / ลิงก์) — ไม่ฝังรายการใน iframe */
+    var oldNav = document.getElementById("huajaiy-member-sidebar-nav");
+    if (oldNav && oldNav.parentNode) oldNav.parentNode.removeChild(oldNav);
   }
 
   function apiBase() {
@@ -541,47 +452,32 @@
 
   function ensureMemberChromeStyles() {
     ensureHuajaiyStackFonts();
-    if (document.getElementById("huajaiy-member-chrome-css")) return;
-    var st = document.createElement("style");
-    st.id = "huajaiy-member-chrome-css";
+    var st = document.getElementById("huajaiy-member-chrome-css");
+    if (!st) {
+      st = document.createElement("style");
+      st.id = "huajaiy-member-chrome-css";
+      document.head.appendChild(st);
+    }
+    /* เมนูสมาชิก/แอดมินอยู่ที่ HuajaiyCentralTemplate นอก iframe — ซ่อน sidebar+เมนูซ้าย TailAdmin */
     st.textContent =
       "html.huajaiy-member-chrome #app header{display:none!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed{margin-top:0!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed{font-family:Niramit,ui-sans-serif,system-ui,sans-serif!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed .menu-item{font-weight:600!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed>div:first-child{display:none!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){padding-top:1rem!important;}" +
-      "@media(min-width:1024px){" +
       "html.huajaiy-member-chrome #app aside.fixed{" +
-      "width:290px!important;min-width:290px!important;max-width:290px!important;" +
-      "overflow:hidden!important;" +
-      "transition:width .32s ease,min-width .32s ease,max-width .32s ease,border-color .32s ease,padding-left .32s ease,padding-right .32s ease!important;" +
-      "}" +
-      "html.huajaiy-member-chrome #app aside.fixed>div:nth-child(2){" +
-      "box-sizing:border-box!important;width:290px!important;min-width:290px!important;" +
-      "transform:translateX(0);transition:transform .32s ease!important;will-change:transform;" +
-      "}" +
-      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed>div:nth-child(2){" +
-      "transform:translateX(-100%)!important;" +
-      "}" +
-      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed{" +
-      "width:0!important;min-width:0!important;max-width:0!important;" +
-      "border-right-width:0!important;padding-left:0!important;padding-right:0!important;" +
-      "overflow:hidden!important;pointer-events:none!important;" +
+      "display:none!important;width:0!important;min-width:0!important;max-width:0!important;" +
+      "height:0!important;overflow:hidden!important;visibility:hidden!important;" +
+      "pointer-events:none!important;border:none!important;padding:0!important;" +
       "}" +
       "html.huajaiy-member-chrome #app aside.fixed~div.flex-1{" +
-      "margin-left:290px!important;transition:margin-left .32s ease!important;" +
+      "margin-left:0!important;margin-right:0!important;width:100%!important;max-width:100%!important;" +
+      "min-width:0!important;transition:none!important;" +
       "}" +
-      "html.huajaiy-member-chrome.huajaiy-member-nav-collapsed #app aside.fixed~div.flex-1{" +
-      "margin-left:0!important;" +
-      "}" +
-      /* ซ่อนเมนูเทมเพลต TailAdmin — ใช้เมนูสมาชิกแทน */
-      "html.huajaiy-member-chrome #app aside.fixed div.flex.flex-col.overflow-y-auto>nav.mb-6:not(#huajaiy-member-sidebar-nav){display:none!important;}" +
-      "html.huajaiy-member-chrome #app aside.fixed #huajaiy-member-sidebar-nav .huajaiy-member-sidebar-link{padding-left:0.75rem;padding-right:0.75rem;}" +
-      /* การ์ดโปรโมทเทมเพลต (SidebarWidget) — ซ่อนถ้ายังเหลือใน bundle เก่า */
-      "html.huajaiy-member-chrome #app aside.fixed div.flex.flex-col.overflow-y-auto>div.mx-auto.mb-10.max-w-60.rounded-2xl.bg-gray-50{display:none!important;}" +
-      "}";
-    document.head.appendChild(st);
+      "html.huajaiy-member-chrome #app aside.fixed+div[class*=\"fixed\"][class*=\"inset-0\"]," +
+      "html.huajaiy-member-chrome #app aside.fixed+div.fixed," +
+      "html.huajaiy-member-chrome #app div.fixed.inset-0.z-9999," +
+      "html.huajaiy-member-chrome #app div.fixed.inset-0[class*=\"z-9999\"]{display:none!important;}" +
+      "html.huajaiy-member-chrome #app aside.fixed~div.flex-1 .mx-auto{" +
+      "max-width:100%!important;}" +
+      "html.huajaiy-member-chrome #app{min-height:0!important;}" +
+      "html.huajaiy-member-chrome #app .min-h-screen{min-height:100%!important;}";
   }
 
   /** เมนูหลักอยู่ที่ SiteHeader ด้านนอก iframe แล้ว — ที่นี่ซ่อนแค่ช่องค้นหาเทมเพลต + ลบแถบเก่าใน iframe ถ้ามี */
@@ -826,15 +722,8 @@
     if (!d || !d.type) return;
 
     if (d.type === "HUAJAIY_TOGGLE_SIDEBAR" && ev.source === window.parent) {
-      /* เดสก์ท็อปโหมดสมาชิก: พับเฉพาะเมนูด้านล่าง แถบโลโก้คงที่ — ไม่คลิกปุ่มเทมเพลตที่ยุบทั้ง aside */
-      if (
-        document.documentElement.classList.contains("huajaiy-member-chrome") &&
-        typeof window.matchMedia === "function" &&
-        window.matchMedia("(min-width:1024px)").matches
-      ) {
-        document.documentElement.classList.toggle(
-          "huajaiy-member-nav-collapsed"
-        );
+      /* ใน iframe ไม่มีเมนูซ้ายแล้ว — ใช้ปุ่มแฮมเบอร์ที่หัวเว็บนอก iframe */
+      if (document.documentElement.classList.contains("huajaiy-member-chrome")) {
         return;
       }
       var hdr = document.querySelector("header");

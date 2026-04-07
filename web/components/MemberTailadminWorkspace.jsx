@@ -201,19 +201,19 @@ export default function MemberTailadminWorkspace() {
         "สมาชิก"
       }
       pinkBarMenuLabel={sectionLabel || undefined}
-      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
+      mainClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#fce7f3]/45"
     >
       <div
         className="flex min-h-0 w-full min-w-0 flex-1 flex-col"
         aria-label="ระบบสมาชิก"
       >
-        <div className="min-h-0 w-full flex-1 bg-slate-100/80">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100/80">
           <iframe
             key={iframeSrc}
             ref={iframeRef}
             title={`ระบบสมาชิก HUAJAIY — ${sectionLabel || shellSlug || "สมาชิก"}`}
             src={iframeSrc}
-            className="h-[min(78dvh,880px)] min-h-[360px] w-full border-0 sm:min-h-[420px]"
+            className="absolute inset-0 h-full w-full min-h-0 border-0"
             onLoad={pushMemberToIframe}
           />
         </div>
