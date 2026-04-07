@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HUAJAIY — ดูเทมเพลตกลาง (สแตนด์อโลน)</title>
+    <style>
+      :root {
+        --pink: #ff2e8c;
+        --pink-soft: #fce7f3;
+        --text: #171717;
+        --muted: #737373;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+        color: var(--text);
+        background: #fff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      a:hover {
+        color: var(--pink);
+      }
+
+      /* Header */
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        border-bottom: 1px solid #fce7f3;
+        background: #fff;
+        box-shadow: 0 1px 0 0 rgba(233, 30, 140, 0.06);
+      }
+      .top-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0.65rem 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+      @media (min-width: 1024px) {
+        .top-inner {
+          padding: 0.75rem 1.25rem;
+        }
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        font-size: 1.125rem;
+      }
+      .heart {
+        width: 2.25rem;
+        height: 2.25rem;
+        color: var(--pink);
+        flex-shrink: 0;
+      }
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        justify-content: center;
+        flex: 1;
+        min-width: 0;
+      }
+      .nav a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #262626;
+      }
+      .nav a:hover {
+        background: #fdf2f8;
+        color: var(--pink);
+      }
+      .pill-hearts {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(251, 207, 232, 0.9);
+        background: linear-gradient(to right, #fdf2f8, #faf5ff);
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #db2777;
+      }
+      .btn-pink {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(to right, var(--pink), #f472b6);
+        box-shadow: 0 1px 2px rgba(244, 114, 182, 0.35);
+      }
+      .btn-pink:hover {
+        filter: brightness(1.05);
+        color: #fff;
+      }
+      .row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .icon-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #404040;
+      }
+      .icon-btn:hover {
+        background: #fdf2f8;
+        color: var(--pink);
+      }
+
+      /* Main */
+      .main {
+        flex: 1;
+        width: 100%;
+        background: color-mix(in srgb, var(--pink-soft) 55%, white);
+        min-height: 42vh;
+        padding: 2.5rem 0.75rem 3rem;
+      }
+      .main-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .card {
+        border-radius: 1rem;
+        border: 2px dashed rgba(244, 114, 182, 0.45);
+        background: rgba(255, 255, 255, 0.72);
+        padding: 2rem 1.25rem;
+        text-align: center;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      }
+      .card h1 {
+        margin: 0 0 0.75rem;
+        font-size: 1.25rem;
+        color: var(--pink);
+      }
+      .card p {
+        margin: 0.35rem 0;
+        font-size: 0.9375rem;
+        color: #525252;
+        line-height: 1.6;
+      }
+      .card .small {
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+      .card a.link {
+        display: inline-block;
+        margin-top: 1rem;
+        font-weight: 600;
+        color: var(--pink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* Footer */
+      footer {
+        margin-top: auto;
+        border-top: 1px solid #fce7f3;
+        background: #fff;
+      }
+      .foot-top {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        text-align: center;
+      }
+      @media (min-width: 640px) {
+        .foot-top {
+          flex-direction: row;
+          justify-content: space-between;
+          text-align: left;
+        }
+      }
+      .foot-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--pink);
+      }
+      .copyright {
+        font-size: 0.875rem;
+        color: #525252;
+      }
+      .foot-links {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0.75rem;
+        border-top: 1px solid #fdf2f8;
+        background: rgba(253, 242, 248, 0.35);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem 1rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+      .foot-links a:hover {
+        text-decoration: underline;
+      }
+      .sep {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-inner">
+        <a href="/" class="brand" title="หน้าแรก">
+          <svg class="heart" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+          HUAJAIY
+        </a>
+        <nav class="nav" aria-label="เมนูหลัก">
+          <a href="/">หน้าแรก</a>
+          <a href="/shop">ร้านค้า</a>
+          <a href="/game">เกม</a>
+          <a href="/page#community-lobby">โพสต์</a>
+          <a href="/page#member-pages">เพจ</a>
+        </nav>
+        <div class="row-actions">
+          <span class="pill-hearts" title="ตัวอย่างยอดหัวใจ">♥ 0 · ♥ 0 · ♥ 0</span>
+          <a href="/page" class="icon-btn" aria-label="ค้นหา">⌕</a>
+          <a href="/login" class="icon-btn" aria-label="โปรไฟล์">◎</a>
+          <a href="/cart" class="icon-btn" aria-label="ตะกร้า">🛒</a>
+          <a href="/login" class="btn-pink">เข้าสู่ระบบ / สมัคร</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="card">
+          <h1>เทมเพลตกลาง HUAJAIY (ไฟล์สแตนด์อโลน)</h1>
+          <p>นี่คือหน้าตัวอย่างแบบ HTML ธรรมดา — โซนสีชมพูอ่อนด้านล่างจำลองพื้นที่เนื้อหาหลัก</p>
+          <p class="small">เวอร์ชันใช้งานจริง (React + เมนูล็อกอิน / หัวใจจริง) อยู่ที่หน้า Theme Lab</p>
+          <a class="link" href="/theme-lab/central">ไปดูเทมเพลตกลางแบบเต็ม →</a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="foot-top">
+        <a href="/" class="foot-brand">
+          <svg class="heart" style="width: 2rem; height: 2rem" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+          </svg>
+          HUAJAIY
+        </a>
+        <p class="copyright">© <span id="y"></span> HUAJAIY สงวนลิขสิทธิ์ทั้งหมด</p>
+        <a href="/contact" class="btn-pink">ติดต่อเรา</a>
+      </div>
+      <nav class="foot-links" aria-label="ลิงก์กฎหมาย">
+        <a href="/privacy">นโยบายความเป็นส่วนตัว</a>
+        <span class="sep">·</span>
+        <a href="/terms">ข้อกำหนดการให้บริการ</a>
+        <span class="sep">·</span>
+        <a href="/data-deletion">การลบข้อมูล</a>
+      </nav>
+    </footer>
+    <script>
+      document.getElementById("y").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>

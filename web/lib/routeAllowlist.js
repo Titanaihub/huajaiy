@@ -110,6 +110,8 @@ export function isPathAllowed(pathname) {
 
   if (p === "/") return true;
 
+  if (p === "/theme-lab" || p.startsWith("/theme-lab/")) return true;
+
   if (p === "/page" || p.startsWith("/page/")) return true;
 
   if (p === "/game") return true;
