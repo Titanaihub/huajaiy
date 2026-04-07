@@ -32,6 +32,13 @@ function shippingRows(parts) {
   ];
 }
 
+function normalizeSocialUrl(v) {
+  const s = String(v || "").trim();
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s)) return s;
+  return `https://${s}`;
+}
+
 /**
  * หน้าแรกหลังเข้า `/member` — การ์ดหัวใจด้านบน + ปกโปรไฟล์ + กล่องโพสต์
  * ข้อมูลจาก user (publicPage*) + รูปโปรไฟล์/LINE + ยอดหัวใจจาก API
@@ -66,6 +73,9 @@ export default function MemberHomeProfileLanding({ user }) {
   const shipping = shippingRows(user?.shippingAddressParts);
   const hasShipping = shipping.some(([, v]) => String(v || "").trim() !== "");
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "สมาชิก";
+  const socialLine = normalizeSocialUrl(user?.socialLineUrl);
+  const socialFacebook = normalizeSocialUrl(user?.socialFacebookUrl);
+  const socialTiktok = normalizeSocialUrl(user?.socialTiktokUrl);
 
   return (
     <div className="border-b border-pink-100 bg-white">
@@ -185,6 +195,44 @@ export default function MemberHomeProfileLanding({ user }) {
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
                     {bio}
                   </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    {socialLine ? (
+                      <a
+                        href={socialLine}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#06C755] text-white shadow-sm"
+                        aria-label="LINE"
+                        title="LINE"
+                      >
+                        LINE
+                      </a>
+                    ) : null}
+                    {socialFacebook ? (
+                      <a
+                        href={socialFacebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#1877F2] text-white shadow-sm"
+                        aria-label="Facebook"
+                        title="Facebook"
+                      >
+                        f
+                      </a>
+                    ) : null}
+                    {socialTiktok ? (
+                      <a
+                        href={socialTiktok}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-black text-white shadow-sm"
+                        aria-label="TikTok"
+                        title="TikTok"
+                      >
+                        TikTok
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               </div>
               <Link
@@ -281,57 +329,6 @@ export default function MemberHomeProfileLanding({ user }) {
           ) : (
             <p className="text-sm text-neutral-500">ยังไม่ได้กรอกที่อยู่</p>
           )}
-        </div>
-      </div>
-
-      {/* กล่องสร้างโพสต์ — ลิงก์ไปเพจชุมชน */}
-      <div className="mx-auto max-w-[960px] px-3 pb-10 sm:px-5">
-        <div className="rounded-2xl border border-pink-100 bg-white p-4 shadow-md shadow-pink-100/40 sm:p-5">
-          <div className="flex gap-3">
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <label htmlFor="member-home-post-placeholder" className="sr-only">
-                สร้างโพสต์
-              </label>
-              <textarea
-                id="member-home-post-placeholder"
-                readOnly
-                rows={2}
-                placeholder="คุณกำลังคิดอะไรอยู่?"
-                className="w-full resize-none rounded-xl border border-pink-100 bg-pink-50/30 px-3 py-2.5 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-200"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-pink-50 pt-4">
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/page#community-lobby"
-                className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-pink-50 sm:text-sm"
-              >
-                <span aria-hidden>🖼️</span>
-                รูปภาพ
-              </Link>
-              <Link
-                href="/page#community-lobby"
-                className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 transition hover:bg-pink-50 sm:text-sm"
-              >
-                <span aria-hidden>🔗</span>
-                แนบลิงก์
-              </Link>
-            </div>
-            <Link
-              href="/page#community-lobby"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-5 py-2 text-sm font-bold text-white shadow-md shadow-pink-400/25 transition hover:brightness-105"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              โพสต์
-            </Link>
-          </div>
         </div>
       </div>
     </div>
