@@ -1626,7 +1626,6 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "centralGame" ? (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-hui-section">ตั้งค่าเกมส่วนกลาง</h2>
           <p className="text-sm text-hui-body">
             สร้างเกม อัปโหลดภาพแต่ละชุด กำหนดเงื่อนไขรางวัล แล้วเปิดใช้งาน — ผู้เล่นที่หน้า /game จะได้เกมนี้ทันที
           </p>
@@ -1634,7 +1633,6 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "prizePayouts" ? (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-hui-section">จ่ายรางวัล</h2>
           <p className="text-sm text-hui-body">
             รายการผู้เล่นที่ชนะรางวัลจากเกมส่วนกลาง — ใช้ตรวจสอบว่าต้องโอน/ส่งมอบรางวัลให้ใคร (ข้อมูลจากระบบบันทึกการชนะ)
           </p>
@@ -1647,7 +1645,6 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "heartPurchases" ? (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-hui-section">อนุมัติสลิปและประวัติการซื้อหัวใจ</h2>
           <p className="text-sm text-hui-body">
             ตรวจคิวที่รออนุมัติ และดูประวัติย้อนหลังว่าใครซื้อไปเท่าไหร่ พร้อมสรุปยอดตามตัวกรอง
           </p>
@@ -1655,7 +1652,6 @@ export default function AdminDashboard() {
         </section>
       ) : tab === "siteTheme" ? (
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-hui-section">พื้นหลังเว็บไซต์</h2>
           <p className="text-sm text-hui-body">
             <strong>หน้าแรก (/)</strong> กับ<strong>หน้าอื่นทั้งหมด</strong>ตั้งพื้นหลังคนละชุดได้ (รูปหรือไล่สีแยกกัน) · ฟุตเตอร์ใช้สีทึบชุดเดียวทับพื้นหลังของแต่ละหน้า
           </p>

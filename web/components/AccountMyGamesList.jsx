@@ -36,7 +36,7 @@ function gameStatusBadge(g) {
   );
 }
 
-export default function AccountMyGamesList() {
+export default function AccountMyGamesList({ hideShellPageTitle = false } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useMemberAuth();
@@ -124,8 +124,10 @@ export default function AccountMyGamesList() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-hui-section sm:text-2xl">เกมของฉัน</h2>
-        <p className="mt-1 text-sm text-hui-body">
+        {hideShellPageTitle ? null : (
+          <h2 className="text-xl font-semibold text-hui-section sm:text-2xl">เกมของฉัน</h2>
+        )}
+        <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-1"}`}>
           เกมที่คุณสร้างจะเก็บไว้ในบัญชีนี้ — ล็อกเอาต์แล้วล็อกอินใหม่เกมยังอยู่ที่นี่
         </p>
       </div>

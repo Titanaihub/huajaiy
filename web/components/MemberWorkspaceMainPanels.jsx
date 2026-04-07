@@ -53,36 +53,29 @@ export default function MemberWorkspaceMainPanels({ slug }) {
     case "prizes":
       return <AccountMyPrizesSection />;
     case "hearts":
-      return <AccountMyHeartsSection />;
+      return <AccountMyHeartsSection hideShellPageTitle />;
     case "pink-history":
-      return <AccountHeartHistorySection variant="play" />;
+      return <AccountHeartHistorySection variant="play" hideShellPageTitle />;
     case "game":
       return (
         <Suspense fallback={suspenseFallback}>
-          <AccountMyGamesList />
+          <AccountMyGamesList hideShellPageTitle />
         </Suspense>
       );
     case "prize-withdraw":
       return (
         <Suspense fallback={suspenseFallback}>
-          <PrizeWithdrawForm />
+          <PrizeWithdrawForm hideShellPageTitle />
         </Suspense>
       );
     case "hearts-top-up":
-      return (
-        <>
-          <h2 className="text-lg font-semibold text-hui-section">ซื้อหัวใจแดง</h2>
-          <div className="mt-6">
-            <HeartShopClient />
-          </div>
-        </>
-      );
+      return <HeartShopClient />;
     case "give-hearts":
-      return <AccountGiveHeartsSection />;
+      return <AccountGiveHeartsSection hideShellPageTitle />;
     case "create-game":
       return (
         <Suspense fallback={suspenseFallback}>
-          <CreateGameRoomForm />
+          <CreateGameRoomForm hideShellPageTitle />
         </Suspense>
       );
     case "game-studio":

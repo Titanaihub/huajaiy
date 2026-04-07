@@ -863,8 +863,6 @@ export default function AccountMyPrizesSection() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-hui-section">รางวัลของฉัน</h2>
-
       {err ? (
         <p className="mt-4 text-sm text-red-700" role="alert">
           {err}

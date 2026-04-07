@@ -56,7 +56,7 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
   return lines.filter((x) => x != null).join("\n");
 }
 
-export default function CreateGameRoomForm() {
+export default function CreateGameRoomForm({ hideShellPageTitle = false } = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
@@ -371,10 +371,12 @@ export default function CreateGameRoomForm() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="hui-h2">
-          {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
-        </h2>
-        <p className="mt-1 text-sm text-hui-muted">
+        {hideShellPageTitle ? null : (
+          <h2 className="hui-h2">
+            {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
+          </h2>
+        )}
+        <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
           {managingExisting
             ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
             : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}

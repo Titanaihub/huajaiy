@@ -27,7 +27,7 @@ function parseRefCreator(raw) {
   return String(raw).trim().replace(/^@+/, "").toLowerCase();
 }
 
-export default function PrizeWithdrawForm() {
+export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading: authLoading } = useMemberAuth();
@@ -278,8 +278,10 @@ export default function PrizeWithdrawForm() {
   return (
     <section className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-hui-section">ถอนเงินรางวัล (เงินสด)</h2>
-        <p className="mt-1 text-sm text-hui-body">
+        {hideShellPageTitle ? null : (
+          <h2 className="text-lg font-semibold text-hui-section">ถอนเงินรางวัล (เงินสด)</h2>
+        )}
+        <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-1"}`}>
           คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-hui-cta">@{effectiveCreator}</span>{" "}
           เพื่อโอนเงิน — หลังจ่ายแล้วผู้สร้างจะกดอนุมัติในระบบ
         </p>

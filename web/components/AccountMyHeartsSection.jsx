@@ -37,7 +37,7 @@ function asDateMs(v) {
   return Number.isFinite(ms) ? ms : 0;
 }
 
-export default function AccountMyHeartsSection() {
+export default function AccountMyHeartsSection({ hideShellPageTitle = false } = {}) {
   const router = useRouter();
   const { user, loading, refresh } = useMemberAuth();
   const [games, setGames] = useState([]);
@@ -223,8 +223,10 @@ export default function AccountMyHeartsSection() {
   return (
     <div className="space-y-8">
       <header className="max-w-4xl">
-        <h2 className="hui-h2">ห้องเกม — หัวใจแดงในห้อง</h2>
-        <p className="mt-2 text-sm text-hui-body">
+        {hideShellPageTitle ? null : (
+          <h2 className="hui-h2">ห้องเกม — หัวใจแดงในห้อง</h2>
+        )}
+        <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-2"}`}>
           รายการเกมที่เปิดให้เล่นในล็อบบี้ — แสดง{" "}
           <strong>หัวใจแดงที่เหลือในห้องของแต่ละเจ้าของห้อง</strong> (จากรหัสห้อง) เกมใด ๆ
           ของ @ เดียวกันใช้ยอดเดียวกัน

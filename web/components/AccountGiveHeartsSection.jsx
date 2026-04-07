@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import AccountRoomRedGiftSection from "./AccountRoomRedGiftSection";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-export default function AccountGiveHeartsSection() {
+export default function AccountGiveHeartsSection({ hideShellPageTitle = false } = {}) {
   const router = useRouter();
   const { user, loading } = useMemberAuth();
 
@@ -27,8 +27,10 @@ export default function AccountGiveHeartsSection() {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold text-hui-section">แจกหัวใจแดง</h2>
-        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+        {hideShellPageTitle ? null : (
+          <h2 className="text-lg font-semibold text-hui-section">แจกหัวใจแดง</h2>
+        )}
+        <p className={`flex flex-wrap gap-x-3 gap-y-1 text-sm ${hideShellPageTitle ? "" : "mt-2"}`}>
           <Link
             href="/account/hearts-shop"
             className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"

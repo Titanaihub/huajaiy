@@ -5,5 +5,5 @@ export const metadata = {
 };
 
 export default function AccountHeartHistoryPlayPage() {
-  return <AccountHeartHistorySection variant="play" />;
+  return <AccountHeartHistorySection variant="play" hideShellPageTitle />;
 }

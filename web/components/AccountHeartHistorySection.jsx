@@ -386,9 +386,12 @@ function AmountCell({ amountNumeric, amountDisplay }) {
 }
 
 /**
- * @param {{ variant?: "play" | "purchase" | "giveaway" | "pink" | "red" | "all" }} props
+ * @param {{ variant?: "play" | "purchase" | "giveaway" | "pink" | "red" | "all"; hideShellPageTitle?: boolean }} props
  */
-export default function AccountHeartHistorySection({ variant = "play" }) {
+export default function AccountHeartHistorySection({
+  variant = "play",
+  hideShellPageTitle = false
+}) {
   const { user, loading: authLoading } = useMemberAuth();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -486,7 +489,9 @@ export default function AccountHeartHistorySection({ variant = "play" }) {
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h2 className="text-xl font-bold tracking-tight text-slate-900">{heading}</h2>
+        {hideShellPageTitle ? null : (
+          <h2 className="text-xl font-bold tracking-tight text-slate-900">{heading}</h2>
+        )}
         <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{blurb}</p>
       </header>
 

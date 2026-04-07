@@ -5,5 +5,5 @@ export const metadata = {
 };
 
 export default function AccountHeartHistoryGiveawayPage() {
-  return <AccountHeartHistorySection variant="giveaway" />;
+  return <AccountHeartHistorySection variant="giveaway" hideShellPageTitle />;
 }

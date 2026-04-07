@@ -5,5 +5,5 @@ export const metadata = {
 };
 
 export default function AccountHeartHistoryPurchasesPage() {
-  return <AccountHeartHistorySection variant="purchase" />;
+  return <AccountHeartHistorySection variant="purchase" hideShellPageTitle />;
 }
