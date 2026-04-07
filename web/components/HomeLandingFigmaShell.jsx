@@ -449,15 +449,17 @@ export default function HomeLandingFigmaShell({
                         href={`/game/${encodeURIComponent(id)}`}
                         className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
                       >
-                        <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-neutral-100">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
-                            alt=""
-                            width={400}
-                            height={400}
-                            className="h-full w-full object-cover"
-                          />
+                        <div className="flex justify-center bg-gradient-to-b from-pink-50/40 to-white px-3 pt-3">
+                          <div className="relative h-[150px] w-[150px] shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={cover || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                              alt=""
+                              width={150}
+                              height={150}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
                         </div>
                         <div className="flex flex-col gap-1 px-3 pb-11 pt-2.5">
                           <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
