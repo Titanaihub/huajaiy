@@ -10,6 +10,7 @@ import {
   apiRedeemRoomRedGiftCode,
   getMemberToken
 } from "../lib/memberApi";
+import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
@@ -186,13 +187,17 @@ export default function AccountMyHeartsSection() {
     );
   }
 
-  const pink = Number(user.pinkHeartsBalance ?? 0);
+  const totals = heartTotalsFromPublicUser(user);
+  const pink = totals.pink;
+  const walletRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
   const roomGift = Array.isArray(user.roomGiftRed) ? user.roomGiftRed : [];
   const roomRedFromCodesSum = roomGift.reduce(
     (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
     0
   );
-  const redTotalDisplay = roomRedFromCodesSum;
+  /** ตรงกับแถบหัว: แดงกลาง = กระเป๋า + ห้อง */
+  const redFromUsersTotal = totals.redFromUsers;
+  const giveawayRed = totals.giveawayRed;
 
   return (
     <div className="space-y-8">
@@ -210,11 +215,35 @@ export default function AccountMyHeartsSection() {
             {pink.toLocaleString("th-TH")}
           </p>
           <p className="mt-3 text-sm font-semibold uppercase tracking-wide text-hui-section">
-            หัวใจแดงจากรหัสห้อง (ใช้งานจริง)
+            หัวใจแดงจากผู้เล่น (รวม — ตรงกับไอคอนแดงกลางด้านบน)
           </p>
           <p className="mt-1 flex items-center gap-2 text-xl font-bold text-hui-cta">
             <InlineHeart className="text-hui-cta" />
-            {redTotalDisplay.toLocaleString("th-TH")}
+            {redFromUsersTotal.toLocaleString("th-TH")}
+          </p>
+          <ul className="mt-2 space-y-1 pl-1 text-sm text-hui-body">
+            <li>
+              <span className="text-hui-muted">ในกระเป๋า (ซื้อ/ยอดจากระบบ): </span>
+              <span className="font-semibold tabular-nums text-hui-body">
+                {walletRed.toLocaleString("th-TH")}
+              </span>
+            </li>
+            <li>
+              <span className="text-hui-muted">จากรหัสห้อง (แยกรายเจ้าของด้านล่าง): </span>
+              <span className="font-semibold tabular-nums text-hui-body">
+                {roomRedFromCodesSum.toLocaleString("th-TH")}
+              </span>
+            </li>
+          </ul>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-hui-section">
+            หัวใจแดงสำหรับแจก (ตรงกับไอคอนแดงวงแหวนด้านบน)
+          </p>
+          <p className="mt-1 flex items-center gap-2 text-xl font-bold text-red-800">
+            <InlineHeart className="text-red-600" />
+            {giveawayRed.toLocaleString("th-TH")}
+          </p>
+          <p className="mt-1 text-xs text-hui-muted">
+            ใช้เมื่อคุณเป็นผู้สร้างห้อง/แจกในเกม — ไม่ใช่ยอดจากรหัสห้องของผู้เล่น
           </p>
           <button
             type="button"
