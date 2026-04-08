@@ -1231,7 +1231,7 @@ async function deactivateAll() {
 async function deactivateGame(gameId) {
   const pool = requirePool();
   await pool.query(
-    `UPDATE central_games SET is_active = FALSE, updated_at = NOW() WHERE id = $1`,
+    `UPDATE central_games SET is_active = FALSE, is_published = FALSE, updated_at = NOW() WHERE id = $1`,
     [gameId]
   );
 }
