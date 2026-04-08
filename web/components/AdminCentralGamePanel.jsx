@@ -1588,7 +1588,7 @@ export default function AdminCentralGamePanel({
             </div>
           ) : null}
 
-          {memberShellEmbed ? (
+          {memberShellEmbed && !memberSinglePageGuide ? (
             <p className="text-sm text-hui-muted">
               <Link
                 href={`/member/game-studio?game=${encodeURIComponent(selectedId || "")}`}

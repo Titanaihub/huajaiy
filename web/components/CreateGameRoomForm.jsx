@@ -451,9 +451,9 @@ export default function CreateGameRoomForm({
         <p className="text-sm leading-relaxed text-hui-muted">
           {memberShellEmbed ? (
             <>
-              ด้านล่างคือ<strong className="font-medium text-hui-section"> ตั้งค่าห้องเกมทั้งหมดในหน้าเดียว</strong>
-              — กดปุ่มชมพูด้านล่างนี้เพื่อ<strong>บันทึกข้อมูลเบื้องต้น</strong> (ชื่อ + คำอธิบายที่รวมวัตถุประสงค์และเงื่อนไขรางวัล)
-              แล้วตั้งค่าหัวใจ ป้าย และรูปในส่วน &quot;ตั้งค่าห้องเกมของฉัน&quot; ได้ทันที
+              ส่วน<strong className="font-medium text-hui-section"> ตั้งค่าห้องเกมของฉัน</strong> อยู่ด้านล่างในหน้านี้
+              (หัวใจ ป้าย รูป) — ระบบเตรียมเกมร่างให้อัตโนมัติ แสดงทันทีเมื่อพร้อม
+              · กดปุ่มชมพูเพื่อ<strong>บันทึกข้อมูลเบื้องต้น</strong> (ชื่อ + คำอธิบายรวมวัตถุประสงค์และเงื่อนไขรางวัล) ตามที่ระบบใช้ตรวจสอบ — ไม่ต้องรอกดก่อนจึงจะเห็นส่วนตั้งค่า
             </>
           ) : (
             <>
@@ -563,7 +563,7 @@ export default function CreateGameRoomForm({
         )}
         <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
           {memberShellEmbed
-            ? "กรอกด้านบนและเลื่อนลงมาตั้งค่าเกมในหน้านี้หน้าเดียว — บันทึกข้อมูล / เผยแพร่เกมที่ส่วนล่างเมื่อพร้อม"
+            ? "กรอกด้านบนได้ตามลำดับ — เลื่อนลงมาดูส่วนตั้งค่าป้ายและรูปในหน้าเดียวกัน (โผล่ด้านล่างเมื่อระบบเตรียมร่างเกมเสร็จ) · บันทึกข้อมูลเบื้องต้นและเผยแพร่เกมทำที่ส่วนล่างเมื่อพร้อม"
             : managingExisting
               ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
               : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
@@ -602,32 +602,52 @@ export default function CreateGameRoomForm({
         </p>
       ) : null}
 
-      {memberShellEmbed && user && !panelFocusId && !draftBootErr ? (
-        <p className="text-sm text-hui-muted" aria-live="polite">
-          กำลังเตรียมเกมร่างให้คุณ…
-        </p>
-      ) : null}
-
-      {user && (!memberShellEmbed || panelFocusId) ? (
+      {user ? (
         <div
           ref={studioRef}
           id="game-studio"
           className="scroll-mt-8 border-t border-hui-border pt-10"
         >
           <h3 className="hui-h3">ตั้งค่าห้องเกมของฉัน</h3>
-          <div className="mt-6">
-            <AdminCentralGamePanel
-              key={panelFocusId || "my-games-studio"}
-              embedded
-              memberShellEmbed={isMemberEmbed}
-              memberBasicInfoOnly={memberShellEmbed ? false : isMemberEmbed && !studioEditFull}
-              focusGameId={panelFocusId}
-              suppressTopPolicyCallouts={Boolean(memberShellEmbed)}
-              disableEmbeddedAutoSelect={Boolean(memberShellEmbed)}
-              hideEmbeddedGamesTable={Boolean(memberShellEmbed)}
-              externalReloadToken={introTick}
-            />
-          </div>
+          <p className="mt-1 text-sm text-hui-muted">
+            {memberShellEmbed
+              ? "โครงป้าย รูป หัวใจ และเผยแพร่ — อยู่ในบล็อกด้านล่างนี้ (ไม่ต้องสลับหน้า)"
+              : null}
+          </p>
+
+          {memberShellEmbed && !panelFocusId && draftBootErr ? (
+            <p className="mt-6 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-sm text-rose-900">
+              ยังโหลดแผงตั้งค่าไม่ได้จนกว่าจะมีเกมร่าง — ดูสาเหตุในข้อความแดงด้านบน แล้วลองรีเฟรชหรือเริ่มร่างใหม่
+            </p>
+          ) : null}
+
+          {memberShellEmbed && !panelFocusId && !draftBootErr ? (
+            <div
+              className="mt-6 rounded-2xl border border-dashed border-pink-200 bg-pink-50/50 px-5 py-10 text-center"
+              aria-live="polite"
+            >
+              <p className="text-sm font-medium text-pink-900">กำลังเตรียมเกมร่างและโหลดแผงตั้งค่า…</p>
+              <p className="mt-2 text-sm text-pink-800/90">
+                รอสักครู่ — ถ้านานผิดปกติ ลองรีเฟรชหน้า หรือกด &quot;เริ่มร่างเกมใหม่&quot;
+              </p>
+            </div>
+          ) : null}
+
+          {(!memberShellEmbed || panelFocusId) ? (
+            <div className="mt-6">
+              <AdminCentralGamePanel
+                key={panelFocusId || "my-games-studio"}
+                embedded
+                memberShellEmbed={isMemberEmbed}
+                memberBasicInfoOnly={memberShellEmbed ? false : isMemberEmbed && !studioEditFull}
+                focusGameId={panelFocusId}
+                suppressTopPolicyCallouts={Boolean(memberShellEmbed)}
+                disableEmbeddedAutoSelect={Boolean(memberShellEmbed)}
+                hideEmbeddedGamesTable={Boolean(memberShellEmbed)}
+                externalReloadToken={introTick}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

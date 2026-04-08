@@ -79,10 +79,18 @@ export default function MemberTailadminWorkspace() {
     }
   }, [loading, user, router]);
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
         กำลังโหลด…
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-[#fce7f3]/45 text-sm text-slate-600">
+        กำลังไปหน้าเข้าสู่ระบบ…
       </main>
     );
   }
