@@ -32,7 +32,21 @@ const PUBLISH_CONFIRM_MESSAGE =
   "โปรดตรวจสอบรูปแบบเกมและรางวัลให้ถูกต้องตรงตามความต้องการ\n\nหากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้\n\nยืนยันเผยแพร่หรือไม่?";
 
 const DELETE_BLOCKED_HINT =
-  "เกมนี้มีประวัติการเล่นหรือรับรางวัลแล้ว — ไม่สามารถลบจากที่นี่ได้ กรุณาติดต่อผู้ดูแลระบบให้ลบแทน";
+  "เกมนี้มีผู้ได้รับรางวัลแล้ว — ไม่สามารถลบจากที่นี่ได้ กรุณาติดต่อผู้ดูแลระบบให้ลบแทน";
+const DELETE_PLAY_BLOCKED_HINT =
+  "เกมนี้มีประวัติการเล่นและยังเผยแพร่/เปิดใช้งานอยู่ — หยุดเผยแพร่ก่อนแล้วค่อยลบ";
+
+function canDeleteGame({ awardCount = 0, playCount = 0, isPublished = false, isActive = false }) {
+  if (awardCount > 0) return false;
+  if (playCount > 0 && (isPublished || isActive)) return false;
+  return true;
+}
+
+function deleteBlockedHint({ awardCount = 0, playCount = 0, isPublished = false, isActive = false }) {
+  if (awardCount > 0) return DELETE_BLOCKED_HINT;
+  if (playCount > 0 && (isPublished || isActive)) return DELETE_PLAY_BLOCKED_HINT;
+  return undefined;
+}
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
@@ -1094,8 +1108,15 @@ export default function AdminCentralGamePanel({
 
   async function removeGame() {
     if (!selectedId) return;
-    if (prizeAwardCount > 0 || playCount > 0) {
-      setMsg(DELETE_BLOCKED_HINT);
+    const selectedGame = games.find((g) => g.id === selectedId);
+    const blocked = deleteBlockedHint({
+      awardCount: prizeAwardCount,
+      playCount,
+      isPublished: Boolean(selectedGame?.isPublished || lobbyVisible),
+      isActive: Boolean(selectedGame?.isActive)
+    });
+    if (blocked) {
+      setMsg(blocked);
       return;
     }
     if (!window.confirm("ลบเกมนี้ถาวร?")) return;
@@ -1135,10 +1156,23 @@ export default function AdminCentralGamePanel({
     scrollToEditor();
   }
 
-  async function deleteGameById(id, title, awardCount = 0, playCountInList = 0) {
+  async function deleteGameById(
+    id,
+    title,
+    awardCount = 0,
+    playCountInList = 0,
+    isPublished = false,
+    isActive = false
+  ) {
     if (!id) return;
-    if (awardCount > 0 || playCountInList > 0) {
-      setMsg(DELETE_BLOCKED_HINT);
+    const blocked = deleteBlockedHint({
+      awardCount,
+      playCount: playCountInList,
+      isPublished,
+      isActive
+    });
+    if (blocked) {
+      setMsg(blocked);
       return;
     }
     if (!window.confirm(`ลบเกม「${title}」ถาวร?`)) return;
@@ -1489,18 +1523,30 @@ export default function AdminCentralGamePanel({
                     </button>
                     <button
                       type="button"
-                      disabled={Number(g.prizeAwardCount) > 0 || Number(g.playCount) > 0}
+                      disabled={
+                        !canDeleteGame({
+                          awardCount: Number(g.prizeAwardCount) || 0,
+                          playCount: Number(g.playCount) || 0,
+                          isPublished: Boolean(g.isPublished),
+                          isActive: Boolean(g.isActive)
+                        })
+                      }
                       title={
-                        Number(g.prizeAwardCount) > 0 || Number(g.playCount) > 0
-                          ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
-                          : undefined
+                        deleteBlockedHint({
+                          awardCount: Number(g.prizeAwardCount) || 0,
+                          playCount: Number(g.playCount) || 0,
+                          isPublished: Boolean(g.isPublished),
+                          isActive: Boolean(g.isActive)
+                        })
                       }
                       onClick={() =>
                         deleteGameById(
                           g.id,
                           g.title,
                           Number(g.prizeAwardCount) || 0,
-                          Number(g.playCount) || 0
+                          Number(g.playCount) || 0,
+                          Boolean(g.isPublished),
+                          Boolean(g.isActive)
                         )
                       }
                       className="rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-sm font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-45"
@@ -2231,13 +2277,20 @@ export default function AdminCentralGamePanel({
                       gameActionBusy ||
                       savingAll ||
                       !selectedId ||
-                      prizeAwardCount > 0 ||
-                      playCount > 0
+                      !canDeleteGame({
+                        awardCount: prizeAwardCount,
+                        playCount,
+                        isPublished: lobbyVisible,
+                        isActive: lobbyVisible
+                      })
                     }
                     title={
-                      prizeAwardCount > 0 || playCount > 0
-                        ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
-                        : undefined
+                      deleteBlockedHint({
+                        awardCount: prizeAwardCount,
+                        playCount,
+                        isPublished: lobbyVisible,
+                        isActive: lobbyVisible
+                      })
                     }
                     onClick={() => removeGame()}
                     className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"

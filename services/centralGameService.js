@@ -1238,13 +1238,19 @@ async function deactivateGame(gameId) {
 
 async function deleteGame(gameId) {
   const pool = requirePool();
-  const [awardCount, playCount] = await Promise.all([
+  const [awardCount, playCount, gameRow] = await Promise.all([
     getPrizeAwardCountForGame(gameId),
-    getPlayCountForGame(gameId)
+    getPlayCountForGame(gameId),
+    pool.query(`SELECT is_published, is_active FROM central_games WHERE id = $1`, [gameId])
   ]);
-  if (awardCount > 0 || playCount > 0) {
+  const isPublished = Boolean(gameRow.rows[0]?.is_published);
+  const isActive = Boolean(gameRow.rows[0]?.is_active);
+  const hasBlockingPlayHistory = playCount > 0 && (isPublished || isActive);
+  if (awardCount > 0 || hasBlockingPlayHistory) {
     const e = new Error(
-      "เกมนี้มีประวัติการเล่นหรือรับรางวัลแล้ว — ไม่สามารถลบได้"
+      awardCount > 0
+        ? "เกมนี้มีผู้ได้รับรางวัลแล้ว — ไม่สามารถลบได้"
+        : "เกมนี้มีประวัติการเล่นและยังเผยแพร่/เปิดใช้งานอยู่ — หยุดเผยแพร่ก่อนแล้วค่อยลบ"
     );
     e.code = "GAME_HAS_PLAY_HISTORY";
     throw e;
