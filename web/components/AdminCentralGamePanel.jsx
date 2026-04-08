@@ -428,7 +428,13 @@ export default function AdminCentralGamePanel({
   memberShellEmbed = false,
   /** สมาชิก: แสดงเฉพาะชื่อเกม + คำอธิบาย — ตั้งค่าป้าย/รูป/รางวัลไปที่ ?edit=full */
   memberBasicInfoOnly = false,
-  focusGameId = null
+  focusGameId = null,
+  /** หน้า /member/create-game โชว์กล่องนโยบายด้านบนแล้ว — ไม่ซ้ำที่นี่ */
+  suppressTopPolicyCallouts = false,
+  /** หน้าสร้างเกม: ไม่เลือกเกมแรกในรายการอัตโนมัติเมื่อยังไม่มี focus */
+  disableEmbeddedAutoSelect = false,
+  /** หน้าเดียว: ไม่โชว์ตารางรายการเกม — แก้เฉพาะเกมที่ focus */
+  hideEmbeddedGamesTable = false
 }) {
   const router = useRouter();
   const [games, setGames] = useState([]);
@@ -528,12 +534,13 @@ export default function AdminCentralGamePanel({
   // โหมด embedded: ถ้าไม่ได้ส่ง focusGameId และยังไม่เลือกเกม ให้เลือกเกมล่าสุดอัตโนมัติ
   useEffect(() => {
     if (!embedded) return;
+    if (disableEmbeddedAutoSelect) return;
     if (focusGameId) return;
     if (selectedId) return;
     if (!Array.isArray(games) || games.length === 0) return;
     const firstId = String(games[0]?.id || "").trim();
     if (firstId) setSelectedId(firstId);
-  }, [embedded, focusGameId, selectedId, games]);
+  }, [embedded, disableEmbeddedAutoSelect, focusGameId, selectedId, games]);
 
   const loadDetail = useCallback(async (id) => {
     if (!id) return;
@@ -1143,6 +1150,8 @@ export default function AdminCentralGamePanel({
     memberShellEmbed && memberBasicInfoOnly && selectedId
   );
   const memberCancelHref = memberShellEmbed ? "/member/game" : "/account/my-games";
+  const memberPublishCta =
+    memberShellEmbed && hideEmbeddedGamesTable ? "เผยแพร่ทันที" : "เผยแพร่บนเว็บ";
 
   return (
     <section className="space-y-8 text-sm">
@@ -1157,10 +1166,12 @@ export default function AdminCentralGamePanel({
         </p>
       ) : null}
 
-      <div className={showMemberBasicIntro ? "space-y-6" : undefined}>
-        <CentralGamePolicyCallout />
-        {showMemberBasicIntro ? <MemberStudioIntroPolicyStack /> : null}
-      </div>
+      {suppressTopPolicyCallouts ? null : (
+        <div className={showMemberBasicIntro ? "space-y-6" : undefined}>
+          <CentralGamePolicyCallout />
+          {showMemberBasicIntro ? <MemberStudioIntroPolicyStack /> : null}
+        </div>
+      )}
 
       {!embedded ? (
       <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 p-3">
@@ -1313,7 +1324,7 @@ export default function AdminCentralGamePanel({
         >
           <p className="font-semibold text-hui-section">สร้างเกม「{publishPrompt.title}」แล้ว</p>
           <p className="mt-2 text-sm text-hui-body">
-            กด <strong>เผยแพร่บนเว็บ</strong> เพื่อให้โผล่ในเมนูหลักและการ์ด「เกม」ที่หน้าแรก — แนะนำให้บันทึกรูปและกติกาก่อนถ้ายังไม่ครบ
+            กด <strong>{memberPublishCta}</strong> เพื่อให้โผล่ในเมนูหลักและการ์ด「เกม」ที่หน้าแรก — แนะนำให้บันทึกรูปและกติกาก่อนถ้ายังไม่ครบ
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
@@ -1323,7 +1334,7 @@ export default function AdminCentralGamePanel({
               onClick={() => publishGameById(publishPrompt.id)}
               className="hui-btn-primary text-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
-              เผยแพร่บนเว็บ
+              {memberPublishCta}
             </button>
             <button
               type="button"
@@ -1336,7 +1347,9 @@ export default function AdminCentralGamePanel({
         </div>
       ) : null}
 
-      {games.length > 0 && !showMemberBasicIntro ? (
+      {games.length > 0 &&
+      !showMemberBasicIntro &&
+      !(embedded && hideEmbeddedGamesTable) ? (
         <div className="overflow-x-auto rounded-xl border border-hui-border bg-white">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hui-border bg-hui-pageTop px-3 py-2">
             <h3 className="text-sm font-semibold text-hui-body">รายการเกม — คลิกแถวเพื่อเลือกแก้ไข</h3>
@@ -1431,7 +1444,7 @@ export default function AdminCentralGamePanel({
         </div>
       ) : null}
 
-      {embedded && games.length === 0 ? (
+      {embedded && games.length === 0 && !hideEmbeddedGamesTable ? (
         <div className="rounded-xl border border-hui-border bg-white/90 px-4 py-5 text-sm text-hui-body shadow-sm">
           ยังไม่มีห้องเกมในบัญชีนี้ — กดปุ่ม "เปิดสร้างห้องเกม" ด้านบนก่อน แล้วระบบจะเปิดแผงตั้งค่าให้อัตโนมัติ
         </div>
@@ -1634,7 +1647,7 @@ export default function AdminCentralGamePanel({
                   <span className="font-semibold text-hui-section">
                     สถานะการแสดงในรายการหน้า /game:
                   </span>{" "}
-                  {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่ม「เผยแพร่บนเว็บ」หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
+                  {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่มเผยแพร่หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
                 </p>
               </div>
               <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
@@ -2043,7 +2056,7 @@ export default function AdminCentralGamePanel({
                   onClick={() => activate()}
                   className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  เผยแพร่บนเว็บ
+                  {memberPublishCta}
                 </button>
                 <button
                   type="button"

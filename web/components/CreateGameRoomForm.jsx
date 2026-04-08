@@ -21,15 +21,15 @@ const UUID_RE =
 const PURPOSES = [
   {
     id: "shop_sales",
-    label: "ร้านค้า — ส่งเสริมการขาย"
+    label: "ร้านค้า — เพื่อให้เกิดการขาย"
   },
   {
     id: "product_promo",
-    label: "โปรโมทสินค้า"
+    label: "โปรโมชันสินค้า"
   },
   {
     id: "giveaway",
-    label: "ใจป๋า — อยากแจกรางวัล"
+    label: "ใจดี — อยากแจกรางวัล"
   },
   {
     id: "other",
@@ -58,7 +58,7 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
 
 export default function CreateGameRoomForm({
   hideShellPageTitle = false,
-  /** เปิดจาก /member/create-game — ไม่โชว์แผงตั้งค่าเต็มใต้ฟอร์มเปิดห้อง (ไปต่อที่ game-studio) */
+  /** เปิดจาก /member/create-game — หน้าเดียว: กรอกด้านบนแล้วตั้งค่าเกมเต็มด้านล่างโดยไม่สลับหน้า */
   memberShellEmbed = false
 } = {}) {
   const router = useRouter();
@@ -136,26 +136,11 @@ export default function CreateGameRoomForm({
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
-      const nextUrl = isMemberEmbed
-        ? `/member/game-studio?game=${encodeURIComponent(gid)}`
+      const nextUrl = memberShellEmbed
+        ? `/member/create-game?game=${encodeURIComponent(gid)}`
         : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
-      if (isMemberEmbed && typeof window !== "undefined") {
-        try {
-          if (window.top && window.top !== window) {
-            window.top.location.assign(nextUrl);
-          } else if (window.parent && window.parent !== window) {
-            window.parent.location.assign(nextUrl);
-          } else {
-            window.location.assign(nextUrl);
-          }
-        } catch {
-          window.location.assign(nextUrl);
-        }
-        return;
-      }
       router.replace(nextUrl);
-      // บางเครื่อง/บางเบราว์เซอร์ไม่รีเฟรช query ทันที จึงบังคับเปลี่ยนหน้าเป็น fallback
-      if (typeof window !== "undefined") {
+      if (!memberShellEmbed && typeof window !== "undefined") {
         window.location.assign(nextUrl);
       }
     } catch (ex) {
@@ -188,6 +173,60 @@ export default function CreateGameRoomForm({
       </div>
     );
   }
+
+  const memberPolicyStack = memberShellEmbed ? (
+    <div className="space-y-4">
+      <div
+        className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
+        role="note"
+      >
+        <p className="font-semibold text-rose-900">ข้อห้ามใช้งาน</p>
+        <ul className="mt-2 list-inside list-disc space-y-1 text-rose-900/95">
+          <li>
+            <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>
+            หรือชักจูงให้เล่นพนัน
+          </li>
+          <li>
+            <strong>ห้าม</strong>ใช้เนื้อหา<strong>สื่อลามก</strong> หรือเนื้อหาที่ผิดกฎหมายและศีลธรรมอันดี
+          </li>
+        </ul>
+      </div>
+      <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
+        <p className="font-semibold text-amber-900">กฎระเบียบสำหรับผู้สร้างเกม</p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
+          </li>
+          <li>
+            ต้อง<strong>แจ้งเงื่อนไข</strong>การได้รับรางวัล วิธีรับ และระยะเวลาให้<strong>ชัดเจน</strong>{" "}
+            เพื่อลดความขัดแย้ง
+          </li>
+        </ul>
+      </div>
+      <div className="rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
+        <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
+        <ul className="mt-2 list-inside list-disc space-y-1">
+          <li>
+            1 เกมมีได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_TILES}</strong> ป้าย (นับรวมทุกชุด)
+          </li>
+          <li>
+            บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_PER_MEMBER}</strong> เกม
+          </li>
+        </ul>
+        <p className="mt-2">
+          หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน{" "}
+          <a
+            href={CENTRAL_GAME_ADMIN_LINE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800"
+          >
+            LINE Official
+          </a>
+        </p>
+      </div>
+    </div>
+  ) : null;
 
   const intakeForm = (
       <form onSubmit={onSubmit} className="space-y-6">
@@ -237,34 +276,38 @@ export default function CreateGameRoomForm({
           ) : null}
         </div>
 
-        <div
-          className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
-          role="note"
-        >
-          <p className="font-semibold text-rose-900">ข้อห้ามใช้งาน</p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-rose-900/95">
-            <li>
-              <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>
-              หรือชักจูงให้เล่นพนัน
-            </li>
-            <li>
-              <strong>ห้าม</strong>ใช้เนื้อหา<strong>สื่อลามก</strong> หรือเนื้อหาที่ผิดกฎหมายและศีลธรรมอันดี
-            </li>
-          </ul>
-        </div>
+        {!memberShellEmbed ? (
+          <>
+            <div
+              className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
+              role="note"
+            >
+              <p className="font-semibold text-rose-900">ข้อห้ามใช้งาน</p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-rose-900/95">
+                <li>
+                  <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>
+                  หรือชักจูงให้เล่นพนัน
+                </li>
+                <li>
+                  <strong>ห้าม</strong>ใช้เนื้อหา<strong>สื่อลามก</strong> หรือเนื้อหาที่ผิดกฎหมายและศีลธรรมอันดี
+                </li>
+              </ul>
+            </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
-          <p className="font-semibold text-amber-900">กฎระเบียบสำหรับผู้สร้างเกม</p>
-          <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>
-              ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
-            </li>
-            <li>
-              ต้อง<strong>แจ้งเงื่อนไข</strong>การได้รับรางวัล วิธีรับ และระยะเวลาให้<strong>ชัดเจน</strong>{" "}
-              เพื่อลดความขัดแย้ง
-            </li>
-          </ul>
-        </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
+              <p className="font-semibold text-amber-900">กฎระเบียบสำหรับผู้สร้างเกม</p>
+              <ul className="mt-2 list-inside list-disc space-y-1">
+                <li>
+                  ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
+                </li>
+                <li>
+                  ต้อง<strong>แจ้งเงื่อนไข</strong>การได้รับรางวัล วิธีรับ และระยะเวลาให้<strong>ชัดเจน</strong>{" "}
+                  เพื่อลดความขัดแย้ง
+                </li>
+              </ul>
+            </div>
+          </>
+        ) : null}
 
         <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
           <label htmlFor="roomTitle" className="hui-label">
@@ -374,8 +417,14 @@ export default function CreateGameRoomForm({
       </form>
   );
 
+  const panelFocusId =
+    managingExisting && typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim())
+      ? gameFromUrl.trim()
+      : studioGameId;
+
   return (
     <div className="space-y-8">
+      {memberShellEmbed ? memberPolicyStack : null}
       <div>
         {hideShellPageTitle ? null : (
           <h2 className="hui-h2">
@@ -383,52 +432,59 @@ export default function CreateGameRoomForm({
           </h2>
         )}
         <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
-          {managingExisting
-            ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
-            : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
+          {memberShellEmbed
+            ? managingExisting
+              ? "ตั้งค่าหัวใจ ป้าย รางวัล และรูปหน้าปกในหน้านี้ได้เลย — กดบันทึกและเผยแพร่เมื่อพร้อม"
+              : "อ่านข้อห้ามและกฎด้านบน แล้วกรอกข้อมูลเบื้องต้น — จากนั้นตั้งค่าเกมทั้งหมดด้านล่างในหน้าเดียวกัน"
+            : managingExisting
+              ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
+              : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
         </p>
-        <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
-          <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
-          <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>
-              1 เกมมีได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_TILES}</strong> ป้าย (นับรวมทุกชุด)
-            </li>
-            <li>
-              บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_PER_MEMBER}</strong> เกม
-            </li>
-          </ul>
-          <p className="mt-2">
-            หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน{" "}
-            <a
-              href={CENTRAL_GAME_ADMIN_LINE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800"
-            >
-              LINE Official
-            </a>
-          </p>
-        </div>
+        {!memberShellEmbed ? (
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
+            <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
+            <ul className="mt-2 list-inside list-disc space-y-1">
+              <li>
+                1 เกมมีได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_TILES}</strong> ป้าย (นับรวมทุกชุด)
+              </li>
+              <li>
+                บัญชีสมาชิกสร้างได้ไม่เกิน <strong>{CENTRAL_GAME_MAX_PER_MEMBER}</strong> เกม
+              </li>
+            </ul>
+            <p className="mt-2">
+              หากมีปัญหาหรือต้องการปรับเพิ่ม กรุณาติดต่อแอดมิน{" "}
+              <a
+                href={CENTRAL_GAME_ADMIN_LINE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-800"
+              >
+                LINE Official
+              </a>
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {!managingExisting ? intakeForm : null}
 
-      {user && (!isMemberEmbed || managingExisting) ? (
+      {user && (!memberShellEmbed || panelFocusId) ? (
         <div
           ref={studioRef}
           id="game-studio"
           className="scroll-mt-8 border-t border-hui-border pt-10"
         >
-          <h3 className="hui-h3">
-            {studioGameId ? "ตั้งค่าห้องเกม" : "ตั้งค่าห้องเกมของฉัน"}
-          </h3>
+          <h3 className="hui-h3">ตั้งค่าห้องเกมของฉัน</h3>
           <div className="mt-6">
             <AdminCentralGamePanel
-              key={studioGameId || "my-games-studio"}
+              key={panelFocusId || "my-games-studio"}
               embedded
               memberShellEmbed={isMemberEmbed}
-              memberBasicInfoOnly={isMemberEmbed && !studioEditFull}
-              focusGameId={studioGameId || null}
+              memberBasicInfoOnly={memberShellEmbed ? false : isMemberEmbed && !studioEditFull}
+              focusGameId={panelFocusId}
+              suppressTopPolicyCallouts={Boolean(memberShellEmbed)}
+              disableEmbeddedAutoSelect={Boolean(memberShellEmbed)}
+              hideEmbeddedGamesTable={Boolean(memberShellEmbed)}
             />
           </div>
         </div>
