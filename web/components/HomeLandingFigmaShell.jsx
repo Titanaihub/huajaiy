@@ -175,7 +175,7 @@ export default function HomeLandingFigmaShell({
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:mt-12 sm:gap-4">
               <Link
                 href="/game"
-                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-full bg-white px-6 py-3 text-base font-bold text-[#FF2E8C] shadow-md shadow-pink-200/40 ring-1 ring-pink-100 transition hover:bg-pink-50"
+                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-6 py-3 text-base font-bold text-white shadow-md shadow-pink-400/30 transition hover:brightness-105"
               >
                 เกมและรางวัล
               </Link>
