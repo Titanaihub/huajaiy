@@ -267,14 +267,14 @@ export default function AccountMyGamesList({ hideShellPageTitle = false } = {}) 
                         : "เผยแพร่"}
                   </button>
                   <Link
-                    href={`/account/create-game?game=${encodeURIComponent(id)}#game-studio`}
+                    href={`/member/game-studio?game=${encodeURIComponent(id)}&edit=full`}
                     className="rounded-2xl border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-100"
                     title="เพิ่มรางวัลใหม่ได้ แต่ไม่ควรแก้ไขรางวัลเดิม"
                   >
                     เพิ่มรางวัล
                   </Link>
                   <Link
-                    href={`/account/create-game?game=${encodeURIComponent(id)}`}
+                    href={`/member/game-studio?game=${encodeURIComponent(id)}&edit=full`}
                     className="hui-btn-primary px-3 py-2 text-sm"
                   >
                     จัดการเกม
