@@ -252,7 +252,7 @@ export default function HomeLandingFigmaShell({
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div className="flex flex-col gap-1 px-2 pb-11 pt-2.5">
+                          <div className="flex flex-col gap-1 px-2 pb-2 pt-2.5">
                             <h3 className="line-clamp-2 text-base font-bold leading-snug text-[#FF2E8C]">{title}</h3>
                             <p className="text-sm text-neutral-500">
                               {plays.toLocaleString("th-TH")} รอบ
@@ -262,14 +262,24 @@ export default function HomeLandingFigmaShell({
                             </p>
                           </div>
                         </Link>
-                        <button
-                          type="button"
-                          className="absolute bottom-2.5 right-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
-                          aria-label={`แชร์ ${title}`}
-                          onClick={(e) => shareRecommendedGame(e, g)}
-                        >
-                          <IconShare className="h-4 w-4 shrink-0" />
-                        </button>
+                        <div className="flex items-stretch gap-1.5 px-2 pb-2">
+                          <Link
+                            href={`/game/${encodeURIComponent(id)}`}
+                            className="flex min-h-[2.5rem] min-w-0 flex-1 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-2 text-xs font-bold leading-none text-white shadow-md shadow-pink-400/30 transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/45 focus-visible:ring-offset-2"
+                            aria-label={`เล่นเลย ${title}`}
+                          >
+                            <IconGamepad className="h-4 w-4 shrink-0 text-white" aria-hidden />
+                            เล่นเลย
+                          </Link>
+                          <button
+                            type="button"
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
+                            aria-label={`แชร์ ${title}`}
+                            onClick={(e) => shareRecommendedGame(e, g)}
+                          >
+                            <IconShare className="h-4 w-4 shrink-0" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
