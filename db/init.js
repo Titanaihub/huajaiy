@@ -886,7 +886,9 @@ async function initDb() {
       `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_pool_remaining INTEGER NOT NULL DEFAULT 0`,
       `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_initial_budget INTEGER NOT NULL DEFAULT 0`,
       `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_status VARCHAR(16) NOT NULL DEFAULT 'off'`,
-      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_recipients_count INTEGER NOT NULL DEFAULT 0`
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_recipients_count INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_escrow_from_wallet INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE member_public_posts ADD COLUMN IF NOT EXISTS share_red_escrow_from_giveaway INTEGER NOT NULL DEFAULT 0`
     ]) {
       try {
         await client.query(colSql);

@@ -12,6 +12,21 @@ const MAX_BUDGET = 500000;
 /** ลิงก์ที่มี ?ref=ผู้แชร์ ต้องถูกเปิดอย่างน้อยกี่ครั้ง (นับทุกแถวใน member_public_post_ref_clicks) — "เกิน 10 ครั้ง" = 11 */
 const MIN_REF_CLICKS_FOR_SHARE_REWARD = 11;
 
+/**
+ * คืนวงเงินคงเหลือให้เจ้าของโพสต์ — แบ่งคืนตามสัดส่วนที่กันมาจากแจก vs กระเป๋า (รองรับแถวเก่า esc=0 → คืนกระเป๋าทั้งหมด)
+ */
+function splitProportionalRefund(amount, initialBudget, escrowFromGive, escrowFromWallet) {
+  const a = Math.max(0, Math.floor(Number(amount) || 0));
+  const b = Math.max(0, Math.floor(Number(initialBudget) || 0));
+  const eg = Math.max(0, Math.floor(Number(escrowFromGive) || 0));
+  const ew = Math.max(0, Math.floor(Number(escrowFromWallet) || 0));
+  if (a <= 0) return { toGiveaway: 0, toWallet: 0 };
+  if (b <= 0 || eg + ew === 0) return { toGiveaway: 0, toWallet: a };
+  const toG = Math.min(a, Math.floor((a * eg) / b));
+  const toW = a - toG;
+  return { toGiveaway: toG, toWallet: toW };
+}
+
 function requirePool() {
   const pool = getPool();
   if (!pool) {
@@ -33,7 +48,10 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
     return { granted: false };
   }
   const pr = await client.query(
-    `SELECT p.user_id, p.share_red_status, p.share_red_per_member, p.share_red_pool_remaining, p.share_red_recipients_count
+    `SELECT p.user_id, p.share_red_status, p.share_red_per_member, p.share_red_pool_remaining, p.share_red_recipients_count,
+            p.share_red_initial_budget,
+            COALESCE(p.share_red_escrow_from_giveaway, 0) AS share_red_escrow_from_giveaway,
+            COALESCE(p.share_red_escrow_from_wallet, 0) AS share_red_escrow_from_wallet
      FROM member_public_posts p WHERE p.id = $1 FOR UPDATE`,
     [postId]
   );
@@ -87,7 +105,11 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
 
   if (newPool < per) {
     if (newPool > 0) {
-      await userService.adjustDualHeartsWithClient(client, ownerId, 0, newPool, {
+      const initB = Math.floor(Number(row.share_red_initial_budget) || 0);
+      const escG = Math.floor(Number(row.share_red_escrow_from_giveaway) || 0);
+      const escW = Math.floor(Number(row.share_red_escrow_from_wallet) || 0);
+      const { toGiveaway, toWallet } = splitProportionalRefund(newPool, initB, escG, escW);
+      await userService.adjustRedWalletAndGiveawayWithClient(client, ownerId, toWallet, toGiveaway, {
         kind: "public_post_share_refund",
         label: "คืนหัวใจแดงคงเหลือ (แจกแชร์โพสต์)",
         meta: { postId }
@@ -162,26 +184,38 @@ async function startCampaign(ownerUserId, postId, redPerMember, redBudget) {
     }
 
     const bal = await client.query(
-      `SELECT red_hearts_balance FROM users WHERE id = $1 FOR UPDATE`,
+      `SELECT red_hearts_balance, COALESCE(red_giveaway_balance, 0) AS rg FROM users WHERE id = $1 FOR UPDATE`,
       [ownerUserId]
     );
-    const curRed = Math.floor(Number(bal.rows[0]?.red_hearts_balance) || 0);
-    if (curRed < budget) {
-      const e = new Error("หัวใจแดงไม่พอสำหรับวงเงินที่ตั้ง");
+    const curWallet = Math.floor(Number(bal.rows[0]?.red_hearts_balance) || 0);
+    const curGive = Math.floor(Number(bal.rows[0]?.rg) || 0);
+    const totalRed = curWallet + curGive;
+    if (totalRed < budget) {
+      const e = new Error(
+        "หัวใจแดงในกระเป๋าและหัวใจแดงสำหรับแจกรวมกันไม่พอสำหรับวงเงินที่ตั้ง"
+      );
       e.code = "INSUFFICIENT_HEARTS";
       throw e;
     }
+    const fromGive = Math.min(budget, curGive);
+    const fromWallet = budget - fromGive;
 
     await client.query(
       `DELETE FROM member_public_post_share_reward_recipients WHERE post_id = $1`,
       [postId]
     );
 
-    await userService.adjustDualHeartsWithClient(client, ownerUserId, 0, -budget, {
-      kind: "public_post_share_escrow",
-      label: "กันวงเงินแจกหัวใจแดงเมื่อแชร์โพสต์",
-      meta: { postId }
-    });
+    await userService.adjustRedWalletAndGiveawayWithClient(
+      client,
+      ownerUserId,
+      -fromWallet,
+      -fromGive,
+      {
+        kind: "public_post_share_escrow",
+        label: "กันวงเงินแจกหัวใจแดงเมื่อแชร์โพสต์",
+        meta: { postId }
+      }
+    );
 
     await client.query(
       `UPDATE member_public_posts SET
@@ -190,9 +224,11 @@ async function startCampaign(ownerUserId, postId, redPerMember, redBudget) {
         share_red_pool_remaining = $3,
         share_red_status = 'active',
         share_red_recipients_count = 0,
+        share_red_escrow_from_wallet = $4,
+        share_red_escrow_from_giveaway = $5,
         updated_at = NOW()
        WHERE id = $1`,
-      [postId, per, budget]
+      [postId, per, budget, fromWallet, fromGive]
     );
 
     await client.query("COMMIT");
@@ -227,7 +263,9 @@ async function pauseCampaign(ownerUserId, postId) {
   try {
     await client.query("BEGIN");
     const pr = await client.query(
-      `SELECT id, user_id, share_red_status, share_red_pool_remaining
+      `SELECT id, user_id, share_red_status, share_red_pool_remaining, share_red_initial_budget,
+              COALESCE(share_red_escrow_from_giveaway, 0) AS share_red_escrow_from_giveaway,
+              COALESCE(share_red_escrow_from_wallet, 0) AS share_red_escrow_from_wallet
        FROM member_public_posts WHERE id = $1 FOR UPDATE`,
       [postId]
     );
@@ -243,11 +281,21 @@ async function pauseCampaign(ownerUserId, postId) {
 
     if (st === "active") {
       if (poolRem > 0) {
-        await userService.adjustDualHeartsWithClient(client, ownerUserId, 0, poolRem, {
-          kind: "public_post_share_pause_refund",
-          label: "คืนหัวใจแดงที่กันไว้ (ระงับแจกแชร์โพสต์)",
-          meta: { postId }
-        });
+        const initB = Math.floor(Number(row.share_red_initial_budget) || 0);
+        const escG = Math.floor(Number(row.share_red_escrow_from_giveaway) || 0);
+        const escW = Math.floor(Number(row.share_red_escrow_from_wallet) || 0);
+        const { toGiveaway, toWallet } = splitProportionalRefund(poolRem, initB, escG, escW);
+        await userService.adjustRedWalletAndGiveawayWithClient(
+          client,
+          ownerUserId,
+          toWallet,
+          toGiveaway,
+          {
+            kind: "public_post_share_pause_refund",
+            label: "คืนหัวใจแดงที่กันไว้ (ระงับแจกแชร์โพสต์)",
+            meta: { postId }
+          }
+        );
       }
       await client.query(
         `UPDATE member_public_posts SET

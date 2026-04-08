@@ -416,7 +416,8 @@ function MemberPublicPostCard({
         <div className="mt-2 rounded-lg border border-rose-100 bg-rose-50/50 px-2.5 py-2">
           <p className="text-[11px] font-semibold text-gray-800">แจกหัวใจแดงเมื่อแชร์</p>
           <p className="mt-0.5 text-[10px] leading-snug text-gray-600">
-            กันวงเงินจากคุณทันที — สมาชิกต้องล็อกอิน กดแชร์/คัดลอกจากเว็บ และลิงก์ที่มี{" "}
+            กันวงเงินจากหัวใจแดงกระเป๋า + หัวใจแดงสำหรับแจกของคุณ (หักจากแจกก่อน) ทันที — สมาชิกต้องล็อกอิน
+            กดแชร์/คัดลอกจากเว็บ และลิงก์ที่มี{" "}
             <span className="font-mono">?ref=</span> ของเขาต้องถูกเปิดให้ครบเกณฑ์ (ปัจจุบันมากกว่า{" "}
             {(post.shareReward.minRefClicksForReward ?? 11) - 1} ครั้ง) จึงจะได้หัวใจคนละครั้งต่อโพสต์
           </p>

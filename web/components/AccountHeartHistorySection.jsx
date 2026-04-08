@@ -50,6 +50,17 @@ function parseLedgerCodeIds(meta) {
   return out;
 }
 
+/** บรรทัดรองสำหรับ room_red_code_refund — meta มาจาก roomRedGiftService.cancelCode */
+function roomRedRefundDetailLine(meta) {
+  const m = meta && typeof meta === "object" ? meta : {};
+  const refundCode = m.code != null ? String(m.code).trim() : "";
+  const refundId = m.deletedCodeId != null ? String(m.deletedCodeId).trim() : "";
+  if (refundCode !== "") return `คืนยอดจากรหัสที่ยกเลิก · รหัสแจก ${refundCode}`;
+  if (refundId !== "")
+    return `คืนยอดจากรหัสที่ยกเลิก · รหัสในระบบ ${refundId.slice(0, 8)}…`;
+  return "คืนยอดจากรหัสที่ยกเลิก";
+}
+
 /** รายละเอียดรหัสแจกจากแถวประวัติแดงแจก (สร้างรหัสห้อง) */
 function RoomRedIssueExpandBlock({ codeIds }) {
   const [open, setOpen] = useState(false);
@@ -266,6 +277,26 @@ function buildTableRows(mode, entries) {
         continue;
       }
 
+      if (e.kind === "room_red_code_refund") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const redDelta = Math.floor(Number(e.redDelta) || 0);
+        if (redDelta === 0) continue;
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "—"}</p>
+              <p className="text-xs font-medium text-slate-500">{roomRedRefundDetailLine(m)}</p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: redDelta,
+          balanceDisplay: `กระเป๋าแดง ${Math.max(0, Math.floor(Number(e.redBalanceAfter) || 0)).toLocaleString("th-TH")}`
+        });
+        continue;
+      }
+
       const redDelta = Math.floor(Number(e.redDelta) || 0);
       if (redDelta === 0) continue;
       const hint = KIND_HINT[e.kind] || e.kind || "";
@@ -384,7 +415,7 @@ function buildTableRows(mode, entries) {
             <div className="space-y-1">
               <p className="font-medium text-slate-800">{e.label || "—"}</p>
               <p className="text-xs font-medium text-slate-500">
-                คืนยอดจากรหัสที่ยกเลิก
+                {roomRedRefundDetailLine(m)}
               </p>
             </div>
           ),
