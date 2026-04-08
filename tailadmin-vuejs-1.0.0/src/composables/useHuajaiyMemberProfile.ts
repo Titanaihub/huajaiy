@@ -108,9 +108,13 @@ export function useHuajaiyMemberProfile() {
     try {
       const fd = new FormData()
       fd.append('image', file)
+      const token = localStorage.getItem(TOKEN_KEY)
+      const headers: Record<string, string> = {}
+      if (token?.trim()) headers.Authorization = `Bearer ${token.trim()}`
       const r = await fetch('/upload', {
         method: 'POST',
-        body: fd
+        body: fd,
+        headers,
       })
       const data = (await r.json()) as {
         ok?: boolean

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { uploadUrl } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 import {
   apiGetIncomingPrizeAwards,
   apiGetIncomingPrizeWithdrawals,
@@ -82,11 +82,7 @@ async function uploadSlipFile(file) {
     type: "image/jpeg"
   });
   body.append("image", uploadFile);
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) {
-    throw new Error(data.error || "อัปโหลดสลิปไม่สำเร็จ");
-  }
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 

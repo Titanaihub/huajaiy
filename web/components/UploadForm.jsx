@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getApiBase, uploadUrl } from "../lib/config";
+import { getApiBase } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 
 export default function UploadForm({ showCardHeader = true }) {
   const [file, setFile] = useState(null);
@@ -67,16 +68,7 @@ export default function UploadForm({ showCardHeader = true }) {
       });
       body.append("image", uploadFile);
 
-      const res = await fetch(uploadUrl(), {
-        method: "POST",
-        body
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
-      }
-
+      const data = await postUploadFormData(body);
       setResultUrl(data.publicUrl);
     } catch (e) {
       setError(e.message);

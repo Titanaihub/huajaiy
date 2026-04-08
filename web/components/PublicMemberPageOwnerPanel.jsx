@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { uploadUrl } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 function normalizeHttpsProfileUrl(raw) {
@@ -18,11 +18,7 @@ function normalizeHttpsProfileUrl(raw) {
 async function uploadPublicImage(file) {
   const body = new FormData();
   body.append("image", file);
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok || !data.publicUrl) {
-    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
-  }
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 
@@ -109,9 +105,7 @@ async function uploadBannerImage(file) {
       new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" })
     );
   }
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 

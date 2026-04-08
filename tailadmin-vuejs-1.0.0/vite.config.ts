@@ -29,6 +29,9 @@ export default defineConfig(({ command }) => ({
     },
   },
   build: {
+    /** ส่งออกตรงไปที่ Next `public` — deploy เว็บครั้งเดียว */
+    outDir: fileURLToPath(new URL('../web/public/tailadmin-template', import.meta.url)),
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: undefined,

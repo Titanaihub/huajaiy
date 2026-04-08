@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getApiBase, uploadUrl } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCreateHeartPackage,
@@ -11,14 +11,9 @@ import {
 } from "../lib/rolesApi";
 
 async function uploadImageToApi(file) {
-  const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   body.append("image", file);
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok || !data.publicUrl) {
-    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
-  }
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 

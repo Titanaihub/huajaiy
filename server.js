@@ -94,11 +94,38 @@ const authRateLimit = createSimpleRateLimiter({
   keyPrefix: "auth",
   message: "ลองเข้าสู่ระบบ/สมัครสมาชิกถี่เกินไป กรุณารอสักครู่"
 });
-const uploadRateLimit = createSimpleRateLimiter({
-  windowMs: 60 * 1000,
-  max: 20,
-  keyPrefix: "upload"
-});
+/** อัปโหลด: จำกัดตาม user หลัง optionalAuth — ไม่ล็อกอินจำกัดตาม IP เข้มกว่า */
+function createUploadRateLimiter({
+  windowMs = 60 * 1000,
+  maxPerUser = 30,
+  maxPerIp = 10
+} = {}) {
+  const hits = new Map();
+  return (req, res, next) => {
+    const ip = String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 120);
+    const uid = req.userId ? String(req.userId) : "";
+    const key = uid ? `upload:u:${uid}` : `upload:ip:${ip}`;
+    const max = uid ? maxPerUser : maxPerIp;
+    const now = Date.now();
+    const cur = hits.get(key);
+    if (!cur || now > cur.resetAt) {
+      hits.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    cur.count += 1;
+    if (cur.count > max) {
+      const retrySec = Math.max(1, Math.ceil((cur.resetAt - now) / 1000));
+      res.set("Retry-After", String(retrySec));
+      return res.status(429).json({
+        ok: false,
+        error: "อัปโหลดถี่เกินไป กรุณารอสักครู่",
+        code: "RATE_LIMITED"
+      });
+    }
+    return next();
+  };
+}
+const uploadRateLimit = createUploadRateLimiter();
 const gameActionRateLimit = createSimpleRateLimiter({
   windowMs: 60 * 1000,
   max: 180,
@@ -132,9 +159,48 @@ cloudinary.config({
   api_key: API_KEY,
   api_secret: API_SECRET
 });
+const UPLOAD_IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif"
+]);
+
+/** ตรวจ magic bytes กันปลอม mimetype (เฉพาะชนิดที่รองรับ) */
+function bufferLooksLikeAllowedImage(buf) {
+  if (!buf || buf.length < 12) return false;
+  const b0 = buf[0];
+  const b1 = buf[1];
+  const b2 = buf[2];
+  const b3 = buf[3];
+  if (b0 === 0xff && b1 === 0xd8 && b2 === 0xff) return true;
+  if (b0 === 0x89 && b1 === 0x50 && b2 === 0x4e && b3 === 0x47) return true;
+  if (b0 === 0x47 && b1 === 0x49 && b2 === 0x46) return true;
+  if (
+    b0 === 0x52 &&
+    b1 === 0x49 &&
+    b2 === 0x46 &&
+    b3 === 0x46 &&
+    buf[8] === 0x57 &&
+    buf[9] === 0x45 &&
+    buf[10] === 0x42 &&
+    buf[11] === 0x50
+  ) {
+    return true;
+  }
+  return false;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const m = String(file.mimetype || "").toLowerCase();
+    if (UPLOAD_IMAGE_MIMES.has(m)) return cb(null, true);
+    cb(
+      new Error("อนุญาตเฉพาะรูป JPEG, PNG, WebP หรือ GIF")
+    );
+  }
 });
 
 app.get("/health", (_req, res) => {
@@ -1095,7 +1161,12 @@ app.post("/api/game/abandon", optionalAuthMiddleware, gameActionRateLimit, async
   }
 });
 
-app.post("/upload", optionalAuthMiddleware, uploadRateLimit, upload.single("image"), async (req, res) => {
+app.post(
+  "/upload",
+  optionalAuthMiddleware,
+  uploadRateLimit,
+  upload.single("image"),
+  async (req, res) => {
   try {
     if (!req.userId) {
       return res.status(401).json({ ok: false, error: "ต้องเข้าสู่ระบบก่อนอัปโหลดรูป" });
@@ -1115,10 +1186,10 @@ app.post("/upload", optionalAuthMiddleware, uploadRateLimit, upload.single("imag
       });
     }
 
-    if (!req.file.mimetype.startsWith("image/")) {
+    if (!bufferLooksLikeAllowedImage(req.file.buffer)) {
       return res.status(400).json({
         ok: false,
-        error: "Only image files are allowed"
+        error: "เนื้อหาไฟล์ไม่ใช่รูปที่รองรับ (JPEG, PNG, WebP, GIF)"
       });
     }
 
@@ -1147,6 +1218,24 @@ app.post("/upload", optionalAuthMiddleware, uploadRateLimit, upload.single("imag
       error: error.message
     });
   }
+});
+
+app.use((err, req, res, next) => {
+  if (!err) return next();
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        ok: false,
+        error: "ไฟล์ใหญ่เกินกำหนด (สูงสุด 8 MB)"
+      });
+    }
+    return res.status(400).json({ ok: false, error: err.message || "อัปโหลดไม่สำเร็จ" });
+  }
+  const msg = String(err.message || "");
+  if (msg.includes("อนุญาตเฉพาะรูป")) {
+    return res.status(400).json({ ok: false, error: msg });
+  }
+  next(err);
 });
 
 async function start() {

@@ -160,7 +160,10 @@ export function middleware(request) {
   });
 }
 
-/* จับทุก path รวมหน้าแรก — ยกเว้น static / image / favicon / api (ไม่ต้องแนบ header ให้คำขอ API) */
+/* จับทุก path รวมหน้าแรก — ยกเว้น api / upload (rewrite ไปแบ็กเอนด์) + static / favicon */
 export const config = {
-  matcher: ["/", "/((?!api|_next/static|_next/image|favicon.ico).*)"]
+  matcher: [
+    "/",
+    "/((?!(?:api|upload)(?:/|$)|_next/static|_next/image|favicon.ico).*)"
+  ]
 };

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { uploadUrl } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
+import { postUploadFormData } from "../lib/uploadClient";
 import { apiAdminGetSiteTheme, apiAdminPatchSiteTheme } from "../lib/rolesApi";
 import {
   createDefaultOrganicHomeForm,
@@ -73,9 +73,7 @@ async function uploadImageFile(file) {
     const blob = await compressToJpeg(file);
     body.append("image", new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" }));
   }
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 

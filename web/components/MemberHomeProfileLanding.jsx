@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiPatchPassword, getMemberToken } from "../lib/memberApi";
-import { uploadUrl } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { useMemberAuth } from "./MemberAuthProvider";
+import { BrandTiktokGlyph } from "./MemberSocialBrandMarks";
 import {
   COUNTRY_NON_TH,
   COUNTRY_TH,
@@ -55,11 +56,7 @@ function normalizeSocialUrl(v) {
 async function uploadImage(file) {
   const body = new FormData();
   body.append("image", file);
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok || !data.publicUrl) {
-    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
-  }
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 
@@ -73,8 +70,11 @@ export default function MemberHomeProfileLanding({ user }) {
   const [savingAddress, setSavingAddress] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [saveAlertOpen, setSaveAlertOpen] = useState(false);
-  const [saveAlertText, setSaveAlertText] = useState("");
+  const [saveFeedback, setSaveFeedback] = useState({
+    open: false,
+    variant: "error",
+    message: ""
+  });
   const [msg, setMsg] = useState("");
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editPersonalOpen, setEditPersonalOpen] = useState(false);
@@ -154,18 +154,26 @@ export default function MemberHomeProfileLanding({ user }) {
     });
   }, [user]);
 
-  function openSaveAlert(text) {
-    setSaveAlertText(String(text || "").trim() || "บันทึกไม่สำเร็จ");
-    setSaveAlertOpen(true);
+  function showSaveFeedback(variant, message) {
+    const m = String(message || "").trim();
+    setSaveFeedback({
+      open: true,
+      variant: variant === "success" ? "success" : "error",
+      message:
+        m ||
+        (variant === "success"
+          ? "ดำเนินการสำเร็จ"
+          : "บันทึกไม่สำเร็จ — ลองใหม่อีกครั้ง")
+    });
   }
 
-  function closeSaveAlert() {
-    setSaveAlertOpen(false);
+  function closeSaveFeedback() {
+    setSaveFeedback((s) => ({ ...s, open: false }));
   }
 
   async function saveProfileSection() {
     try {
-      closeSaveAlert();
+      closeSaveFeedback();
       setMsg("");
       setSavingProfile(true);
       await patchProfile({
@@ -175,15 +183,22 @@ export default function MemberHomeProfileLanding({ user }) {
         socialTiktokUrl: profileDraft.socialTiktokUrl.trim() || null
       });
       setMsg("บันทึกข้อมูลโปรไฟล์แล้ว");
+      showSaveFeedback(
+        "success",
+        "บันทึกโปรไฟล์สำเร็จแล้ว (ยูสเซอร์และลิงก์โซเชียลถูกอัปเดตบนระบบแล้ว)"
+      );
     } catch (e) {
-      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
+      showSaveFeedback(
+        "error",
+        e?.message || "บันทึกโปรไฟล์ไม่สำเร็จ — ตรวจสอบยูสเซอร์และลิงก์ว่าถูกต้อง หรือลองใหม่ภายหลัง"
+      );
     } finally {
       setSavingProfile(false);
     }
   }
 
   async function savePersonalSection() {
-    closeSaveAlert();
+    closeSaveFeedback();
     setMsg("");
     const rawCc = String(user?.countryCode || "TH").toUpperCase();
     const countryForNames =
@@ -194,14 +209,14 @@ export default function MemberHomeProfileLanding({ user }) {
       personalDraft.lastName
     );
     if (!names.ok) {
-      openSaveAlert(names.error);
+      showSaveFeedback("error", names.error);
       return;
     }
     const phoneTrim = personalDraft.phone.trim();
     if (phoneTrim) {
       const pv = validatePhoneClient(phoneTrim);
       if (!pv.ok) {
-        openSaveAlert(pv.error);
+        showSaveFeedback("error", pv.error);
         return;
       }
     }
@@ -217,7 +232,7 @@ export default function MemberHomeProfileLanding({ user }) {
       });
       setMsg("บันทึกข้อมูลส่วนตัวแล้ว");
     } catch (e) {
-      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
+      showSaveFeedback("error", e?.message || "บันทึกข้อมูลส่วนตัวไม่สำเร็จ");
     } finally {
       setSavingPersonal(false);
     }
@@ -225,7 +240,7 @@ export default function MemberHomeProfileLanding({ user }) {
 
   async function saveAddressSection() {
     try {
-      closeSaveAlert();
+      closeSaveFeedback();
       setMsg("");
       setSavingAddress(true);
       await patchProfile({
@@ -241,7 +256,7 @@ export default function MemberHomeProfileLanding({ user }) {
       });
       setMsg("บันทึกที่อยู่แล้ว");
     } catch (e) {
-      openSaveAlert(e?.message || "บันทึกไม่สำเร็จ");
+      showSaveFeedback("error", e?.message || "บันทึกที่อยู่ไม่สำเร็จ");
     } finally {
       setSavingAddress(false);
     }
@@ -249,7 +264,7 @@ export default function MemberHomeProfileLanding({ user }) {
 
   async function saveSetPassword() {
     try {
-      closeSaveAlert();
+      closeSaveFeedback();
       setMsg("");
       setSavingPassword(true);
       const token = getMemberToken();
@@ -262,7 +277,7 @@ export default function MemberHomeProfileLanding({ user }) {
       setPasswordDraft({ newPassword: "", newPasswordConfirm: "" });
       setMsg("บันทึกรหัสผ่านแล้ว");
     } catch (e) {
-      openSaveAlert(e?.message || "บันทึกรหัสผ่านไม่สำเร็จ");
+      showSaveFeedback("error", e?.message || "บันทึกรหัสผ่านไม่สำเร็จ");
     } finally {
       setSavingPassword(false);
     }
@@ -271,14 +286,14 @@ export default function MemberHomeProfileLanding({ user }) {
   async function onUploadAvatar(file) {
     if (!file) return;
     try {
-      closeSaveAlert();
+      closeSaveFeedback();
       setMsg("");
       setUploadingImage(true);
       const url = await uploadImage(file);
       await patchProfile({ profilePictureUrl: url });
       setMsg("อัปโหลดรูปโปรไฟล์แล้ว");
     } catch (e) {
-      openSaveAlert(e?.message || "อัปโหลดรูปไม่สำเร็จ");
+      showSaveFeedback("error", e?.message || "อัปโหลดรูปไม่สำเร็จ");
     } finally {
       setUploadingImage(false);
     }
@@ -447,16 +462,11 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialTiktok}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-black shadow-sm ring-1 ring-black/5"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-neutral-200"
                         aria-label="TikTok"
                         title="TikTok"
                       >
-                        <svg className="h-7 w-7" viewBox="0 0 24 24" aria-hidden>
-                          <path
-                            fill="#fff"
-                            d="M12.525.02c1.31-.02 2.61-.01 3.919.02 0 1.38.017 2.76.001 4.14 1.15-.1 2.31-.19 3.47-.1.02 1.2.01 2.41 0 3.61.96.1 1.95.13 2.91.19.01 1.23.01 2.46 0 3.69-.97-.07-1.95-.13-2.91-.21-.02 1.98-.05 3.97-.1 5.94-.79 3.52-4.34 6.03-7.93 5.67-2.92-.29-5.45-2.36-6.39-5.13-.44-1.39-.61-2.89-.56-4.37.14-2.19 1.35-4.2 3.05-5.5 1.71-1.3 3.94-1.83 6.03-1.44.05.64.1 1.27.15 1.91-1.74-.31-3.68.09-4.96 1.41-.83.86-1.35 2.06-1.34 3.35.04 2.03 1.75 3.92 3.79 4.27.96.17 1.95-.02 2.81-.46 1.2-.61 2.01-1.82 2.14-3.12.04-1.67.01-3.35.01-5.02.99-.01 1.99-.01 2.99 0-.03 3.02.03 6.05-.03 9.07-.05.93-.34 1.86-.84 2.63-.8 1.21-2.14 2.03-3.54 2.28-1.39.24-2.85.08-4.14-.57-1.56-.75-2.74-2.16-3.21-3.83-.31-1.05-.28-2.17-.29-3.25.01-2.21.01-4.43-.03-6.64z"
-                          />
-                        </svg>
+                        <BrandTiktokGlyph tone="onLight" />
                       </a>
                     ) : null}
                   </div>
@@ -641,32 +651,44 @@ export default function MemberHomeProfileLanding({ user }) {
         {msg ? <p className="mt-3 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-emerald-700">{msg}</p> : null}
       </div>
 
-      {saveAlertOpen ? (
+      {saveFeedback.open ? (
         <div
           className="fixed inset-0 z-[10050] flex items-center justify-center bg-black/40 p-4"
           role="presentation"
-          onClick={closeSaveAlert}
+          onClick={closeSaveFeedback}
         >
           <div
-            className="max-w-md rounded-2xl border border-pink-100 bg-white p-6 shadow-xl"
+            className={`max-w-md rounded-2xl border bg-white p-6 shadow-xl ${
+              saveFeedback.variant === "success"
+                ? "border-emerald-200"
+                : "border-rose-200"
+            }`}
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby="member-save-alert-title"
+            aria-labelledby="member-save-feedback-title"
             onClick={(e) => e.stopPropagation()}
           >
             <h2
-              id="member-save-alert-title"
-              className="text-lg font-bold text-neutral-900"
+              id="member-save-feedback-title"
+              className={`text-lg font-bold ${
+                saveFeedback.variant === "success" ? "text-emerald-800" : "text-rose-800"
+              }`}
             >
-              บันทึกไม่สำเร็จ
+              {saveFeedback.variant === "success"
+                ? "บันทึกสำเร็จ"
+                : "บันทึกไม่สำเร็จ"}
             </h2>
             <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-700">
-              {saveAlertText}
+              {saveFeedback.message}
             </p>
             <button
               type="button"
-              className="mt-6 w-full rounded-full bg-[#FF2E8C] py-2.5 text-sm font-semibold text-white"
-              onClick={closeSaveAlert}
+              className={`mt-6 w-full rounded-full py-2.5 text-sm font-semibold text-white ${
+                saveFeedback.variant === "success"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-[#FF2E8C] hover:bg-rose-600"
+              }`}
+              onClick={closeSaveFeedback}
             >
               ตกลง
             </button>

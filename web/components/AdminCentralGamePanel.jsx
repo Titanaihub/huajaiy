@@ -7,7 +7,7 @@ import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
   DEFAULT_TILE_BACK_COVER_PATH
 } from "../lib/centralGameDefaults";
-import { uploadUrl } from "../lib/config";
+import { postUploadFormData } from "../lib/uploadClient";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCentralGameActivate,
@@ -105,9 +105,7 @@ async function uploadImageFile(file, { maxCompressSide } = {}) {
     const blob = await compressToJpeg(file, side);
     body.append("image", new File([blob], `${Date.now()}.jpg`, { type: "image/jpeg" }));
   }
-  const res = await fetch(uploadUrl(), { method: "POST", body });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+  const data = await postUploadFormData(body);
   return data.publicUrl;
 }
 

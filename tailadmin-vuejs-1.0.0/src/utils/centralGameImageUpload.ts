@@ -1,3 +1,5 @@
+import { memberUploadAuthHeaders } from '@/utils/memberUploadAuth'
+
 function loadImage(fileBlob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -59,7 +61,11 @@ export async function uploadGameImageFile(
     const blob = await compressToJpeg(file, side)
     body.append('image', new File([blob], `${Date.now()}.jpg`, { type: 'image/jpeg' }))
   }
-  const res = await fetch('/upload', { method: 'POST', body })
+  const res = await fetch('/upload', {
+    method: 'POST',
+    body,
+    headers: memberUploadAuthHeaders(),
+  })
   const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; publicUrl?: string }
   if (!res.ok || !data.ok) throw new Error(data.error || 'อัปโหลดไม่สำเร็จ')
   return String(data.publicUrl || '')

@@ -97,7 +97,7 @@
     { key: "orders", label: "คำสั่งซื้อ", kind: "closed", slug: "orders", start: "/my-orders" },
     {
       key: "prizeWithdraw",
-      label: "คำขอถอนรางวัลถึงฉัน",
+      label: "คำขอรับรางวัล",
       kind: "shell",
       slug: "prize-withdraw",
       start: "/prize-withdraw-request"
