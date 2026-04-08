@@ -10,6 +10,9 @@ import {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/** ตรงกับ game_code ใน API / หน้า /game/[gameId] (รหัสสั้น เช่น YYYYMMDD+ลำดับ) */
+const CENTRAL_GAME_CODE_RE = /^[0-9]{10,32}$/;
+
 const USERNAME_RE = /^[a-z0-9_]{3,32}$/;
 
 /** ไม่ถือเป็นหน้าโปรไฟล์สาธารณะ (ชนกับ route ระบบ) */
@@ -94,8 +97,11 @@ export function isPathAllowed(pathname) {
 
   if (p === "/game") return true;
   if (p.startsWith("/game/")) {
-    const id = p.slice("/game/".length).split("/").filter(Boolean)[0];
-    return Boolean(id && UUID_RE.test(id));
+    const id = decodeURIComponent(
+      p.slice("/game/".length).split("/").filter(Boolean)[0] || ""
+    ).trim();
+    if (!id) return false;
+    return UUID_RE.test(id) || CENTRAL_GAME_CODE_RE.test(id);
   }
 
   if (p === "/shop") return true;
