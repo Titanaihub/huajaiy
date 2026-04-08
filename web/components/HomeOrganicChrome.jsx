@@ -18,7 +18,7 @@ export default function HomeOrganicChrome({ recommendedGames = [] }) {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-white">
+    <div className="flex min-h-dvh min-w-0 flex-col bg-white">
       <HomeLandingFigmaShell
         onHamburgerClick={onHamburgerClick}
         recommendedGames={recommendedGames}
