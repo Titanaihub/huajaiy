@@ -10,7 +10,7 @@ import AccountMyPrizesSection from "./AccountMyPrizesSection";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import CreateGameRoomForm from "./CreateGameRoomForm";
 import HeartShopClient from "./HeartShopClient";
-import PrizeWithdrawForm from "./PrizeWithdrawForm";
+import CreatorWithdrawalsSection from "./CreatorWithdrawalsSection";
 
 function GameStudioMemberBody() {
   const searchParams = useSearchParams();
@@ -65,11 +65,7 @@ export default function MemberWorkspaceMainPanels({ slug }) {
         </Suspense>
       );
     case "prize-withdraw":
-      return (
-        <Suspense fallback={suspenseFallback}>
-          <PrizeWithdrawForm hideShellPageTitle />
-        </Suspense>
-      );
+      return <CreatorWithdrawalsSection hideShellPageTitle />;
     case "hearts-top-up":
       return <HeartShopClient />;
     case "give-hearts":

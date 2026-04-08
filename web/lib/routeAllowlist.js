@@ -172,6 +172,9 @@ export function isPathAllowed(pathname) {
   ) {
     return true;
   }
+  if (p === "/account/prize-withdraw" || p.startsWith("/account/prize-withdraw/")) {
+    return true;
+  }
   const shopProducts = p.match(/^\/account\/shops\/([^/]+)\/products\/?$/);
   if (shopProducts && UUID_RE.test(shopProducts[1])) return true;
 

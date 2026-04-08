@@ -90,7 +90,9 @@ async function uploadSlipFile(file) {
   return data.publicUrl;
 }
 
-export default function CreatorWithdrawalsSection() {
+export default function CreatorWithdrawalsSection({
+  hideShellPageTitle = false
+} = {}) {
   const { user, loading: authLoading } = useMemberAuth();
   const [rows, setRows] = useState([]);
   const [awardRows, setAwardRows] = useState([]);
@@ -225,8 +227,12 @@ export default function CreatorWithdrawalsSection() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-hui-section">คำขอถอนรางวัลถึงฉัน</h2>
-          <p className="mt-1 text-sm text-hui-body">
+          {hideShellPageTitle ? null : (
+            <h2 className="text-lg font-semibold text-hui-section">คำขอถอนรางวัลถึงฉัน</h2>
+          )}
+          <p
+            className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-1"}`}
+          >
             โอนเงินแล้วกดอนุมัติ — ระบุ<strong>วันที่โอน</strong>หรือ<strong>แนบสลิป</strong> (หรือทั้งคู่) เพื่อให้ผู้ขอถอนเห็นในรายละเอียด
           </p>
         </div>

@@ -42,7 +42,7 @@ export const MEMBER_SHELL_MENU_ITEMS = [
   { key: "orders", label: "คำสั่งซื้อ", kind: "closed", tailStart: TAILADMIN_MY_ORDERS_START },
   {
     key: "prizeWithdraw",
-    label: "คำขอรับรางวัล",
+    label: "คำขอถอนรางวัลถึงฉัน",
     kind: "shell",
     tailStart: TAILADMIN_PRIZE_WITHDRAW_START
   },

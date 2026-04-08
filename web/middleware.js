@@ -67,15 +67,6 @@ export function middleware(request) {
   }
 
   if (
-    pathname === "/account/prize-withdraw" ||
-    pathname.startsWith("/account/prize-withdraw/")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = pathname.replace(/^\/account\/prize-withdraw/, "/member/prize-withdraw");
-    return NextResponse.redirect(url, 308);
-  }
-
-  if (
     pathname === "/account/prize-payouts" ||
     pathname.startsWith("/account/prize-payouts/")
   ) {
@@ -99,7 +90,9 @@ export function middleware(request) {
   const stayOnLegacyAccount =
     pathname === "/account/heart-history/giveaway" ||
     pathname.startsWith("/account/heart-history/giveaway/") ||
-    pathname.startsWith("/account/shops/");
+    pathname.startsWith("/account/shops/") ||
+    pathname === "/account/prize-withdraw" ||
+    pathname.startsWith("/account/prize-withdraw/");
 
   /** ลิงก์เก่า /account → เทมเพลต /member (ยกเว้นหน้าที่ต้องคง React ด้านบน) */
   if (
