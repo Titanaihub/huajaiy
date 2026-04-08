@@ -106,6 +106,10 @@ export function IconShare({ className }) {
 /**
  * โครงหน้าแบบกลาง: แถบบน + แถบสีแบรนด์ชมพู (80px, ไม่ไล่เฉด) + เนื้อหา + ฟุตเตอร์
  */
+/**
+ * @typedef {'home' | 'shop' | 'game' | 'posts' | 'page'} CentralNavActiveKey
+ */
+
 export default function HuajaiyCentralTemplate({
   children,
   onHamburgerClick,
@@ -113,6 +117,8 @@ export default function HuajaiyCentralTemplate({
   profileDisplayName,
   /** แสดงในแถบชมพูด้านล่างเฮดเดอร์ ต่อท้ายโลโก้/ชื่อเว็บ (เช่น ชื่อเมนูหน้าสมาชิก) */
   pinkBarMenuLabel,
+  /** ไฮไลต์เมนูหลัก (หน้าแรก / ร้านค้า / เกม / โพสต์ / เพจ) — ให้ตรงกับเทมเพลตกลาง */
+  activeNavKey = null,
   mainClassName = "flex min-w-0 flex-1 flex-col"
 }) {
   const { user: memberUser, loading: memberLoading, logout } = useMemberAuth();
@@ -278,7 +284,12 @@ export default function HuajaiyCentralTemplate({
   const iconBtnClass =
     "inline-flex h-9 w-9 items-center justify-center rounded-full text-neutral-700 transition hover:bg-pink-50 hover:text-[#FF2E8C] sm:h-10 sm:w-10";
 
-  const navLinkClass = `${navTopClass} cursor-pointer`;
+  const navInactive = `${navTopClass} cursor-pointer`;
+  const navActive = `${navTopClass} cursor-pointer bg-pink-100 text-[#FF2E8C]`;
+
+  function navClass(key) {
+    return activeNavKey === key ? navActive : navInactive;
+  }
 
   const pinkBarSuffix = String(pinkBarMenuLabel || "").trim();
 
@@ -287,15 +298,19 @@ export default function HuajaiyCentralTemplate({
       className="relative z-20 flex w-full min-w-0 flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:flex-1 lg:justify-center"
       aria-label="เมนูหลัก"
     >
-      <Link href="/" className={navLinkClass}>
+      <Link href="/" className={navClass("home")} aria-current={activeNavKey === "home" ? "page" : undefined}>
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
-      <Link href={PUBLIC_SHOP_PATH} className={navLinkClass}>
+      <Link
+        href={PUBLIC_SHOP_PATH}
+        className={navClass("shop")}
+        aria-current={activeNavKey === "shop" ? "page" : undefined}
+      >
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
-      <Link href="/game" className={navLinkClass}>
+      <Link href="/game" className={navClass("game")} aria-current={activeNavKey === "game" ? "page" : undefined}>
         <IconGamepad className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         <span className="relative inline-block">
           เกม
@@ -307,11 +322,19 @@ export default function HuajaiyCentralTemplate({
           </span>
         </span>
       </Link>
-      <Link href="/page#community-lobby" className={navLinkClass}>
+      <Link
+        href="/page#community-lobby"
+        className={navClass("posts")}
+        aria-current={activeNavKey === "posts" ? "page" : undefined}
+      >
         <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         โพสต์
       </Link>
-      <Link href="/page#member-pages" className={navLinkClass}>
+      <Link
+        href="/page#member-pages"
+        className={navClass("page")}
+        aria-current={activeNavKey === "page" ? "page" : undefined}
+      >
         <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         เพจ
       </Link>

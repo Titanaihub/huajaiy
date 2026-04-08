@@ -49,8 +49,15 @@ export default async function CommunityPageRoute() {
     imageOverlayPercent: gameLobbyTheme.imageOverlayPercent
   });
 
+  const pinkBarTitle = metaBlogTitle(oh.sectionHeadings?.blog?.title);
+
   return (
-    <PublicOrganicShell gameLobbyTheme={gameLobbyTheme} gameLobbyMainStyle={mainBgStyle}>
+    <PublicOrganicShell
+      gameLobbyTheme={gameLobbyTheme}
+      gameLobbyMainStyle={mainBgStyle}
+      pinkBarMenuLabel={pinkBarTitle}
+      activeNavKey="posts"
+    >
       <CommunityPageView
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
