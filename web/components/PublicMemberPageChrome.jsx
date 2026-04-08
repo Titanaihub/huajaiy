@@ -160,10 +160,10 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
     "relative px-4 py-3 text-[15px] font-semibold transition-colors rounded-t-lg border-b-2 -mb-px min-h-[48px] flex items-center";
 
   return (
-    <div className="min-h-full bg-[#f0f2f5] px-3 py-4 sm:px-5 sm:py-6 md:px-6">
+    <div className="mx-auto min-h-full w-full max-w-[1200px] px-3 py-6 sm:px-5 sm:py-8">
       <div className="mx-auto max-w-4xl pb-6">
         <PublicMemberPageOwnerPanel username={username} member={member} />
-        <div className="overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-pink-200/70 bg-white/95 shadow-sm shadow-pink-100/30">
           {/* ปกเพจ */}
           <div
             className={`relative h-44 overflow-hidden sm:h-52 md:h-60 ${
@@ -286,7 +286,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
             </div>
           </div>
 
-          <div className="border-t border-gray-100 bg-[#f0f2f5] px-3 py-4 sm:px-4 sm:py-6">
+          <div className="border-t border-pink-100/80 bg-pink-50/40 px-3 py-4 sm:px-4 sm:py-6">
             {tab === "posts" ? (
               <div className="mx-auto max-w-4xl">
                 <MemberPublicPostsFeed username={username} initialPosts={initialPosts} />

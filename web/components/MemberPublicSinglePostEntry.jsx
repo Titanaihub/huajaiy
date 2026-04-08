@@ -74,25 +74,31 @@ export default function MemberPublicSinglePostEntry({
 
   if (phase === "loading") {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center px-4 py-16 text-sm text-gray-600">
-        กำลังโหลดโพสต์…
+      <div className="mx-auto flex min-h-[45vh] w-full max-w-[1200px] flex-col items-center justify-center px-4 py-16">
+        <p className="text-sm font-medium text-neutral-600">กำลังโหลดโพสต์…</p>
+        <div
+          className="mt-3 h-1.5 w-24 animate-pulse rounded-full bg-pink-200/90"
+          aria-hidden
+        />
       </div>
     );
   }
 
   if (dead || !post) {
     return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-lg font-semibold text-gray-900">ไม่พบโพสต์</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          โพสต์นี้ไม่มีหรือเพจยังไม่ได้เผยแพร่
-        </p>
-        <Link
-          href="/"
-          className="mt-6 inline-block font-medium text-rose-600 underline decoration-rose-300 underline-offset-2 hover:text-rose-700"
-        >
-          กลับหน้าแรก
-        </Link>
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-20 text-center">
+        <div className="mx-auto max-w-md rounded-2xl border border-pink-200/70 bg-white/90 px-6 py-10 shadow-sm">
+          <h1 className="text-lg font-semibold text-neutral-900">ไม่พบโพสต์</h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            โพสต์นี้ไม่มีหรือเพจยังไม่ได้เผยแพร่
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-block font-semibold text-[#FF2E8C] underline decoration-pink-300 underline-offset-2 hover:text-rose-700"
+          >
+            กลับหน้าแรก
+          </Link>
+        </div>
       </div>
     );
   }

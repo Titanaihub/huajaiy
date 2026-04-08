@@ -161,15 +161,15 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
   ) : null;
 
   return (
-    <div className="min-h-full bg-[#f0f2f5] px-3 py-6 sm:px-5">
+    <div className="mx-auto min-h-full w-full max-w-[1200px] px-3 py-6 sm:px-5 sm:py-8">
       <div className="mx-auto max-w-3xl">
         <Link
           href={publicMemberPath(username)}
-          className="mb-4 inline-block text-sm font-semibold text-rose-600 hover:text-rose-800"
+          className="mb-4 inline-block text-sm font-semibold text-[#FF2E8C] hover:text-rose-700"
         >
           ← กลับไปเพจ @{username}
         </Link>
-        <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <article className="overflow-hidden rounded-2xl border border-pink-200/70 bg-white/95 shadow-sm shadow-pink-100/30">
           <div
             className={
               layout === "stack" || !cover ? "flex flex-col" : "flex flex-col md:flex-row"
