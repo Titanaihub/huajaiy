@@ -287,7 +287,9 @@ export default function HuajaiyCentralTemplate({
   const navInactive = `${navTopClass} cursor-pointer`;
   const navActive = `${navTopClass} cursor-pointer bg-pink-100 text-[#FF2E8C]`;
 
+  /** ผู้ที่ยังไม่ล็อกอิน: ไม่ไฮไลต์เมนู (ไม่มีแคปซูลชมพูบนรายการที่ active) */
   function navClass(key) {
+    if (!memberUser) return navInactive;
     return activeNavKey === key ? navActive : navInactive;
   }
 
@@ -298,19 +300,27 @@ export default function HuajaiyCentralTemplate({
       className="relative z-20 flex w-full min-w-0 flex-wrap items-center justify-center gap-x-0.5 gap-y-1 lg:flex-1 lg:justify-center"
       aria-label="เมนูหลัก"
     >
-      <Link href="/" className={navClass("home")} aria-current={activeNavKey === "home" ? "page" : undefined}>
+      <Link
+        href="/"
+        className={navClass("home")}
+        aria-current={memberUser && activeNavKey === "home" ? "page" : undefined}
+      >
         <IconHome className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         หน้าแรก
       </Link>
       <Link
         href={PUBLIC_SHOP_PATH}
         className={navClass("shop")}
-        aria-current={activeNavKey === "shop" ? "page" : undefined}
+        aria-current={memberUser && activeNavKey === "shop" ? "page" : undefined}
       >
         <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         ร้านค้า
       </Link>
-      <Link href="/game" className={navClass("game")} aria-current={activeNavKey === "game" ? "page" : undefined}>
+      <Link
+        href="/game"
+        className={navClass("game")}
+        aria-current={memberUser && activeNavKey === "game" ? "page" : undefined}
+      >
         <IconGamepad className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         <span className="relative inline-block">
           เกม
@@ -325,7 +335,7 @@ export default function HuajaiyCentralTemplate({
       <Link
         href="/page#community-lobby"
         className={navClass("posts")}
-        aria-current={activeNavKey === "posts" ? "page" : undefined}
+        aria-current={memberUser && activeNavKey === "posts" ? "page" : undefined}
       >
         <IconFeed className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         โพสต์
@@ -333,7 +343,7 @@ export default function HuajaiyCentralTemplate({
       <Link
         href="/page#member-pages"
         className={navClass("page")}
-        aria-current={activeNavKey === "page" ? "page" : undefined}
+        aria-current={memberUser && activeNavKey === "page" ? "page" : undefined}
       >
         <IconPage className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
         เพจ
@@ -454,32 +464,32 @@ export default function HuajaiyCentralTemplate({
         </div>
       </header>
 
-      {/* แถบแบรนด์ — จัดแนวเดียวกับแถวโลโก้ในเฮดเดอร์ (สเปซแฮมเบอร์เกอร์ + ไอคอน + ชื่อหน้า) */}
-      <div
-        className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C]"
-        aria-label={pinkBarSuffix ? pinkBarSuffix : "HUAJAIY"}
-      >
-        <div className="mx-auto flex h-full w-full max-w-[1200px] min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5">
-          {memberUser ? (
+      {/* แถบแบรนด์ชมพู — แสดงเฉพาะเมื่อล็อกอินแล้ว (ผู้เยี่ยมไม่เห็นแถบนี้) */}
+      {memberUser ? (
+        <div
+          className="flex h-20 w-full shrink-0 items-center bg-[#FF2E8C]"
+          aria-label={pinkBarSuffix ? pinkBarSuffix : "HUAJAIY"}
+        >
+          <div className="mx-auto flex h-full w-full max-w-[1200px] min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5">
             <div className="h-10 w-10 shrink-0 lg:hidden" aria-hidden />
-          ) : null}
-          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-            <HeartIcon
-              className="h-9 w-9 shrink-0 text-white sm:h-10 sm:w-10"
-              aria-hidden
-            />
-            {pinkBarSuffix ? (
-              <span className="min-w-0 truncate text-base font-semibold text-white sm:text-lg">
-                {pinkBarSuffix}
-              </span>
-            ) : (
-              <span className="font-heading min-w-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
-                HUAJAIY
-              </span>
-            )}
+            <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+              <HeartIcon
+                className="h-9 w-9 shrink-0 text-white sm:h-10 sm:w-10"
+                aria-hidden
+              />
+              {pinkBarSuffix ? (
+                <span className="min-w-0 truncate text-base font-semibold text-white sm:text-lg">
+                  {pinkBarSuffix}
+                </span>
+              ) : (
+                <span className="font-heading min-w-0 truncate text-lg font-bold uppercase tracking-tight text-white sm:text-xl">
+                  HUAJAIY
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       <div className={mainClassName}>{children}</div>
 
