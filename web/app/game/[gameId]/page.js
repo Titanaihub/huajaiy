@@ -20,8 +20,12 @@ function isValidGameRouteSegment(raw) {
   return UUID_RE.test(s) || GAME_CODE_RE.test(s);
 }
 
-const navLink =
-  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-zinc-600 transition hover:bg-pink-100/90 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+/** ลิงก์บนพื้นครีม (การ์ดหัวข้อ) */
+const navLinkCream =
+  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-violet-900/85 transition hover:bg-amber-100/70 hover:text-violet-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fff9f0]";
+/** ลิงก์บนพื้นไล่สีม่วง (ท้ายหน้า) */
+const navLinkVioletBg =
+  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-amber-100/90 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
@@ -54,12 +58,18 @@ export default async function GamePlayPage({ params }) {
     centralMeta.pinkHeartCost > 0 || centralMeta.redHeartCost > 0;
 
   return (
-    <PublicOrganicShell gameLobbyMainStyle={{ backgroundColor: "#ffffff" }}>
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
+    <PublicOrganicShell
+      gameLobbyMainStyle={{
+        background: "linear-gradient(165deg, #1e0b2e 0%, #3d1450 38%, #6b2d5c 72%, #8a3d6b 100%)",
+        backgroundAttachment: "fixed",
+        minHeight: "100%"
+      }}
+    >
+      <main className="relative z-10 mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         <div className="space-y-5">
-          <div className="rounded-2xl border border-pink-200/90 bg-pink-50 p-5 shadow-sm sm:p-6">
+          <div className="rounded-2xl border border-amber-300/50 bg-gradient-to-br from-[#fff9f0] via-[#faf0df] to-[#f0dcc8] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-amber-400/35 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-pink-200 bg-white shadow-sm ring-1 ring-pink-100 sm:mx-0 sm:h-28 sm:w-28">
+              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-amber-300/60 bg-white shadow-md ring-1 ring-amber-400/30 sm:mx-0 sm:h-28 sm:w-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={centralMeta.coverImageUrl}
@@ -68,15 +78,15 @@ export default async function GamePlayPage({ params }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-pink-700/90 sm:text-xs">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-amber-900/75 sm:text-xs">
                   เกมส่วนกลาง
                 </p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-violet-950 sm:text-3xl">
                   {centralMeta.title}
                 </h1>
                 {showHeartCosts ? (
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm sm:justify-start">
-                    <span className="font-semibold text-zinc-600">หักต่อรอบ</span>
+                    <span className="font-semibold text-violet-900/75">หักต่อรอบ</span>
                     {centralMeta.pinkHeartCost > 0 ? (
                       <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-100 px-2.5 py-1 text-pink-900 ring-1 ring-pink-300/70">
                         <InlineHeart size="md" className="text-pink-600" />
@@ -99,7 +109,7 @@ export default async function GamePlayPage({ params }) {
                   </div>
                 ) : null}
                 <p
-                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-zinc-600 sm:justify-start ${
+                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-violet-900/70 sm:justify-start ${
                     showHeartCosts ? "mt-3" : "mt-2"
                   }`}
                 >
@@ -116,7 +126,7 @@ export default async function GamePlayPage({ params }) {
                       ·
                     </span>
                   ) : null}
-                  <Link href="/game" className={navLink}>
+                  <Link href="/game" className={navLinkCream}>
                     ← รายการเกม
                   </Link>
                 </p>
@@ -124,11 +134,11 @@ export default async function GamePlayPage({ params }) {
             </div>
 
             {centralMeta.description ? (
-              <div className="mt-5 border-t border-pink-200/90 pt-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-pink-700/90 sm:text-xs">
+              <div className="mt-5 border-t border-amber-300/50 pt-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-900/75 sm:text-xs">
                   คำอธิบายเกม
                 </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 sm:text-base">
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-violet-950/90 sm:text-base">
                   {centralMeta.description}
                 </p>
               </div>
@@ -138,13 +148,13 @@ export default async function GamePlayPage({ params }) {
           <FlipGameDemo serverCentralPublished centralGameId={centralMeta.gameId} />
 
           <nav
-            className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-zinc-200 pt-6"
+            className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-amber-400/25 pt-6"
             aria-label="ทางลัดหลังเล่นเกม"
           >
-            <Link href="/game" className={navLink}>
+            <Link href="/game" className={navLinkVioletBg}>
               ← รายการเกม
             </Link>
-            <Link href="/" className={navLink}>
+            <Link href="/" className={navLinkVioletBg}>
               หน้าแรก
             </Link>
           </nav>
