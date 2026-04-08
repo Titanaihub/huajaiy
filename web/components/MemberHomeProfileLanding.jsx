@@ -6,7 +6,6 @@ import { apiPatchPassword, getMemberToken } from "../lib/memberApi";
 import { postUploadFormData } from "../lib/uploadClient";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { useMemberAuth } from "./MemberAuthProvider";
-import { BrandTiktokGlyph } from "./MemberSocialBrandMarks";
 import {
   COUNTRY_NON_TH,
   COUNTRY_TH,
@@ -419,23 +418,23 @@ export default function MemberHomeProfileLanding({ user }) {
                       {publicBio}
                     </p>
                   ) : null}
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-2.5">
                     {socialLine ? (
                       <a
                         href={socialLine}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-[#06C755] px-2 shadow-sm ring-1 ring-black/5"
+                        className="inline-flex h-11 min-w-[4.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent p-0 shadow-md ring-1 ring-black/10 transition hover:opacity-90"
                         aria-label="LINE"
                         title="LINE"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src="/icons/line-wordmark.svg"
+                          src="/social/line.png"
                           alt=""
-                          width={72}
-                          height={24}
-                          className="h-6 w-auto max-w-[68px] object-contain"
+                          width={120}
+                          height={40}
+                          className="h-10 w-auto max-w-[5.5rem] object-contain sm:h-11 sm:max-w-[5.75rem]"
                           decoding="async"
                         />
                       </a>
@@ -445,16 +444,19 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialFacebook}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-black/5"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-gray-50"
                         aria-label="Facebook"
                         title="Facebook"
                       >
-                        <svg className="h-full w-full" viewBox="0 0 24 24" aria-hidden>
-                          <path
-                            fill="#1877F2"
-                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                          />
-                        </svg>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/social/facebook.png"
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-contain"
+                          decoding="async"
+                        />
                       </a>
                     ) : null}
                     {socialTiktok ? (
@@ -462,11 +464,19 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialTiktok}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-neutral-200"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-neutral-900"
                         aria-label="TikTok"
                         title="TikTok"
                       >
-                        <BrandTiktokGlyph tone="onLight" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/social/tiktok.png"
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-contain"
+                          decoding="async"
+                        />
                       </a>
                     ) : null}
                   </div>

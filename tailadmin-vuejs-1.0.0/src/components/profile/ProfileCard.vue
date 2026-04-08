@@ -23,40 +23,57 @@
               </p>
             </div>
           </div>
-          <div class="flex flex-wrap items-center justify-center order-2 gap-2 grow xl:order-3 xl:justify-end">
-            <a
-              v-if="fbHref"
-              :href="fbHref"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="social-button"
-              title="Facebook"
-            >
-              <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                <path
-                  d="M11.6666 11.2503H13.7499L14.5833 7.91699H11.6666V6.25033C11.6666 5.39251 11.6666 4.58366 13.3333 4.58366H14.5833V1.78374C14.3118 1.7477 13.2858 1.66699 12.2023 1.66699C9.94025 1.66699 8.33325 3.04771 8.33325 5.58342V7.91699H5.83325V11.2503H8.33325V18.3337H11.6666V11.2503Z"
-                />
-              </svg>
-            </a>
+          <div class="flex flex-wrap items-center justify-center order-2 gap-2 grow xl:order-3 xl:justify-end sm:gap-2.5">
             <a
               v-if="lineHref"
               :href="lineHref"
               target="_blank"
               rel="noopener noreferrer"
-              class="social-button px-2 text-xs font-semibold"
+              class="inline-flex h-11 min-w-[4.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent p-0 shadow-md ring-1 ring-black/10 transition hover:opacity-90 dark:ring-white/15"
               title="LINE"
             >
-              LINE
+              <img
+                src="/social/line.png"
+                alt=""
+                width="120"
+                height="40"
+                class="h-10 w-auto max-w-[5.5rem] object-contain sm:h-11 sm:max-w-[5.75rem]"
+                decoding="async"
+              />
+            </a>
+            <a
+              v-if="fbHref"
+              :href="fbHref"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-gray-50 dark:bg-gray-800 dark:ring-white/15 dark:hover:bg-gray-700"
+              title="Facebook"
+            >
+              <img
+                src="/social/facebook.png"
+                alt=""
+                width="40"
+                height="40"
+                class="h-full w-full object-contain"
+                decoding="async"
+              />
             </a>
             <a
               v-if="tiktokHref"
               :href="tiktokHref"
               target="_blank"
               rel="noopener noreferrer"
-              class="social-button px-2 text-xs font-semibold"
+              class="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-neutral-900"
               title="TikTok"
             >
-              TikTok
+              <img
+                src="/social/tiktok.png"
+                alt=""
+                width="40"
+                height="40"
+                class="h-full w-full object-contain"
+                decoding="async"
+              />
             </a>
           </div>
         </div>
@@ -76,7 +93,7 @@
               fill=""
             />
           </svg>
-          แก้ไข
+          แก้ไขโปรไฟล์
         </button>
       </div>
     </div>

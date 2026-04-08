@@ -57,17 +57,16 @@ const PURPOSES = [
   }
 ];
 
-function purposeLabel(id) {
-  return PURPOSES.find((p) => p.id === id)?.label || id;
-}
-
-/** บันทึกลงคำอธิบายเกม — ไม่ซ้ำหัวข้อฟอร์ม/กล่องนโยบาย และไม่แทรกประโยคยืนยันที่มีช่องติ๊กแล้ว */
+/** บันทึกลงคำอธิบายเกม — ใช้เฉพาะข้อความที่ผู้สร้างกรอก (ไม่แทรกบรรทัดวัตถุประสงค์อัตโนมัติในช่องรายละเอียด) */
 function buildDescription({ purpose, otherReason, prizeConditions }) {
-  const head = [`วัตถุประสงค์: ${purposeLabel(purpose)}`];
+  const head = [];
   if (purpose === "other" && otherReason.trim()) {
     head.push(`เหตุผล (อื่นๆ): ${otherReason.trim()}`);
   }
-  return [...head, "", prizeConditions.trim()].join("\n");
+  const body = prizeConditions.trim();
+  if (!head.length) return body;
+  if (!body) return head.join("\n");
+  return [...head, "", body].join("\n");
 }
 
 export default function CreateGameRoomForm({
@@ -206,7 +205,7 @@ export default function CreateGameRoomForm({
     return studioGameId;
   }
 
-  /** ใช้ร่วมกับปุ่ม «บันทึกข้อมูล» ในแผงสตูดิโอ — บันทึกวัตถุประสงค์+เงื่อนไขในครั้งเดียวกับ meta */
+  /** ใช้ร่วมกับปุ่ม «บันทึกข้อมูล» ในแผงสตูดิโอ — ผนวกเฉพาะเหตุผล (อื่นๆ) ถ้ามี ไม่แทรกบรรทัดวัตถุประสงค์ */
   function buildMemberIntroMergeOrThrow() {
     if (!agreeRules) {
       throw new Error("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
@@ -214,7 +213,6 @@ export default function CreateGameRoomForm({
     if (purpose === "other" && otherReason.trim().length < 8) {
       throw new Error("กรุณาระบุเหตุผล (อื่นๆ) อย่างน้อย 8 ตัวอักษร");
     }
-    /** วัตถุประสงค์จากด้านบน — ผนวกกับรายละเอียดในแผงสตูดิโอตอนบันทึก (ไม่ทับถ้าโหลดมาแล้วขึ้นต้นด้วยบล็อกเดียวกัน) */
     const descriptionPrefix = buildDescription({ purpose, otherReason, prizeConditions: "" });
     return { descriptionPrefix };
   }

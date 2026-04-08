@@ -19,16 +19,16 @@ function trimUrl(v) {
 }
 
 const SOCIAL_BTN =
-  "inline-flex shrink-0 items-center justify-center rounded-lg shadow-md ring-1 ring-black/10 transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
+  "inline-flex shrink-0 items-center justify-center shadow-md ring-1 ring-black/10 transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
 
 /** ปุ่มโลโก้แบรนด์เต็มสีทั้งกรณีมีลิงก์และยังไม่ตั้ง (ไม่จาง/ไม่ grayscale) */
 function SocialTabIcon({ href, label, platform, children }) {
   const active = Boolean(href);
   const brandClsByPlatform = {
-    /* รูป line-wordmark.svg มีพื้นเขียวในตัว — ไม่ล้อมพื้นเขียวซ้ำ */
+    /* รูป line.png มีพื้นเขียวในตัว — ไม่ล้อมพื้นเขียวซ้ำ */
     line: `${SOCIAL_BTN} h-11 min-w-[4.75rem] overflow-hidden rounded-lg bg-transparent p-0 shadow-none ring-0 hover:opacity-90 focus-visible:ring-[#06C755]/50`,
-    facebook: `${SOCIAL_BTN} h-11 w-11 bg-white hover:bg-gray-50 focus-visible:ring-[#1877F2]/55`,
-    tiktok: `${SOCIAL_BTN} h-11 w-11 bg-black hover:bg-neutral-900 focus-visible:ring-neutral-700`
+    facebook: `${SOCIAL_BTN} h-11 w-11 rounded-xl bg-white p-1.5 hover:bg-gray-50 focus-visible:ring-[#1877F2]/55`,
+    tiktok: `${SOCIAL_BTN} h-11 w-11 rounded-xl bg-black p-1.5 hover:bg-neutral-900 focus-visible:ring-neutral-700`
   };
   const cls = brandClsByPlatform[platform] || brandClsByPlatform.line;
   if (active) {
@@ -186,6 +186,27 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                   <p className="mt-2 max-w-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-500">
                     {tagline}
                   </p>
+                  <div
+                    className="mt-3 flex flex-wrap items-center gap-2 sm:gap-2.5"
+                    aria-label="โซเชียลจากโปรไฟล์"
+                  >
+                    {socialSlots.map((s) => (
+                      <SocialTabIcon
+                        key={`hero-${s.key}`}
+                        href={s.href}
+                        label={s.label}
+                        platform={s.platform}
+                      >
+                        {s.key === "line" ? (
+                          <BrandLineWordmark />
+                        ) : s.key === "facebook" ? (
+                          <BrandFacebookGlyph />
+                        ) : (
+                          <BrandTiktokGlyph />
+                        )}
+                      </SocialTabIcon>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 pb-1 sm:justify-end">

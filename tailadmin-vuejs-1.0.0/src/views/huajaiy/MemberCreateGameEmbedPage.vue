@@ -282,13 +282,8 @@ const err = ref('')
 const authLoading = ref(true)
 const hasToken = ref(false)
 
-function purposeLabel(id: string): string {
-  return PURPOSES.find((p) => p.id === id)?.label || id
-}
-
 function buildDescription(): string {
   const lines = [
-    `วัตถุประสงค์เปิดห้องเกม: ${purposeLabel(purpose.value)}`,
     purpose.value === 'other' && otherReason.value.trim()
       ? `เหตุผล (อื่นๆ): ${otherReason.value.trim()}`
       : null,

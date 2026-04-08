@@ -485,18 +485,18 @@ function MemberPublicPostCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("line")}
-              className="inline-flex h-10 min-w-[4.5rem] shrink-0 items-center justify-center rounded-lg bg-[#06C755] px-2 shadow-sm ring-1 ring-black/5 hover:bg-[#05b64c]"
+              className="inline-flex h-10 min-w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent px-0 shadow-sm ring-1 ring-black/10 hover:opacity-90"
               aria-label="แชร์ LINE"
               title="LINE"
             >
-              <BrandLineWordmark />
+              <BrandLineWordmark className="!max-w-[5rem]" />
             </a>
             <a
               href={facebookShareUrl(shareUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("facebook")}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-black/5 hover:bg-gray-50"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/10 hover:bg-gray-50"
               aria-label="แชร์ Facebook"
               title="Facebook"
             >
@@ -505,7 +505,7 @@ function MemberPublicPostCard({
             <button
               type="button"
               onClick={onTikTokShare}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black shadow-sm ring-1 ring-black/5 hover:bg-neutral-900"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black p-1 shadow-sm ring-1 ring-black/10 hover:bg-neutral-900"
               aria-label="คัดลอกลิงก์เพื่อแชร์ TikTok"
               title="คัดลอกลิงก์ (แชร์ TikTok)"
             >
