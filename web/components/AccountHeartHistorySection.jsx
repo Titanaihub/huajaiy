@@ -311,6 +311,40 @@ function buildTableRows(mode, entries) {
         });
         continue;
       }
+      if (
+        e.kind === "public_post_share_escrow" ||
+        e.kind === "public_post_share_pause_refund" ||
+        e.kind === "public_post_share_delete_refund" ||
+        e.kind === "public_post_share_refund"
+      ) {
+        const d = Math.floor(Number(e.redDelta) || 0);
+        if (d === 0) continue;
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const postId = m.postId ? String(m.postId).trim() : "";
+        const isFromShare = e.kind === "public_post_share_escrow";
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "แชร์โพสต์"}</p>
+              <p className="text-xs font-medium text-slate-500">
+                {isFromShare
+                  ? "แจกให้ผู้แชร์จากการแชร์โพสต์"
+                  : "คืนยอดคงเหลือจากการแชร์โพสต์"}
+                {postId ? ` · โพสต์ ${postId.slice(0, 8)}` : ""}
+              </p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: d,
+          balanceDisplay: `กระเป๋าแดง ${Math.max(
+            0,
+            Math.floor(Number(e.redBalanceAfter) || 0)
+          ).toLocaleString("th-TH")}`
+        });
+        continue;
+      }
       if (e.kind === "room_red_code_issue") {
         const m = e.meta && typeof e.meta === "object" ? e.meta : {};
         const gd = Math.max(0, Math.floor(Number(m.giveawayDeducted) || 0));
@@ -323,7 +357,9 @@ function buildTableRows(mode, entries) {
           item: (
             <div className="space-y-1">
               <p className="font-medium text-slate-800">{e.label || "—"}</p>
-              <p className="text-xs font-medium text-slate-500">หักแดงสำหรับแจก (สร้างรหัสห้อง)</p>
+              <p className="text-xs font-medium text-slate-500">
+                แจกจากรหัส (สร้างรหัสแจกหัวใจ)
+              </p>
             </div>
           ),
           amountDisplay: null,
@@ -347,7 +383,9 @@ function buildTableRows(mode, entries) {
           item: (
             <div className="space-y-1">
               <p className="font-medium text-slate-800">{e.label || "—"}</p>
-              <p className="text-xs font-medium text-slate-500">คืนแดงแจก (ลบรหัสห้อง)</p>
+              <p className="text-xs font-medium text-slate-500">
+                คืนยอดจากรหัสที่ยกเลิก
+              </p>
             </div>
           ),
           amountDisplay: null,

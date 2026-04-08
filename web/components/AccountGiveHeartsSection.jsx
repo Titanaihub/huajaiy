@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AccountRoomRedGiftSection from "./AccountRoomRedGiftSection";
+import AccountHeartHistorySection from "./AccountHeartHistorySection";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 export default function AccountGiveHeartsSection({ hideShellPageTitle = false } = {}) {
@@ -53,6 +54,16 @@ export default function AccountGiveHeartsSection({ hideShellPageTitle = false } 
       </header>
 
       <AccountRoomRedGiftSection />
+
+      <div className="rounded-xl border border-hui-border bg-white p-4 shadow-sm">
+        <h3 className="text-base font-semibold text-hui-section">ประวัติการแจกหัวใจ</h3>
+        <p className="mt-1 text-sm text-hui-body">
+          แสดงวันที่ทำรายการ, ที่มาหรือปลายทางของรายการ, จำนวน และยอดคงเหลือ
+        </p>
+        <div className="mt-4">
+          <AccountHeartHistorySection variant="giveaway" hideShellPageTitle />
+        </div>
+      </div>
     </div>
   );
 }
