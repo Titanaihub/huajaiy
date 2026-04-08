@@ -641,6 +641,27 @@ export default function CreateGameRoomForm({
 
       {memberShellEmbed || !managingExisting ? intakeForm : null}
 
+      {user && memberShellEmbed ? (
+        <div className="mt-10 space-y-3">
+          {introSavedMsg ? (
+            <p
+              className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+              role="status"
+            >
+              {introSavedMsg}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            form="huajaiy-member-create-intro"
+            disabled={busy}
+            className="hui-btn-primary block w-full max-w-md px-6 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            {busy ? "กำลังบันทึก…" : "บันทึกข้อมูลเบื้องต้น"}
+          </button>
+        </div>
+      ) : null}
+
       {draftBootErr ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
           {draftBootErr}
@@ -709,27 +730,6 @@ export default function CreateGameRoomForm({
               />
             </div>
           ) : null}
-        </div>
-      ) : null}
-
-      {user && memberShellEmbed ? (
-        <div className="mt-10 space-y-3 border-t border-hui-border pt-8">
-          {introSavedMsg ? (
-            <p
-              className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
-              role="status"
-            >
-              {introSavedMsg}
-            </p>
-          ) : null}
-          <button
-            type="submit"
-            form="huajaiy-member-create-intro"
-            disabled={busy}
-            className="hui-btn-primary block w-full max-w-md px-6 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-          >
-            {busy ? "กำลังบันทึก…" : "บันทึกข้อมูลเบื้องต้น"}
-          </button>
         </div>
       ) : null}
     </div>

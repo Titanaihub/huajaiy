@@ -1614,10 +1614,20 @@ export default function AdminCentralGamePanel({
             </p>
           ) : null}
 
-          <p className="text-sm text-hui-muted">
-            แต่ละชุด = <strong className="text-hui-section">จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
-            <strong className="text-hui-section">บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
-          </p>
+          {memberSinglePageGuide ? (
+            <p className="text-sm text-hui-muted">
+              กรอก <strong className="text-hui-section">รายละเอียด</strong> และ <strong className="text-hui-section">ชื่อเกม</strong> · ตั้งโครงชุด รูป และกติกา · กด{" "}
+              <strong className="text-hui-section">บันทึกข้อมูล</strong> ด้านล่างแผงนี้ · การเผยแพร่หรือลบเกมทำได้ที่เมนู{" "}
+              <Link href="/member/game" className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
+                เกมของฉัน
+              </Link>
+            </p>
+          ) : (
+            <p className="text-sm text-hui-muted">
+              แต่ละชุด = <strong className="text-hui-section">จำนวนป้าย + รูป + กติกาของชุดนั้น</strong> ในแถวเดียว · ชุดละรูปเดียวใช้ทุกป้ายในชุด · กด{" "}
+              <strong className="text-hui-section">บันทึกข้อมูล</strong> แถบล่าง (โครง + กติกา + รูปเมื่อครบ)
+            </p>
+          )}
 
           <form
             onSubmit={(e) => e.preventDefault()}
@@ -1634,59 +1644,99 @@ export default function AdminCentralGamePanel({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="text-sm text-hui-section">
-                  ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
-                </label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  readOnly={creatorLimitedMode}
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-hui-body ${creatorLimitedMode ? "border-hui-border bg-hui-pageTop" : ""}`}
-                  placeholder={creatorLimitedMode ? "ชื่อเกม (ล็อก)" : "ชื่อเกม"}
-                  title={creatorLimitedMode ? "ชื่อเกมถูกล็อก แก้ไขไม่ได้" : undefined}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-hui-body">รหัสเกม (คงเดิม)</label>
-                <input
-                  readOnly
-                  value={gameCode}
-                  placeholder="รหัสเกมจะเป็นรหัสเดิม ไม่เปลี่ยนแปลง"
-                  className="mt-1 w-full rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 font-mono text-sm text-hui-body"
-                  title="รหัสเกมคงเดิม ไม่สามารถแก้ไขได้"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-sm text-hui-section">รายละเอียด</label>
-                <textarea
-                  value={gameDescription}
-                  onChange={(e) => setGameDescription(e.target.value)}
-                  rows={4}
-                  className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2"
-                  placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
-                />
-              </div>
-              <div className="sm:col-span-2 rounded-lg border border-hui-border bg-hui-pageTop/80 p-3">
-                <p className="text-sm leading-relaxed text-hui-body">
-                  <span className="font-semibold text-hui-section">
-                    สถานะการแสดงในรายการหน้า /game:
-                  </span>{" "}
-                  {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่มเผยแพร่หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
-                </p>
-              </div>
-              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
-                <input
-                  id="central-game-allow-gift-red"
-                  type="checkbox"
-                  checked={allowGiftRedPlay}
-                  onChange={(e) => setAllowGiftRedPlay(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-hui-border"
-                />
-                <label htmlFor="central-game-allow-gift-red" className="text-sm leading-relaxed text-amber-950">
-                  <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
-                </label>
-              </div>
+              {memberSinglePageGuide ? (
+                <>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm text-hui-section">รายละเอียด</label>
+                    <textarea
+                      value={gameDescription}
+                      onChange={(e) => setGameDescription(e.target.value)}
+                      rows={4}
+                      className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2"
+                      placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-hui-section">
+                      ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
+                    </label>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      readOnly={creatorLimitedMode}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-hui-body ${creatorLimitedMode ? "border-hui-border bg-hui-pageTop" : ""}`}
+                      placeholder={creatorLimitedMode ? "ชื่อเกม (ล็อก)" : "ชื่อเกม"}
+                      title={creatorLimitedMode ? "ชื่อเกมถูกล็อก แก้ไขไม่ได้" : undefined}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-hui-body">รหัสเกม (คงเดิม)</label>
+                    <input
+                      readOnly
+                      value={gameCode}
+                      placeholder="ออกหลังเผยแพร่"
+                      className="mt-1 w-full rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 font-mono text-sm text-hui-body"
+                      title="รหัสเกมคงเดิม ไม่สามารถแก้ไขได้"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-sm text-hui-section">
+                      ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
+                    </label>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      readOnly={creatorLimitedMode}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-hui-body ${creatorLimitedMode ? "border-hui-border bg-hui-pageTop" : ""}`}
+                      placeholder={creatorLimitedMode ? "ชื่อเกม (ล็อก)" : "ชื่อเกม"}
+                      title={creatorLimitedMode ? "ชื่อเกมถูกล็อก แก้ไขไม่ได้" : undefined}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-hui-body">รหัสเกม (คงเดิม)</label>
+                    <input
+                      readOnly
+                      value={gameCode}
+                      placeholder="รหัสเกมจะเป็นรหัสเดิม ไม่เปลี่ยนแปลง"
+                      className="mt-1 w-full rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 font-mono text-sm text-hui-body"
+                      title="รหัสเกมคงเดิม ไม่สามารถแก้ไขได้"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm text-hui-section">รายละเอียด</label>
+                    <textarea
+                      value={gameDescription}
+                      onChange={(e) => setGameDescription(e.target.value)}
+                      rows={4}
+                      className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2"
+                      placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 rounded-lg border border-hui-border bg-hui-pageTop/80 p-3">
+                    <p className="text-sm leading-relaxed text-hui-body">
+                      <span className="font-semibold text-hui-section">
+                        สถานะการแสดงในรายการหน้า /game:
+                      </span>{" "}
+                      {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่มเผยแพร่หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
+                    </p>
+                  </div>
+                  <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
+                    <input
+                      id="central-game-allow-gift-red"
+                      type="checkbox"
+                      checked={allowGiftRedPlay}
+                      onChange={(e) => setAllowGiftRedPlay(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-hui-border"
+                    />
+                    <label htmlFor="central-game-allow-gift-red" className="text-sm leading-relaxed text-amber-950">
+                      <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
+                    </label>
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-sm text-hui-section">
                   จำนวนชุด
@@ -2056,93 +2106,92 @@ export default function AdminCentralGamePanel({
               </div>
             </div>
 
-            <div
-              className="mt-4 rounded-2xl border border-hui-border bg-white px-4 py-3 shadow-sm"
-              role="region"
-              aria-label="บันทึกและเผยแพร่เกม"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+            {memberSinglePageGuide ? (
+              <div
+                className="mt-4 rounded-2xl border border-hui-border bg-white px-4 py-4 shadow-sm"
+                role="region"
+                aria-label="บันทึกข้อมูลเกม"
+              >
                 <button
                   type="button"
                   disabled={savingAll || loading || gameActionBusy || !selectedId}
                   onClick={() => saveAllGameData()}
-                  className="hui-btn-primary shrink-0 self-start px-6 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                  className="hui-btn-primary block w-full px-6 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                 >
                   {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
                 </button>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-hui-section">บันทึกข้อมูล</p>
-                  <p className="mt-0.5 text-sm leading-snug text-hui-muted">
-                    โปรดตรวจสอบรูปแบบเกม รางวัล ให้ถูกต้องตรงตามความต้องการ · หากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้
-                  </p>
+                <p className="mt-3 text-sm leading-snug text-hui-muted">
+                  โปรดตรวจสอบรูป กติกา และรางวัลให้ถูกต้องก่อนบันทึก · เผยแพร่ หยุดเผยแพร่ ลบเกม หรือดูตัวอย่าง — ไปที่{" "}
+                  <Link
+                    href="/member/game"
+                    className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                  >
+                    เกมของฉัน
+                  </Link>
+                </p>
+              </div>
+            ) : (
+              <div
+                className="mt-4 rounded-2xl border border-hui-border bg-white px-4 py-3 shadow-sm"
+                role="region"
+                aria-label="บันทึกและเผยแพร่เกม"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+                  <button
+                    type="button"
+                    disabled={savingAll || loading || gameActionBusy || !selectedId}
+                    onClick={() => saveAllGameData()}
+                    className="hui-btn-primary shrink-0 self-start px-6 py-3 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {savingAll ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-hui-section">บันทึกข้อมูล</p>
+                    <p className="mt-0.5 text-sm leading-snug text-hui-muted">
+                      โปรดตรวจสอบรูปแบบเกม รางวัล ให้ถูกต้องตรงตามความต้องการ · หากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-hui-border pt-3">
+                  <button
+                    type="button"
+                    disabled={gameActionBusy || savingAll || !selectedId}
+                    aria-busy={gameActionBusy}
+                    onClick={() => activate()}
+                    className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {memberPublishCta}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={gameActionBusy || savingAll || !selectedId}
+                    onClick={() => deactivate()}
+                    className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    หยุดการเผยแพร่
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      gameActionBusy ||
+                      savingAll ||
+                      !selectedId ||
+                      prizeAwardCount > 0 ||
+                      playCount > 0
+                    }
+                    title={
+                      prizeAwardCount > 0 || playCount > 0
+                        ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
+                        : undefined
+                    }
+                    onClick={() => removeGame()}
+                    className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ลบเกม
+                  </button>
                 </div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2 border-t border-hui-border pt-3">
-                <button
-                  type="button"
-                  disabled={gameActionBusy || savingAll || !selectedId}
-                  aria-busy={gameActionBusy}
-                  onClick={() => activate()}
-                  className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {memberPublishCta}
-                </button>
-                <button
-                  type="button"
-                  disabled={gameActionBusy || savingAll || !selectedId}
-                  onClick={() => deactivate()}
-                  className={
-                    memberSinglePageGuide
-                      ? "rounded-2xl border-2 border-red-400 bg-white px-3 py-2 text-sm font-medium text-red-800 shadow-sm hover:bg-red-50/80 disabled:cursor-not-allowed disabled:opacity-50"
-                      : "rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
-                  }
-                >
-                  หยุดการเผยแพร่
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    gameActionBusy ||
-                    savingAll ||
-                    !selectedId ||
-                    prizeAwardCount > 0 ||
-                    playCount > 0
-                  }
-                  title={
-                    prizeAwardCount > 0 || playCount > 0
-                      ? "มีประวัติการเล่นหรือรับรางวัลแล้ว — ติดต่อผู้ดูแลระบบเพื่อลบ"
-                      : undefined
-                  }
-                  onClick={() => removeGame()}
-                  className={
-                    memberSinglePageGuide
-                      ? "rounded-2xl border-2 border-red-500 bg-white px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      : "rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                  }
-                >
-                  ลบเกม
-                </button>
-                {memberSinglePageGuide && selectedId ? (
-                  <>
-                    <Link
-                      href={`/game/${encodeURIComponent(selectedId)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-2xl border-2 border-[#FF2E8C] bg-white px-3 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm hover:bg-pink-50/80"
-                      title="เปิดหน้าเล่นของเกมนี้ในแท็บใหม่ (ร่างที่ยังไม่เผยแพร่อาจไม่โผล่ในล็อบบี้)"
-                    >
-                      ดูตัวอย่างหน้าเล่น
-                    </Link>
-                    <Link
-                      href="/member/game"
-                      className="inline-flex items-center justify-center rounded-2xl border-2 border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-section shadow-sm hover:bg-hui-pageTop"
-                    >
-                      กลับเกมของฉัน
-                    </Link>
-                  </>
-                ) : null}
-              </div>
-            </div>
+            )}
           </form>
         </div>
       ) : null}
