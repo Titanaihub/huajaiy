@@ -102,6 +102,7 @@ export default function CreatorWithdrawalsSection({
   const [itemBusyId, setItemBusyId] = useState(null);
   const [transferDateById, setTransferDateById] = useState({});
   const [slipFileById, setSlipFileById] = useState({});
+  const [expandedById, setExpandedById] = useState({});
 
   const load = useCallback(async () => {
     const token = getMemberToken();
@@ -133,6 +134,19 @@ export default function CreatorWithdrawalsSection({
     if (authLoading || !user) return;
     void load();
   }, [authLoading, user, load]);
+
+  useEffect(() => {
+    setExpandedById((prev) => {
+      const next = {};
+      for (const row of rows) {
+        if (row?.status !== "pending") continue;
+        const id = row?.id;
+        if (id == null) continue;
+        if (prev[id]) next[id] = true;
+      }
+      return next;
+    });
+  }, [rows]);
 
   async function resolveReject(id) {
     const token = getMemberToken();
@@ -375,6 +389,7 @@ export default function CreatorWithdrawalsSection({
             <tbody className="divide-y divide-hui-border/70">
               {rows.map((r) => {
                 const pending = r.status === "pending";
+                const expanded = pending && Boolean(expandedById[r.id]);
                 return (
                   <Fragment key={r.id}>
                     <tr className="align-top">
@@ -426,14 +441,27 @@ export default function CreatorWithdrawalsSection({
                       </td>
                       <td className="whitespace-nowrap px-3 py-3 text-hui-body">
                         {pending ? (
-                          <span className="text-sm text-hui-muted">ดูด้านล่าง</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedById((prev) => ({
+                                ...prev,
+                                [r.id]: !prev[r.id]
+                              }))
+                            }
+                            className="rounded-lg border border-hui-border bg-white px-2.5 py-1 text-sm font-semibold text-hui-body hover:bg-hui-pageTop"
+                            aria-expanded={expanded}
+                            aria-controls={`wd-actions-${r.id}`}
+                          >
+                            {expanded ? "ซ่อนรายละเอียด" : "ดูรายละเอียด"}
+                          </button>
                         ) : (
                           <span className="text-sm text-hui-muted">—</span>
                         )}
                       </td>
                     </tr>
-                    {pending ? (
-                      <tr className="bg-hui-pageTop/95">
+                    {pending && expanded ? (
+                      <tr className="bg-hui-pageTop/95" id={`wd-actions-${r.id}`}>
                         <td colSpan={6} className="px-3 py-4">
                           <div className="mx-auto max-w-3xl rounded-xl border border-hui-border bg-white p-4 shadow-sm">
                             <p className="text-sm font-semibold text-hui-body">
