@@ -303,7 +303,7 @@ export default function HomeLandingFigmaShell({
                 </svg>
               }
               title="โพสต์ล่าสุด"
-              actionHref="/page"
+              actionHref="/posts"
               actionLabel="ดูทั้งหมด"
             />
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

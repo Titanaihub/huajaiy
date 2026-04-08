@@ -343,7 +343,7 @@ export default function HuajaiyCentralTemplate({
         </span>
       </Link>
       <Link
-        href="/page#community-lobby"
+        href="/posts"
         className={navClass("posts")}
         aria-current={memberUser && activeNavKey === "posts" ? "page" : undefined}
       >
@@ -351,7 +351,7 @@ export default function HuajaiyCentralTemplate({
         โพสต์
       </Link>
       <Link
-        href="/page#member-pages"
+        href="/pages"
         className={navClass("page")}
         aria-current={memberUser && activeNavKey === "page" ? "page" : undefined}
       >
@@ -395,7 +395,7 @@ export default function HuajaiyCentralTemplate({
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:shrink-0 lg:justify-end">
               {heartsPill}
               <div className="flex items-center gap-0.5 sm:gap-1">
-                <Link href="/page" className={iconBtnClass} aria-label="ค้นหา">
+                <Link href="/pages" className={iconBtnClass} aria-label="ค้นหา">
                   <IconSearch className="h-5 w-5" />
                 </Link>
                 {memberUser && lineProfileImageUrl ? (

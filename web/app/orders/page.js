@@ -38,7 +38,7 @@ export default function OrdersPage() {
           <Link href="/shop" className={siteNavLinkClass}>
             ไปร้านค้า
           </Link>
-          <Link href="/page" className={siteNavLinkClass}>
+          <Link href="/pages" className={siteNavLinkClass}>
             เพจชุมชน
           </Link>
         </nav>

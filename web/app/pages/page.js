@@ -9,7 +9,8 @@ export async function generateMetadata() {
   return getCommunityPageMetadata();
 }
 
-/** @deprecated ใช้ /pages หรือ /posts — คงไว้ให้ลิงก์เก่า /page#… */
-export default async function CommunityPageLegacyRoute() {
-  return <CommunityPageRoute activeNavKey="posts" scrollToSection={null} />;
+export default async function CommunityMemberPagesPage() {
+  return (
+    <CommunityPageRoute activeNavKey="page" scrollToSection="title" />
+  );
 }

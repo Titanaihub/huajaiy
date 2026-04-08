@@ -23,6 +23,8 @@ const RESERVED_TOP = new Set([
   "member",
   "account",
   "page",
+  "posts",
+  "pages",
   "api",
   "u",
   "owner",
@@ -94,6 +96,8 @@ export function isPathAllowed(pathname) {
   if (p === "/central-template") return true;
 
   if (p === "/page" || p.startsWith("/page/")) return true;
+
+  if (p === "/posts" || p === "/pages") return true;
 
   if (p === "/game") return true;
   if (p.startsWith("/game/")) {

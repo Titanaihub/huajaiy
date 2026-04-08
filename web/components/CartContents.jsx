@@ -159,7 +159,7 @@ export default function CartContents() {
               ออเดอร์ของฉัน
             </Link>
             <Link
-              href="/page"
+              href="/pages"
               className="rounded-2xl border border-hui-border bg-white px-3 py-1.5 text-sm font-semibold text-hui-section shadow-soft hover:bg-hui-pageTop"
             >
               กลับเพจชุมชน

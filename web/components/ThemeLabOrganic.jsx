@@ -60,7 +60,7 @@ export default function ThemeLabOrganic() {
             จากเทมเพลตสำเร็จรูป แล้วแปลงเป็นคอมโพเนนต์ Next.js/Tailwind ที่เข้ากับระบบเดิมของเรา
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/page" className="hui-btn-primary">
+            <Link href="/pages" className="hui-btn-primary">
               ไปเพจชุมชน
             </Link>
             <Link
