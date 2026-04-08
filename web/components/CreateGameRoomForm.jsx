@@ -61,19 +61,13 @@ function purposeLabel(id) {
   return PURPOSES.find((p) => p.id === id)?.label || id;
 }
 
+/** บันทึกลงคำอธิบายเกม — ไม่ซ้ำหัวข้อฟอร์ม/กล่องนโยบาย และไม่แทรกประโยคยืนยันที่มีช่องติ๊กแล้ว */
 function buildDescription({ purpose, otherReason, prizeConditions }) {
-  const lines = [
-    `วัตถุประสงค์เปิดห้องเกม: ${purposeLabel(purpose)}`,
-    purpose === "other" && otherReason.trim()
-      ? `เหตุผล (อื่นๆ): ${otherReason.trim()}`
-      : null,
-    "",
-    "เงื่อนไขรางวัล / ข้อความถึงผู้เล่น:",
-    prizeConditions.trim(),
-    "",
-    "ผู้สร้างยืนยันรับทราบกฎระเบียบบนแพลตฟอร์ม (ห้ามเชื่อมโยงการพนัน และห้ามสื่อลามก) และรับผิดชอบจ่ายรางวัลตามที่ประกาศไว้"
-  ];
-  return lines.filter((x) => x != null).join("\n");
+  const head = [`วัตถุประสงค์: ${purposeLabel(purpose)}`];
+  if (purpose === "other" && otherReason.trim()) {
+    head.push(`เหตุผล (อื่นๆ): ${otherReason.trim()}`);
+  }
+  return [...head, "", prizeConditions.trim()].join("\n");
 }
 
 export default function CreateGameRoomForm({
@@ -463,9 +457,11 @@ export default function CreateGameRoomForm({
           <label htmlFor="prizeConditions" className="hui-label">
             เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
           </label>
-          <p className="mt-1 text-sm text-hui-muted">
-            ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
-          </p>
+          {!memberShellEmbed ? (
+            <p className="mt-1 text-sm text-hui-muted">
+              ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
+            </p>
+          ) : null}
           <textarea
             id="prizeConditions"
             value={prizeConditions}
@@ -473,7 +469,11 @@ export default function CreateGameRoomForm({
             rows={6}
             required
             className="hui-input mt-2"
-            placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
+            placeholder={
+              memberShellEmbed
+                ? "รายละเอียดถึงผู้เล่น เงื่อนไขรางวัล วิธีรับ ระยะเวลา"
+                : "ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
+            }
           />
         </div>
 
@@ -485,26 +485,26 @@ export default function CreateGameRoomForm({
             className="mt-1"
           />
           <span>
-            ข้าพเจ้า<strong>รับทราบและยินยอม</strong>ตามกฎระเบียบข้างต้น รวมถึงข้อห้ามเรื่องการพนันและสื่อลามก
-            และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
+            {memberShellEmbed ? (
+              <>
+                ยืนยันรับทราบกฎข้างต้น (ห้ามพนัน/สื่อลามก) และรับผิดชอบจ่ายรางวัลตามที่กรอก
+              </>
+            ) : (
+              <>
+                ข้าพเจ้า<strong>รับทราบและยินยอม</strong>ตามกฎระเบียบข้างต้น รวมถึงข้อห้ามเรื่องการพนันและสื่อลามก
+                และรับทราบว่าข้าพเจ้ามีหน้าที่จ่ายรางวัลและชี้แจงเงื่อนไขให้ผู้เล่นตามที่กรอกไว้
+              </>
+            )}
           </span>
         </label>
 
-        <p className="text-sm leading-relaxed text-hui-muted">
-          {memberShellEmbed ? (
-            <>
-              ส่วน<strong className="font-medium text-hui-section"> ตั้งค่าห้องเกมของฉัน</strong> อยู่ด้านล่างในหน้านี้
-              (หัวใจ ป้าย รูป) — ระบบเตรียมเกมร่างให้อัตโนมัติ แสดงทันทีเมื่อพร้อม
-              · กดปุ่มชมพูเพื่อ<strong>บันทึกข้อมูลเบื้องต้น</strong> (ชื่อ + คำอธิบายรวมวัตถุประสงค์และเงื่อนไขรางวัล) ตามที่ระบบใช้ตรวจสอบ — แผงตั้งค่าด้านล่างโหลดแยกต่างหาก (ถ้ามีเกมครบ {CENTRAL_GAME_MAX_PER_MEMBER} เกมแล้ว ระบบจะเปิดเกมล่าสุดให้แก้ต่อ)
-            </>
-          ) : (
-            <>
-              หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
-              <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
-              <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
-            </>
-          )}
-        </p>
+        {!memberShellEmbed ? (
+          <p className="text-sm leading-relaxed text-hui-muted">
+            หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
+            <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
+            <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+          </p>
+        ) : null}
 
         {introSavedMsg ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
@@ -604,13 +604,13 @@ export default function CreateGameRoomForm({
                 : "เปิดห้องเกม"}
           </h2>
         )}
-        <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
-          {memberShellEmbed
-            ? "กรอกด้านบนได้ตามลำดับ — เลื่อนลงมาดูส่วนตั้งค่าป้ายและรูปในหน้าเดียวกัน (โผล่ด้านล่างเมื่อระบบเตรียมร่างเกมเสร็จ) · บันทึกข้อมูลเบื้องต้นและเผยแพร่เกมทำที่ส่วนล่างเมื่อพร้อม"
-            : managingExisting
+        {!memberShellEmbed ? (
+          <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
+            {managingExisting
               ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
               : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
-        </p>
+          </p>
+        ) : null}
         {!memberShellEmbed ? (
           <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
             <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
@@ -658,11 +658,6 @@ export default function CreateGameRoomForm({
           className="scroll-mt-8 border-t border-hui-border pt-10"
         >
           <h3 className="hui-h3">ตั้งค่าห้องเกมของฉัน</h3>
-          <p className="mt-1 text-sm text-hui-muted">
-            {memberShellEmbed
-              ? "โครงป้าย รูป หัวใจ และเผยแพร่ — อยู่ในบล็อกด้านล่างนี้ (ไม่ต้องสลับหน้า)"
-              : null}
-          </p>
 
           {memberShellEmbed && !panelFocusId && draftBootErr ? (
             <div
