@@ -607,6 +607,9 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
   const [blocks, setBlocks] = useState(defaultBlocks);
   const [layout, setLayout] = useState("row");
   const [sortOrder, setSortOrder] = useState(0);
+  const [enableShareRewardOnCreate, setEnableShareRewardOnCreate] = useState(false);
+  const [rewardPerOnCreate, setRewardPerOnCreate] = useState("5");
+  const [rewardBudgetOnCreate, setRewardBudgetOnCreate] = useState("500");
   const [busy, setBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -654,6 +657,9 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
     setBlocks(defaultBlocks());
     setLayout("row");
     setSortOrder(0);
+    setEnableShareRewardOnCreate(false);
+    setRewardPerOnCreate("5");
+    setRewardBudgetOnCreate("500");
     setErr("");
   }, []);
 
@@ -666,6 +672,9 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
       setBlocks(raw.length ? raw : defaultBlocks());
       setLayout(post.layout === "stack" ? "stack" : "row");
       setSortOrder(Number(post.sortOrder) || 0);
+      setEnableShareRewardOnCreate(false);
+      setRewardPerOnCreate("5");
+      setRewardBudgetOnCreate("500");
       setErr("");
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -804,7 +813,29 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
         resetComposer();
       } else {
         const { post } = await apiCreateMyPublicPost(token, payload);
-        setPosts((prev) => sortPosts([...prev.filter((p) => p.id !== post.id), post]));
+        let postForList = post;
+        if (enableShareRewardOnCreate) {
+          const per = Math.max(0, Math.floor(Number(rewardPerOnCreate) || 0));
+          const budget = Math.max(0, Math.floor(Number(rewardBudgetOnCreate) || 0));
+          if (per > 0 && budget > 0) {
+            try {
+              const { post: startedPost } = await apiStartShareRewardCampaign(token, String(post.id), {
+                redPerMember: per,
+                redBudget: budget
+              });
+              if (startedPost) {
+                postForList = startedPost;
+              }
+            } catch (shareErr) {
+              setErr(
+                `โพสต์สำเร็จ แต่เริ่มแจกหัวใจไม่สำเร็จ: ${
+                  shareErr instanceof Error ? shareErr.message : String(shareErr)
+                }`
+              );
+            }
+          }
+        }
+        setPosts((prev) => sortPosts([...prev.filter((p) => p.id !== postForList.id), postForList]));
         resetComposer();
       }
       router.refresh();
@@ -1009,6 +1040,45 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
                 />
               </label>
             </div>
+            {!editingId ? (
+              <div className="rounded-lg border border-rose-100 bg-rose-50/50 p-3">
+                <label className="inline-flex items-center gap-2 text-xs font-semibold text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={enableShareRewardOnCreate}
+                    onChange={(e) => setEnableShareRewardOnCreate(e.target.checked)}
+                  />
+                  ตั้งค่าแจกหัวใจแดงจากโพสต์นี้ทันทีหลังโพสต์
+                </label>
+                {enableShareRewardOnCreate ? (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="block text-xs font-medium text-gray-600">
+                      หัวใจแดงต่อ 1 คน
+                      <input
+                        type="number"
+                        min={1}
+                        className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        value={rewardPerOnCreate}
+                        onChange={(e) => setRewardPerOnCreate(e.target.value)}
+                      />
+                    </label>
+                    <label className="block text-xs font-medium text-gray-600">
+                      วงเงินรวมสูงสุด
+                      <input
+                        type="number"
+                        min={1}
+                        className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                        value={rewardBudgetOnCreate}
+                        onChange={(e) => setRewardBudgetOnCreate(e.target.value)}
+                      />
+                    </label>
+                    <p className="sm:col-span-2 text-[11px] leading-snug text-gray-600">
+                      ระบบจะกันวงเงินจากหัวใจแดงของคุณหลังโพสต์สำเร็จ และผู้แชร์ที่เข้าเงื่อนไขจะได้คนละครั้ง
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
