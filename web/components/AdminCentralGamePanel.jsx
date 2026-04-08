@@ -499,6 +499,7 @@ export default function AdminCentralGamePanel({
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
   const [savingBasicIntro, setSavingBasicIntro] = useState(false);
+  const [savePopup, setSavePopup] = useState(null);
   /** เผยแพร่ / ปิดใช้ / ลบ — กันซ้ำและให้เห็นสถานะ */
   const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
@@ -521,6 +522,21 @@ export default function AdminCentralGamePanel({
     () => newSetSizes.reduce((a, b) => a + Math.max(1, parseInt(String(b), 10) || 1), 0),
     [newSetSizes]
   );
+  const selectedGame = useMemo(
+    () => games.find((g) => String(g.id || "") === String(selectedId || "")) || null,
+    [games, selectedId]
+  );
+
+  const showSavePopup = useCallback((status, message) => {
+    const tone = status === "success" ? "success" : "error";
+    setSavePopup({ tone, message: String(message || "").trim() || "ไม่สามารถบันทึกข้อมูลได้" });
+  }, []);
+
+  useEffect(() => {
+    if (!savePopup) return undefined;
+    const t = window.setTimeout(() => setSavePopup(null), 2600);
+    return () => window.clearTimeout(t);
+  }, [savePopup]);
 
   /** กันคำขอ list ซ้ำซ้อน (mount + focusGameId) หรือรีเฟรชติดๆ — คำขอเก่าที่ล้มหรือช้ากว่าไม่ทับ state */
   const gamesListRequestIdRef = useRef(0);
@@ -930,6 +946,7 @@ export default function AdminCentralGamePanel({
           const m = e?.message || String(e);
           setErr(m);
           onBeforePersistMetaError?.(m);
+          showSavePopup("error", `บันทึกไม่สำเร็จ: ${m}`);
           setSavingAll(false);
           return;
         }
@@ -949,10 +966,12 @@ export default function AdminCentralGamePanel({
       setMsg(
         `บันทึกข้อมูลแล้ว — ${parts.join(" · ")} · กรุณาตรวจสอบเกมให้ถูกต้อง ก่อนเผยแพร่`
       );
+      showSavePopup("success", "บันทึกข้อมูลสำเร็จ");
       onAfterSuccessfulSave?.();
     } catch (e) {
       setErr(e.message || String(e));
       setMsg("");
+      showSavePopup("error", `บันทึกไม่สำเร็จ: ${e.message || String(e)}`);
     } finally {
       setSavingAll(false);
     }
@@ -980,10 +999,12 @@ export default function AdminCentralGamePanel({
       const studioFull = memberShellEmbed
         ? `/member/game-studio?game=${encodeURIComponent(selectedId)}&edit=full`
         : `/account/game-studio?game=${encodeURIComponent(selectedId)}&edit=full`;
+      showSavePopup("success", "บันทึกข้อมูลสำเร็จ");
       router.push(studioFull);
     } catch (e) {
       setErr(e.message || String(e));
       setMsg("");
+      showSavePopup("error", `บันทึกไม่สำเร็จ: ${e.message || String(e)}`);
     } finally {
       setSavingBasicIntro(false);
     }
@@ -1260,6 +1281,33 @@ export default function AdminCentralGamePanel({
 
   return (
     <section className="space-y-8 text-sm">
+      {savePopup ? (
+        <div className="fixed inset-x-0 top-4 z-[1200] flex justify-center px-3">
+          <div
+            role="status"
+            aria-live="assertive"
+            className={`w-full max-w-md rounded-xl border px-4 py-3 text-sm shadow-lg ${
+              savePopup.tone === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : "border-rose-200 bg-rose-50 text-rose-900"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-semibold">
+                {savePopup.tone === "success" ? "บันทึกสำเร็จ" : "บันทึกไม่สำเร็จ"}
+              </p>
+              <button
+                type="button"
+                className="text-xs underline opacity-80 hover:opacity-100"
+                onClick={() => setSavePopup(null)}
+              >
+                ปิด
+              </button>
+            </div>
+            <p className="mt-1 leading-snug">{savePopup.message}</p>
+          </div>
+        </div>
+      ) : null}
       {err ? <p className="text-red-600">{err}</p> : null}
       {msg ? (
         <p
@@ -2230,6 +2278,57 @@ export default function AdminCentralGamePanel({
                     เกมของฉัน
                   </Link>
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-hui-border pt-3">
+                  <button
+                    type="button"
+                    disabled={gameActionBusy || savingAll || !selectedId}
+                    aria-busy={gameActionBusy}
+                    onClick={() => activate()}
+                    className="rounded-2xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-soft hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {memberPublishCta}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={gameActionBusy || savingAll || !selectedId}
+                    onClick={() => deactivate()}
+                    className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    หยุดการเผยแพร่
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      gameActionBusy ||
+                      savingAll ||
+                      !selectedId ||
+                      !canDeleteGame({
+                        awardCount: prizeAwardCount,
+                        playCount,
+                        isPublished: Boolean(selectedGame?.isPublished || lobbyVisible),
+                        isActive: Boolean(selectedGame?.isActive)
+                      })
+                    }
+                    title={
+                      deleteBlockedHint({
+                        awardCount: prizeAwardCount,
+                        playCount,
+                        isPublished: Boolean(selectedGame?.isPublished || lobbyVisible),
+                        isActive: Boolean(selectedGame?.isActive)
+                      })
+                    }
+                    onClick={() => removeGame()}
+                    className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ลบเกม
+                  </button>
+                  <Link
+                    href={memberCancelHref}
+                    className="rounded-lg border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop"
+                  >
+                    กลับสู่หน้าเกมของฉัน
+                  </Link>
+                </div>
               </div>
             ) : (
               <div
@@ -2280,16 +2379,16 @@ export default function AdminCentralGamePanel({
                       !canDeleteGame({
                         awardCount: prizeAwardCount,
                         playCount,
-                        isPublished: lobbyVisible,
-                        isActive: lobbyVisible
+                        isPublished: Boolean(selectedGame?.isPublished || lobbyVisible),
+                        isActive: Boolean(selectedGame?.isActive)
                       })
                     }
                     title={
                       deleteBlockedHint({
                         awardCount: prizeAwardCount,
                         playCount,
-                        isPublished: lobbyVisible,
-                        isActive: lobbyVisible
+                        isPublished: Boolean(selectedGame?.isPublished || lobbyVisible),
+                        isActive: Boolean(selectedGame?.isActive)
                       })
                     }
                     onClick={() => removeGame()}
@@ -2297,6 +2396,12 @@ export default function AdminCentralGamePanel({
                   >
                     ลบเกม
                   </button>
+                  <Link
+                    href={memberCancelHref}
+                    className="rounded-lg border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop"
+                  >
+                    กลับสู่หน้าเกมของฉัน
+                  </Link>
                 </div>
               </div>
             )}
