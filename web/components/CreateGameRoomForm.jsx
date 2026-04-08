@@ -78,6 +78,7 @@ export default function CreateGameRoomForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
+  /** ทั้ง /member/create-game และ /account/create-game?member_embed=1 (iframe ในเชลล์สมาชิก) */
   const isMemberEmbed =
     Boolean(memberShellEmbed) || searchParams.get("member_embed") === "1";
   const studioEditFull = searchParams.get("edit") === "full";
@@ -105,14 +106,14 @@ export default function CreateGameRoomForm({
     if (typeof gameFromUrl !== "string" || !UUID_RE.test(gameFromUrl.trim())) return;
     const id = gameFromUrl.trim();
     setStudioGameId(id);
-    if (memberShellEmbed) {
+    if (isMemberEmbed) {
       sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, id);
     }
-  }, [managingExisting, gameFromUrl, memberShellEmbed]);
+  }, [managingExisting, gameFromUrl, isMemberEmbed]);
 
-  /** สมาชิก /member/create-game ไม่มี ?game= — สร้างเกมร่างทันทีให้แผงล่างโหลดในหน้าเดียว */
+  /** สมาชิก /member/create-game หรือ account+member_embed ไม่มี ?game= — สร้างเกมร่างให้แผงล่างโหลดในหน้าเดียว */
   useEffect(() => {
-    if (!memberShellEmbed || !user || loading) return;
+    if (!isMemberEmbed || !user || loading) return;
     if (managingExisting) return;
 
     let cancelled = false;
@@ -197,7 +198,7 @@ export default function CreateGameRoomForm({
     return () => {
       cancelled = true;
     };
-  }, [memberShellEmbed, user, loading, managingExisting, draftBootAttempt]);
+  }, [isMemberEmbed, user, loading, managingExisting, draftBootAttempt]);
 
   function currentGameIdForApi() {
     if (typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim())) {
@@ -244,7 +245,7 @@ export default function CreateGameRoomForm({
 
     setBusy(true);
     try {
-      if (memberShellEmbed && gidExisting) {
+      if (isMemberEmbed && gidExisting) {
         await apiAdminCentralGamePatch(token, gidExisting, { title, description });
         setIntroTick((x) => x + 1);
         setIntroSavedMsg("บันทึกข้อมูลเบื้องต้นแล้ว — เลื่อนลงไปตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
@@ -264,7 +265,7 @@ export default function CreateGameRoomForm({
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
-      if (memberShellEmbed) {
+      if (isMemberEmbed) {
         sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
         return;
       }
@@ -304,7 +305,7 @@ export default function CreateGameRoomForm({
     );
   }
 
-  const memberPolicyStack = memberShellEmbed ? (
+  const memberPolicyStack = isMemberEmbed ? (
     <div className="space-y-4">
       <div
         className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
@@ -360,7 +361,7 @@ export default function CreateGameRoomForm({
 
   const intakeForm = (
       <form
-        id={memberShellEmbed ? "huajaiy-member-create-intro" : undefined}
+        id={isMemberEmbed ? "huajaiy-member-create-intro" : undefined}
         onSubmit={onSubmit}
         className="space-y-6"
       >
@@ -410,7 +411,7 @@ export default function CreateGameRoomForm({
           ) : null}
         </div>
 
-        {!memberShellEmbed ? (
+        {!isMemberEmbed ? (
           <>
             <div
               className="rounded-xl border border-rose-200 bg-rose-50/90 p-4 text-sm text-rose-950"
@@ -461,7 +462,7 @@ export default function CreateGameRoomForm({
           <label htmlFor="prizeConditions" className="hui-label">
             เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
           </label>
-          {!memberShellEmbed ? (
+          {!isMemberEmbed ? (
             <p className="mt-1 text-sm text-hui-muted">
               ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
             </p>
@@ -474,7 +475,7 @@ export default function CreateGameRoomForm({
             required
             className="hui-input mt-2"
             placeholder={
-              memberShellEmbed
+              isMemberEmbed
                 ? "รายละเอียดถึงผู้เล่น เงื่อนไขรางวัล วิธีรับ ระยะเวลา"
                 : "ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
             }
@@ -489,7 +490,7 @@ export default function CreateGameRoomForm({
             className="mt-1"
           />
           <span>
-            {memberShellEmbed ? (
+            {isMemberEmbed ? (
               <>
                 ยืนยันรับทราบกฎข้างต้น (ห้ามพนัน/สื่อลามก) และรับผิดชอบจ่ายรางวัลตามที่กรอก
               </>
@@ -502,7 +503,7 @@ export default function CreateGameRoomForm({
           </span>
         </label>
 
-        {!memberShellEmbed ? (
+        {!isMemberEmbed ? (
           <p className="text-sm leading-relaxed text-hui-muted">
             หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
             <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
@@ -510,7 +511,7 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {introSavedMsg && !memberShellEmbed ? (
+        {introSavedMsg && !isMemberEmbed ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
             {introSavedMsg}
           </p>
@@ -522,7 +523,7 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {!memberShellEmbed ? (
+        {!isMemberEmbed ? (
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
@@ -535,54 +536,18 @@ export default function CreateGameRoomForm({
                   ? "สร้างห้องแล้ว"
                   : "เปิดสร้างห้องเกม"}
             </button>
-            {isMemberEmbed ? (
-              <>
-                <a
-                  href="/member"
-                  target="_top"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                >
-                  ← ภาพรวมสมาชิก
-                </a>
-                <a
-                  href="/member/game"
-                  target="_top"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                >
-                  เกมของฉัน
-                </a>
-                <button
-                  type="button"
-                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                  onClick={() => {
-                    sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
-                    setBootstrapNotice("");
-                    if (typeof window !== "undefined") {
-                      window.location.assign("/member/create-game");
-                    }
-                  }}
-                >
-                  เริ่มร่างเกมใหม่
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/account"
-                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                >
-                  ← กลับหลังบ้าน
-                </Link>
-                <Link
-                  href="/account/my-games"
-                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                >
-                  เกมของฉัน
-                </Link>
-              </>
-            )}
+            <Link
+              href="/account"
+              className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+            >
+              ← กลับหลังบ้าน
+            </Link>
+            <Link
+              href="/account/my-games"
+              className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+            >
+              เกมของฉัน
+            </Link>
           </div>
         ) : null}
       </form>
@@ -595,25 +560,25 @@ export default function CreateGameRoomForm({
 
   return (
     <div className="space-y-8">
-      {memberShellEmbed ? memberPolicyStack : null}
+      {isMemberEmbed ? memberPolicyStack : null}
       <div>
         {hideShellPageTitle ? null : (
           <h2 className="hui-h2">
-            {memberShellEmbed
+            {isMemberEmbed
               ? "สร้างเกม"
               : managingExisting
                 ? "จัดการห้องเกม"
                 : "เปิดห้องเกม"}
           </h2>
         )}
-        {!memberShellEmbed ? (
+        {!isMemberEmbed ? (
           <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
             {managingExisting
               ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
               : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
           </p>
         ) : null}
-        {!memberShellEmbed ? (
+        {!isMemberEmbed ? (
           <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/90 px-4 py-3 text-sm leading-relaxed text-sky-950">
             <p className="font-semibold text-sky-900">ข้อกำหนดการสร้างเกม</p>
             <ul className="mt-2 list-inside list-disc space-y-1">
@@ -641,7 +606,7 @@ export default function CreateGameRoomForm({
 
       {memberShellEmbed || !managingExisting ? intakeForm : null}
 
-      {user && memberShellEmbed ? (
+      {user && isMemberEmbed ? (
         <div className="mt-10 space-y-3">
           {introSavedMsg ? (
             <p
@@ -682,7 +647,7 @@ export default function CreateGameRoomForm({
         >
           <h3 className="hui-h3">ตั้งค่าห้องเกมของฉัน</h3>
 
-          {memberShellEmbed && !panelFocusId && draftBootErr ? (
+          {isMemberEmbed && !panelFocusId && draftBootErr ? (
             <div
               className="mt-6 space-y-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-900"
               role="alert"
@@ -703,7 +668,7 @@ export default function CreateGameRoomForm({
             </div>
           ) : null}
 
-          {memberShellEmbed && !panelFocusId && !draftBootErr ? (
+          {isMemberEmbed && !panelFocusId && !draftBootErr ? (
             <div
               className="mt-6 rounded-2xl border border-dashed border-pink-200 bg-pink-50/50 px-5 py-10 text-center"
               aria-live="polite"
@@ -715,17 +680,17 @@ export default function CreateGameRoomForm({
             </div>
           ) : null}
 
-          {(!memberShellEmbed || panelFocusId) ? (
+          {(!isMemberEmbed || panelFocusId) ? (
             <div className="mt-6">
               <AdminCentralGamePanel
                 key={panelFocusId || "my-games-studio"}
                 embedded
                 memberShellEmbed={isMemberEmbed}
-                memberBasicInfoOnly={memberShellEmbed ? false : isMemberEmbed && !studioEditFull}
+                memberBasicInfoOnly={false}
                 focusGameId={panelFocusId}
-                suppressTopPolicyCallouts={Boolean(memberShellEmbed)}
-                disableEmbeddedAutoSelect={Boolean(memberShellEmbed)}
-                hideEmbeddedGamesTable={Boolean(memberShellEmbed)}
+                suppressTopPolicyCallouts={Boolean(isMemberEmbed)}
+                disableEmbeddedAutoSelect={Boolean(isMemberEmbed)}
+                hideEmbeddedGamesTable={Boolean(isMemberEmbed)}
                 externalReloadToken={introTick}
               />
             </div>
