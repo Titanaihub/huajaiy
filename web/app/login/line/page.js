@@ -1,10 +1,10 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import HomeStylePublicHeader from "../../../components/HomeStylePublicHeader";
+import LineLogoMark from "../../../components/LineLogoMark";
 import PublicLegalFooter from "../../../components/PublicLegalFooter";
 import {
   ADMIN_HOME_PATH,
@@ -141,14 +141,11 @@ function LineLoginContent() {
     <div className="flex min-h-dvh flex-col bg-slate-50">
       <HomeStylePublicHeader authPage />
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
-        <Link
-          href="/login"
-          className="text-sm font-medium text-rose-600 underline decoration-rose-300 underline-offset-2"
-        >
-          ← กลับหน้าเข้าสู่ระบบ
-        </Link>
-
-        <h1 className="mt-6 text-xl font-bold text-slate-900">เข้าสู่ระบบด้วย LINE</h1>
+        <h1 className="text-xl font-bold text-slate-900">เข้าสู่ระบบ</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          แนะนำให้เข้าด้วยบัญชี LINE · สมาชิกใหม่สมัครผ่าน LINE เท่านั้น
+        </p>
+        <p className="mt-1 text-xs text-slate-500">สมาชิก · ผู้ดูแลระบบ (แอดมิน)</p>
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           {status === "loading" ? (
@@ -226,9 +223,10 @@ function LineLoginContent() {
                   <button
                     type="button"
                     onClick={handleLineSignIn}
-                    className="w-full rounded-2xl bg-[#06C755] px-4 py-3.5 text-center text-base font-semibold text-white shadow-sm transition hover:brightness-95 active:scale-[0.99]"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-3.5 text-center shadow-sm shadow-pink-400/25 transition hover:brightness-105 active:scale-[0.99]"
                   >
-                    เข้าสู่ระบบด้วย LINE
+                    <span className="text-base font-bold text-white">เข้าสู่ระบบ</span>
+                    <LineLogoMark />
                   </button>
                   <p className="text-center text-sm text-slate-500">
                     บัญชีจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
@@ -243,15 +241,6 @@ function LineLoginContent() {
             </p>
           ) : null}
         </div>
-
-        <p className="mt-6 text-center text-sm text-slate-500">
-          <Link
-            href="/"
-            className="font-medium text-rose-600 underline decoration-rose-300 underline-offset-2"
-          >
-            หน้าแรก
-          </Link>
-        </p>
       </main>
       <PublicLegalFooter />
     </div>

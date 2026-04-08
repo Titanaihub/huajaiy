@@ -250,14 +250,8 @@ export default function MemberNav() {
 
   return (
     <span className="flex flex-wrap items-center gap-x-1 gap-y-1">
-      <Link href="/login/line" className={siteNavLinkClass}>
+      <Link href="/login/line?auto=1" className={siteNavLinkClass}>
         เข้าสู่ระบบด้วย LINE
-      </Link>
-      <span className="self-center text-hui-border" aria-hidden>
-        |
-      </span>
-      <Link href="/login?expand=1" className={siteNavLinkClass}>
-        เข้าด้วยยูสเซอร์
       </Link>
     </span>
   );

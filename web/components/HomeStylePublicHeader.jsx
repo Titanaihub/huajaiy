@@ -50,7 +50,7 @@ export default function HomeStylePublicHeader({
   const moreRef = useRef(null);
   const accountHref = memberUser
     ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
-    : "/login";
+    : "/login/line?auto=1";
 
   let pinkShown = 0;
   let redFromUsersShown = 0;
@@ -229,7 +229,7 @@ export default function HomeStylePublicHeader({
                 ออกจากระบบ
               </button>
             ) : (
-              <Link href="/login" className={navItemClass}>
+              <Link href="/login/line?auto=1" className={navItemClass}>
                 เข้าสู่ระบบ
               </Link>
             )}
@@ -357,7 +357,7 @@ export default function HomeStylePublicHeader({
                 </Link>
               ) : (
                 <Link
-                  href="/login"
+                  href="/login/line?auto=1"
                   className={iconLink}
                   title="เข้าสู่ระบบ"
                   aria-label="เข้าสู่ระบบ"

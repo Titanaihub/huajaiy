@@ -24,24 +24,35 @@
     <link rel="stylesheet" href="/purdue-template/assets/css/animate.css" />
     <link rel="stylesheet" href="/purdue-template/assets/css/style.css" />
     <style>
-      .hui-line-btn {
-        background-color: #06c755;
-        border: 1px solid #06c755;
-        color: #fff;
-        font-weight: 600;
-      }
-      .hui-line-btn:hover {
-        background-color: #05b34c;
-        border-color: #05b34c;
-        color: #fff;
-      }
-      .hui-alt-toggle {
-        color: #0d6efd;
-        font-weight: 500;
+      .hui-line-login-pill {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        border-radius: 9999px;
+        padding: 0.9rem 1rem;
+        background: linear-gradient(to right, #ff2e8c, #f472b6);
+        border: none;
+        box-shadow: 0 1px 3px rgba(233, 30, 140, 0.28);
         text-decoration: none;
+        font-weight: 700;
       }
-      .hui-alt-toggle:hover {
-        text-decoration: underline;
+      .hui-line-login-pill:hover {
+        filter: brightness(1.06);
+        color: #fff;
+      }
+      .hui-line-login-pill .hui-login-txt {
+        color: #fff !important;
+        font-size: 1rem;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .hui-line-logo-wrap img {
+        height: 22px;
+        width: auto;
+        display: block;
+        vertical-align: middle;
       }
     </style>
   </head>
@@ -57,7 +68,7 @@
               <h4 class="login_register_title">เข้าสู่ระบบ</h4>
               <p class="text-center text-muted small mb-2">แนะนำให้เข้าด้วยบัญชี LINE</p>
               <p class="text-center small mb-3">
-                <a href="/login" target="_top" class="text-muted">สมาชิก</a>
+                <a href="/login/line" target="_top" class="text-muted">สมาชิก</a>
                 <span class="text-muted"> · </span>
                 <a href="/login?admin=1" target="_top" class="text-muted">ผู้ดูแลระบบ (แอดมิน)</a>
               </p>
@@ -69,95 +80,34 @@
               >
                 <strong class="text-dark">เข้าสู่ระบบผู้ดูแล</strong>
                 <span class="d-block mt-1 text-muted">
-                  ใช้ชื่อผู้ใช้และรหัสผ่านของบัญชีที่มีสิทธิ์แอดมิน หากยังไม่มีบัญชี ให้ตั้งค่า
+                  เข้าด้วยรหัสผ่านที่
+                  <a href="/login/password" target="_top" rel="noopener">หน้าเข้าด้วยรหัสผ่าน</a>
+                  · หรือตั้งค่า
                   <code class="small">BOOTSTRAP_ADMIN_USERNAME</code> /
-                  <code class="small">BOOTSTRAP_ADMIN_PASSWORD</code> /
-                  <code class="small">BOOTSTRAP_ADMIN_PHONE</code>
-                  บนเซิร์ฟเวอร์ API แล้วรีสตาร์ท (ดู <code class="small">bootstrapAdminFromEnv</code> ใน repo)
+                  <code class="small">BOOTSTRAP_ADMIN_PASSWORD</code>
+                  บน API (ดู <code class="small">bootstrapAdminFromEnv</code>)
                 </span>
               </div>
+
+              <p class="text-center small text-muted mb-2">สมาชิกใหม่สมัครผ่าน LINE เท่านั้น</p>
 
               <div class="form-group col-lg-12 px-0">
                 <a
                   href="/login/line?auto=1"
                   target="_top"
                   rel="noopener"
-                  class="btn hui-line-btn w-100 rounded-pill py-3 text-uppercase"
+                  class="hui-line-login-pill"
                 >
-                  <i class="fa-brands fa-line me-2" aria-hidden="true"></i>
-                  เข้าสู่ระบบด้วย LINE
+                  <span class="hui-login-txt">เข้าสู่ระบบ</span>
+                  <span class="hui-line-logo-wrap">
+                    <img src="/icons/line-wordmark.svg" width="72" height="24" alt="LINE" />
+                  </span>
                 </a>
               </div>
 
-              <div class="text-center mt-3 mb-0">
-                <button
-                  type="button"
-                  class="btn btn-link hui-alt-toggle p-0 border-0"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#hui-alt-login"
-                  aria-expanded="false"
-                  aria-controls="hui-alt-login"
-                >
-                  เข้าสู่ระบบด้วยวิธีอื่น
-                </button>
-              </div>
-
-              <div class="collapse mt-4" id="hui-alt-login">
-                <hr class="my-3" />
-                <p class="login_register_title text-center mb-3" style="font-size: 1.05rem">
-                  เป็นสมาชิกแล้ว? เข้าสู่ระบบ:
-                </p>
-                <p
-                  id="hui-login-err"
-                  class="text-danger small mb-3"
-                  style="display: none"
-                  role="alert"
-                ></p>
-                <p class="small text-muted mb-3">
-                  สมาชิกรหัส 6 หลัก: กรอกรหัสเดียวกันในช่องชื่อผู้ใช้และรหัสผ่าน
-                </p>
-                <div class="form-group">
-                  <label for="hui-username">ชื่อผู้ใช้ <span class="text-muted fw-normal">(Username)</span></label>
-                  <input
-                    type="text"
-                    id="hui-username"
-                    class="form-control requiredField input-label"
-                    name="username"
-                    autocomplete="username"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="hui-password">รหัสผ่าน <span class="text-muted fw-normal">(Password)</span></label>
-                  <input
-                    type="password"
-                    id="hui-password"
-                    class="form-control requiredField input-label"
-                    name="password"
-                    autocomplete="current-password"
-                  />
-                </div>
-                <div class="form-group col-lg-12">
-                  <button class="btn_one" type="button" id="hui-login-btn">เข้าสู่ระบบ</button>
-                </div>
-              </div>
-
-              <p class="mt-4 mb-0">
-                ยังไม่มีบัญชี?
-                <a href="/register" target="_top" rel="noopener">สมัครเลย</a>
-              </p>
-              <p class="small text-muted mt-3 mb-0">
-                <a href="/" target="_top" rel="noopener">← หน้าแรก</a>
-                <span class="text-muted"> · </span>
-                <button
-                  type="button"
-                  class="btn btn-link hui-alt-toggle p-0 align-baseline border-0"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#hui-alt-login"
-                  aria-expanded="false"
-                  aria-controls="hui-alt-login"
-                >
-                  เข้าด้วยยูสเซอร์ / รหัส
-                </button>
+              <p class="text-center small text-muted mt-4 mb-0">
+                <a href="/login/password" target="_top" rel="noopener" class="text-muted">เข้าสู่ระบบด้วยวิธีอื่น</a>
+                <span class="text-muted"> (ผู้ดูแล / รหัสสมาชิก)</span>
               </p>
             </div>
           </div>
@@ -180,72 +130,15 @@
     <script src="/purdue-template/assets/js/scripts.js"></script>
     <script>
       (function () {
-        var TOKEN_KEY = "huajaiy_member_token";
-        var errEl = document.getElementById("hui-login-err");
-        function showErr(msg) {
-          if (!errEl) return;
-          errEl.textContent = msg || "";
-          errEl.style.display = msg ? "block" : "none";
-        }
-        function expandAltLogin() {
-          var el = document.getElementById("hui-alt-login");
-          if (!el) return;
-          el.classList.add("show");
-          document.querySelectorAll('[data-bs-target="#hui-alt-login"]').forEach(function (b) {
-            b.setAttribute("aria-expanded", "true");
-          });
-        }
         document.addEventListener("DOMContentLoaded", function () {
           try {
             var p = new URLSearchParams(window.location.search);
-            if (p.get("expand") === "1" || p.get("expand") === "user") expandAltLogin();
             if (p.get("admin") === "1") {
-              expandAltLogin();
               var b = document.getElementById("hui-admin-banner");
               if (b) b.style.display = "block";
             }
           } catch (e) {}
         });
-        var btn = document.getElementById("hui-login-btn");
-        if (btn) {
-          btn.addEventListener("click", async function () {
-            showErr("");
-            var u = (document.getElementById("hui-username").value || "").trim().toLowerCase();
-            var pw = document.getElementById("hui-password").value || "";
-            if (!u || !pw) {
-              showErr("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
-              return;
-            }
-            btn.disabled = true;
-            try {
-              var res = await fetch("/api/auth/member-login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: u, password: pw })
-              });
-              var data = await res.json().catch(function () {
-                return {};
-              });
-              if (!res.ok || !data.ok) {
-                showErr(data.error || "เข้าสู่ระบบไม่สำเร็จ");
-                return;
-              }
-              try {
-                window.localStorage.setItem(TOKEN_KEY, data.token);
-              } catch (e) {
-                showErr("ไม่สามารถบันทึกเซสชันในเบราว์เซอร์ได้");
-                return;
-              }
-              var role = data.user && data.user.role;
-              window.top.location.href =
-                role === "admin" ? "/admin" : "/member";
-            } catch (e) {
-              showErr("เครือข่ายผิดพลาด — ลองอีกครั้ง");
-            } finally {
-              btn.disabled = false;
-            }
-          });
-        }
       })();
     </script>
   </body>

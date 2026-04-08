@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
+import LineLogoMark from "./LineLogoMark";
 import { useHearts } from "./HeartsProvider";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
@@ -382,10 +383,11 @@ export default function HuajaiyCentralTemplate({
               </div>
               {!memberUser ? (
                 <Link
-                  href="/login"
-                  className="shrink-0 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:px-4 sm:text-sm"
+                  href="/login/line?auto=1"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:gap-2 sm:px-4 sm:text-sm"
                 >
-                  เข้าสู่ระบบ / สมัคร
+                  <span className="text-white">เข้าสู่ระบบ</span>
+                  <LineLogoMark />
                 </Link>
               ) : null}
             </div>
@@ -458,10 +460,11 @@ export default function HuajaiyCentralTemplate({
                 </>
               ) : (
                 <Link
-                  href="/login"
-                  className="hidden rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
+                  href="/login/line?auto=1"
+                  className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
                 >
-                  เข้าสู่ระบบ / สมัคร
+                  <span className="text-white">เข้าสู่ระบบ</span>
+                  <LineLogoMark />
                 </Link>
               )}
               {memberUser

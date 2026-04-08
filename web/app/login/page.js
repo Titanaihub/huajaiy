@@ -1,6 +1,6 @@
 export const metadata = {
   title: "เข้าสู่ระบบ | HUAJAIY",
-  description: "เข้าสู่ระบบสมาชิกและผู้ดูแลระบบ — LINE หรือยูสเซอร์/รหัส"
+  description: "เข้าสู่ระบบด้วย LINE — สมัครสมาชิกผ่าน LINE เท่านั้น"
 };
 
 export default function LoginPage({ searchParams }) {
