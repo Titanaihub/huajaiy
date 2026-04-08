@@ -146,6 +146,10 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS public_page_heart_accent VARCHAR(16);
+    `);
+    await client.query(`
+      ALTER TABLE users
       ALTER COLUMN public_page_listed SET DEFAULT false;
     `);
     /** สมาชิกจาก LINE ไม่มีเบอร์จริง — ไม่ใส่ placeholder ใน phone */

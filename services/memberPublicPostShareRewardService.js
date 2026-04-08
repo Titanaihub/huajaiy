@@ -1,4 +1,5 @@
 const { getPool } = require("../db/pool");
+const heartLedgerService = require("./heartLedgerService");
 const userService = require("./userService");
 
 const UUID_RE =
@@ -38,6 +39,21 @@ function requirePool() {
 }
 
 /**
+ * ส่วนที่เหลือใน pool แยกว่ามาจากแดงแจก vs กระเป๋า (สูตรเดียวกับ sumActiveShareEscrowForUser)
+ * @param {{ share_red_pool_remaining: unknown; share_red_initial_budget: unknown; eg?: unknown; ew?: unknown }} row
+ */
+function splitSharePoolPortions(row) {
+  const poolRem = Math.max(0, Math.floor(Number(row.share_red_pool_remaining) || 0));
+  const initB = Math.max(0, Math.floor(Number(row.share_red_initial_budget) || 0));
+  const eg = Math.max(0, Math.floor(Number(row.eg) || 0));
+  const ew = Math.max(0, Math.floor(Number(row.ew) || 0));
+  if (poolRem <= 0 || initB <= 0) return { giveawayPart: 0, walletPart: 0 };
+  if (eg + ew === 0) return { giveawayPart: 0, walletPart: poolRem };
+  const giveawayPart = Math.min(poolRem, Math.floor((poolRem * eg) / initB));
+  return { giveawayPart, walletPart: poolRem - giveawayPart };
+}
+
+/**
  * @param {import("pg").PoolClient} client
  * @param {string} postId
  * @param {string|null|undefined} recipientUserId
@@ -48,7 +64,7 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
     return { granted: false };
   }
   const pr = await client.query(
-    `SELECT p.user_id, p.share_red_status, p.share_red_per_member, p.share_red_pool_remaining, p.share_red_recipients_count,
+    `SELECT p.user_id, p.title, p.share_red_status, p.share_red_per_member, p.share_red_pool_remaining, p.share_red_recipients_count,
             p.share_red_initial_budget,
             COALESCE(p.share_red_escrow_from_giveaway, 0) AS share_red_escrow_from_giveaway,
             COALESCE(p.share_red_escrow_from_wallet, 0) AS share_red_escrow_from_wallet
@@ -100,6 +116,11 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
     meta: { postId }
   });
 
+  const postTitle = String(row.title || "").trim() || "โพสต์";
+  const unR = await client.query(`SELECT username FROM users WHERE id = $1::uuid`, [recId]);
+  const recipientUsername =
+    unR.rows[0]?.username != null ? String(unR.rows[0].username).trim() : null;
+
   const newPool = poolRem - per;
   const newRc = rc + 1;
 
@@ -112,7 +133,10 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
       await userService.adjustRedWalletAndGiveawayWithClient(client, ownerId, toWallet, toGiveaway, {
         kind: "public_post_share_refund",
         label: "คืนหัวใจแดงคงเหลือ (แจกแชร์โพสต์)",
-        meta: { postId }
+        meta: {
+          postId,
+          postTitle: postTitle.slice(0, 200)
+        }
       });
     }
     await client.query(
@@ -134,6 +158,35 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
       [postId, newPool, newRc]
     );
   }
+
+  const finalPoolRemaining = newPool < per ? 0 : newPool;
+  const ownSnap = await client.query(
+    `SELECT pink_hearts_balance, red_hearts_balance, COALESCE(red_giveaway_balance, 0) AS rg
+     FROM users WHERE id = $1::uuid`,
+    [ownerId]
+  );
+  const ob = ownSnap.rows[0];
+  const pinkAfter = Math.max(0, Math.floor(Number(ob?.pink_hearts_balance) || 0));
+  const redAfter = Math.max(0, Math.floor(Number(ob?.red_hearts_balance) || 0));
+  const rgAfter = Math.max(0, Math.floor(Number(ob?.rg) || 0));
+  await heartLedgerService.insertWithClient(client, {
+    userId: ownerId,
+    pinkDelta: 0,
+    redDelta: 0,
+    pinkAfter,
+    redAfter,
+    kind: "public_post_share_reward_paid",
+    label: "จ่ายรางวัลแชร์โพสต์",
+    meta: {
+      postId,
+      postTitle: postTitle.slice(0, 200),
+      recipientUserId: recId,
+      recipientUsername: recipientUsername || null,
+      redAmount: per,
+      redGiveawayBalanceAfter: rgAfter,
+      sharePoolRemainingAfter: finalPoolRemaining
+    }
+  });
 
   return { granted: true, redAmount: per };
 }
@@ -168,7 +221,7 @@ async function startCampaign(ownerUserId, postId, redPerMember, redBudget) {
   try {
     await client.query("BEGIN");
     const pr = await client.query(
-      `SELECT id, user_id, share_red_status FROM member_public_posts WHERE id = $1 FOR UPDATE`,
+      `SELECT id, user_id, share_red_status, title FROM member_public_posts WHERE id = $1 FOR UPDATE`,
       [postId]
     );
     const row = pr.rows[0];
@@ -213,7 +266,10 @@ async function startCampaign(ownerUserId, postId, redPerMember, redBudget) {
       {
         kind: "public_post_share_escrow",
         label: "กันวงเงินแจกหัวใจแดงเมื่อแชร์โพสต์",
-        meta: { postId }
+        meta: {
+          postId,
+          postTitle: String(row.title || "").trim().slice(0, 200) || "โพสต์"
+        }
       }
     );
 
@@ -263,7 +319,7 @@ async function pauseCampaign(ownerUserId, postId) {
   try {
     await client.query("BEGIN");
     const pr = await client.query(
-      `SELECT id, user_id, share_red_status, share_red_pool_remaining, share_red_initial_budget,
+      `SELECT id, user_id, title, share_red_status, share_red_pool_remaining, share_red_initial_budget,
               COALESCE(share_red_escrow_from_giveaway, 0) AS share_red_escrow_from_giveaway,
               COALESCE(share_red_escrow_from_wallet, 0) AS share_red_escrow_from_wallet
        FROM member_public_posts WHERE id = $1 FOR UPDATE`,
@@ -293,7 +349,10 @@ async function pauseCampaign(ownerUserId, postId) {
           {
             kind: "public_post_share_pause_refund",
             label: "คืนหัวใจแดงที่กันไว้ (ระงับแจกแชร์โพสต์)",
-            meta: { postId }
+            meta: {
+              postId,
+              postTitle: String(row.title || "").trim().slice(0, 200) || "โพสต์"
+            }
           }
         );
       }
@@ -344,21 +403,42 @@ async function sumActiveShareEscrowForUser(userId) {
     [uid]
   );
   for (const row of r.rows) {
-    const poolRem = Math.max(0, Math.floor(Number(row.share_red_pool_remaining) || 0));
-    const initB = Math.max(0, Math.floor(Number(row.share_red_initial_budget) || 0));
-    const eg = Math.max(0, Math.floor(Number(row.eg) || 0));
-    const ew = Math.max(0, Math.floor(Number(row.ew) || 0));
-    if (poolRem <= 0 || initB <= 0) continue;
-    if (eg + ew === 0) {
-      walletPool += poolRem;
-      continue;
-    }
-    const gPart = Math.min(poolRem, Math.floor((poolRem * eg) / initB));
-    const wPart = poolRem - gPart;
-    giveawayPool += gPart;
-    walletPool += wPart;
+    const { giveawayPart, walletPart } = splitSharePoolPortions(row);
+    giveawayPool += giveawayPart;
+    walletPool += walletPart;
   }
   return { giveawayPool, walletPool };
+}
+
+/**
+ * แคมเปญแชร์ที่ยัง active ต่อโพสต์ (หัวข้อ + ยอดกันแชร์แยกแดงแจก/กระเป๋า)
+ * @param {string} userId
+ * @returns {Promise<Array<{ postId: string; title: string; poolRemaining: number; reservedFromGiveaway: number; reservedFromWallet: number }>>}
+ */
+async function listActiveShareCampaignsForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!UUID_RE.test(uid)) return [];
+  const pool = requirePool();
+  const r = await pool.query(
+    `SELECT id, title, share_red_pool_remaining, share_red_initial_budget,
+            COALESCE(share_red_escrow_from_giveaway, 0) AS eg,
+            COALESCE(share_red_escrow_from_wallet, 0) AS ew
+     FROM member_public_posts
+     WHERE user_id = $1::uuid AND share_red_status = 'active'
+     ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST`,
+    [uid]
+  );
+  return r.rows.map((row) => {
+    const poolRem = Math.max(0, Math.floor(Number(row.share_red_pool_remaining) || 0));
+    const { giveawayPart, walletPart } = splitSharePoolPortions(row);
+    return {
+      postId: String(row.id),
+      title: String(row.title || "").trim() || "โพสต์",
+      poolRemaining: poolRem,
+      reservedFromGiveaway: giveawayPart,
+      reservedFromWallet: walletPart
+    };
+  });
 }
 
 module.exports = {
@@ -366,5 +446,6 @@ module.exports = {
   startCampaign,
   pauseCampaign,
   sumActiveShareEscrowForUser,
+  listActiveShareCampaignsForUser,
   MIN_REF_CLICKS_FOR_SHARE_REWARD
 };

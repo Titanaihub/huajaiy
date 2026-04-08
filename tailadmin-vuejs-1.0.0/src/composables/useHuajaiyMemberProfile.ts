@@ -10,6 +10,14 @@ function apiBase(): string {
   return s || 'https://huajaiy-api.onrender.com'
 }
 
+export interface ShareRewardActivePost {
+  postId: string
+  title: string
+  poolRemaining: number
+  reservedFromGiveaway: number
+  reservedFromWallet: number
+}
+
 export interface HuajaiyPublicUser {
   id?: string
   username?: string
@@ -36,6 +44,8 @@ export interface HuajaiyPublicUser {
   shareRewardGiveawayEscrow?: number
   /** มัดจำแชร์โพสต์ — ส่วนที่เหลือใน pool ที่มาจากกระเป๋าแดง */
   shareRewardWalletEscrow?: number
+  /** แคมเปญแชร์ที่ยัง active ต่อโพสต์ (จาก GET /api/auth/me) */
+  shareRewardActivePosts?: ShareRewardActivePost[]
 }
 
 export function useHuajaiyMemberProfile() {

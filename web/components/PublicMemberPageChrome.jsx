@@ -283,7 +283,15 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
           <div className="border-t border-pink-100/80 bg-pink-50/40 px-3 py-4 sm:px-4 sm:py-6">
             {tab === "posts" ? (
               <div className="mx-auto max-w-4xl">
-                <MemberPublicPostsFeed username={username} initialPosts={initialPosts} />
+                <MemberPublicPostsFeed
+                  username={username}
+                  initialPosts={initialPosts}
+                  shareRewardHeartTint={
+                    member && typeof member === "object" && member.publicPageHeartAccent
+                      ? String(member.publicPageHeartAccent)
+                      : null
+                  }
+                />
               </div>
             ) : (
               <div className="mx-auto max-w-2xl space-y-4">

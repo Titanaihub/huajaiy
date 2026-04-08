@@ -68,6 +68,19 @@ function isProbablyPng(file) {
 
 const TITLE_PLACEHOLDER_MAX_LEN = 72;
 
+/** ค่าให้ input type=color (#rrggbb) */
+function hexForColorInput(v) {
+  const s = String(v ?? "").trim();
+  const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(s);
+  if (!m) return "#ff2e8c";
+  const hex = m[1];
+  if (hex.length === 3) {
+    const [a, b, c] = hex;
+    return `#${a}${a}${b}${b}${c}${c}`.toLowerCase();
+  }
+  return `#${hex.toLowerCase()}`;
+}
+
 /** ตัวอย่างในช่องกรอก — อิงเฉพาะบัญชีที่ล็อกอิน ไม่ใช้ชื่อสมาชิกคนอื่น */
 function buildPublicPageTitlePlaceholder(user) {
   if (!user || typeof user !== "object") {
@@ -128,6 +141,8 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [listedBusy, setListedBusy] = useState(false);
+  const [heartAccentDraft, setHeartAccentDraft] = useState("#ff2e8c");
+  const [heartAccentBusy, setHeartAccentBusy] = useState(false);
 
   const isOwner = useMemo(
     () =>
@@ -148,6 +163,10 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
     setTitleDraft(String(member?.publicPageTitle || "").trim());
     setBioDraft(String(member?.publicPageBio || "").trim());
   }, [member?.publicPageTitle, member?.publicPageBio]);
+
+  useEffect(() => {
+    setHeartAccentDraft(hexForColorInput(member?.publicPageHeartAccent));
+  }, [member?.publicPageHeartAccent]);
 
   useEffect(() => {
     setLineDraft(String(member?.socialLineUrl || "").trim());
@@ -296,6 +315,39 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
       setSaving(false);
     }
   }, [bioDraft, isOwner, patchProfile, router, titleDraft]);
+
+  const saveHeartAccent = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setHeartAccentBusy(true);
+    try {
+      await patchProfile({ publicPageHeartAccent: heartAccentDraft });
+      setMsg("บันทึกสีไอคอนหัวใจ (แชร์รับหัวใจแดง) แล้ว");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setHeartAccentBusy(false);
+    }
+  }, [heartAccentDraft, isOwner, patchProfile, router]);
+
+  const resetHeartAccent = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setHeartAccentBusy(true);
+    try {
+      await patchProfile({ publicPageHeartAccent: null });
+      setHeartAccentDraft("#ff2e8c");
+      setMsg("ตั้งกลับเป็นสีเริ่มต้นแล้ว");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setHeartAccentBusy(false);
+    }
+  }, [isOwner, patchProfile, router]);
 
   if (!isOwner) return null;
 
@@ -450,6 +502,45 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
                 เมนูสมาชิก
               </Link>
             </p>
+          </div>
+          <div className="rounded-lg border border-amber-200/80 bg-white/70 px-3 py-3">
+            <p className="text-xs font-semibold text-amber-950">สีไอคอนหัวใจ (ข้อความแชร์รับหัวใจแดง)</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-900/85">
+              ใช้กับข้อความ「ได้ ♥ จำนวน / คนแรก」บนโพสต์ — เลือกสีแล้วกดบันทึก
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-amber-900">
+                <span>สี</span>
+                <input
+                  type="color"
+                  value={heartAccentDraft}
+                  onChange={(e) => setHeartAccentDraft(e.target.value)}
+                  className="h-9 w-14 cursor-pointer rounded border border-amber-200/90 bg-white p-0.5"
+                  disabled={heartAccentBusy || saving || uploadBusy || avatarBusy || socialSaving}
+                  aria-label="เลือกสีหัวใจแชร์รางวัล"
+                />
+              </label>
+              <button
+                type="button"
+                disabled={
+                  heartAccentBusy || saving || uploadBusy || avatarBusy || socialSaving
+                }
+                onClick={() => void saveHeartAccent()}
+                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-amber-700 disabled:opacity-50"
+              >
+                {heartAccentBusy ? "กำลังบันทึก…" : "บันทึกสี"}
+              </button>
+              <button
+                type="button"
+                disabled={
+                  heartAccentBusy || saving || uploadBusy || avatarBusy || socialSaving
+                }
+                onClick={() => void resetHeartAccent()}
+                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80 disabled:opacity-50"
+              >
+                คืนสีเริ่มต้น
+              </button>
+            </div>
           </div>
           <div>
             <label htmlFor="public-page-title" className="block text-xs font-medium text-amber-900">

@@ -92,10 +92,13 @@ async function publicUserWithRoomGiftRed(user) {
   }
   let shareRewardGiveawayEscrow = 0;
   let shareRewardWalletEscrow = 0;
+  let shareRewardActivePosts = [];
   try {
     const s = await memberPublicPostShareRewardService.sumActiveShareEscrowForUser(user.id);
     shareRewardGiveawayEscrow = Math.max(0, Math.floor(Number(s.giveawayPool) || 0));
     shareRewardWalletEscrow = Math.max(0, Math.floor(Number(s.walletPool) || 0));
+    shareRewardActivePosts =
+      await memberPublicPostShareRewardService.listActiveShareCampaignsForUser(user.id);
   } catch (e) {
     if (e.code !== "DB_REQUIRED") {
       console.error("[publicUserWithRoomGiftRed] share escrow skipped:", e.message);
@@ -105,7 +108,8 @@ async function publicUserWithRoomGiftRed(user) {
     ...base,
     roomGiftRed,
     shareRewardGiveawayEscrow,
-    shareRewardWalletEscrow
+    shareRewardWalletEscrow,
+    shareRewardActivePosts
   };
 }
 

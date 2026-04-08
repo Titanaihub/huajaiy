@@ -279,6 +279,25 @@ function validateProfilePatch(body, ctx = {}) {
     publicPageListed = Boolean(body.publicPageListed);
   }
 
+  let publicPageHeartAccent = null;
+  let updatePublicPageHeartAccent = false;
+  if (Object.prototype.hasOwnProperty.call(body, "publicPageHeartAccent")) {
+    updatePublicPageHeartAccent = true;
+    const raw = body.publicPageHeartAccent;
+    if (raw == null || String(raw).trim() === "") {
+      publicPageHeartAccent = null;
+    } else {
+      const s = String(raw).replace(/\u0000/g, "").trim();
+      if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s)) {
+        return {
+          ok: false,
+          error: "สีหัวใจบนเพจต้องเป็นรหัสสีแบบ #RGB หรือ #RRGGBB เท่านั้น"
+        };
+      }
+      publicPageHeartAccent = s;
+    }
+  }
+
   return {
     ok: true,
     data: {
@@ -314,7 +333,9 @@ function validateProfilePatch(body, ctx = {}) {
       publicPageTitle,
       updatePublicPageTitle,
       publicPageListed,
-      updatePublicPageListed
+      updatePublicPageListed,
+      publicPageHeartAccent,
+      updatePublicPageHeartAccent
     }
   };
 }

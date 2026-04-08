@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
+import { ShareRewardHeartGlyph } from "./ShareRewardVisitorBanner";
 import HuajaiyCentralTemplate, { IconGamepad, IconShare, IconShop } from "./HuajaiyCentralTemplate";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { formatRelativeTimeTh } from "../lib/publicMemberPosts";
@@ -20,8 +21,6 @@ const PRODUCTS_PLACEHOLDER = [
 /** เกมแนะนำ: ขนาดการ์ด (รูปสี่เหลี่ยม) + ช่องว่างระหว่างการ์ด — ใช้คำนวณจำนวนการ์ดต่อแถว */
 const REC_GAME_CARD_PX = 200;
 const REC_GAME_GRID_GAP_PX = 6;
-const RED_HEART_SRC = "/hearts/red-heart.png";
-
 /** การ์ดเชิญชวนสร้างเกม — โครงสร้างเดียวกับการ์ดเกมแนะนำ (200×200 + ข้อความ) */
 function RecommendedCreateGameCard() {
   return (
@@ -337,6 +336,10 @@ export default function HomeLandingFigmaShell({
                       ? Math.floor(Number(sr.maxRecipientSlots))
                       : 0;
                   const showShareRewardTeaser = perHeart > 0 && maxPeople > 0;
+                  const rewardHeartTint =
+                    typeof post.shareRewardHeartTint === "string" && post.shareRewardHeartTint.trim()
+                      ? post.shareRewardHeartTint.trim().toLowerCase()
+                      : null;
                   return (
                     <article
                       key={`${post.username}-${post.postId}`}
@@ -391,20 +394,9 @@ export default function HomeLandingFigmaShell({
                           </span>
                           {showShareRewardTeaser ? (
                             <span className="inline-flex flex-wrap items-center justify-end gap-0.5 text-[10px] font-bold leading-tight text-[#FF2E8C] sm:text-[11px]">
-                              <span>
-                                ได้{perHeart}
-                              </span>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={RED_HEART_SRC}
-                                alt=""
-                                className="inline h-3 w-3 shrink-0 align-middle opacity-95"
-                                width={12}
-                                height={12}
-                              />
-                              <span>
-                                /{maxPeople}คนแรก
-                              </span>
+                              <span>ได้{perHeart}</span>
+                              <ShareRewardHeartGlyph tint={rewardHeartTint} />
+                              <span>/{maxPeople}คนแรก</span>
                             </span>
                           ) : null}
                         </button>

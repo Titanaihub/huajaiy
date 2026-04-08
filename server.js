@@ -531,7 +531,8 @@ app.get("/api/public/members/:username", async (req, res) => {
       publicPageCoverUrl: u.publicPageCoverUrl || null,
       publicPageBio: u.publicPageBio || null,
       publicPageTitle: u.publicPageTitle || null,
-      publicPageListed: u.publicPageListed === true
+      publicPageListed: u.publicPageListed === true,
+      publicPageHeartAccent: u.publicPageHeartAccent || null
     };
     return res.json(payload);
   } catch (e) {

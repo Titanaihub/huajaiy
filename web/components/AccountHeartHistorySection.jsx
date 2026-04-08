@@ -18,7 +18,8 @@ const KIND_HINT = {
   adjustment: "ปรับยอด",
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
   room_red_code_refund: "ลบรหัสห้อง · คืนแดง",
-  room_red_code_redeem: "แลกรหัสห้อง"
+  room_red_code_redeem: "แลกรหัสห้อง",
+  public_post_share_reward_paid: "จ่ายรางวัลแชร์โพสต์ (จากมัดจำแคมเปญ)"
 };
 
 function formatWhen(iso) {
@@ -342,17 +343,67 @@ function buildTableRows(mode, entries) {
         });
         continue;
       }
+      if (e.kind === "public_post_share_reward_paid") {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const amt = Math.floor(Number(m.redAmount) || 0);
+        if (amt <= 0) continue;
+        const ru = m.recipientUsername != null ? String(m.recipientUsername).trim() : "";
+        const rid = m.recipientUserId != null ? String(m.recipientUserId).trim() : "";
+        const pt = m.postTitle != null ? String(m.postTitle).trim() : "";
+        const postId = m.postId ? String(m.postId).trim() : "";
+        const poolAfter =
+          m.sharePoolRemainingAfter != null ? Math.floor(Number(m.sharePoolRemainingAfter)) : null;
+        const whoLabel = ru ? `@${ru}` : rid ? `ผู้ใช้ ${rid.slice(0, 8)}…` : "ผู้แชร์";
+        const titleBit =
+          pt.length > 0
+            ? ` · โพสต์ «${pt.slice(0, 80)}${pt.length > 80 ? "…" : ""}»`
+            : postId
+              ? ` · โพสต์ ${postId.slice(0, 8)}`
+              : "";
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "จ่ายรางวัลแชร์โพสต์"}</p>
+              <p className="text-xs font-medium text-slate-500">
+                {whoLabel} แชร์และได้รับ {amt.toLocaleString("th-TH")} ดวง{titleBit}
+              </p>
+              <p className="text-[11px] font-medium text-slate-400">
+                {KIND_HINT.public_post_share_reward_paid}
+              </p>
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: -amt,
+          balanceDisplay:
+            poolAfter != null && Number.isFinite(poolAfter)
+              ? `มัดจำแชร์โพสต์คงเหลือ ${poolAfter.toLocaleString("th-TH")} ดวง`
+              : "—"
+        });
+        continue;
+      }
       if (
         e.kind === "public_post_share_escrow" ||
         e.kind === "public_post_share_pause_refund" ||
         e.kind === "public_post_share_delete_refund" ||
         e.kind === "public_post_share_refund"
       ) {
-        const d = Math.floor(Number(e.redDelta) || 0);
-        if (d === 0) continue;
         const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const walletD = Math.floor(Number(e.redDelta) || 0);
+        const giveD = Math.floor(Number(m.redGiveawayDelta) || 0);
+        if (giveD === 0) continue;
         const postId = m.postId ? String(m.postId).trim() : "";
+        const postTitle = m.postTitle != null ? String(m.postTitle).trim() : "";
         const isFromShare = e.kind === "public_post_share_escrow";
+        const after =
+          m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
+        const titleLine =
+          postTitle.length > 0
+            ? `โพสต์ «${postTitle.slice(0, 80)}${postTitle.length > 80 ? "…" : ""}»`
+            : postId
+              ? `โพสต์ ${postId.slice(0, 8)}`
+              : "";
         rows.push({
           id: e.id,
           createdAt: e.createdAt,
@@ -361,18 +412,24 @@ function buildTableRows(mode, entries) {
               <p className="font-medium text-slate-800">{e.label || "แชร์โพสต์"}</p>
               <p className="text-xs font-medium text-slate-500">
                 {isFromShare
-                  ? "แจกให้ผู้แชร์จากการแชร์โพสต์"
-                  : "คืนยอดคงเหลือจากการแชร์โพสต์"}
-                {postId ? ` · โพสต์ ${postId.slice(0, 8)}` : ""}
+                  ? "แจกให้ผู้แชร์จากการแชร์โพสต์ (ส่วนแดงแจก)"
+                  : "คืนยอดคงเหลือจากการแชร์โพสต์ (แดงแจก)"}
+                {titleLine ? ` · ${titleLine}` : ""}
+                {walletD !== 0 ? (
+                  <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+                    ส่วนจากกระเป๋าแดง {walletD > 0 ? "+" : ""}
+                    {walletD.toLocaleString("th-TH")} ดวง (ดูแท็บแดงเล่นได้)
+                  </span>
+                ) : null}
               </p>
             </div>
           ),
           amountDisplay: null,
-          amountNumeric: d,
-          balanceDisplay: `กระเป๋าแดง ${Math.max(
-            0,
-            Math.floor(Number(e.redBalanceAfter) || 0)
-          ).toLocaleString("th-TH")}`
+          amountNumeric: giveD,
+          balanceDisplay:
+            after != null && Number.isFinite(after)
+              ? after.toLocaleString("th-TH")
+              : "—"
         });
         continue;
       }

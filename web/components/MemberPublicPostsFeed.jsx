@@ -176,7 +176,8 @@ function MemberPublicPostCard({
   onEdit,
   onDelete,
   onPostUpdated,
-  refreshMemberProfile
+  refreshMemberProfile,
+  shareRewardHeartTint
 }) {
   const [expanded, setExpanded] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -414,7 +415,15 @@ function MemberPublicPostCard({
           {layout === "stack" ? "แบบซ้อน (2 การ์ด/แถว)" : "แบบแถว (1 การ์ด/แถว)"}
         </p>
       ) : null}
-      <ShareRewardVisitorBanner shareReward={post.shareReward} className="mt-2" />
+      <ShareRewardVisitorBanner
+        shareReward={post.shareReward}
+        heartTint={
+          (typeof post.shareRewardHeartTint === "string" && post.shareRewardHeartTint) ||
+          shareRewardHeartTint ||
+          null
+        }
+        className="mt-2"
+      />
       {grantFlash ? (
         <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[11px] font-medium text-emerald-900">
           {grantFlash}
@@ -635,9 +644,9 @@ function MemberPublicPostCard({
 const defaultBlocks = () => [{ clientId: newClientId(), type: "paragraph", text: "" }];
 
 /**
- * @param {{ username: string; initialPosts: unknown[] }} props
+ * @param {{ username: string; initialPosts: unknown[]; shareRewardHeartTint?: string | null }} props
  */
-export default function MemberPublicPostsFeed({ username, initialPosts }) {
+export default function MemberPublicPostsFeed({ username, initialPosts, shareRewardHeartTint = null }) {
   const router = useRouter();
   const { user, refresh } = useMemberAuth();
   const [posts, setPosts] = useState(() => sortPosts(initialPosts));
@@ -1222,6 +1231,7 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
                   onDelete={onDelete}
                   onPostUpdated={patchPostInList}
                   refreshMemberProfile={refresh}
+                  shareRewardHeartTint={shareRewardHeartTint}
                 />
               </div>
             ))}

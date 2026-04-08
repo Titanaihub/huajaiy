@@ -67,6 +67,38 @@
             แคมเปญแชร์กันจากกระเป๋าแดงอีก
             {{ shareWalletEscrow.toLocaleString('th-TH') }} ดวง — ดูการ์ดหัวใจแดงที่ภาพรวมบัญชี (/member)
           </p>
+          <div
+            v-if="shareActivePosts.length > 0"
+            class="mt-3 rounded-lg border border-rose-100/90 bg-white/95 px-3 py-2.5 text-xs text-gray-800 dark:border-rose-900/40 dark:bg-gray-900/50 dark:text-gray-200"
+          >
+            <p class="font-semibold text-rose-900 dark:text-rose-200">รายละเอียดต่อโพสต์ (กันไว้แชร์)</p>
+            <ul class="mt-2 space-y-2.5">
+              <li
+                v-for="p in shareActivePosts"
+                :key="String(p.postId)"
+                class="border-t border-rose-100/80 pt-2 first:border-t-0 first:pt-0 dark:border-rose-900/25"
+              >
+                <p class="font-medium text-gray-900 dark:text-white">โพสต์: «{{ p.title }}»</p>
+                <p class="mt-1 text-[11px] leading-relaxed text-gray-600 dark:text-gray-400">
+                  กันไว้แชร์คงเหลือรวม
+                  <strong class="text-gray-800 dark:text-gray-200">{{
+                    p.poolRemaining.toLocaleString('th-TH')
+                  }}</strong>
+                  ดวง
+                  <template v-if="p.reservedFromGiveaway > 0">
+                    · ส่วนจากแดงแจก
+                    <strong>{{ p.reservedFromGiveaway.toLocaleString('th-TH') }}</strong>
+                    ดวง
+                  </template>
+                  <template v-if="p.reservedFromWallet > 0">
+                    · ส่วนจากกระเป๋าแดง
+                    <strong>{{ p.reservedFromWallet.toLocaleString('th-TH') }}</strong>
+                    ดวง
+                  </template>
+                </p>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <form class="mt-4 flex flex-col gap-4 border-t border-gray-200 pt-4 dark:border-gray-700" @submit.prevent="onCreate">
@@ -195,7 +227,10 @@
 import { computed, onMounted, ref } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
-import { useHuajaiyMemberProfile } from '@/composables/useHuajaiyMemberProfile'
+import {
+  useHuajaiyMemberProfile,
+  type ShareRewardActivePost
+} from '@/composables/useHuajaiyMemberProfile'
 import type { RoomRedGiftCode } from '@/utils/memberSectionApi'
 import {
   apiCreateRoomRedGiftCode,
@@ -227,6 +262,12 @@ const shareGiveawayEscrow = computed(() =>
 const shareWalletEscrow = computed(() =>
   Math.max(0, Math.floor(Number(user.value?.shareRewardWalletEscrow) || 0))
 )
+
+const shareActivePosts = computed((): ShareRewardActivePost[] => {
+  const raw = user.value?.shareRewardActivePosts
+  if (!Array.isArray(raw)) return []
+  return raw.filter(Boolean) as ShareRewardActivePost[]
+})
 
 const estimatedRedDeduction = computed(() => {
   const ra = Math.max(1, Math.floor(Number(redAmount.value) || 1))

@@ -143,7 +143,7 @@ function rowToPost(row, opts = {}) {
   } catch {
     blocks = [];
   }
-  return {
+  const post = {
     id: row.id,
     title: row.title,
     coverImageUrl: row.cover_image_url || null,
@@ -154,6 +154,11 @@ function rowToPost(row, opts = {}) {
     updatedAt: row.updated_at,
     shareReward: shareRewardPayload(row, { forOwner: opts.forOwner === true })
   };
+  if (Object.prototype.hasOwnProperty.call(row, "owner_public_page_heart_accent")) {
+    const tint = userService.sanitizePublicPageHeartAccent(row.owner_public_page_heart_accent);
+    if (tint) post.shareRewardHeartTint = tint;
+  }
+  return post;
 }
 
 /**
@@ -217,7 +222,8 @@ async function listRecentPublicPostsForHome(limit = 6) {
     `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.created_at, p.updated_at,
             u.username, u.public_page_title,
             p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
-            p.share_red_status, p.share_red_recipients_count
+            p.share_red_status, p.share_red_recipients_count,
+            u.public_page_heart_accent AS owner_public_page_heart_accent
      FROM member_public_posts p
      INNER JOIN users u ON u.id = p.user_id
      WHERE u.account_disabled = false
@@ -242,6 +248,7 @@ async function listRecentPublicPostsForHome(limit = 6) {
       let cover = sanitizeCoverUrl(row.cover_image_url);
       if (!cover) cover = firstHttpsImageFromBodyBlocks(post.bodyBlocks);
       const title = String(post.title || "").trim() || "โพสต์";
+      const heartTint = userService.sanitizePublicPageHeartAccent(row.owner_public_page_heart_accent);
       return {
         postId: id,
         username: un,
@@ -255,7 +262,8 @@ async function listRecentPublicPostsForHome(limit = 6) {
             : row.created_at
               ? String(row.created_at)
               : null,
-        shareReward: shareRewardPayload(row, { forOwner: false })
+        shareReward: shareRewardPayload(row, { forOwner: false }),
+        shareRewardHeartTint: heartTint || null
       };
     })
     .filter(Boolean);
@@ -303,7 +311,8 @@ async function listPublicByUsername(username) {
   const r = await pool.query(
     `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at,
             p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
-            p.share_red_status, p.share_red_recipients_count
+            p.share_red_status, p.share_red_recipients_count,
+            u.public_page_heart_accent AS owner_public_page_heart_accent
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
      WHERE u.username = $1
@@ -325,7 +334,8 @@ async function getPublicByUsernameAndPostId(username, postId) {
   const r = await pool.query(
     `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.layout, p.sort_order, p.created_at, p.updated_at,
             p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
-            p.share_red_status, p.share_red_recipients_count
+            p.share_red_status, p.share_red_recipients_count,
+            u.public_page_heart_accent AS owner_public_page_heart_accent
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
      WHERE u.username = $1 AND p.id = $2`,

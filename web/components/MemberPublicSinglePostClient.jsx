@@ -122,7 +122,13 @@ export default function MemberPublicSinglePostClient({ username, post, refUserna
 
   const shareRow = shareUrl ? (
     <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
-      <ShareRewardVisitorBanner shareReward={post.shareReward} className="px-3 py-2" />
+      <ShareRewardVisitorBanner
+        shareReward={post.shareReward}
+        heartTint={
+          typeof post.shareRewardHeartTint === "string" ? post.shareRewardHeartTint : null
+        }
+        className="px-3 py-2"
+      />
       {grantFlash ? (
         <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-medium text-emerald-900">
           {grantFlash}

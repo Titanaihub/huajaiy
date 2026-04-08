@@ -39,6 +39,21 @@ function sanitizePublicPageTitle(v) {
   return s === "" ? null : s;
 }
 
+/** สีหัวใจบนเพจสาธารณะ (#rgb หรือ #rrggbb) — ไม่ผ่านรูปแบบคืน null */
+function sanitizePublicPageHeartAccent(v) {
+  if (v == null) return null;
+  const s = String(v).replace(/\u0000/g, "").trim();
+  if (s === "") return null;
+  const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(s);
+  if (!m) return null;
+  const hex = m[1];
+  if (hex.length === 3) {
+    const [a, b, c] = hex;
+    return `#${a}${a}${b}${b}${c}${c}`.toLowerCase();
+  }
+  return `#${hex.toLowerCase()}`;
+}
+
 function normalizeBirthDate(v) {
   if (v == null) return null;
   if (v instanceof Date) return v.toISOString().slice(0, 10);
@@ -138,6 +153,7 @@ function rowToUser(row) {
         : null,
     publicPageTitle: sanitizePublicPageTitle(row.public_page_title),
     publicPageListed: Boolean(row.public_page_listed),
+    publicPageHeartAccent: sanitizePublicPageHeartAccent(row.public_page_heart_accent),
     email:
       row.email != null && String(row.email).trim()
         ? String(row.email).trim().toLowerCase().slice(0, 254)
@@ -207,7 +223,8 @@ function enrichFileUserShipping(u) {
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
     publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
-    publicPageListed: u.publicPageListed !== false
+    publicPageListed: u.publicPageListed !== false,
+    publicPageHeartAccent: sanitizePublicPageHeartAccent(u.publicPageHeartAccent)
   };
 }
 
@@ -560,7 +577,8 @@ function publicUser(u) {
         ? String(u.publicPageBio).trim().slice(0, 2000)
         : null,
     publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
-    publicPageListed: u.publicPageListed !== false
+    publicPageListed: u.publicPageListed !== false,
+    publicPageHeartAccent: sanitizePublicPageHeartAccent(u.publicPageHeartAccent)
   };
 }
 
@@ -611,7 +629,9 @@ async function updateProfile(
     publicPageTitle,
     updatePublicPageTitle,
     publicPageListed,
-    updatePublicPageListed
+    updatePublicPageListed,
+    publicPageHeartAccent,
+    updatePublicPageHeartAccent
   },
   opts = {}
 ) {
@@ -740,6 +760,13 @@ async function updateProfile(
     nextPublicPageListed = Boolean(publicPageListed);
   }
 
+  let nextPublicPageHeartAccent = sanitizePublicPageHeartAccent(
+    current.publicPageHeartAccent
+  );
+  if (updatePublicPageHeartAccent) {
+    nextPublicPageHeartAccent = sanitizePublicPageHeartAccent(publicPageHeartAccent);
+  }
+
   const pool = getPool();
 
   if (!pool) {
@@ -759,7 +786,8 @@ async function updateProfile(
       publicPageCoverUrl: nextPublicPageCover,
       publicPageBio: nextPublicPageBio,
       publicPageTitle: nextPublicPageTitle,
-      publicPageListed: nextPublicPageListed
+      publicPageListed: nextPublicPageListed,
+      publicPageHeartAccent: nextPublicPageHeartAccent
     };
     patch.shippingAddress = shipDb.shipping_address;
     patch.shippingAddressParts = { ...mergedShipParts };
@@ -820,7 +848,8 @@ async function updateProfile(
         public_page_cover_url = $22,
         public_page_bio = $23,
         public_page_title = $24,
-        public_page_listed = $25
+        public_page_listed = $25,
+        public_page_heart_accent = $26
       WHERE id = $1::uuid`,
       [
         userId,
@@ -847,7 +876,8 @@ async function updateProfile(
         nextPublicPageCover,
         nextPublicPageBio,
         nextPublicPageTitle,
-        nextPublicPageListed
+        nextPublicPageListed,
+        nextPublicPageHeartAccent
       ]
     );
     await client.query("COMMIT");
@@ -1639,6 +1669,7 @@ async function listMembers({ q = "", limit = 50, offset = 0 } = {}) {
 }
 
 module.exports = {
+  sanitizePublicPageHeartAccent,
   findByUsername,
   findById,
   findByEmail,
