@@ -359,7 +359,11 @@ export default function CreateGameRoomForm({
   ) : null;
 
   const intakeForm = (
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form
+        id={memberShellEmbed ? "huajaiy-member-create-intro" : undefined}
+        onSubmit={onSubmit}
+        className="space-y-6"
+      >
         <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 pt-5 shadow-soft">
           <div className="-mx-1 border-b border-hui-border/70 pb-3">
             <h3 className="hui-h3 leading-snug">
@@ -506,7 +510,7 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {introSavedMsg ? (
+        {introSavedMsg && !memberShellEmbed ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
             {introSavedMsg}
           </p>
@@ -518,71 +522,69 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={busy || (!memberShellEmbed && Boolean(studioGameId))}
-            className="hui-btn-primary px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {busy
-              ? memberShellEmbed
-                ? "กำลังบันทึก…"
-                : "กำลังเปิดห้อง…"
-              : memberShellEmbed
-                ? "บันทึกข้อมูลเบื้องต้น"
+        {!memberShellEmbed ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={busy || Boolean(studioGameId)}
+              className="hui-btn-primary px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy
+                ? "กำลังเปิดห้อง…"
                 : studioGameId
                   ? "สร้างห้องแล้ว"
                   : "เปิดสร้างห้องเกม"}
-          </button>
-          {isMemberEmbed ? (
-            <>
-              <a
-                href="/member"
-                target="_top"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                ← ภาพรวมสมาชิก
-              </a>
-              <a
-                href="/member/game"
-                target="_top"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                เกมของฉัน
-              </a>
-              <button
-                type="button"
-                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-                onClick={() => {
-                  sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
-                  setBootstrapNotice("");
-                  if (typeof window !== "undefined") {
-                    window.location.assign("/member/create-game");
-                  }
-                }}
-              >
-                เริ่มร่างเกมใหม่
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/account"
-                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                ← กลับหลังบ้าน
-              </Link>
-              <Link
-                href="/account/my-games"
-                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                เกมของฉัน
-              </Link>
-            </>
-          )}
-        </div>
+            </button>
+            {isMemberEmbed ? (
+              <>
+                <a
+                  href="/member"
+                  target="_top"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                >
+                  ← ภาพรวมสมาชิก
+                </a>
+                <a
+                  href="/member/game"
+                  target="_top"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                >
+                  เกมของฉัน
+                </a>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                  onClick={() => {
+                    sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
+                    setBootstrapNotice("");
+                    if (typeof window !== "undefined") {
+                      window.location.assign("/member/create-game");
+                    }
+                  }}
+                >
+                  เริ่มร่างเกมใหม่
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/account"
+                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                >
+                  ← กลับหลังบ้าน
+                </Link>
+                <Link
+                  href="/account/my-games"
+                  className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                >
+                  เกมของฉัน
+                </Link>
+              </>
+            )}
+          </div>
+        ) : null}
       </form>
   );
 
@@ -687,7 +689,7 @@ export default function CreateGameRoomForm({
             >
               <p className="text-sm font-medium text-pink-900">กำลังเตรียมเกมร่างและโหลดแผงตั้งค่า…</p>
               <p className="mt-2 text-sm text-pink-800/90">
-                รอสักครู่ — ถ้านานผิดปกติ ลองรีเฟรชหน้า หรือกด &quot;เริ่มร่างเกมใหม่&quot;
+                รอสักครู่ — ถ้านานผิดปกติ ลองรีเฟรชหน้า
               </p>
             </div>
           ) : null}
@@ -707,6 +709,27 @@ export default function CreateGameRoomForm({
               />
             </div>
           ) : null}
+        </div>
+      ) : null}
+
+      {user && memberShellEmbed ? (
+        <div className="mt-10 space-y-3 border-t border-hui-border pt-8">
+          {introSavedMsg ? (
+            <p
+              className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+              role="status"
+            >
+              {introSavedMsg}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            form="huajaiy-member-create-intro"
+            disabled={busy}
+            className="hui-btn-primary block w-full max-w-md px-6 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            {busy ? "กำลังบันทึก…" : "บันทึกข้อมูลเบื้องต้น"}
+          </button>
         </div>
       ) : null}
     </div>

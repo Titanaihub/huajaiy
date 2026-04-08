@@ -562,8 +562,23 @@ export default function AdminCentralGamePanel({
         setErr("ไม่ได้รับข้อมูลเกมจากเซิร์ฟเวอร์");
         return;
       }
-      setTitle(g.title);
-      setGameDescription(typeof g.description === "string" ? g.description : "");
+      const rawTitle = String(g.title ?? "").trim();
+      const rawDesc = typeof g.description === "string" ? g.description : "";
+      const descTrimmed = String(rawDesc).trim();
+      const unpublishedDraft = !g.isPublished && !g.isActive;
+      /** ร่างที่สร้างจากหน้า /member/create-game — โชว์ช่องว่างให้ผู้ใช้กรอกเอง */
+      const looksLikeAutoMemberDraft =
+        hideEmbeddedGamesTable &&
+        unpublishedDraft &&
+        !descTrimmed &&
+        /^เกมใหม่\s*[—\-–]/u.test(rawTitle);
+      if (looksLikeAutoMemberDraft) {
+        setTitle("");
+        setGameDescription("");
+      } else {
+        setTitle(g.title ?? "");
+        setGameDescription(rawDesc);
+      }
       setGameCoverUrl(g.gameCoverUrl && String(g.gameCoverUrl).trim() ? String(g.gameCoverUrl).trim() : "");
       setTileBackCoverUrl(
         g.tileBackCoverUrl && String(g.tileBackCoverUrl).trim()
@@ -661,7 +676,7 @@ export default function AdminCentralGamePanel({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hideEmbeddedGamesTable]);
 
   useEffect(() => {
     if (selectedId) loadDetail(selectedId);
