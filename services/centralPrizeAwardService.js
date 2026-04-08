@@ -131,6 +131,22 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
       await client.query("ROLLBACK");
       return { inserted: false, reason: "PRIZE_POOL_EXHAUSTED" };
     }
+    const sid = String(playSessionId).trim().slice(0, 64);
+    const ledgerGuard = await client.query(
+      `SELECT id
+       FROM heart_ledger
+       WHERE user_id = $1::uuid
+         AND kind = 'game_start'
+         AND meta->>'playSessionId' = $2
+         AND meta->>'gameMode' = 'central'
+         AND meta->>'gameId' = $3::text
+       LIMIT 1`,
+      [userId, sid, gameId]
+    );
+    if (ledgerGuard.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { inserted: false, reason: "PLAY_SESSION_NOT_OWNED" };
+    }
     const gameR = await client.query(`SELECT title FROM central_games WHERE id = $1`, [gameId]);
     const gameTitleAtWin =
       gameR.rows[0]?.title != null ? String(gameR.rows[0].title).trim() : "";
@@ -151,7 +167,7 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
         gameId,
         ruleId,
         userId,
-        String(playSessionId).slice(0, 64),
+        sid,
         rule.prize_category,
         Math.max(0, Math.floor(Number(rule.set_index)) || 0),
         rule.prize_title != null ? String(rule.prize_title) : null,
@@ -166,7 +182,6 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
     if (ins.rows.length === 0) {
       return { inserted: false, reason: "SESSION_ALREADY_RECORDED" };
     }
-    const sid = String(playSessionId).slice(0, 64);
     const cat = String(rule.prize_category || "").toLowerCase();
     const head =
       rule.prize_title != null && String(rule.prize_title).trim()

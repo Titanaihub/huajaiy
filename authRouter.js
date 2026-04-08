@@ -47,12 +47,10 @@ function timingSafeLineSecret(headerVal, envSecret) {
 function getJwtSecret() {
   const s = process.env.JWT_SECRET;
   if (s && String(s).length >= 16) return s;
-  if (process.env.NODE_ENV === "production") {
-    console.error(
-      "JWT_SECRET missing or too short — set a strong secret in production"
-    );
+  if (process.env.NODE_ENV === "test") {
+    return "test-only-jwt-secret-should-not-be-used";
   }
-  return "dev-only-jwt-secret-change-me";
+  throw new Error("JWT_SECRET missing or too short (must be >= 16 chars)");
 }
 
 function signToken(user) {

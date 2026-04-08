@@ -242,7 +242,7 @@ async function fetchGameStart(centralGameId, payWith) {
   return data;
 }
 
-async function fetchGameFlip(sessionId, index) {
+async function fetchGameFlip(sessionId, index, sessionProof) {
   const headers = { "Content-Type": "application/json" };
   if (typeof window !== "undefined") {
     const token = getMemberToken();
@@ -251,7 +251,7 @@ async function fetchGameFlip(sessionId, index) {
   const r = await fetch(gameApiUrl("flip"), {
     method: "POST",
     headers,
-    body: JSON.stringify({ sessionId, index })
+    body: JSON.stringify({ sessionId, index, sessionProof: sessionProof || undefined })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
@@ -280,12 +280,12 @@ async function fetchGameMeta(centralGameId) {
   return data;
 }
 
-async function fetchGameAbandon(sessionId) {
+async function fetchGameAbandon(sessionId, sessionProof) {
   try {
     await fetch(gameApiUrl("abandon"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId })
+      body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
     });
   } catch {
     /* ignore */
@@ -305,14 +305,15 @@ function readStoredSession() {
   }
 }
 
-function writeStoredSession(sessionId, centralGameId) {
+function writeStoredSession(sessionId, centralGameId, sessionProof) {
   if (typeof window === "undefined" || !sessionId) return;
   try {
     sessionStorage.setItem(
       SESSION_STORE_KEY,
       JSON.stringify({
         sessionId,
-        centralGameId: centralGameId || null
+        centralGameId: centralGameId || null,
+        sessionProof: sessionProof || null
       })
     );
   } catch {
@@ -329,11 +330,11 @@ function clearStoredSession() {
   }
 }
 
-async function fetchGameState(sessionId) {
+async function fetchGameState(sessionId, sessionProof) {
   const r = await fetch(gameApiUrl("state"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId })
+    body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
@@ -342,11 +343,11 @@ async function fetchGameState(sessionId) {
   return data;
 }
 
-async function fetchRevealRemaining(sessionId) {
+async function fetchRevealRemaining(sessionId, sessionProof) {
   const r = await fetch(gameApiUrl("reveal-remaining"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId })
+    body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
@@ -372,6 +373,7 @@ export default function FlipGameDemo({
   /** @type {'central' | 'legacy' | null} */
   const [apiGameMode, setApiGameMode] = useState(null);
   const [sessionId, setSessionId] = useState(null);
+  const [sessionProof, setSessionProof] = useState(null);
   const [heartCost, setHeartCost] = useState(0);
   const [pinkHeartCost, setPinkHeartCost] = useState(0);
   const [redHeartCost, setRedHeartCost] = useState(0);
@@ -483,6 +485,7 @@ export default function FlipGameDemo({
     setMode("local");
     setApiGameMode(null);
     setSessionId(null);
+    setSessionProof(null);
     setPlayLocked(false);
     setPlayLockReason("");
     setCentralLoss(null);
@@ -513,6 +516,7 @@ export default function FlipGameDemo({
     setMode("api");
     setApiGameMode("central");
     setSessionId(null);
+    setSessionProof(null);
     setPlayLocked(true);
     setPlayLockReason(
       reason ||
@@ -583,6 +587,7 @@ export default function FlipGameDemo({
     setPlayLocked(false);
     setPlayLockReason("");
     setSessionId(data.sessionId);
+    setSessionProof(data.sessionProof || null);
     const isCentral = data.gameMode === "central";
     if (isCentral) {
       const p = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
@@ -665,6 +670,7 @@ export default function FlipGameDemo({
     setPlayLocked(false);
     setPlayLockReason("");
     setSessionId(st.sessionId);
+    setSessionProof(st.sessionProof || null);
     setPinkHeartCost(Math.max(0, Number(st.pinkHeartCost) || 0));
     setRedHeartCost(Math.max(0, Number(st.redHeartCost) || 0));
     setHeartCurrencyMode(
@@ -780,7 +786,10 @@ export default function FlipGameDemo({
             clearStoredSession();
           } else {
             try {
-              const st = await fetchGameState(stored.sessionId);
+              const st = await fetchGameState(
+                stored.sessionId,
+                stored.sessionProof || null
+              );
               if (cancelled) return;
               if (st.gameMode === "central") {
                 if (resolvedGameId && st.gameId && st.gameId !== resolvedGameId) {
@@ -840,6 +849,7 @@ export default function FlipGameDemo({
           setMode("local");
           setApiGameMode(null);
           setSessionId(null);
+          setSessionProof(null);
           setPlayLocked(false);
           setPlayLockReason("");
           setCentralLoss(null);
@@ -936,7 +946,7 @@ export default function FlipGameDemo({
             !chargedOnServer &&
             !spendCentralEntryOrFail(user, p, r, giftCtxFromStart)
           ) {
-            void fetchGameAbandon(data.sessionId);
+            void fetchGameAbandon(data.sessionId, data.sessionProof || null);
             if (meta?.gameMode === "central") {
               applyCentralPreviewFromMeta(
                 meta,
@@ -952,7 +962,7 @@ export default function FlipGameDemo({
           const paid = Number(data.heartCost) || 0;
           const chargedOnServer = Boolean(data.heartBalances);
           if (paid > 0 && !chargedOnServer && !trySpend(paid)) {
-            void fetchGameAbandon(data.sessionId);
+            void fetchGameAbandon(data.sessionId, data.sessionProof || null);
             setBootError("หัวใจไม่พอ — สลับเป็นโหมดออฟไลน์");
             applyLocalDeck();
             return;
@@ -994,9 +1004,9 @@ export default function FlipGameDemo({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (mode === "api" && apiGameMode === "central" && sessionId) {
-      writeStoredSession(sessionId, resolvedGameId);
+      writeStoredSession(sessionId, resolvedGameId, sessionProof);
     }
-  }, [mode, apiGameMode, sessionId, resolvedGameId]);
+  }, [mode, apiGameMode, sessionId, sessionProof, resolvedGameId]);
 
   const roundFinished = Boolean(winner || centralLoss);
   const resultOverlayVisible = roundFinished && resultModalOpen;
@@ -1104,7 +1114,7 @@ export default function FlipGameDemo({
     if (card.revealed) return;
     setBusy(true);
     try {
-      const data = await fetchGameFlip(sessionId, i);
+      const data = await fetchGameFlip(sessionId, i, sessionProof);
       const isCentral = data.gameMode === "central" || Array.isArray(data.setCounts);
 
       if (isCentral) {
@@ -1214,7 +1224,7 @@ export default function FlipGameDemo({
     if (!sessionId || busy || !roundFinished || centralSolutionShown) return;
     setBusy(true);
     try {
-      const data = await fetchRevealRemaining(sessionId);
+      const data = await fetchRevealRemaining(sessionId, sessionProof);
       setCards((prev) =>
         prev.map((c, idx) => {
           const hit = data.cells.find((x) => x.index === idx);
@@ -1308,7 +1318,7 @@ export default function FlipGameDemo({
           !chargedOnServer &&
           !spendCentralEntryOrFail(user, dp, dr, ctxAfterStart)
         ) {
-          void fetchGameAbandon(data.sessionId);
+          void fetchGameAbandon(data.sessionId, data.sessionProof || null);
           applyCentralPreviewFromMeta(
             meta,
             "เริ่มรอบไม่สำเร็จ (หัวใจไม่พอ) — ลองอีกครั้งเมื่อยอดพอ"
@@ -1361,7 +1371,7 @@ export default function FlipGameDemo({
   async function reset() {
     if (mode === "api") {
       setBusy(true);
-      if (sessionId) void fetchGameAbandon(sessionId);
+      if (sessionId) void fetchGameAbandon(sessionId, sessionProof);
       if (apiGameMode === "central") clearStoredSession();
       setResultModalOpen(false);
       setCentralSolutionShown(false);
@@ -1377,6 +1387,7 @@ export default function FlipGameDemo({
           setMode("local");
           setApiGameMode(null);
           setSessionId(null);
+          setSessionProof(null);
           setPlayLocked(false);
           setPlayLockReason("");
           setCentralLoss(null);
@@ -1485,7 +1496,7 @@ export default function FlipGameDemo({
             !chargedOnServer &&
             !spendCentralEntryOrFail(user, p, r, gctxStart)
           ) {
-            void fetchGameAbandon(data.sessionId);
+            void fetchGameAbandon(data.sessionId, data.sessionProof || null);
             if (meta?.gameMode === "central") {
               applyCentralPreviewFromMeta(meta);
             } else {
@@ -1498,7 +1509,7 @@ export default function FlipGameDemo({
           const paid = Number(data.heartCost) || 0;
           const chargedOnServer = Boolean(data.heartBalances);
           if (paid > 0 && !chargedOnServer && !trySpend(paid)) {
-            void fetchGameAbandon(data.sessionId);
+            void fetchGameAbandon(data.sessionId, data.sessionProof || null);
             setBootError("หัวใจไม่พอ");
             applyLocalDeck();
             return;

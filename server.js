@@ -41,9 +41,18 @@ const memberPublicPostShareService = require("./services/memberPublicPostShareSe
 
 const app = express();
 app.set("trust proxy", 1);
+const allowedOrigins = String(process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((x) => x.trim())
+  .filter(Boolean);
 app.use(
   cors({
-    origin: true,
+    origin(origin, cb) {
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.length === 0) return cb(null, true);
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"));
+    },
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -52,9 +61,55 @@ app.use(
   })
 );
 app.use(express.json({ limit: "2mb" }));
+
+function createSimpleRateLimiter({
+  windowMs = 60 * 1000,
+  max = 30,
+  keyPrefix = "global",
+  message = "ส่งคำขอถี่เกินไป กรุณาลองใหม่ภายหลัง"
+} = {}) {
+  const hits = new Map();
+  return (req, res, next) => {
+    const ip = String(req.ip || req.socket?.remoteAddress || "unknown").slice(0, 120);
+    const key = `${keyPrefix}:${ip}`;
+    const now = Date.now();
+    const cur = hits.get(key);
+    if (!cur || now > cur.resetAt) {
+      hits.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    cur.count += 1;
+    if (cur.count > max) {
+      const retrySec = Math.max(1, Math.ceil((cur.resetAt - now) / 1000));
+      res.set("Retry-After", String(retrySec));
+      return res.status(429).json({ ok: false, error: message, code: "RATE_LIMITED" });
+    }
+    return next();
+  };
+}
+
+const authRateLimit = createSimpleRateLimiter({
+  windowMs: 60 * 1000,
+  max: 12,
+  keyPrefix: "auth",
+  message: "ลองเข้าสู่ระบบ/สมัครสมาชิกถี่เกินไป กรุณารอสักครู่"
+});
+const uploadRateLimit = createSimpleRateLimiter({
+  windowMs: 60 * 1000,
+  max: 20,
+  keyPrefix: "upload"
+});
+const gameActionRateLimit = createSimpleRateLimiter({
+  windowMs: 60 * 1000,
+  max: 180,
+  keyPrefix: "game-action"
+});
+
+app.use("/api/auth/login", authRateLimit);
+app.use("/api/auth/register", authRateLimit);
 app.use("/api/auth", authRouter);
 /** ระบบเก่า / แอปมือถือที่ยิง POST /api/v1/member/login-line — logic เดียวกับ /api/auth/login-line */
-app.post("/api/v1/member/login-line", postLoginLine);
+app.post("/api/v1/member/login-line", authRateLimit, postLoginLine);
 app.use("/api/orders", ordersRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/owner", ownerRouter);
@@ -702,7 +757,7 @@ app.get("/api/game/meta", async (req, res) => {
 });
 
 /** เริ่มรอบเกม — ถ้ามี gameId ใช้เกมที่เผยแพร่นั้น · ไม่งั้นเกม active · ไม่งั้น legacy · Bearer หักหัวใจที่นี่ */
-app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
+app.post("/api/game/start", optionalAuthMiddleware, gameActionRateLimit, async (req, res) => {
   try {
     const bodyGameId = req.body?.gameId;
     let snap = null;
@@ -771,11 +826,16 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
         }
         throw err;
       }
-      const sessionId = centralGameSession.createSession(snap, playSessionId);
+      const { sessionId, sessionProof } = centralGameSession.createSession(
+        snap,
+        playSessionId,
+        { ownerUserId: req.userId || null }
+      );
       const meta = await centralMetaFromSnapWithCounts(snap);
       const body = {
         ok: true,
         sessionId,
+        sessionProof,
         ...meta
       };
       const hb = heartBalancesPayload(afterUser);
@@ -822,13 +882,16 @@ app.post("/api/game/start", optionalAuthMiddleware, async (req, res) => {
 });
 
 /** คืนสถานะรอบเกมส่วนกลาง (รีเฟรชหน้า — ไม่หักหัวใจซ้ำ) */
-app.post("/api/game/state", async (req, res) => {
+app.post("/api/game/state", optionalAuthMiddleware, gameActionRateLimit, async (req, res) => {
   try {
-    const { sessionId } = req.body || {};
+    const { sessionId, sessionProof } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    let state = centralGameSession.getSessionStateForClient(sessionId);
+    let state = centralGameSession.getSessionStateForClient(sessionId, {
+      requesterUserId: req.userId || null,
+      sessionProof
+    });
     if (!state) {
       return res.status(404).json({ ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" });
     }
@@ -853,15 +916,18 @@ app.post("/api/game/state", async (req, res) => {
 });
 
 /** หลังจบรอบ — เฉลยภาพใต้ป้ายที่ยังไม่เปิด */
-app.post("/api/game/reveal-remaining", async (req, res) => {
+app.post("/api/game/reveal-remaining", optionalAuthMiddleware, gameActionRateLimit, async (req, res) => {
   try {
-    const { sessionId } = req.body || {};
+    const { sessionId, sessionProof } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    const r = centralGameSession.revealRemainingForClient(sessionId);
+    const r = centralGameSession.revealRemainingForClient(sessionId, {
+      requesterUserId: req.userId || null,
+      sessionProof
+    });
     if (!r.ok) {
-      return res.status(400).json(r);
+      return res.status(r.status || 400).json(r);
     }
     return res.json(r);
   } catch (e) {
@@ -870,14 +936,17 @@ app.post("/api/game/reveal-remaining", async (req, res) => {
 });
 
 /** เปิดป้าย — ลอง session เกมส่วนกลางก่อน (รองรับหลายเกมโดยไม่พึ่งเกม active) */
-app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
+app.post("/api/game/flip", optionalAuthMiddleware, gameActionRateLimit, async (req, res) => {
   try {
-    const { sessionId, index } = req.body || {};
+    const { sessionId, index, sessionProof } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
     const idx = Number(index);
-    const r = centralGameSession.flip(sessionId, idx);
+    const r = centralGameSession.flip(sessionId, idx, {
+      requesterUserId: req.userId || null,
+      sessionProof
+    });
     if (r.ok) {
       let prizeTallyUpdate = null;
       if (r.finished && r.gameMode === "central") {
@@ -958,7 +1027,7 @@ app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
       );
     }
     if (r.error !== "ไม่พบรอบเกม หรือหมดอายุ") {
-      return res.status(400).json(r);
+      return res.status(r.status || 400).json(r);
     }
     const result = flipGame(sessionId, idx);
     if (!result.ok) {
@@ -970,7 +1039,7 @@ app.post("/api/game/flip", optionalAuthMiddleware, async (req, res) => {
   }
 });
 
-app.post("/api/game/abandon", async (req, res) => {
+app.post("/api/game/abandon", optionalAuthMiddleware, gameActionRateLimit, async (req, res) => {
   try {
     const { sessionId } = req.body || {};
     if (!sessionId || typeof sessionId !== "string") {
@@ -986,8 +1055,11 @@ app.post("/api/game/abandon", async (req, res) => {
   }
 });
 
-app.post("/upload", upload.single("image"), async (req, res) => {
+app.post("/upload", optionalAuthMiddleware, uploadRateLimit, upload.single("image"), async (req, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ ok: false, error: "ต้องเข้าสู่ระบบก่อนอัปโหลดรูป" });
+    }
     if (!CLOUD_NAME || !API_KEY || !API_SECRET) {
       return res.status(500).json({
         ok: false,

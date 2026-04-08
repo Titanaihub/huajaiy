@@ -11,7 +11,7 @@ const PRUNE_MS = 60 * 60 * 1000;
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = crypto.randomInt(0, i + 1);
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -69,7 +69,7 @@ function imageUrlForCell(snapshot, setIndex, imageIndex) {
 /**
  * @param {object} snapshot จาก getGameSnapshotById / getActiveGameSnapshot
  */
-function createSession(snapshot, presetSessionId = null) {
+function createSession(snapshot, presetSessionId = null, opts = {}) {
   const { game, imageUrl, rules } = snapshot;
   const { setImageCounts, tileCount, id: gameId } = game;
   const deck = buildDeck(setImageCounts);
@@ -88,6 +88,11 @@ function createSession(snapshot, presetSessionId = null) {
   } else {
     id = crypto.randomBytes(16).toString("hex");
   }
+  const ownerUserId =
+    opts && opts.ownerUserId != null && String(opts.ownerUserId).trim()
+      ? String(opts.ownerUserId).trim()
+      : null;
+  const sessionProof = crypto.randomBytes(16).toString("hex");
   sessions.set(id, {
     gameId,
     deck,
@@ -95,15 +100,30 @@ function createSession(snapshot, presetSessionId = null) {
     flips: 0,
     winnerRuleId: null,
     gameSnapshot: { game, imageUrl, rules },
+    ownerUserId,
+    sessionProof,
     createdAt: Date.now()
   });
-  return id;
+  return { sessionId: id, sessionProof };
 }
 
-function flip(sessionId, index) {
+function authorizeSession(session, requesterUserId, sessionProof) {
+  if (!session) return { ok: false, status: 404, error: "ไม่พบรอบเกม หรือหมดอายุ" };
+  if (session.ownerUserId != null) {
+    if (!requesterUserId || String(requesterUserId) !== String(session.ownerUserId)) {
+      return { ok: false, status: 403, error: "ไม่มีสิทธิ์เข้าถึงรอบเกมนี้" };
+    }
+  } else if (!sessionProof || String(sessionProof) !== String(session.sessionProof)) {
+    return { ok: false, status: 403, error: "สิทธิ์รอบเกมไม่ถูกต้อง" };
+  }
+  return { ok: true };
+}
+
+function flip(sessionId, index, opts = {}) {
   const session = sessions.get(sessionId);
-  if (!session) {
-    return { ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" };
+  const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
+  if (!auth.ok) {
+    return { ok: false, status: auth.status, error: auth.error };
   }
   if (session.winnerRuleId || session.lossRuleId) {
     return { ok: false, error: "จบรอบแล้ว กรุณาเริ่มรอบใหม่" };
@@ -218,9 +238,10 @@ function buildWinnerLossPayload(session) {
 /**
  * คืนสถานะรอบเกมให้ฝั่งเว็บหลังรีเฟรช — ไม่หักหัวใจซ้ำ
  */
-function getSessionStateForClient(sessionId) {
+function getSessionStateForClient(sessionId, opts = {}) {
   const session = sessions.get(sessionId);
-  if (!session) return null;
+  const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
+  if (!auth.ok) return null;
   const { deck, revealed, flips, gameSnapshot } = session;
   const { game, rules } = gameSnapshot;
   const cells = deck.map((cell, idx) => {
@@ -247,6 +268,7 @@ function getSessionStateForClient(sessionId) {
     ok: true,
     gameMode: "central",
     sessionId,
+    sessionProof: session.sessionProof,
     gameId: game.id,
     title: game.title,
     description: game.description || "",
@@ -274,10 +296,11 @@ function getSessionStateForClient(sessionId) {
 }
 
 /** หลังจบรอบแล้ว — ส่ง URL ภาพใต้ป้ายที่ยังไม่เปิด (ให้ปุ่มเฉลย) */
-function revealRemainingForClient(sessionId) {
+function revealRemainingForClient(sessionId, opts = {}) {
   const session = sessions.get(sessionId);
-  if (!session) {
-    return { ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" };
+  const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
+  if (!auth.ok) {
+    return { ok: false, status: auth.status, error: auth.error };
   }
   if (!session.winnerRuleId && !session.lossRuleId) {
     return { ok: false, error: "ยังไม่จบรอบ — ใช้ได้หลังจบรอบเท่านั้น" };
