@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCentralGameActivate,
+  apiAdminCentralGameDelete,
   apiAdminCentralGameDeactivate,
   apiAdminCentralGamesList
 } from "../lib/rolesApi";
@@ -13,6 +14,28 @@ import { useMemberAuth } from "./MemberAuthProvider";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DELETE_BLOCKED_AWARD_HINT =
+  "เกมนี้มีผู้ได้รับรางวัลแล้ว — ไม่สามารถลบได้";
+const DELETE_BLOCKED_PLAY_HINT =
+  "เกมนี้มีประวัติการเล่นและยังเผยแพร่/เปิดใช้งานอยู่ — หยุดเผยแพร่ก่อนแล้วค่อยลบ";
+
+function canDeleteGame(g) {
+  const awardCount = Number(g?.prizeAwardCount) || 0;
+  const playCount = Number(g?.playCount) || 0;
+  const activeOrPublished = Boolean(g?.isActive || g?.isPublished);
+  if (awardCount > 0) return false;
+  if (playCount > 0 && activeOrPublished) return false;
+  return true;
+}
+
+function deleteBlockedHint(g) {
+  const awardCount = Number(g?.prizeAwardCount) || 0;
+  const playCount = Number(g?.playCount) || 0;
+  const activeOrPublished = Boolean(g?.isActive || g?.isPublished);
+  if (awardCount > 0) return DELETE_BLOCKED_AWARD_HINT;
+  if (playCount > 0 && activeOrPublished) return DELETE_BLOCKED_PLAY_HINT;
+  return undefined;
+}
 
 function gameStatusBadge(g) {
   if (g.isPublished) {
@@ -108,6 +131,31 @@ export default function AccountMyGamesList({ hideShellPageTitle = false } = {}) 
       await loadGames();
     } catch (e) {
       setListErr(e?.message || "อัปเดตสถานะเกมไม่สำเร็จ");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function removeGame(game) {
+    const id = String(game?.id || "");
+    if (!id || !UUID_RE.test(id)) return;
+    if (!canDeleteGame(game)) {
+      setListErr(deleteBlockedHint(game) || "ไม่สามารถลบเกมนี้ได้");
+      return;
+    }
+    if (!window.confirm(`ลบเกม「${game?.title || "ไม่มีชื่อ"}」ถาวร?`)) return;
+    const token = getMemberToken();
+    if (!token) {
+      setListErr("หมดเซสชัน — กรุณาเข้าสู่ระบบใหม่");
+      return;
+    }
+    setBusyId(id);
+    setListErr("");
+    try {
+      await apiAdminCentralGameDelete(token, id);
+      await loadGames();
+    } catch (e) {
+      setListErr(e?.message || "ลบเกมไม่สำเร็จ");
     } finally {
       setBusyId("");
     }
@@ -231,6 +279,15 @@ export default function AccountMyGamesList({ hideShellPageTitle = false } = {}) 
                   >
                     จัดการเกม
                   </Link>
+                  <button
+                    type="button"
+                    disabled={busyId === id || !id || !UUID_RE.test(id) || !canDeleteGame(g)}
+                    title={deleteBlockedHint(g)}
+                    onClick={() => removeGame(g)}
+                    className="rounded-2xl border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {busyId === id ? "กำลังลบ…" : "ลบเกม"}
+                  </button>
                 </div>
               </li>
             );
