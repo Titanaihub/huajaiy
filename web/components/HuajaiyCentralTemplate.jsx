@@ -12,7 +12,6 @@ import { useMemberAuth } from "./MemberAuthProvider";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
 import { publicMemberPath } from "../lib/memberPublicUrls";
-import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 import {
   TAILADMIN_MY_HEARTS_START,
   TAILADMIN_SHOP_DASHBOARD_START,
@@ -121,17 +120,18 @@ export function IconShare({ className }) {
  * โครงหน้าแบบกลาง: แถบบน + แถบสีแบรนด์ชมพู (80px, ไม่ไล่เฉด) + เนื้อหา + ฟุตเตอร์
  */
 /**
- * @typedef {'home' | 'shop' | 'game' | 'posts' | 'page'} CentralNavActiveKey
+ * @typedef {'home' | 'game' | 'posts' | 'page'} CentralNavActiveKey
  */
 
 export default function HuajaiyCentralTemplate({
   children,
-  onHamburgerClick,
+  /** @deprecated เคยเปิดเมนูสมาชิก — ปุ่มแฮมเบอร์เกอร์ถูกถอดออกจากเฮดเดอร์ */
+  onHamburgerClick: _unusedHamburger,
   lineProfileImageUrl,
   profileDisplayName,
   /** แสดงในแถบชมพูด้านล่างเฮดเดอร์ ต่อท้ายโลโก้/ชื่อเว็บ (เช่น ชื่อเมนูหน้าสมาชิก) */
   pinkBarMenuLabel,
-  /** ไฮไลต์เมนูหลัก (หน้าแรก / ร้านค้า / เกม / โพสต์ / เพจ) — ให้ตรงกับเทมเพลตกลาง */
+  /** ไฮไลต์เมนูหลัก (หน้าแรก / เกม / โพสต์ / เพจ) — ให้ตรงกับเทมเพลตกลาง */
   activeNavKey = null,
   mainClassName = "flex min-w-0 flex-1 flex-col"
 }) {
@@ -209,24 +209,6 @@ export default function HuajaiyCentralTemplate({
 
   const navTopClass =
     "relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-sm font-semibold text-neutral-800 transition hover:bg-pink-50 hover:text-[#FF2E8C] sm:gap-2 sm:px-3";
-
-  function hamburgerButton(className) {
-    return (
-      <button
-        type="button"
-        className={className}
-        aria-label="เปิดเมนูด้านข้าง"
-        onClick={onHamburgerClick}
-      >
-        <svg width={22} height={22} viewBox="0 0 24 24" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M2 6a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm0 6.032a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm1 5.033a1 1 0 1 0 0 2h18a1 1 0 0 0 0-2H3z"
-          />
-        </svg>
-      </button>
-    );
-  }
 
   let pinkShown = 0;
   let redFromUsersShown = 0;
@@ -323,14 +305,6 @@ export default function HuajaiyCentralTemplate({
         หน้าแรก
       </Link>
       <Link
-        href={PUBLIC_SHOP_PATH}
-        className={navClass("shop")}
-        aria-current={memberUser && activeNavKey === "shop" ? "page" : undefined}
-      >
-        <IconShop className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
-        ร้านค้า
-      </Link>
-      <Link
         href="/game"
         className={navClass("game")}
         aria-current={memberUser && activeNavKey === "game" ? "page" : undefined}
@@ -372,11 +346,6 @@ export default function HuajaiyCentralTemplate({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
             <div className="flex items-center justify-between gap-2 lg:shrink-0">
               <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                {memberUser
-                  ? hamburgerButton(
-                      "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-800 hover:bg-pink-50 lg:hidden"
-                    )
-                  : null}
                 <Link href="/" className="group inline-flex min-w-0 items-center gap-2 sm:gap-2.5">
                   <HeartIcon className="h-9 w-9 shrink-0 text-[#FF2E8C] sm:h-10 sm:w-10" aria-hidden />
                   <span className="font-heading truncate text-lg font-bold uppercase tracking-tight text-neutral-900 sm:text-xl">
@@ -398,45 +367,40 @@ export default function HuajaiyCentralTemplate({
 
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:shrink-0 lg:justify-end">
               {heartsPill}
-              <div className="flex items-center gap-0.5 sm:gap-1">
-                <Link href="/pages" className={iconBtnClass} aria-label="ค้นหา">
-                  <IconSearch className="h-5 w-5" />
-                </Link>
-                {memberUser && lineProfileImageUrl ? (
-                  <Link
-                    href={profileHref}
-                    className={`${iconBtnClass} rounded-full`}
-                    title={profileDisplayName || "โปรไฟล์"}
-                    aria-label={profileDisplayName || "โปรไฟล์"}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={lineProfileImageUrl}
-                      alt=""
-                      className="h-9 w-9 rounded-full object-cover"
-                      width={36}
-                      height={36}
-                      referrerPolicy="no-referrer"
-                    />
+              {!memberUser ? (
+                <div className="flex items-center gap-0.5 sm:gap-1">
+                  <Link href="/pages" className={iconBtnClass} aria-label="ค้นหา">
+                    <IconSearch className="h-5 w-5" />
                   </Link>
-                ) : (
-                  <Link href={profileHref} className={iconBtnClass} aria-label="โปรไฟล์">
-                    <IconUser className="h-5 w-5" />
+                  {lineProfileImageUrl ? (
+                    <Link
+                      href={profileHref}
+                      className={`${iconBtnClass} rounded-full`}
+                      title={profileDisplayName || "โปรไฟล์"}
+                      aria-label={profileDisplayName || "โปรไฟล์"}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={lineProfileImageUrl}
+                        alt=""
+                        className="h-9 w-9 rounded-full object-cover"
+                        width={36}
+                        height={36}
+                        referrerPolicy="no-referrer"
+                      />
+                    </Link>
+                  ) : (
+                    <Link href={profileHref} className={iconBtnClass} aria-label="โปรไฟล์">
+                      <IconUser className="h-5 w-5" />
+                    </Link>
+                  )}
+                  <Link href="/cart" className={iconBtnClass} aria-label="ตะกร้า">
+                    <IconCart className="h-5 w-5" />
                   </Link>
-                )}
-                <Link href="/cart" className={iconBtnClass} aria-label="ตะกร้า">
-                  <IconCart className="h-5 w-5" />
-                </Link>
-              </div>
+                </div>
+              ) : null}
               {memberUser ? (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => logout()}
-                    className="whitespace-nowrap rounded-md px-2 py-1.5 text-sm font-semibold text-neutral-800 transition hover:text-[#FF2E8C]"
-                  >
-                    ออกจากระบบ
-                  </button>
                   <div className="relative z-[1100]" ref={moreRef}>
                     <button
                       type="button"
@@ -456,6 +420,19 @@ export default function HuajaiyCentralTemplate({
                         role="menu"
                       >
                         {renderMoreMenuItems()}
+                        <li role="none" className="border-t border-gray-100">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="block w-full px-3 py-2 text-left text-sm font-semibold text-neutral-800 hover:bg-gray-50"
+                            onClick={() => {
+                              setMoreOpen(false);
+                              logout();
+                            }}
+                          >
+                            ออกจากระบบ
+                          </button>
+                        </li>
                       </ul>
                     ) : null}
                   </div>
@@ -468,11 +445,6 @@ export default function HuajaiyCentralTemplate({
                   <LineLoginPinkPillInner />
                 </Link>
               )}
-              {memberUser
-                ? hamburgerButton(
-                    "hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl text-neutral-800 hover:bg-pink-50 lg:inline-flex"
-                  )
-                : null}
             </div>
           </div>
         </div>
@@ -485,7 +457,6 @@ export default function HuajaiyCentralTemplate({
           aria-label={pinkBarSuffix ? pinkBarSuffix : "HUAJAIY"}
         >
           <div className="mx-auto flex h-full w-full max-w-[1200px] min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-5">
-            <div className="h-10 w-10 shrink-0 lg:hidden" aria-hidden />
             <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
               <HeartIcon
                 className="h-9 w-9 shrink-0 text-white sm:h-10 sm:w-10"

@@ -179,7 +179,7 @@ export default function GamingShopPage() {
       lineProfileImageUrl={memberUser?.linePictureUrl || undefined}
       profileDisplayName={displayName}
       pinkBarMenuLabel="ร้านค้าเกมมิ่ง"
-      activeNavKey="shop"
+      activeNavKey={null}
       mainClassName="flex min-w-0 flex-1 flex-col bg-[#f4f4f6]"
     >
       <section

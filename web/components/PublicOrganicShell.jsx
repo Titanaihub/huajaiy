@@ -11,7 +11,7 @@ import { gameLobbyShellCssVars } from "../lib/gameLobbyThemeDefaults";
  * @param {object} [gameLobbyTheme] — ธีมหน้า /game (ผสานค่าเริ่มต้นแล้ว)
  * @param {React.CSSProperties} [gameLobbyMainStyle] — พื้นหลังเนื้อหา (จาก buildSiteRootBackgroundStyle)
  * @param {string} [pinkBarMenuLabel] — ข้อความแถบชมพูใต้เฮดเดอร์
- * @param {'home'|'shop'|'game'|'posts'|'page'|null} [activeNavKey] — ไฮไลต์เมนูหลัก
+ * @param {'home'|'game'|'posts'|'page'|null} [activeNavKey] — ไฮไลต์เมนูหลัก
  */
 export default function PublicOrganicShell({
   children,
