@@ -323,9 +323,48 @@ async function pauseCampaign(ownerUserId, postId) {
   return memberPublicPostService.getForUser(ownerUserId, postId);
 }
 
+/**
+ * ยอดในมัดจำแคมเปญแชร์โพสต์ที่ยัง active — แยกว่าส่วนที่เหลือใน pool มาจากแดงแจกหรือกระเป๋า (ต่อโพสต์: g = floor(pool*eg/init), w = pool-g)
+ * แถวเก่า esc=0 ถือว่าทั้ง pool มาจากกระเป๋า
+ * @param {string} userId
+ * @returns {Promise<{ giveawayPool: number; walletPool: number }>}
+ */
+async function sumActiveShareEscrowForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!UUID_RE.test(uid)) return { giveawayPool: 0, walletPool: 0 };
+  const pool = requirePool();
+  let giveawayPool = 0;
+  let walletPool = 0;
+  const r = await pool.query(
+    `SELECT share_red_pool_remaining, share_red_initial_budget,
+            COALESCE(share_red_escrow_from_giveaway, 0) AS eg,
+            COALESCE(share_red_escrow_from_wallet, 0) AS ew
+     FROM member_public_posts
+     WHERE user_id = $1::uuid AND share_red_status = 'active'`,
+    [uid]
+  );
+  for (const row of r.rows) {
+    const poolRem = Math.max(0, Math.floor(Number(row.share_red_pool_remaining) || 0));
+    const initB = Math.max(0, Math.floor(Number(row.share_red_initial_budget) || 0));
+    const eg = Math.max(0, Math.floor(Number(row.eg) || 0));
+    const ew = Math.max(0, Math.floor(Number(row.ew) || 0));
+    if (poolRem <= 0 || initB <= 0) continue;
+    if (eg + ew === 0) {
+      walletPool += poolRem;
+      continue;
+    }
+    const gPart = Math.min(poolRem, Math.floor((poolRem * eg) / initB));
+    const wPart = poolRem - gPart;
+    giveawayPool += gPart;
+    walletPool += wPart;
+  }
+  return { giveawayPool, walletPool };
+}
+
 module.exports = {
   tryGrantShareReward,
   startCampaign,
   pauseCampaign,
+  sumActiveShareEscrowForUser,
   MIN_REF_CLICKS_FOR_SHARE_REWARD
 };

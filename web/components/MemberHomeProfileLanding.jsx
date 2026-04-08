@@ -119,6 +119,14 @@ export default function MemberHomeProfileLanding({ user }) {
   const pinkShown = hearts.pink;
   const redFromUsersShown = hearts.redFromUsers;
   const giveawayRedShown = hearts.giveawayRed;
+  const shareGiveawayEscrow = Math.max(
+    0,
+    Math.floor(Number(user?.shareRewardGiveawayEscrow) || 0)
+  );
+  const shareWalletEscrow = Math.max(
+    0,
+    Math.floor(Number(user?.shareRewardWalletEscrow) || 0)
+  );
   const shipping = shippingRows(user?.shippingAddressParts);
   const hasShipping = shipping.some(([, v]) => String(v || "").trim() !== "");
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "สมาชิก";
@@ -353,6 +361,18 @@ export default function MemberHomeProfileLanding({ user }) {
                   ประวัติ
                 </Link>
               </div>
+              {shareWalletEscrow > 0 ? (
+                <p className="mt-1.5 text-[11px] font-medium leading-snug text-red-800/90">
+                  กันไว้แชร์โพสต์ (จากกระเป๋าแดง — หักจากยอดด้านบนแล้ว):{" "}
+                  {shareWalletEscrow.toLocaleString("th-TH")} ดวง
+                </p>
+              ) : null}
+              {shareGiveawayEscrow > 0 ? (
+                <p className="mt-1 text-[11px] text-slate-600">
+                  แคมเปญแชร์โพสต์ใช้แดงแจกอีก{" "}
+                  {shareGiveawayEscrow.toLocaleString("th-TH")} ดวง — ดูการ์ด「หัวใจแดงสำหรับแจก」
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
@@ -386,6 +406,18 @@ export default function MemberHomeProfileLanding({ user }) {
                   ประวัติ
                 </Link>
               </div>
+              {shareGiveawayEscrow > 0 ? (
+                <p className="mt-1.5 text-[11px] font-medium leading-snug text-red-800/90">
+                  กันไว้แชร์โพสต์ (จากแดงแจก — หักจากยอดด้านบนแล้ว):{" "}
+                  {shareGiveawayEscrow.toLocaleString("th-TH")} ดวง
+                </p>
+              ) : null}
+              {shareWalletEscrow > 0 ? (
+                <p className="mt-1 text-[11px] text-slate-600">
+                  แคมเปญแชร์โพสต์กันจากกระเป๋าแดงอีก{" "}
+                  {shareWalletEscrow.toLocaleString("th-TH")} ดวง — ดูการ์ด「หัวใจแดง」
+                </p>
+              ) : null}
             </div>
           </div>
         </div>

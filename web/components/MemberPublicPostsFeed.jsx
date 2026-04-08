@@ -174,7 +174,8 @@ function MemberPublicPostCard({
   isOwner,
   onEdit,
   onDelete,
-  onPostUpdated
+  onPostUpdated,
+  refreshMemberProfile
 }) {
   const [expanded, setExpanded] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -259,12 +260,17 @@ function MemberPublicPostCard({
         redBudget: budget
       });
       if (updated) onPostUpdated(updated);
+      try {
+        await refreshMemberProfile?.();
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       setRewardErr(e instanceof Error ? e.message : String(e));
     } finally {
       setRewardBusy(false);
     }
-  }, [isOwner, onPostUpdated, post?.id, rewardBudget, rewardPer]);
+  }, [isOwner, onPostUpdated, post?.id, refreshMemberProfile, rewardBudget, rewardPer]);
 
   const pauseShareReward = useCallback(async () => {
     if (!isOwner || !post?.id || !onPostUpdated) return;
@@ -276,12 +282,17 @@ function MemberPublicPostCard({
     try {
       const { post: updated } = await apiPauseShareRewardCampaign(token, String(post.id));
       if (updated) onPostUpdated(updated);
+      try {
+        await refreshMemberProfile?.();
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       setRewardErr(e instanceof Error ? e.message : String(e));
     } finally {
       setRewardBusy(false);
     }
-  }, [isOwner, onPostUpdated, post?.id]);
+  }, [isOwner, onPostUpdated, post?.id, refreshMemberProfile]);
 
   const loadStats = useCallback(async () => {
     const token = getMemberToken();
@@ -633,7 +644,7 @@ const defaultBlocks = () => [{ clientId: newClientId(), type: "paragraph", text:
  */
 export default function MemberPublicPostsFeed({ username, initialPosts }) {
   const router = useRouter();
-  const { user } = useMemberAuth();
+  const { user, refresh } = useMemberAuth();
   const [posts, setPosts] = useState(() => sortPosts(initialPosts));
   const [editingId, setEditingId] = useState(null);
   /** โพสต์ใหม่: กดปุ่ม 「โพสต์」 แล้วค่อยขยายฟอร์ม */
@@ -1215,6 +1226,7 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onPostUpdated={patchPostInList}
+                  refreshMemberProfile={refresh}
                 />
               </div>
             ))}

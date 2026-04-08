@@ -78,7 +78,7 @@ function signImpersonationToken(targetUser, adminUserId) {
   );
 }
 
-/** รวมยอดหัวใจแดงจากรหัสของห้อง (scoped) ให้สอดคล้องกับ GET /me */
+/** รวมยอดหัวใจแดงจากรหัสของห้อง (scoped) + มัดจำแชร์โพสต์ ให้สอดคล้องกับ GET /me */
 async function publicUserWithRoomGiftRed(user) {
   const base = userService.publicUser(user);
   let roomGiftRed = [];
@@ -90,7 +90,23 @@ async function publicUserWithRoomGiftRed(user) {
       console.error("[publicUserWithRoomGiftRed] roomGiftRed skipped:", e.message);
     }
   }
-  return { ...base, roomGiftRed };
+  let shareRewardGiveawayEscrow = 0;
+  let shareRewardWalletEscrow = 0;
+  try {
+    const s = await memberPublicPostShareRewardService.sumActiveShareEscrowForUser(user.id);
+    shareRewardGiveawayEscrow = Math.max(0, Math.floor(Number(s.giveawayPool) || 0));
+    shareRewardWalletEscrow = Math.max(0, Math.floor(Number(s.walletPool) || 0));
+  } catch (e) {
+    if (e.code !== "DB_REQUIRED") {
+      console.error("[publicUserWithRoomGiftRed] share escrow skipped:", e.message);
+    }
+  }
+  return {
+    ...base,
+    roomGiftRed,
+    shareRewardGiveawayEscrow,
+    shareRewardWalletEscrow
+  };
 }
 
 /** โหลดบทบาทจาก DB ทุกครั้ง — โทเค็นเก่ายังใช้ได้ แต่ role ตามข้อมูลล่าสุด */

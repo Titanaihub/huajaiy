@@ -53,6 +53,20 @@
           <p class="mt-1 text-lg font-bold tabular-nums text-red-800 dark:text-red-400">
             {{ giveawayBal.toLocaleString('th-TH') }} ดวง
           </p>
+          <p
+            v-if="shareGiveawayEscrow > 0"
+            class="mt-2 text-xs font-medium text-rose-900/95 dark:text-rose-100/95"
+          >
+            กันไว้แชร์โพสต์ (จากแดงแจก — หักจากยอดด้านบนแล้ว):
+            {{ shareGiveawayEscrow.toLocaleString('th-TH') }} ดวง
+          </p>
+          <p
+            v-if="shareWalletEscrow > 0"
+            class="mt-1 text-xs text-gray-700 dark:text-gray-300"
+          >
+            แคมเปญแชร์กันจากกระเป๋าแดงอีก
+            {{ shareWalletEscrow.toLocaleString('th-TH') }} ดวง — ดูการ์ดหัวใจแดงที่ภาพรวมบัญชี (/member)
+          </p>
         </div>
 
         <form class="mt-4 flex flex-col gap-4 border-t border-gray-200 pt-4 dark:border-gray-700" @submit.prevent="onCreate">
@@ -205,6 +219,13 @@ const deleteErr = ref('')
 
 const giveawayBal = computed(() =>
   Math.max(0, Math.floor(Number(user.value?.redGiveawayBalance) || 0))
+)
+
+const shareGiveawayEscrow = computed(() =>
+  Math.max(0, Math.floor(Number(user.value?.shareRewardGiveawayEscrow) || 0))
+)
+const shareWalletEscrow = computed(() =>
+  Math.max(0, Math.floor(Number(user.value?.shareRewardWalletEscrow) || 0))
 )
 
 const estimatedRedDeduction = computed(() => {

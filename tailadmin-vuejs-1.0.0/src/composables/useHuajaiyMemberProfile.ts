@@ -32,6 +32,10 @@ export interface HuajaiyPublicUser {
   redGiveawayBalance?: number
   heartsBalance?: number
   roomGiftRed?: unknown[]
+  /** มัดจำแชร์โพสต์ที่ยัง active — ส่วนที่เหลือใน pool ที่มาจากแดงแจก (หักออกจาก redGiveawayBalance แล้ว) */
+  shareRewardGiveawayEscrow?: number
+  /** มัดจำแชร์โพสต์ — ส่วนที่เหลือใน pool ที่มาจากกระเป๋าแดง */
+  shareRewardWalletEscrow?: number
 }
 
 export function useHuajaiyMemberProfile() {
