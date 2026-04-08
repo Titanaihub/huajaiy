@@ -56,11 +56,16 @@ function buildDescription({ purpose, otherReason, prizeConditions }) {
   return lines.filter((x) => x != null).join("\n");
 }
 
-export default function CreateGameRoomForm({ hideShellPageTitle = false } = {}) {
+export default function CreateGameRoomForm({
+  hideShellPageTitle = false,
+  /** เปิดจาก /member/create-game — ไม่โชว์แผงตั้งค่าเต็มใต้ฟอร์มเปิดห้อง (ไปต่อที่ game-studio) */
+  memberShellEmbed = false
+} = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
-  const isMemberEmbed = searchParams.get("member_embed") === "1";
+  const isMemberEmbed =
+    Boolean(memberShellEmbed) || searchParams.get("member_embed") === "1";
   const studioEditFull = searchParams.get("edit") === "full";
   const managingExisting =
     typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim());
@@ -408,7 +413,7 @@ export default function CreateGameRoomForm({ hideShellPageTitle = false } = {}) 
 
       {!managingExisting ? intakeForm : null}
 
-      {user ? (
+      {user && (!isMemberEmbed || managingExisting) ? (
         <div
           ref={studioRef}
           id="game-studio"

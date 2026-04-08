@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
@@ -429,6 +430,7 @@ export default function AdminCentralGamePanel({
   memberBasicInfoOnly = false,
   focusGameId = null
 }) {
+  const router = useRouter();
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -877,13 +879,18 @@ export default function AdminCentralGamePanel({
       if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
       const t = String(title || "").trim();
       if (!t) throw new Error("กรุณากรอกชื่อเกม");
+      const coverTrim = String(gameCoverUrl || "").trim();
       await apiAdminCentralGamePatch(token, selectedId, {
         title: t,
-        description: gameDescription
+        description: gameDescription,
+        gameCoverUrl: coverTrim ? coverTrim : ""
       });
       await loadList();
       await loadDetail(selectedId);
-      setMsg("บันทึกข้อมูลแล้ว");
+      const studioFull = memberShellEmbed
+        ? `/member/game-studio?game=${encodeURIComponent(selectedId)}&edit=full`
+        : `/account/game-studio?game=${encodeURIComponent(selectedId)}&edit=full`;
+      router.push(studioFull);
     } catch (e) {
       setErr(e.message || String(e));
       setMsg("");
@@ -1135,9 +1142,6 @@ export default function AdminCentralGamePanel({
   const showMemberBasicIntro = Boolean(
     memberShellEmbed && memberBasicInfoOnly && selectedId
   );
-  const fullStudioHref = memberShellEmbed
-    ? `/member/game-studio?game=${encodeURIComponent(selectedId || "")}&edit=full`
-    : `/account/game-studio?game=${encodeURIComponent(selectedId || "")}&edit=full`;
   const memberCancelHref = memberShellEmbed ? "/member/game" : "/account/my-games";
 
   return (
@@ -1153,8 +1157,10 @@ export default function AdminCentralGamePanel({
         </p>
       ) : null}
 
-      {showMemberBasicIntro ? <MemberStudioIntroPolicyStack /> : null}
-      <CentralGamePolicyCallout />
+      <div className={showMemberBasicIntro ? "space-y-6" : undefined}>
+        <CentralGamePolicyCallout />
+        {showMemberBasicIntro ? <MemberStudioIntroPolicyStack /> : null}
+      </div>
 
       {!embedded ? (
       <div className="rounded-xl border border-hui-border bg-hui-pageTop/90 p-3">
@@ -1470,6 +1476,56 @@ export default function AdminCentralGamePanel({
                 />
               </div>
               <div className="sm:col-span-2">
+                <h4 className="text-sm font-semibold text-hui-section">หมวดหมู่เกม</h4>
+                <p className="mt-1 text-sm leading-relaxed text-hui-muted">
+                  ระบุประเภทหรือวัตถุประสงค์ในช่องคำอธิบายด้านบน (เช่น ร้านค้า / แจกรางวัล / โปรโมทสินค้า) เพื่อให้ผู้เล่นเข้าใจบริบทเกม
+                </p>
+              </div>
+              <div className="sm:col-span-2 rounded-xl border border-hui-border bg-white p-4">
+                <h4 className="text-sm font-semibold text-hui-section">รูปภาพหน้าปกเกม</h4>
+                <p className="mt-1 text-sm leading-relaxed text-hui-body">
+                  แสดงบนหน้าแรกและหน้าเล่น — ถ้าไม่อัปโหลด จะใช้รูปหัวใจชมพูเริ่มต้น
+                </p>
+                <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                  <div className="w-28 shrink-0 sm:w-32">
+                    <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
+                    <div className="aspect-square w-full overflow-hidden rounded-xl border border-hui-border bg-hui-pageTop">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        key={gameCoverUrl.trim() || "default-cover-intro"}
+                        src={gameCoverUrl.trim() || DEFAULT_CENTRAL_GAME_COVER_PATH}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label className="text-sm font-medium text-hui-body">
+                      อัปโหลดรูปหน้าปก (1 ไฟล์)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={creatorLimitedMode}
+                      className="block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy disabled:cursor-not-allowed disabled:opacity-50"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] || null;
+                        void onPickCoverFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={creatorLimitedMode}
+                      onClick={() => setGameCoverUrl("")}
+                      className="text-sm text-hui-body underline hover:text-hui-section disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      ใช้รูปหัวใจชมพูเริ่มต้น
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="sm:col-span-2">
                 <label className="text-sm text-hui-body">รหัสเกม</label>
                 <input
                   readOnly
@@ -1486,7 +1542,7 @@ export default function AdminCentralGamePanel({
                 onClick={() => void saveBasicIntro()}
                 className="hui-btn-primary px-6 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {savingBasicIntro ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+                {savingBasicIntro ? "กำลังบันทึก…" : "บันทึกและไปต่อ"}
               </button>
               <Link
                 href={memberCancelHref}
@@ -1495,15 +1551,6 @@ export default function AdminCentralGamePanel({
                 ยกเลิก
               </Link>
             </div>
-            <p className="border-t border-hui-border pt-4 text-sm leading-relaxed text-hui-muted">
-              พร้อมตั้งค่าป้าย รูป และรางวัลแล้วหรือยัง —{" "}
-              <Link
-                href={fullStudioHref}
-                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-              >
-                ถัดไป — ตั้งค่าป้าย รูป และรางวัล
-              </Link>
-            </p>
           </form>
         </div>
       ) : null}

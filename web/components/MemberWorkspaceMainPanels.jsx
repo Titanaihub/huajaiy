@@ -77,7 +77,7 @@ export default function MemberWorkspaceMainPanels({ slug }) {
     case "create-game":
       return (
         <Suspense fallback={suspenseFallback}>
-          <CreateGameRoomForm hideShellPageTitle />
+          <CreateGameRoomForm hideShellPageTitle memberShellEmbed />
         </Suspense>
       );
     case "game-studio":
