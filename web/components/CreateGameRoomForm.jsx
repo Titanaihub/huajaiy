@@ -248,7 +248,7 @@ export default function CreateGameRoomForm({
       if (isMemberEmbed && gidExisting) {
         await apiAdminCentralGamePatch(token, gidExisting, { title, description });
         setIntroTick((x) => x + 1);
-        setIntroSavedMsg("บันทึกข้อมูลเบื้องต้นแล้ว — เลื่อนลงไปตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
+        setIntroSavedMsg("บันทึกวัตถุประสงค์และเงื่อนไขแล้ว — เลื่อนลงไปตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
         requestAnimationFrame(() => {
           studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
@@ -511,7 +511,7 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {introSavedMsg && !isMemberEmbed ? (
+        {introSavedMsg ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
             {introSavedMsg}
           </p>
@@ -523,7 +523,17 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {!isMemberEmbed ? (
+        {isMemberEmbed ? (
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-hui-border pt-6">
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-lg border border-hui-border bg-white px-4 py-2 text-sm font-medium text-hui-section shadow-sm hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? "กำลังบันทึก…" : "บันทึกวัตถุประสงค์และเงื่อนไข"}
+            </button>
+          </div>
+        ) : (
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
@@ -549,7 +559,7 @@ export default function CreateGameRoomForm({
               เกมของฉัน
             </Link>
           </div>
-        ) : null}
+        )}
       </form>
   );
 
@@ -605,27 +615,6 @@ export default function CreateGameRoomForm({
       </div>
 
       {memberShellEmbed || !managingExisting ? intakeForm : null}
-
-      {user && isMemberEmbed ? (
-        <div className="mt-10 space-y-3">
-          {introSavedMsg ? (
-            <p
-              className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
-              role="status"
-            >
-              {introSavedMsg}
-            </p>
-          ) : null}
-          <button
-            type="submit"
-            form="huajaiy-member-create-intro"
-            disabled={busy}
-            className="hui-btn-primary block w-full max-w-md px-6 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-          >
-            {busy ? "กำลังบันทึก…" : "บันทึกข้อมูลเบื้องต้น"}
-          </button>
-        </div>
-      ) : null}
 
       {draftBootErr ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
