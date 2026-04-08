@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import MemberStylePageShell from "../../../../components/MemberStylePageShell";
+import PublicMemberCentralShell from "../../../../components/PublicMemberCentralShell";
 import MemberPublicSinglePostEntry from "../../../../components/MemberPublicSinglePostEntry";
 import { getApiBase } from "../../../../lib/config";
 
@@ -57,13 +57,13 @@ export default async function MemberPublicPostPage({ params, searchParams }) {
   const refUsername = typeof refRaw === "string" ? refRaw.trim() : "";
 
   return (
-    <MemberStylePageShell>
+    <PublicMemberCentralShell>
       <MemberPublicSinglePostEntry
         username={un}
         postId={postId}
         initialPost={post}
         refUsername={refUsername}
       />
-    </MemberStylePageShell>
+    </PublicMemberCentralShell>
   );
 }

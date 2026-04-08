@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import MemberStylePageShell from "../../components/MemberStylePageShell";
+import PublicMemberCentralShell from "../../components/PublicMemberCentralShell";
 import PublicMemberPageEntry from "../../components/PublicMemberPageEntry";
 import { getApiBase } from "../../lib/config";
 
@@ -68,12 +68,12 @@ export default async function PublicMemberPage({ params }) {
   const initialPosts = m ? await fetchPublicMemberPosts(un) : [];
 
   return (
-    <MemberStylePageShell>
+    <PublicMemberCentralShell>
       <PublicMemberPageEntry
         username={un}
         initialMember={m}
         initialPosts={initialPosts}
       />
-    </MemberStylePageShell>
+    </PublicMemberCentralShell>
   );
 }
