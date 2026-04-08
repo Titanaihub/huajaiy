@@ -809,10 +809,23 @@ export default function AdminCentralGamePanel({
         ? String(introMerge.title).trim()
         : String(title || "").trim();
     if (!t) throw new Error("กรุณากรอกชื่อเกม");
-    const desc =
-      introMerge && typeof introMerge.description === "string"
-        ? introMerge.description
-        : gameDescription;
+    const studioDesc = String(gameDescription || "");
+    const studioTrim = studioDesc.trim();
+    let desc = gameDescription;
+    if (introMerge && typeof introMerge.descriptionPrefix === "string") {
+      const pre = introMerge.descriptionPrefix.trim();
+      if (pre) {
+        if (!studioTrim) {
+          desc = introMerge.descriptionPrefix;
+        } else if (studioTrim.startsWith(pre)) {
+          desc = studioDesc;
+        } else {
+          desc = `${pre}\n\n${studioTrim}`;
+        }
+      }
+    } else if (introMerge && typeof introMerge.description === "string") {
+      desc = introMerge.description;
+    }
     const counts = setSizes
       .slice(0, setCount)
       .map((x) => Math.max(1, parseInt(String(x), 10) || 1));

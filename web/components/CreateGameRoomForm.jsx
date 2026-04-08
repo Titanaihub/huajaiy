@@ -214,19 +214,9 @@ export default function CreateGameRoomForm({
     if (purpose === "other" && otherReason.trim().length < 8) {
       throw new Error("กรุณาระบุเหตุผล (อื่นๆ) อย่างน้อย 8 ตัวอักษร");
     }
-    if (prizeConditions.trim().length < 15) {
-      throw new Error("กรุณาอธิบายเงื่อนไขรางวัลให้ชัดเจน (อย่างน้อย 15 ตัวอักษร)");
-    }
-    const titleBase =
-      roomTitle.trim() ||
-      `ห้องเกม — ${new Date().toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      })}`;
-    const title = titleBase.slice(0, 200);
-    const description = buildDescription({ purpose, otherReason, prizeConditions });
-    return { title, description };
+    /** วัตถุประสงค์จากด้านบน — ผนวกกับรายละเอียดในแผงสตูดิโอตอนบันทึก (ไม่ทับถ้าโหลดมาแล้วขึ้นต้นด้วยบล็อกเดียวกัน) */
+    const descriptionPrefix = buildDescription({ purpose, otherReason, prizeConditions: "" });
+    return { descriptionPrefix };
   }
 
   async function onSubmit(e) {
@@ -449,6 +439,7 @@ export default function CreateGameRoomForm({
           </>
         ) : null}
 
+        {!isMemberEmbed ? (
         <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
           <label htmlFor="roomTitle" className="hui-label">
             ชื่อห้อง / ชื่อเกม (ไม่บังคับ)
@@ -462,16 +453,16 @@ export default function CreateGameRoomForm({
             className="hui-input"
           />
         </div>
+        ) : null}
 
+        {!isMemberEmbed ? (
         <div className="rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
           <label htmlFor="prizeConditions" className="hui-label">
             เงื่อนไขรางวัลและข้อความถึงผู้เล่น <span className="text-red-600">*</span>
           </label>
-          {!isMemberEmbed ? (
-            <p className="mt-1 text-sm text-hui-muted">
-              ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
-            </p>
-          ) : null}
+          <p className="mt-1 text-sm text-hui-muted">
+            ระบุให้ชัด: รางวัลมีอะไรบ้าง จำนวน/มูลค่า วิธีรับ ระยะเวลา และข้อยกเว้น (ถ้ามี)
+          </p>
           <textarea
             id="prizeConditions"
             value={prizeConditions}
@@ -479,13 +470,10 @@ export default function CreateGameRoomForm({
             rows={6}
             required
             className="hui-input mt-2"
-            placeholder={
-              isMemberEmbed
-                ? "รายละเอียดถึงผู้เล่น เงื่อนไขรางวัล วิธีรับ ระยะเวลา"
-                : "ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
-            }
+            placeholder="ตัวอย่าง: ผู้ที่ทายถูกครั้งแรก 3 คนแรก รับส่วนลด 100 บาท ติดต่อรับที่ LINE @xxx ภายใน 7 วัน..."
           />
         </div>
+        ) : null}
 
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-hui-border bg-hui-surface/90 p-4 text-sm text-hui-body">
           <input
