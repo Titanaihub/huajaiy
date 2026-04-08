@@ -21,7 +21,7 @@ function isValidGameRouteSegment(raw) {
 }
 
 const navLink =
-  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-zinc-400 transition hover:bg-amber-500/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950";
+  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-zinc-600 transition hover:bg-pink-100/90 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
@@ -54,16 +54,12 @@ export default async function GamePlayPage({ params }) {
     centralMeta.pinkHeartCost > 0 || centralMeta.redHeartCost > 0;
 
   return (
-    <PublicOrganicShell>
+    <PublicOrganicShell gameLobbyMainStyle={{ backgroundColor: "#ffffff" }}>
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         <div className="space-y-5">
-          <div className="relative overflow-hidden rounded-2xl border-2 border-amber-500/45 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black p-5 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.85)] sm:p-6">
-            <div
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-30%,rgba(251,191,36,0.14),transparent_55%)]"
-              aria-hidden
-            />
-            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-amber-500/50 bg-black/40 shadow-[0_0_28px_rgba(251,191,36,0.2)] ring-2 ring-amber-400/25 sm:mx-0 sm:h-28 sm:w-28">
+          <div className="rounded-2xl border border-pink-200/90 bg-pink-50 p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-pink-200 bg-white shadow-sm ring-1 ring-pink-100 sm:mx-0 sm:h-28 sm:w-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={centralMeta.coverImageUrl}
@@ -72,51 +68,51 @@ export default async function GamePlayPage({ params }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-amber-500/90 sm:text-xs">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-pink-700/90 sm:text-xs">
                   เกมส่วนกลาง
                 </p>
-                <h1 className="mt-1 bg-gradient-to-r from-amber-100 via-amber-300 to-amber-100 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl">
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
                   {centralMeta.title}
                 </h1>
                 {showHeartCosts ? (
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm sm:justify-start">
-                    <span className="font-semibold text-zinc-500">หักต่อรอบ</span>
+                    <span className="font-semibold text-zinc-600">หักต่อรอบ</span>
                     {centralMeta.pinkHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-950/55 px-2.5 py-1 text-pink-100 ring-1 ring-pink-500/35">
-                        <InlineHeart size="md" className="text-pink-400" />
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-100 px-2.5 py-1 text-pink-900 ring-1 ring-pink-300/70">
+                        <InlineHeart size="md" className="text-pink-600" />
                         <span className="text-base font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
-                        <span className="text-xs font-semibold text-pink-200/95">หัวใจชมพู</span>
+                        <span className="text-xs font-semibold text-pink-800">หัวใจชมพู</span>
                       </span>
                     ) : null}
                     {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
-                      <span className="text-zinc-600" aria-hidden>
+                      <span className="text-zinc-500" aria-hidden>
                         ·
                       </span>
                     ) : null}
                     {centralMeta.redHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-950/55 px-2.5 py-1 text-red-100 ring-1 ring-red-500/40">
-                        <InlineHeart size="md" className="text-red-500" />
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-2.5 py-1 text-red-900 ring-1 ring-red-300/70">
+                        <InlineHeart size="md" className="text-red-600" />
                         <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                        <span className="text-xs font-semibold text-red-100/95">หัวใจแดงห้องเกม</span>
+                        <span className="text-xs font-semibold text-red-900">หัวใจแดงห้องเกม</span>
                       </span>
                     ) : null}
                   </div>
                 ) : null}
                 <p
-                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-zinc-500 sm:justify-start ${
+                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-zinc-600 sm:justify-start ${
                     showHeartCosts ? "mt-3" : "mt-2"
                   }`}
                 >
                   {centralMeta.creatorUsername ? (
                     <Link
                       href={publicMemberPath(centralMeta.creatorUsername)}
-                      className="font-medium text-amber-200/90 underline decoration-amber-600/60 underline-offset-2 hover:text-amber-100"
+                      className="font-medium text-pink-800 underline decoration-pink-400/70 underline-offset-2 hover:text-pink-950"
                     >
                       @{centralMeta.creatorUsername}
                     </Link>
                   ) : null}
                   {centralMeta.creatorUsername ? (
-                    <span className="text-zinc-700" aria-hidden>
+                    <span className="text-zinc-400" aria-hidden>
                       ·
                     </span>
                   ) : null}
@@ -126,23 +122,23 @@ export default async function GamePlayPage({ params }) {
                 </p>
               </div>
             </div>
-          </div>
 
-          {centralMeta.description ? (
-            <div className="rounded-2xl border border-amber-600/30 bg-zinc-900/95 p-5 shadow-lg ring-1 ring-amber-500/15">
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-500/85 sm:text-xs">
-                คำอธิบายเกม
-              </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-200 sm:text-base">
-                {centralMeta.description}
-              </p>
-            </div>
-          ) : null}
+            {centralMeta.description ? (
+              <div className="mt-5 border-t border-pink-200/90 pt-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-pink-700/90 sm:text-xs">
+                  คำอธิบายเกม
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 sm:text-base">
+                  {centralMeta.description}
+                </p>
+              </div>
+            ) : null}
+          </div>
 
           <FlipGameDemo serverCentralPublished centralGameId={centralMeta.gameId} />
 
           <nav
-            className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-amber-900/40 pt-6"
+            className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-zinc-200 pt-6"
             aria-label="ทางลัดหลังเล่นเกม"
           >
             <Link href="/game" className={navLink}>
