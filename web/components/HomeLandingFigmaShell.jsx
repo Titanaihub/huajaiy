@@ -20,6 +20,7 @@ const PRODUCTS_PLACEHOLDER = [
 /** เกมแนะนำ: ขนาดการ์ด (รูปสี่เหลี่ยม) + ช่องว่างระหว่างการ์ด — ใช้คำนวณจำนวนการ์ดต่อแถว */
 const REC_GAME_CARD_PX = 200;
 const REC_GAME_GRID_GAP_PX = 6;
+const RED_HEART_SRC = "/hearts/red-heart.png";
 
 /** การ์ดเชิญชวนสร้างเกม — โครงสร้างเดียวกับการ์ดเกมแนะนำ (200×200 + ข้อความ) */
 function RecommendedCreateGameCard() {
@@ -323,6 +324,19 @@ export default function HomeLandingFigmaShell({
                   const title = String(post.title || "").trim() || "โพสต์";
                   const excerpt = String(post.excerpt || "").trim();
                   const cover = post.coverImageUrl && String(post.coverImageUrl).trim() !== "" ? String(post.coverImageUrl).trim() : null;
+                  const sr = post.shareReward;
+                  const perHeart =
+                    sr &&
+                    sr.status === "active" &&
+                    sr.redPerMember != null &&
+                    Number(sr.redPerMember) > 0
+                      ? Math.floor(Number(sr.redPerMember))
+                      : 0;
+                  const maxPeople =
+                    sr && sr.maxRecipientSlots != null && Number(sr.maxRecipientSlots) > 0
+                      ? Math.floor(Number(sr.maxRecipientSlots))
+                      : 0;
+                  const showShareRewardTeaser = perHeart > 0 && maxPeople > 0;
                   return (
                     <article
                       key={`${post.username}-${post.postId}`}
@@ -368,11 +382,31 @@ export default function HomeLandingFigmaShell({
                         </span>
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1 font-semibold text-[#FF2E8C] hover:underline"
+                          className="inline-flex max-w-[min(100%,11rem)] flex-col items-end gap-0.5 font-semibold text-[#FF2E8C] hover:underline sm:max-w-none sm:flex-row sm:items-center sm:gap-1"
                           onClick={(e) => shareMemberPost(e, post)}
                         >
-                          <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
-                          แชร์
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
+                            แชร์
+                          </span>
+                          {showShareRewardTeaser ? (
+                            <span className="inline-flex flex-wrap items-center justify-end gap-0.5 text-[10px] font-bold leading-tight text-[#FF2E8C] sm:text-[11px]">
+                              <span>
+                                ได้{perHeart}
+                              </span>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={RED_HEART_SRC}
+                                alt=""
+                                className="inline h-3 w-3 shrink-0 align-middle opacity-95"
+                                width={12}
+                                height={12}
+                              />
+                              <span>
+                                /{maxPeople}คนแรก
+                              </span>
+                            </span>
+                          ) : null}
                         </button>
                       </div>
                     </article>

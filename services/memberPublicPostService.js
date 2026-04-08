@@ -99,15 +99,11 @@ function shareRewardPayload(row, opts = {}) {
   const initial = Math.max(0, Math.floor(Number(row.share_red_initial_budget) || 0));
   const rc = Math.max(0, Math.floor(Number(row.share_red_recipients_count) || 0));
   const maxSlots = per > 0 && initial > 0 ? Math.floor(initial / per) : 0;
-  const slotsLeft = per > 0 && status === "active" ? Math.floor(poolRem / per) : 0;
 
   let visitorMessage = null;
   if (status === "active" && per > 0) {
-    const needRef = MIN_REF_CLICKS_FOR_SHARE_REWARD;
-    visitorMessage = `แชร์ผ่านปุ่มบนเว็บขณะล็อกอิน แล้วให้ลิงก์ที่มี ref ของคุณถูกเปิดมากกว่า ${needRef - 1} ครั้ง — จึงจะได้หัวใจแดง ${per} ดวง (สูงสุด ${maxSlots} คนแรก) · สมาชิกทุกคนใช้เงื่อนไขเดียวกัน`;
-    if (slotsLeft > 0) {
-      visitorMessage += ` — เหลือประมาณ ${slotsLeft} สิทธิ`;
-    }
+    /** ข้อความรางวัลฝั่งผู้เยี่ยมชมใช้ redPerMember + maxRecipientSlots ใน UI — ไม่ส่งยาวที่นี่ */
+    visitorMessage = null;
   } else if (status === "paused") {
     visitorMessage = "ผู้โพสต์ระงับการแจกหัวใจก่อนเวลา";
   } else if (status === "depleted") {
@@ -219,7 +215,9 @@ async function listRecentPublicPostsForHome(limit = 6) {
   const lim = Math.min(12, Math.max(1, Math.floor(Number(limit) || 6)));
   const r = await pool.query(
     `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.created_at, p.updated_at,
-            u.username, u.public_page_title
+            u.username, u.public_page_title,
+            p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
+            p.share_red_status, p.share_red_recipients_count
      FROM member_public_posts p
      INNER JOIN users u ON u.id = p.user_id
      WHERE u.account_disabled = false
@@ -256,7 +254,8 @@ async function listRecentPublicPostsForHome(limit = 6) {
             ? row.created_at.toISOString()
             : row.created_at
               ? String(row.created_at)
-              : null
+              : null,
+        shareReward: shareRewardPayload(row, { forOwner: false })
       };
     })
     .filter(Boolean);

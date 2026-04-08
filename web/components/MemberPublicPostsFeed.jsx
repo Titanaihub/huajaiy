@@ -28,6 +28,7 @@ import {
   BrandLineWordmark,
   BrandTiktokGlyph
 } from "./MemberSocialBrandMarks";
+import ShareRewardVisitorBanner from "./ShareRewardVisitorBanner";
 
 function newClientId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -413,11 +414,7 @@ function MemberPublicPostCard({
           {layout === "stack" ? "แบบซ้อน (2 การ์ด/แถว)" : "แบบแถว (1 การ์ด/แถว)"}
         </p>
       ) : null}
-      {post.shareReward?.visitorMessage ? (
-        <p className="mt-2 rounded-md border border-amber-200/80 bg-amber-50/90 px-2.5 py-2 text-[11px] leading-snug text-amber-950">
-          {post.shareReward.visitorMessage}
-        </p>
-      ) : null}
+      <ShareRewardVisitorBanner shareReward={post.shareReward} className="mt-2" />
       {grantFlash ? (
         <p className="mt-2 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[11px] font-medium text-emerald-900">
           {grantFlash}
@@ -427,10 +424,8 @@ function MemberPublicPostCard({
         <div className="mt-2 rounded-lg border border-rose-100 bg-rose-50/50 px-2.5 py-2">
           <p className="text-[11px] font-semibold text-gray-800">แจกหัวใจแดงเมื่อแชร์</p>
           <p className="mt-0.5 text-[10px] leading-snug text-gray-600">
-            กันวงเงินจากหัวใจแดงกระเป๋า + หัวใจแดงสำหรับแจกของคุณ (หักจากแจกก่อน) ทันที — สมาชิกต้องล็อกอิน
-            กดแชร์/คัดลอกจากเว็บ และลิงก์ที่มี{" "}
-            <span className="font-mono">?ref=</span> ของเขาต้องถูกเปิดให้ครบเกณฑ์ (ปัจจุบันมากกว่า{" "}
-            {(post.shareReward.minRefClicksForReward ?? 11) - 1} ครั้ง) จึงจะได้หัวใจคนละครั้งต่อโพสต์
+            กันวงเงินจากหัวใจแดงกระเป๋า + หัวใจแดงสำหรับแจกของคุณ (หักจากแจกก่อน) ทันที — ผู้เยี่ยมชมที่แชร์จากเว็บและครบเงื่อนไขระบบจะได้หัวใจแดงตามที่ตั้ง
+            (คนละครั้งต่อโพสต์)
           </p>
           {post.shareReward.status === "active" ? (
             <p className="mt-1.5 text-[11px] text-gray-700">
@@ -455,7 +450,7 @@ function MemberPublicPostCard({
           {ownerCanStart ? (
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
               <label className="flex flex-col text-[10px] font-medium text-gray-600">
-                หัวใจแดงต่อ 1 คน (ครบแชร์ + เปิดลิงก์ ref)
+                หัวใจแดงต่อ 1 คน (เมื่อครบเงื่อนไขระบบ)
                 <input
                   type="number"
                   min={1}
