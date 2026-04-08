@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getApiBase } from "../lib/config";
+import { getApiOriginForFetch } from "../lib/config";
 import { getMemberToken } from "../lib/memberApi";
 import PublicMemberPageChrome from "./PublicMemberPageChrome";
 
@@ -39,7 +39,7 @@ export default function PublicMemberPageEntry({ username, initialMember, initial
     setDead(false);
 
     (async () => {
-      const base = getApiBase().replace(/\/$/, "");
+      const base = getApiOriginForFetch().replace(/\/$/, "");
       const token = getMemberToken();
       const headers = { Accept: "application/json" };
       if (token) headers.Authorization = `Bearer ${token}`;

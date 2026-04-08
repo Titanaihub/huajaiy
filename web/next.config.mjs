@@ -59,6 +59,18 @@ const nextConfig = {
         source: "/api/public/:path*",
         destination: `${api}/api/public/:path*`
       },
+      /**
+       * แบ็กเอนด์ `/api/auth/*` — ใช้ prefix นี้ฝั่งเว็บเท่านั้น เพราะ `/api/auth/*` ชนกับ NextAuth `[...nextauth]`
+       */
+      {
+        source: "/api/member-auth/:path*",
+        destination: `${api}/api/auth/:path*`
+      },
+      /** แอดมิน — same-origin (ลด CORS) */
+      {
+        source: "/api/admin/:path*",
+        destination: `${api}/api/admin/:path*`
+      },
       /** อัปโหลดรูป — ให้เรียก same-origin `/upload` ได้เมื่อตั้งค่าให้ชี้ API ในเครื่อง */
       {
         source: "/upload",

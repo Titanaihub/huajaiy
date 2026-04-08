@@ -1,7 +1,7 @@
-import { getApiBase } from "./config";
+import { getApiOriginForFetch } from "./config";
 
 function apiRoot() {
-  return getApiBase().replace(/\/$/, "");
+  return getApiOriginForFetch();
 }
 
 export async function apiAdminPing(token) {

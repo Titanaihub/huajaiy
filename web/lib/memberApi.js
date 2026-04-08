@@ -1,4 +1,4 @@
-import { getApiBase } from "./config";
+import { getApiBase, getApiOriginForFetch } from "./config";
 
 export const MEMBER_TOKEN_KEY = "huajaiy_member_token";
 
@@ -6,7 +6,19 @@ export const MEMBER_TOKEN_KEY = "huajaiy_member_token";
 export const IMPERSONATION_RETURN_TOKEN_KEY = "huajaiy_impersonation_return_token";
 
 function apiRoot() {
-  return getApiBase().replace(/\/$/, "");
+  return getApiOriginForFetch();
+}
+
+/**
+ * แบ็กเอนด์จริงคือ `/api/auth/...` — ในเบราว์เซอร์ใช้ `/api/member-auth/...` ให้ next.config rewrite
+ * (ห้ามใช้ `/api/auth/...` ตรงจากเว็บ เพราะชน Next.js `app/api/auth/[...nextauth]`)
+ */
+function memberAuthApiUrl(pathAfterAuth) {
+  const rest = String(pathAfterAuth || "").replace(/^\/+/, "");
+  if (typeof window !== "undefined") {
+    return `/api/member-auth/${rest}`;
+  }
+  return `${getApiBase().replace(/\/$/, "")}/api/auth/${rest}`;
 }
 
 export function getMemberToken() {
@@ -29,7 +41,7 @@ export function clearMemberToken() {
 }
 
 export async function apiCheckDuplicateName(payload) {
-  const r = await fetch(`${apiRoot()}/api/auth/check-duplicate-name`, {
+  const r = await fetch(memberAuthApiUrl("check-duplicate-name"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -45,7 +57,7 @@ export async function apiCheckDuplicateName(payload) {
 }
 
 export async function apiRegister(payload) {
-  const r = await fetch(`${apiRoot()}/api/auth/register`, {
+  const r = await fetch(memberAuthApiUrl("register"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -65,7 +77,7 @@ export async function apiRegister(payload) {
 }
 
 export async function apiLogin(payload) {
-  const r = await fetch(`${apiRoot()}/api/auth/login`, {
+  const r = await fetch(memberAuthApiUrl("login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -78,7 +90,7 @@ export async function apiLogin(payload) {
 }
 
 export async function apiMe(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/me`, {
+  const r = await fetch(memberAuthApiUrl("me"), {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -91,7 +103,7 @@ export async function apiMe(token) {
 }
 
 export async function apiPatchProfile(token, body) {
-  const r = await fetch(`${apiRoot()}/api/auth/profile`, {
+  const r = await fetch(memberAuthApiUrl("profile"), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -107,7 +119,7 @@ export async function apiPatchProfile(token, body) {
 }
 
 export async function apiPatchPassword(token, body) {
-  const r = await fetch(`${apiRoot()}/api/auth/password`, {
+  const r = await fetch(memberAuthApiUrl("password"), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -123,7 +135,7 @@ export async function apiPatchPassword(token, body) {
 }
 
 export async function apiPostNameChangeRequest(token, body) {
-  const r = await fetch(`${apiRoot()}/api/auth/name-change-request`, {
+  const r = await fetch(memberAuthApiUrl("name-change-request"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -139,7 +151,7 @@ export async function apiPostNameChangeRequest(token, body) {
 }
 
 export async function apiGetMyPhoneHistory(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/phone-history/mine`, {
+  const r = await fetch(memberAuthApiUrl("phone-history/mine"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -150,7 +162,7 @@ export async function apiGetMyPhoneHistory(token) {
 }
 
 export async function apiGetMyNameChangeRequests(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/name-change-requests/mine`, {
+  const r = await fetch(memberAuthApiUrl("name-change-requests/mine"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -161,7 +173,7 @@ export async function apiGetMyNameChangeRequests(token) {
 }
 
 export async function apiGetMyShops(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/shops/mine`, {
+  const r = await fetch(memberAuthApiUrl("shops/mine"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -172,7 +184,7 @@ export async function apiGetMyShops(token) {
 }
 
 export async function apiGetMyCentralPrizeAwards(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/central-prize-awards/mine`, {
+  const r = await fetch(memberAuthApiUrl("central-prize-awards/mine"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -185,7 +197,9 @@ export async function apiGetMyCentralPrizeAwards(token) {
 /** ผู้ชนะยืนยันรับรางวัลสิ่งของแบบมารับเอง — แจ้งผู้สร้างเกม */
 export async function apiPostWinnerPickupAck(token, awardId) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-awards/${encodeURIComponent(awardId)}/winner-pickup-ack`,
+    memberAuthApiUrl(
+      `central-prize-awards/${encodeURIComponent(awardId)}/winner-pickup-ack`
+    ),
     {
       method: "POST",
       headers: {
@@ -210,7 +224,7 @@ export async function apiGetMyHeartLedger(
     offset: String(offset)
   });
   if (pinkOnly) qs.set("pinkOnly", "1");
-  const r = await fetch(`${apiRoot()}/api/auth/heart-ledger/mine?${qs}`, {
+  const r = await fetch(memberAuthApiUrl(`heart-ledger/mine?${qs}`), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -222,7 +236,7 @@ export async function apiGetMyHeartLedger(
 
 export async function apiGetMyRoomRedRedemptions(token, { limit = 300 } = {}) {
   const qs = new URLSearchParams({ limit: String(limit) });
-  const r = await fetch(`${apiRoot()}/api/auth/room-red-redemptions/mine?${qs}`, {
+  const r = await fetch(memberAuthApiUrl(`room-red-redemptions/mine?${qs}`), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -236,10 +250,9 @@ export async function apiGetPrizeWithdrawalAvailable(token, creatorUsername) {
   const qs = new URLSearchParams({
     creatorUsername: String(creatorUsername || "").trim()
   });
-  const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-withdrawals/available?${qs}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const r = await fetch(memberAuthApiUrl(`central-prize-withdrawals/available?${qs}`), {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.ok) {
     throw new Error(data.error || "โหลดยอดถอนได้ไม่สำเร็จ");
@@ -248,7 +261,7 @@ export async function apiGetPrizeWithdrawalAvailable(token, creatorUsername) {
 }
 
 export async function apiPostPrizeWithdrawalRequest(token, payload) {
-  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals`, {
+  const r = await fetch(memberAuthApiUrl("central-prize-withdrawals"), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -266,7 +279,7 @@ export async function apiPostPrizeWithdrawalRequest(token, payload) {
 }
 
 export async function apiGetMyPrizeWithdrawals(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/mine`, {
+  const r = await fetch(memberAuthApiUrl("central-prize-withdrawals/mine"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -278,7 +291,9 @@ export async function apiGetMyPrizeWithdrawals(token) {
 
 export async function apiCancelPrizeWithdrawalRequest(token, id) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-withdrawals/${encodeURIComponent(id)}/cancel`,
+    memberAuthApiUrl(
+      `central-prize-withdrawals/${encodeURIComponent(id)}/cancel`
+    ),
     {
       method: "POST",
       headers: {
@@ -295,7 +310,7 @@ export async function apiCancelPrizeWithdrawalRequest(token, id) {
 }
 
 export async function apiGetCreatorWithdrawalStatus(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/creator-status`, {
+  const r = await fetch(memberAuthApiUrl("central-prize-withdrawals/creator-status"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -306,7 +321,7 @@ export async function apiGetCreatorWithdrawalStatus(token) {
 }
 
 export async function apiGetIncomingPrizeWithdrawals(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/central-prize-withdrawals/incoming`, {
+  const r = await fetch(memberAuthApiUrl("central-prize-withdrawals/incoming"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -321,7 +336,7 @@ export async function apiGetIncomingPrizeAwards(token, { limit } = {}) {
   if (limit != null) q.set("limit", String(limit));
   const qs = q.toString();
   const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-awards/incoming${qs ? `?${qs}` : ""}`,
+    memberAuthApiUrl(`central-prize-awards/incoming${qs ? `?${qs}` : ""}`),
     {
       headers: { Authorization: `Bearer ${token}` }
     }
@@ -346,7 +361,7 @@ export async function apiResolvePrizeWithdrawal(
     body.transferDate = String(transferDate).trim().slice(0, 10);
   }
   const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-withdrawals/${encodeURIComponent(id)}/resolve`,
+    memberAuthApiUrl(`central-prize-withdrawals/${encodeURIComponent(id)}/resolve`),
     {
       method: "POST",
       headers: {
@@ -377,7 +392,7 @@ export async function apiResolveIncomingItemAward(
     body.trackingCode = String(trackingCode).trim();
   }
   const r = await fetch(
-    `${apiRoot()}/api/auth/central-prize-awards/${encodeURIComponent(id)}/item-resolve`,
+    memberAuthApiUrl(`central-prize-awards/${encodeURIComponent(id)}/item-resolve`),
     {
       method: "POST",
       headers: {
@@ -504,7 +519,7 @@ export async function apiFetchPublicMemberPosts(username) {
 }
 
 export async function apiMyPublicPosts(token) {
-  const r = await fetch(`${apiRoot()}/api/auth/my-public-posts`, {
+  const r = await fetch(memberAuthApiUrl("my-public-posts"), {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await r.json().catch(() => ({}));
@@ -515,7 +530,7 @@ export async function apiMyPublicPosts(token) {
 }
 
 export async function apiCreateMyPublicPost(token, body) {
-  const r = await fetch(`${apiRoot()}/api/auth/my-public-posts`, {
+  const r = await fetch(memberAuthApiUrl("my-public-posts"), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -532,7 +547,7 @@ export async function apiCreateMyPublicPost(token, body) {
 
 export async function apiPatchMyPublicPost(token, id, body) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(id)}`,
+    memberAuthApiUrl(`my-public-posts/${encodeURIComponent(id)}`),
     {
       method: "PATCH",
       headers: {
@@ -551,7 +566,7 @@ export async function apiPatchMyPublicPost(token, id, body) {
 
 export async function apiDeleteMyPublicPost(token, id) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(id)}`,
+    memberAuthApiUrl(`my-public-posts/${encodeURIComponent(id)}`),
     {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
@@ -584,7 +599,9 @@ export async function apiPublicPostShareIntent(pageUsername, postId, channel) {
 /** @returns {Promise<{ ok: boolean; shareReward?: { granted: boolean; redAmount?: number } }>} */
 export async function apiPostShareIntent(token, postId, channel) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-intent`,
+    memberAuthApiUrl(
+      `my-public-posts/${encodeURIComponent(postId)}/share-intent`
+    ),
     {
       method: "POST",
       headers: {
@@ -603,7 +620,9 @@ export async function apiPostShareIntent(token, postId, channel) {
 
 export async function apiStartShareRewardCampaign(token, postId, body) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-reward/start`,
+    memberAuthApiUrl(
+      `my-public-posts/${encodeURIComponent(postId)}/share-reward/start`
+    ),
     {
       method: "POST",
       headers: {
@@ -622,7 +641,9 @@ export async function apiStartShareRewardCampaign(token, postId, body) {
 
 export async function apiPauseShareRewardCampaign(token, postId) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-reward/pause`,
+    memberAuthApiUrl(
+      `my-public-posts/${encodeURIComponent(postId)}/share-reward/pause`
+    ),
     {
       method: "POST",
       headers: {
@@ -640,7 +661,9 @@ export async function apiPauseShareRewardCampaign(token, postId) {
 
 export async function apiGetPostShareStats(token, postId) {
   const r = await fetch(
-    `${apiRoot()}/api/auth/my-public-posts/${encodeURIComponent(postId)}/share-stats`,
+    memberAuthApiUrl(
+      `my-public-posts/${encodeURIComponent(postId)}/share-stats`
+    ),
     { headers: { Authorization: `Bearer ${token}` } }
   );
   const data = await r.json().catch(() => ({}));

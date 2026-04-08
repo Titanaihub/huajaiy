@@ -5,6 +5,15 @@ export function getApiBase() {
 }
 
 /**
+ * ฐาน URL สำหรับ `fetch` จากเบราว์เซอร์: ค่าว่าง = same-origin (`/api/...`) ให้ Next.js rewrites
+ * ไปยัง API — ไม่พึ่ง CORS ข้ามโดเมน · บนเซิร์ฟเวอร์ (SSR) ใช้ `getApiBase()` เต็ม
+ */
+export function getApiOriginForFetch() {
+  if (typeof window !== "undefined") return "";
+  return getApiBase().replace(/\/$/, "");
+}
+
+/**
  * Game API เรียกจากเบราว์เซอร์แบบ same-origin `/api/game/*`
  * Next.js จะ rewrite ไปยัง `NEXT_PUBLIC_API_BASE_URL` (ลดปัญหา CORS)
  */

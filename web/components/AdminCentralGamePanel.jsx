@@ -528,11 +528,13 @@ export default function AdminCentralGamePanel({
   }, []);
 
   useEffect(() => {
+    const focus = focusGameId ? String(focusGameId).trim() : "";
+    if (focus) setSelectedId(focus);
     let cancelled = false;
     (async () => {
       await loadList();
       if (cancelled) return;
-      if (focusGameId) setSelectedId(focusGameId);
+      if (focus) setSelectedId(focus);
     })();
     return () => {
       cancelled = true;
