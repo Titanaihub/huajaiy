@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getApiBase } from "../lib/config";
 import { postUploadFormData } from "../lib/uploadClient";
 import { getMemberToken } from "../lib/memberApi";
 import {
@@ -214,7 +213,6 @@ async function compressImage(originalFile) {
 }
 
 async function uploadSlipFile(file) {
-  const API_BASE = getApiBase().replace(/\/$/, "");
   const body = new FormData();
   const compressed = await compressImage(file);
   const uploadFile = new File([compressed], `${Date.now()}.jpg`, {
