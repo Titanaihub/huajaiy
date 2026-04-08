@@ -436,7 +436,13 @@ export default function AdminCentralGamePanel({
   /** หน้าเดียว: ไม่โชว์ตารางรายการเกม — แก้เฉพาะเกมที่ focus */
   hideEmbeddedGamesTable = false,
   /** เพิ่มค่าเมื่อ parent PATCH meta แล้ว — โหลดรายละเอียดเกมใหม่โดยไม่รีเมาต์ทั้งแผง */
-  externalReloadToken = 0
+  externalReloadToken = 0,
+  /** หน้าสร้างเกมสมาชิก: คืน { title, description } จากฟอร์มบน — รวมบันทึกกับปุ่มล่าง */
+  beforePersistMeta = null,
+  /** เมื่อ beforePersistMeta throw — แจ้ง parent (เช่น setErr ใต้ฟอร์มบน) */
+  onBeforePersistMetaError = null,
+  /** หลังบันทึกสำเร็จ (เช่น เคลียร์ err ใต้ฟอร์มบน) */
+  onAfterSuccessfulSave = null
 }) {
   const router = useRouter();
   const [games, setGames] = useState([]);
@@ -788,13 +794,20 @@ export default function AdminCentralGamePanel({
   }
 
   /** ไม่ส่ง isPublished ผ่าน PATCH — การเผยแพร่ใช้ POST activate/deactivate เท่านั้น (กันช่องล็อบบี้ทำให้ PATCH ล้มเมื่อรูปยังไม่ครบ) */
-  async function persistMeta(gameIdOverride) {
+  async function persistMeta(gameIdOverride, introMerge) {
     const gid = gameIdOverride ?? selectedId;
     if (!gid) throw new Error("ยังไม่ได้เลือกเกม");
     const token = getMemberToken();
     if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
-    const t = String(title || "").trim();
+    const t =
+      introMerge && typeof introMerge.title === "string"
+        ? String(introMerge.title).trim()
+        : String(title || "").trim();
     if (!t) throw new Error("กรุณากรอกชื่อเกม");
+    const desc =
+      introMerge && typeof introMerge.description === "string"
+        ? introMerge.description
+        : gameDescription;
     const counts = setSizes
       .slice(0, setCount)
       .map((x) => Math.max(1, parseInt(String(x), 10) || 1));
@@ -806,7 +819,7 @@ export default function AdminCentralGamePanel({
     }
     await apiAdminCentralGamePatch(token, gid, {
       title: t,
-      description: gameDescription,
+      description: desc,
       gameCoverUrl: gameCoverUrl.trim() ? gameCoverUrl.trim() : null,
       tileBackCoverUrl: tileBackCoverUrl.trim() ? tileBackCoverUrl.trim() : null,
       setCount,
@@ -875,7 +888,19 @@ export default function AdminCentralGamePanel({
     setMsg("");
     const parts = [];
     try {
-      await persistMeta();
+      let introMerge = null;
+      if (typeof beforePersistMeta === "function") {
+        try {
+          introMerge = await beforePersistMeta();
+        } catch (e) {
+          const m = e?.message || String(e);
+          setErr(m);
+          onBeforePersistMetaError?.(m);
+          setSavingAll(false);
+          return;
+        }
+      }
+      await persistMeta(undefined, introMerge);
       parts.push("โครง");
       if (imagesReadyForSave()) {
         await persistImages();
@@ -890,6 +915,7 @@ export default function AdminCentralGamePanel({
       setMsg(
         `บันทึกข้อมูลแล้ว — ${parts.join(" · ")} · กรุณาตรวจสอบเกมให้ถูกต้อง ก่อนเผยแพร่`
       );
+      onAfterSuccessfulSave?.();
     } catch (e) {
       setErr(e.message || String(e));
       setMsg("");

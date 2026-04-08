@@ -93,7 +93,6 @@ export default function CreateGameRoomForm({
   const [agreeRules, setAgreeRules] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [introSavedMsg, setIntroSavedMsg] = useState("");
   const [introTick, setIntroTick] = useState(0);
   const [studioGameId, setStudioGameId] = useState(null);
   const [draftBootErr, setDraftBootErr] = useState("");
@@ -207,10 +206,33 @@ export default function CreateGameRoomForm({
     return studioGameId;
   }
 
+  /** ใช้ร่วมกับปุ่ม «บันทึกข้อมูล» ในแผงสตูดิโอ — บันทึกวัตถุประสงค์+เงื่อนไขในครั้งเดียวกับ meta */
+  function buildMemberIntroMergeOrThrow() {
+    if (!agreeRules) {
+      throw new Error("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
+    }
+    if (purpose === "other" && otherReason.trim().length < 8) {
+      throw new Error("กรุณาระบุเหตุผล (อื่นๆ) อย่างน้อย 8 ตัวอักษร");
+    }
+    if (prizeConditions.trim().length < 15) {
+      throw new Error("กรุณาอธิบายเงื่อนไขรางวัลให้ชัดเจน (อย่างน้อย 15 ตัวอักษร)");
+    }
+    const titleBase =
+      roomTitle.trim() ||
+      `ห้องเกม — ${new Date().toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })}`;
+    const title = titleBase.slice(0, 200);
+    const description = buildDescription({ purpose, otherReason, prizeConditions });
+    return { title, description };
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     setErr("");
-    setIntroSavedMsg("");
+    if (isMemberEmbed) return;
 
     if (!agreeRules) {
       setErr("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
@@ -241,20 +263,8 @@ export default function CreateGameRoomForm({
     const title = titleBase.slice(0, 200);
     const description = buildDescription({ purpose, otherReason, prizeConditions });
 
-    const gidExisting = currentGameIdForApi();
-
     setBusy(true);
     try {
-      if (isMemberEmbed && gidExisting) {
-        await apiAdminCentralGamePatch(token, gidExisting, { title, description });
-        setIntroTick((x) => x + 1);
-        setIntroSavedMsg("บันทึกวัตถุประสงค์และเงื่อนไขแล้ว — เลื่อนลงไปตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
-        requestAnimationFrame(() => {
-          studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-        return;
-      }
-
       const data = await apiAdminCentralGameCreate(token, {
         title,
         description,
@@ -265,10 +275,6 @@ export default function CreateGameRoomForm({
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
-      if (isMemberEmbed) {
-        sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
-        return;
-      }
       const nextUrl = `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
       router.replace(nextUrl);
       if (typeof window !== "undefined") {
@@ -361,7 +367,6 @@ export default function CreateGameRoomForm({
 
   const intakeForm = (
       <form
-        id={isMemberEmbed ? "huajaiy-member-create-intro" : undefined}
         onSubmit={onSubmit}
         className="space-y-6"
       >
@@ -511,29 +516,13 @@ export default function CreateGameRoomForm({
           </p>
         ) : null}
 
-        {introSavedMsg ? (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
-            {introSavedMsg}
-          </p>
-        ) : null}
-
         {err ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
             {err}
           </p>
         ) : null}
 
-        {isMemberEmbed ? (
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-hui-border pt-6">
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-lg border border-hui-border bg-white px-4 py-2 text-sm font-medium text-hui-section shadow-sm hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {busy ? "กำลังบันทึก…" : "บันทึกวัตถุประสงค์และเงื่อนไข"}
-            </button>
-          </div>
-        ) : (
+        {!isMemberEmbed ? (
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
@@ -559,7 +548,7 @@ export default function CreateGameRoomForm({
               เกมของฉัน
             </Link>
           </div>
-        )}
+        ) : null}
       </form>
   );
 
@@ -681,6 +670,20 @@ export default function CreateGameRoomForm({
                 disableEmbeddedAutoSelect={Boolean(isMemberEmbed)}
                 hideEmbeddedGamesTable={Boolean(isMemberEmbed)}
                 externalReloadToken={introTick}
+                beforePersistMeta={
+                  isMemberEmbed
+                    ? async () => buildMemberIntroMergeOrThrow()
+                    : undefined
+                }
+                onBeforePersistMetaError={(msg) => setErr(msg)}
+                onAfterSuccessfulSave={
+                  isMemberEmbed
+                    ? () => {
+                        setErr("");
+                        setIntroTick((x) => x + 1);
+                      }
+                    : undefined
+                }
               />
             </div>
           ) : null}
