@@ -74,14 +74,17 @@ export async function fetchPublicGameList() {
   }
 }
 
-/** meta เกมรายตัว (ต้องอยู่ในรายการเผยแพร่) — สำหรับหน้าเล่น /game/[id] */
-export async function fetchPublicCentralGameMetaById(gameId) {
-  const id = String(gameId || "").trim();
-  if (!id) return null;
+/**
+ * meta เกมรายตัว (ต้องอยู่ในรายการเผยแพร่)
+ * @param {string} gameRef — UUID หรือ game_code (รหัสสั้น)
+ */
+export async function fetchPublicCentralGameMetaById(gameRef) {
+  const ref = String(gameRef || "").trim();
+  if (!ref) return null;
   const base = getApiBase().replace(/\/$/, "");
   try {
     const r = await fetch(
-      `${base}/api/game/meta?gameId=${encodeURIComponent(id)}&_nc=${Date.now()}`,
+      `${base}/api/game/meta?gameId=${encodeURIComponent(ref)}&_nc=${Date.now()}`,
       {
         cache: "no-store",
         headers: {
@@ -101,8 +104,14 @@ export async function fetchPublicCentralGameMetaById(gameId) {
     const redHeartCost = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
     const heartCurrencyMode = data.heartCurrencyMode || "both";
     const acceptsPinkHearts = data.acceptsPinkHearts !== false;
+    const resolvedId = String(data.gameId || "").trim() || ref;
+    const gameCode =
+      data.gameCode != null && String(data.gameCode).trim()
+        ? String(data.gameCode).trim()
+        : null;
     return {
-      gameId: data.gameId || id,
+      gameId: resolvedId,
+      gameCode,
       title: title || "เกม",
       description,
       cardCount: Number(data.cardCount) || 0,

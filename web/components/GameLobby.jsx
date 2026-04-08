@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { formatCentralLobbyHeartLine } from "../lib/formatHeartCostLabel";
+import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 
 const DESC_LEN = 180;
 
@@ -14,7 +15,7 @@ function clipDescription(text) {
 }
 
 /**
- * @param {{ initialGames: Array<{ id: string; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }>; onBrand?: boolean; gameLobbyThemed?: boolean; creatorUsernameFilter?: string }} props
+ * @param {{ initialGames: Array<{ id: string; gameCode?: string | null; title: string; description?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number }>; onBrand?: boolean; gameLobbyThemed?: boolean; creatorUsernameFilter?: string }} props
  */
 export default function GameLobby({
   initialGames = [],
@@ -115,7 +116,7 @@ export default function GameLobby({
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((g) => {
             const cover = String(g.gameCoverUrl || "").trim();
-            const href = `/game/${encodeURIComponent(g.id)}`;
+            const href = publicCentralGamePlayPath(g);
             const heartLine = formatCentralLobbyHeartLine(g);
             return (
               <li key={g.id}>

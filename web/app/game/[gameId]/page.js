@@ -11,17 +11,25 @@ export const revalidate = 0;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+/** รหัสเกมสั้น (game_code) — ตัวเลข 10–32 หลัก */
+const GAME_CODE_RE = /^[0-9]{10,32}$/;
+
+function isValidGameRouteSegment(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return false;
+  return UUID_RE.test(s) || GAME_CODE_RE.test(s);
+}
 
 const navLink =
   "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-zinc-400 transition hover:bg-amber-500/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950";
 
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
-  const gameId = typeof raw === "string" ? raw.trim() : "";
-  if (!UUID_RE.test(gameId)) {
+  const gameRef = typeof raw === "string" ? raw.trim() : "";
+  if (!isValidGameRouteSegment(gameRef)) {
     return { title: "เกม | HUAJAIY" };
   }
-  const m = await fetchPublicCentralGameMetaById(gameId);
+  const m = await fetchPublicCentralGameMetaById(gameRef);
   if (m) {
     return {
       title: `${m.title} | HUAJAIY`,
@@ -33,11 +41,11 @@ export async function generateMetadata({ params }) {
 
 export default async function GamePlayPage({ params }) {
   const raw = params?.gameId;
-  const gameId = typeof raw === "string" ? raw.trim() : "";
-  if (!UUID_RE.test(gameId)) {
+  const gameRef = typeof raw === "string" ? raw.trim() : "";
+  if (!isValidGameRouteSegment(gameRef)) {
     notFound();
   }
-  const centralMeta = await fetchPublicCentralGameMetaById(gameId);
+  const centralMeta = await fetchPublicCentralGameMetaById(gameRef);
   if (!centralMeta) {
     notFound();
   }
@@ -131,7 +139,7 @@ export default async function GamePlayPage({ params }) {
             </div>
           ) : null}
 
-          <FlipGameDemo serverCentralPublished centralGameId={gameId} />
+          <FlipGameDemo serverCentralPublished centralGameId={centralMeta.gameId} />
 
           <nav
             className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-amber-900/40 pt-6"

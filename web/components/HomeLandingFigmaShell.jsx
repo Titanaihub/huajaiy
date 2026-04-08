@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
 import HuajaiyCentralTemplate, { IconGamepad, IconShare, IconShop } from "./HuajaiyCentralTemplate";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
 const PRODUCTS_PLACEHOLDER = [
@@ -139,7 +140,7 @@ export default function HomeLandingFigmaShell({
     if (!id) return;
     const title = String(game?.title || "").trim() || "เกม HUAJAIY";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/game/${encodeURIComponent(id)}`;
+    const url = `${origin}${publicCentralGamePlayPath(game)}`;
     try {
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
         await navigator.share({ title, text: "ชวนเล่นเกมนี้บน HUAJAIY", url });
@@ -238,7 +239,7 @@ export default function HomeLandingFigmaShell({
                         className="group relative flex w-[200px] max-w-full flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-shadow hover:shadow-md"
                       >
                         <Link
-                          href={`/game/${encodeURIComponent(id)}`}
+                          href={publicCentralGamePlayPath(g)}
                           className="flex min-h-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2"
                         >
                           {/* พื้นที่ใส่ภาพ 200×200 px ชิดขอบการ์ด */}
@@ -264,7 +265,7 @@ export default function HomeLandingFigmaShell({
                         </Link>
                         <div className="flex items-center gap-1 px-2 pb-2">
                           <Link
-                            href={`/game/${encodeURIComponent(id)}`}
+                            href={publicCentralGamePlayPath(g)}
                             className="flex min-h-[2.25rem] min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-1.5 py-1.5 text-[10px] font-bold leading-none text-white shadow-md shadow-pink-400/30 transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/45 focus-visible:ring-offset-2 sm:gap-1 sm:px-2 sm:text-xs"
                             aria-label={`เล่นเลย ${title}`}
                           >

@@ -10,6 +10,7 @@ import {
   apiAdminCentralGameDeactivate,
   apiAdminCentralGamesList
 } from "../lib/rolesApi";
+import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const UUID_RE =
@@ -244,7 +245,7 @@ export default function AccountMyGamesList({ hideShellPageTitle = false } = {}) 
                 <div className="flex flex-wrap gap-2">
                   {canPreview ? (
                     <Link
-                      href={`/game/${encodeURIComponent(id)}`}
+                      href={publicCentralGamePlayPath(g)}
                       className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop"
                     >
                       ดูหน้าเล่น

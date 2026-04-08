@@ -3,6 +3,7 @@ import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../../lib/centralGameDefaults";
 import { fetchPublicCentralGameMeta, fetchPublicGameList } from "../../lib/publicGameMeta";
+import { publicCentralGamePlayPath } from "../../lib/publicGamePaths";
 
 function buildActions(centralMeta) {
   return [
@@ -90,7 +91,7 @@ export default async function HuiHomePage() {
                 return (
                   <li key={g.id}>
                     <Link
-                      href={`/game/${encodeURIComponent(g.id)}`}
+                      href={publicCentralGamePlayPath(g)}
                       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-hui-border bg-white shadow-sm transition hover:border-hui-cta/30 hover:shadow-md"
                     >
                       <div className="flex gap-3 p-4 sm:p-5">

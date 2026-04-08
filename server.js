@@ -171,6 +171,27 @@ async function getPublishedCentralSnapshot(gameId) {
   }
 }
 
+/** รหัสเกมสั้น (game_code) — ตัวเลข 8 วัน + ลำดับ ไม่ชน UUID */
+function isGameCodeParam(s) {
+  const t = String(s || "").trim();
+  return /^[0-9]{10,32}$/.test(t);
+}
+
+async function getPublishedCentralSnapshotByRef(ref) {
+  const r = String(ref || "").trim();
+  if (!r) return null;
+  if (isUuidParam(r)) {
+    return getPublishedCentralSnapshot(r);
+  }
+  if (!isGameCodeParam(r)) return null;
+  try {
+    return await centralGameService.getPublishedGameSnapshotByGameCode(r);
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") return null;
+    throw e;
+  }
+}
+
 /** ถ้าเกมไม่มี created_by แต่มี creatorUsername — หา UUID เจ้าของห้องให้หักแดงจากรหัสห้องตรงกัน */
 async function resolveGameCreatedById(game) {
   if (!game) return null;
@@ -199,6 +220,7 @@ function centralMetaFromSnap(snap, givenByRuleId = null) {
   return {
     gameMode: "central",
     gameId: snap.game.id,
+    gameCode: snap.game.gameCode || null,
     title: snap.game.title,
     description: snap.game.description || "",
     gameCoverUrl: snap.game.gameCoverUrl || null,
@@ -673,10 +695,18 @@ app.get(
   "/api/public/games/:gameId/rules/:ruleId/awards",
   async (req, res) => {
     try {
-      const gameId = String(req.params.gameId || "").trim();
+      const rawGame = String(req.params.gameId || "").trim();
       const ruleId = String(req.params.ruleId || "").trim();
-      if (!isUuidParam(gameId) || !isUuidParam(ruleId)) {
+      if (!isUuidParam(ruleId)) {
         return res.status(400).json({ ok: false, error: "รูปแบบรหัสไม่ถูกต้อง" });
+      }
+      let gameId = rawGame;
+      if (!isUuidParam(gameId)) {
+        const snap = await getPublishedCentralSnapshotByRef(gameId);
+        if (!snap?.game?.id) {
+          return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือกติกา" });
+        }
+        gameId = String(snap.game.id);
       }
       const data = await centralPrizeAwardService.listPublicRecipientsForRule(
         gameId,
@@ -727,11 +757,8 @@ app.get("/api/game/meta", async (req, res) => {
     res.set("Pragma", "no-cache");
     const q = req.query?.gameId;
     if (q != null && String(q).trim()) {
-      const gameId = String(q).trim();
-      if (!isUuidParam(gameId)) {
-        return res.status(400).json({ ok: false, error: "รูปแบบรหัสเกมไม่ถูกต้อง" });
-      }
-      const pub = await getPublishedCentralSnapshot(gameId);
+      const ref = String(q).trim();
+      const pub = await getPublishedCentralSnapshotByRef(ref);
       if (pub) {
         const meta = await centralMetaFromSnapWithCounts(pub);
         return res.json({ ok: true, ...meta });
@@ -763,10 +790,7 @@ app.post("/api/game/start", optionalAuthMiddleware, gameActionRateLimit, async (
     let snap = null;
     if (bodyGameId != null && String(bodyGameId).trim()) {
       const gid = String(bodyGameId).trim();
-      if (!isUuidParam(gid)) {
-        return res.status(400).json({ ok: false, error: "รูปแบบรหัสเกมไม่ถูกต้อง" });
-      }
-      snap = await getPublishedCentralSnapshot(gid);
+      snap = await getPublishedCentralSnapshotByRef(gid);
       if (!snap) {
         return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือยังไม่เปิดแสดงในรายการ" });
       }

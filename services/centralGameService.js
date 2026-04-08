@@ -347,6 +347,7 @@ async function listPublishedGamesForPublic() {
         : 0;
     return {
       id: game.id,
+      gameCode: game.gameCode || null,
       title: game.title,
       description: game.description,
       gameCoverUrl: game.gameCoverUrl,
@@ -369,6 +370,20 @@ async function getPublishedGameSnapshotById(gameId) {
   );
   if (g.rows.length === 0) return null;
   return getGameSnapshotById(gameId);
+}
+
+/** เล่นจาก URL สั้น — ตรงกับ game_code ในตาราง (เผยแพร่/active) */
+async function getPublishedGameSnapshotByGameCode(code) {
+  const pool = requirePool();
+  const raw = String(code || "").trim();
+  if (!raw) return null;
+  const g = await pool.query(
+    `SELECT id FROM central_games
+     WHERE TRIM(game_code) = $1 AND (is_published = TRUE OR is_active = TRUE)`,
+    [raw]
+  );
+  if (g.rows.length === 0) return null;
+  return getPublishedGameSnapshotById(g.rows[0].id);
 }
 
 /**
@@ -1359,6 +1374,7 @@ module.exports = {
   getActiveGameSnapshot,
   getGameSnapshotById,
   getPublishedGameSnapshotById,
+  getPublishedGameSnapshotByGameCode,
   listPublishedGamesForPublic,
   listGamesForAdmin,
   getPrizeAwardCountForGame,

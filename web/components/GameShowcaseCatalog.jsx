@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { getGameShowcaseHeartCostSegments } from "../lib/formatHeartCostLabel";
+import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 
 function IconGamepadHeader({ className }) {
   return (
@@ -25,7 +26,7 @@ function segmentClass(kind) {
 
 /**
  * แกริดการ์ดเกม (แม่แบบใหม่) — ข้อมูลจาก /api/game/list
- * @param {{ games?: Array<{ id: string; title?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number; heartCurrencyMode?: string; acceptsPinkHearts?: boolean }>; creatorFilter?: string }} props
+ * @param {{ games?: Array<{ id: string; gameCode?: string | null; title?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; pinkHeartCost?: number; redHeartCost?: number; heartCurrencyMode?: string; acceptsPinkHearts?: boolean }>; creatorFilter?: string }} props
  */
 export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) {
   const creatorNeedle = String(creatorFilter || "").trim().toLowerCase();
@@ -65,7 +66,7 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
             const id = String(g.id || "").trim();
             if (!id) return null;
             const cover = String(g.gameCoverUrl || "").trim();
-            const href = `/game/${encodeURIComponent(id)}`;
+            const href = publicCentralGamePlayPath(g);
             const title = String(g.title || "").trim() || "เกม";
             const user = String(g.creatorUsername || "").trim().toLowerCase();
             const costSegments = getGameShowcaseHeartCostSegments(g);

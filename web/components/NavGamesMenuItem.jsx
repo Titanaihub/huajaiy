@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
 import { gameApiUrl } from "../lib/config";
+import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 
 const MAX_NAV_GAMES = 6;
 
@@ -113,7 +114,7 @@ export default function NavGamesMenuItem({ navItemClass, gameLobbyThemed }) {
                   return (
                     <li key={id}>
                       <Link
-                        href={`/game/${encodeURIComponent(id)}`}
+                        href={publicCentralGamePlayPath(g)}
                         className="block overflow-hidden rounded-lg border border-black/[0.06] bg-slate-50 transition hover:opacity-95"
                         role="menuitem"
                       >
