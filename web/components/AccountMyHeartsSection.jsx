@@ -9,7 +9,6 @@ import {
   apiRedeemRoomRedGiftCode,
   getMemberToken
 } from "../lib/memberApi";
-import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import InlineHeart from "./InlineHeart";
@@ -181,16 +180,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
     );
   }
 
-  const totals = heartTotalsFromPublicUser(user);
-  const pink = totals.pink;
-  const walletRed = Math.max(0, Math.floor(Number(user.redHeartsBalance) || 0));
-  const roomRedFromCodesSum = roomRows.reduce(
-    (s, x) => s + Math.max(0, Math.floor(Number(x.balance) || 0)),
-    0
-  );
-  const redFromUsersTotal = totals.redFromUsers;
-  const giveawayRed = totals.giveawayRed;
-
   return (
     <div className="space-y-8">
       <header className="max-w-4xl">
@@ -199,10 +188,50 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
         )}
       </header>
 
+      <section className="max-w-2xl">
+        <h3 className="hui-h3">รหัสรับหัวใจแดง</h3>
+        <div className="mt-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
+          <form onSubmit={onRedeem} className="flex flex-wrap items-end gap-2">
+            <input
+              value={redeemCode}
+              onChange={(e) => setRedeemCode(e.target.value)}
+              placeholder="กรอกรหัส เช่น RABC12DE3"
+              className="min-w-[220px] flex-1 rounded-xl border border-hui-border px-3 py-2 text-sm font-mono uppercase text-hui-body placeholder:text-hui-placeholder"
+            />
+            <button
+              type="submit"
+              disabled={redeemBusy || !redeemCode.trim()}
+              className="rounded-2xl border border-hui-border bg-hui-pageTop px-4 py-2 text-sm font-semibold text-hui-body shadow-soft hover:bg-white disabled:opacity-50"
+            >
+              {redeemBusy ? "กำลังรับ..." : "รับหัวใจแดง"}
+            </button>
+          </form>
+          {redeemMsg ? (
+            <p className="mt-2 text-sm text-hui-body" role="status">
+              {redeemMsg}
+            </p>
+          ) : null}
+          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-hui-border/70 pt-3 text-sm">
+            <Link
+              href="/member/pink-history"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+            >
+              ประวัติหัวใจชมพู
+            </Link>
+            <Link
+              href="/member/hearts-top-up"
+              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+            >
+              เติมหัวใจแดง
+            </Link>
+          </p>
+        </div>
+      </section>
+
       <section className="max-w-4xl">
         {roomRowsSorted.length === 0 ? (
           <div className="rounded-2xl border border-hui-border bg-hui-pageTop/90 px-4 py-6 text-center text-sm text-hui-body">
-            <p>ยังไม่มียอดหัวใจแดงจากรหัสห้อง — ใส่รหัสในช่องด้านล่างเมื่อได้รับจากเจ้าของห้อง</p>
+            <p>ยังไม่มียอดหัวใจแดงจากรหัสห้อง — ใส่รหัสในช่องด้านบนเมื่อได้รับจากเจ้าของห้อง</p>
           </div>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
@@ -298,70 +327,6 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
           </ul>
         )}
       </section>
-
-      <details className="max-w-2xl rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
-        <summary className="cursor-pointer text-sm font-semibold text-hui-section">
-          สรุปยอดหัวใจทั้งบัญชี (ตรงแถบด้านบน)
-        </summary>
-        <div className="mt-4 space-y-3 text-sm">
-          <p>
-            <span className="text-hui-muted">หัวใจชมพู: </span>
-            <span className="font-bold tabular-nums text-hui-burgundy">{pink.toLocaleString("th-TH")}</span>
-          </p>
-          <p>
-            <span className="text-hui-muted">แดงจากผู้เล่น (กระเป๋า + ห้อง): </span>
-            <span className="font-bold tabular-nums text-hui-cta">{redFromUsersTotal.toLocaleString("th-TH")}</span>
-            <span className="ml-2 text-hui-muted">
-              (กระเป๋า {walletRed.toLocaleString("th-TH")} · ห้อง {roomRedFromCodesSum.toLocaleString("th-TH")})
-            </span>
-          </p>
-          <p>
-            <span className="text-hui-muted">แดงสำหรับแจก (ผู้สร้าง): </span>
-            <span className="font-bold tabular-nums text-red-800">{giveawayRed.toLocaleString("th-TH")}</span>
-          </p>
-          <p className="flex flex-wrap gap-x-4 gap-y-1">
-            <Link
-              href="/member/pink-history"
-              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-            >
-              ประวัติหัวใจชมพู
-            </Link>
-            <Link
-              href="/account/hearts-shop"
-              className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
-            >
-              ซื้อหัวใจแดง
-            </Link>
-          </p>
-        </div>
-      </details>
-
-      <section className="max-w-2xl">
-        <h3 className="hui-h3">รับหัวใจแดงด้วยรหัสห้อง</h3>
-        <div className="mt-3 rounded-2xl border border-hui-border bg-hui-surface p-4 shadow-soft">
-          <form onSubmit={onRedeem} className="flex flex-wrap items-end gap-2">
-            <input
-              value={redeemCode}
-              onChange={(e) => setRedeemCode(e.target.value)}
-              placeholder="กรอกรหัส เช่น RABC12DE3"
-              className="min-w-[220px] flex-1 rounded-xl border border-hui-border px-3 py-2 text-sm font-mono uppercase text-hui-body placeholder:text-hui-placeholder"
-            />
-            <button
-              type="submit"
-              disabled={redeemBusy || !redeemCode.trim()}
-              className="rounded-2xl border border-hui-border bg-hui-pageTop px-4 py-2 text-sm font-semibold text-hui-body shadow-soft hover:bg-white disabled:opacity-50"
-            >
-              {redeemBusy ? "กำลังรับ..." : "รับหัวใจแดง"}
-            </button>
-          </form>
-          {redeemMsg ? (
-            <p className="mt-2 text-sm text-hui-body" role="status">
-              {redeemMsg}
-            </p>
-          ) : null}
-        </div>
-      </section>
-
     </div>
   );
 }
