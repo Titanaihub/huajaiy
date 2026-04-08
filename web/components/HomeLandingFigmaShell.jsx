@@ -86,7 +86,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตตามแม่แบบ (แถบนำทางพื้นขาวแถวบนสุด + hero ไล่สี + เกม / โพสต์ / สินค้า placeholder)
+ * หน้าแรก — เทมเพลตกลาง + hero ไล่สี + เกม / โพสต์ / สินค้า (การ์ดเดิม) · พื้นหลังโซนเนื้อหา = /central-template
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ · เกมแนะนำดึงจาก API สาธารณะ
  */
 export default function HomeLandingFigmaShell({
@@ -174,6 +174,7 @@ export default function HomeLandingFigmaShell({
       onHamburgerClick={onHamburgerClick}
       lineProfileImageUrl={lineProfileImageUrl}
       profileDisplayName={profileDisplayName}
+      activeNavKey="home"
     >
       {/* Hero — ไล่เฉดชมพูเข้ม→อ่อน (โทนปุ่มเข้าสู่ระบบ) + เคลื่อนไหว + ไอคอนกระพริบ */}
       <section
@@ -234,8 +235,8 @@ export default function HomeLandingFigmaShell({
         </div>
       </section>
 
-      {/* เนื้อหาหลัก — พื้นหลังอ่อน */}
-      <div className="bg-[#f4f4f6]">
+      {/* เนื้อหาหลัก — สีพื้นหลังเดียวกับ /central-template */}
+      <div className="bg-[#fce7f3]/45">
         <div className="mx-auto max-w-[1200px] space-y-12 px-3 py-10 sm:space-y-14 sm:px-5 sm:py-12">
           {/* เกมแนะนำ */}
           <section aria-labelledby="home-sec-games">
@@ -419,28 +420,6 @@ export default function HomeLandingFigmaShell({
               ))}
             </div>
           </section>
-        </div>
-
-        {/* เทมเพลตเดิม (organic) — พับได้ อยู่ด้านล่างเนื้อหาหลัก */}
-        <div className="border-t border-pink-100 bg-[#f0f0f2]">
-          <details className="mx-auto max-w-[1200px] px-3 py-4 sm:px-5">
-            <summary className="cursor-pointer list-none text-center text-sm font-semibold text-neutral-600 marker:content-none [&::-webkit-details-marker]:hidden">
-              <span className="inline-flex items-center gap-2 rounded-full border border-pink-200/80 bg-white px-4 py-2 shadow-sm">
-                แสดงหน้าแรกแบบเดิม (เทมเพลตเก่า)
-                <span className="text-xs text-neutral-400" aria-hidden>
-                  ▾
-                </span>
-              </span>
-            </summary>
-            <div className="mt-4 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-inner">
-              <iframe
-                title="HUAJAIY — เทมเพลต organic เดิม"
-                src="/organic-template/index.html"
-                className="h-[min(70vh,720px)] w-full border-0"
-                loading="lazy"
-              />
-            </div>
-          </details>
         </div>
       </div>
     </HuajaiyCentralTemplate>
