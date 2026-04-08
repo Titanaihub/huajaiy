@@ -262,22 +262,23 @@ export default function HomeLandingFigmaShell({
                             </p>
                           </div>
                         </Link>
-                        <div className="flex items-stretch gap-1.5 px-2 pb-2">
+                        <div className="flex items-center gap-1 px-2 pb-2">
                           <Link
                             href={`/game/${encodeURIComponent(id)}`}
-                            className="flex min-h-[2.5rem] min-w-0 flex-1 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-2 text-xs font-bold leading-none text-white shadow-md shadow-pink-400/30 transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/45 focus-visible:ring-offset-2"
+                            className="flex min-h-[2.25rem] min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-1.5 py-1.5 text-[10px] font-bold leading-none text-white shadow-md shadow-pink-400/30 transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/45 focus-visible:ring-offset-2 sm:gap-1 sm:px-2 sm:text-xs"
                             aria-label={`เล่นเลย ${title}`}
                           >
-                            <IconGamepad className="h-4 w-4 shrink-0 text-white" aria-hidden />
+                            <IconGamepad className="h-3.5 w-3.5 shrink-0 text-white sm:h-4 sm:w-4" aria-hidden />
                             เล่นเลย
                           </Link>
                           <button
                             type="button"
-                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-pink-100 bg-white text-[#FF2E8C] shadow-sm transition hover:bg-pink-50"
+                            className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-pink-100 bg-white px-1.5 py-1.5 text-[10px] font-semibold leading-none text-[#FF2E8C] shadow-sm transition hover:bg-pink-50 sm:px-2 sm:text-xs"
                             aria-label={`แชร์ ${title}`}
                             onClick={(e) => shareRecommendedGame(e, g)}
                           >
-                            <IconShare className="h-4 w-4 shrink-0" />
+                            <IconShare className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+                            แชร์
                           </button>
                         </div>
                       </div>
