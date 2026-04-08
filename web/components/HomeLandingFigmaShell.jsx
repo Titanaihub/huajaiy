@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import HuajaiyCentralTemplate, { IconGamepad, IconShare } from "./HuajaiyCentralTemplate";
+import CommunityLobby from "./CommunityLobby";
+import HuajaiyCentralTemplate, { IconGamepad, IconShare, IconShop } from "./HuajaiyCentralTemplate";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
 /** เกมแนะนำ — ขนาดการ์ด + gap (คำนวณจำนวนคอลัมน์) */
 const REC_GAME_CARD_PX = 200;
@@ -27,16 +29,21 @@ function RecommendedCreateGameCard() {
   );
 }
 
-function SectionHeader({ id, icon, title, actionHref, actionLabel }) {
+function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
   return (
     <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF2E8C] to-[#e91e8c] text-white shadow-md shadow-pink-300/40">
           {icon}
         </span>
-        <h2 id={id} className="text-xl font-bold text-neutral-900 sm:text-2xl">
-          {title}
-        </h2>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-2 sm:gap-3">
+          <h2 id={id} className="text-xl font-bold text-neutral-900 sm:text-2xl">
+            {title}
+          </h2>
+          {extra ? (
+            <span className="text-sm font-semibold text-[#FF2E8C]">{extra}</span>
+          ) : null}
+        </div>
       </div>
       {actionHref ? (
         <Link
@@ -53,9 +60,21 @@ function SectionHeader({ id, icon, title, actionHref, actionLabel }) {
 /**
  * หน้าแรก — โครง HuajaiyCentralTemplate + พื้นหลังเดียวกับ /central-template · เกมแนะนำจาก API
  */
+function PostFeedIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
+    </svg>
+  );
+}
+
 export default function HomeLandingFigmaShell({
   onHamburgerClick,
   recommendedGames = [],
+  communityPosts = [],
+  featuredProducts = [],
+  featuredHeading = null,
+  communityLobbyStyle,
   lineProfileImageUrl,
   profileDisplayName
 }) {
@@ -111,6 +130,17 @@ export default function HomeLandingFigmaShell({
     }
   }, []);
 
+  const productsTitle =
+    String(featuredHeading?.title ?? "")
+      .trim()
+      .replace(/^Featured products$/i, "สินค้าแนะนำ") || "สินค้าแนะนำ";
+  const productsExtra = String(featuredHeading?.subtitle ?? "").trim();
+
+  const productsToShow = useMemo(() => {
+    const list = Array.isArray(featuredProducts) ? featuredProducts : [];
+    return list.filter((p) => p && String(p.id || "").trim()).slice(0, 8);
+  }, [featuredProducts]);
+
   return (
     <HuajaiyCentralTemplate
       onHamburgerClick={onHamburgerClick}
@@ -147,7 +177,7 @@ export default function HomeLandingFigmaShell({
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-[1200px] px-3 py-10 sm:px-5 sm:py-12">
+      <div className="mx-auto w-full max-w-[1200px] space-y-14 px-3 py-10 sm:px-5 sm:py-12">
         <section aria-labelledby="home-sec-games">
           <SectionHeader
             id="home-sec-games"
@@ -227,6 +257,85 @@ export default function HomeLandingFigmaShell({
               </>
             )}
           </div>
+        </section>
+
+        <section aria-labelledby="home-sec-posts" style={communityLobbyStyle}>
+          <SectionHeader
+            id="home-sec-posts"
+            icon={<PostFeedIcon className="h-5 w-5 text-white" />}
+            title="โพสต์ล่าสุด"
+            actionHref="/page"
+            actionLabel="ดูทั้งหมด"
+          />
+          {communityPosts.length === 0 ? (
+            <div className="rounded-2xl border border-pink-100/80 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-sm">
+              <p className="font-medium text-neutral-800">ยังไม่มีโพสต์ที่แสดงบนหน้าแรก</p>
+              <p className="mt-2">
+                <Link href="/page" className="font-semibold text-[#FF2E8C] underline-offset-2 hover:underline">
+                  ไปเพจชุมชน
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <CommunityLobby posts={communityPosts} />
+          )}
+        </section>
+
+        <section aria-labelledby="home-sec-products">
+          <SectionHeader
+            id="home-sec-products"
+            icon={<IconShop className="h-5 w-5" />}
+            title={productsTitle}
+            extra={productsExtra || undefined}
+            actionHref={PUBLIC_SHOP_PATH}
+            actionLabel="ดูทั้งหมด"
+          />
+          {productsToShow.length === 0 ? (
+            <div className="rounded-2xl border border-pink-100/80 bg-white/90 p-8 text-center text-sm text-neutral-600 shadow-sm">
+              <p className="font-medium text-neutral-800">ยังไม่มีสินค้าในตลาด</p>
+              <p className="mt-2">
+                <Link href={PUBLIC_SHOP_PATH} className="font-semibold text-[#FF2E8C] underline-offset-2 hover:underline">
+                  ไปร้านค้า
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {productsToShow.map((p) => {
+                const id = String(p.id || "").trim();
+                const img = String(p.imageUrl || "").trim();
+                const name = String(p.title || "").trim() || "สินค้า";
+                const price = Math.max(0, Math.floor(Number(p.priceThb) || 0));
+                return (
+                  <Link
+                    key={id}
+                    href={`/shop/${encodeURIComponent(id)}`}
+                    className="relative flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 hover:scale-[1.02] hover:shadow-md"
+                  >
+                    <div className="relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-pink-50/80">
+                      {img ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={img} alt="" className="h-full w-full object-cover" width={320} height={160} />
+                      ) : (
+                        <span className="text-5xl" aria-hidden>
+                          🛒
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-1 flex-col p-4">
+                      <h3 className="line-clamp-2 text-base font-bold text-neutral-900">{name}</h3>
+                      {p.shopName ? (
+                        <p className="mt-1 text-xs text-neutral-500">{String(p.shopName)}</p>
+                      ) : null}
+                      <p className="mt-2 text-lg font-bold text-[#FF2E8C]">
+                        ฿{price.toLocaleString("th-TH")}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </HuajaiyCentralTemplate>
