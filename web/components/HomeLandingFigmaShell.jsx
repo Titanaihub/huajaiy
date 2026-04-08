@@ -86,7 +86,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตกลาง + hero พื้นโปร่ง + เกม / โพสต์ / สินค้า (การ์ดเดิม) · พื้นหลังโซนเนื้อหา = /central-template
+ * หน้าแรก — เทมเพลตกลาง + พื้นหลังขาว + เกม / โพสต์ / สินค้า (การ์ดเดิม)
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ · เกมแนะนำดึงจาก API สาธารณะ
  */
 export default function HomeLandingFigmaShell({
@@ -158,8 +158,8 @@ export default function HomeLandingFigmaShell({
       profileDisplayName={profileDisplayName}
       activeNavKey="home"
     >
-      {/* Hero — ไม่มีสีพื้นหลัง (โปร่งบนพื้นขาวของเทมเพลต) · ข้อความเดิม */}
-      <section className="relative overflow-hidden bg-transparent" aria-labelledby="home-landing-hero-title">
+      {/* Hero — พื้นขาว · ข้อความเดิม */}
+      <section className="relative overflow-hidden bg-white" aria-labelledby="home-landing-hero-title">
         <div className="relative mx-auto max-w-[1200px] px-3 pb-[4.5rem] pt-[3.75rem] sm:px-5 sm:pb-24 sm:pt-[5.25rem]">
           <div className="mx-auto max-w-3xl text-center">
             <h1
@@ -192,8 +192,8 @@ export default function HomeLandingFigmaShell({
         </div>
       </section>
 
-      {/* เนื้อหาหลัก — สีพื้นหลังเดียวกับ /central-template */}
-      <div className="bg-[#fce7f3]/45">
+      {/* เนื้อหาหลัก — พื้นขาว */}
+      <div className="bg-white">
         <div className="mx-auto max-w-[1200px] space-y-12 px-3 py-10 sm:space-y-14 sm:px-5 sm:py-12">
           {/* เกมแนะนำ */}
           <section aria-labelledby="home-sec-games">
