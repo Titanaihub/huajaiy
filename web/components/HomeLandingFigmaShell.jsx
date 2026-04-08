@@ -86,7 +86,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตกลาง + hero ไล่สี + เกม / โพสต์ / สินค้า (การ์ดเดิม) · พื้นหลังโซนเนื้อหา = /central-template
+ * หน้าแรก — เทมเพลตกลาง + hero พื้นโปร่ง + เกม / โพสต์ / สินค้า (การ์ดเดิม) · พื้นหลังโซนเนื้อหา = /central-template
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ · เกมแนะนำดึงจาก API สาธารณะ
  */
 export default function HomeLandingFigmaShell({
@@ -151,24 +151,6 @@ export default function HomeLandingFigmaShell({
     }
   }, []);
 
-  /** พื้นหลัง hero — เฉพาะหัวใจ / กล่องของขวัญ / ดาว (กระพริบด้วย animate-huajaiy-hero-blink) */
-  const floatDecor = [
-    { t: "12%", l: "6%", s: 15, d: "0s", dur: 2.2, el: "💗" },
-    { t: "22%", l: "18%", s: 13, d: "0.4s", dur: 2.8, el: "⭐" },
-    { t: "8%", l: "38%", s: 17, d: "0.2s", dur: 2.4, el: "🎁" },
-    { t: "32%", l: "52%", s: 14, d: "0.9s", dur: 3, el: "💖" },
-    { t: "18%", l: "72%", s: 16, d: "0.1s", dur: 2.6, el: "⭐" },
-    { t: "58%", l: "8%", s: 14, d: "0.6s", dur: 2.3, el: "🎁" },
-    { t: "48%", l: "28%", s: 12, d: "1.1s", dur: 2.7, el: "💗" },
-    { t: "42%", l: "88%", s: 15, d: "0.3s", dur: 2.5, el: "⭐" },
-    { t: "68%", l: "42%", s: 13, d: "0.7s", dur: 2.9, el: "🎁" },
-    { t: "72%", l: "62%", s: 14, d: "0.5s", dur: 2.2, el: "💗" },
-    { t: "28%", l: "92%", s: 12, d: "1.2s", dur: 2.8, el: "⭐" },
-    { t: "5%", l: "58%", s: 11, d: "0.8s", dur: 3.1, el: "🎁" },
-    { t: "78%", l: "78%", s: 16, d: "0.15s", dur: 2.4, el: "💖" },
-    { t: "52%", l: "95%", s: 13, d: "1s", dur: 2.6, el: "💗" }
-  ];
-
   return (
     <HuajaiyCentralTemplate
       onHamburgerClick={onHamburgerClick}
@@ -176,54 +158,29 @@ export default function HomeLandingFigmaShell({
       profileDisplayName={profileDisplayName}
       activeNavKey="home"
     >
-      {/* Hero — ไล่เฉดชมพูเข้ม→อ่อน (โทนปุ่มเข้าสู่ระบบ) + เคลื่อนไหว + ไอคอนกระพริบ */}
-      <section
-        className="relative overflow-hidden bg-[length:400%_100%] bg-no-repeat animate-huajaiy-hero-gradient-shift"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, #ec4899, #f43f8c, #FF2E8C, #f472b6, #fb93c9, #fda4d4, #fce7f3, #fda4d4, #fb93c9, #f472b6, #FF2E8C, #ec4899)"
-        }}
-        aria-labelledby="home-landing-hero-title"
-      >
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-          {floatDecor.map((d, i) => (
-            <span
-              key={i}
-              className="absolute animate-huajaiy-hero-blink select-none will-change-transform"
-              style={{
-                top: d.t,
-                left: d.l,
-                fontSize: d.s,
-                animationDelay: d.d,
-                animationDuration: `${d.dur}s`
-              }}
-            >
-              {d.el}
-            </span>
-          ))}
-        </div>
-
+      {/* Hero — ไม่มีสีพื้นหลัง (โปร่งบนพื้นขาวของเทมเพลต) · ข้อความเดิม */}
+      <section className="relative overflow-hidden bg-transparent" aria-labelledby="home-landing-hero-title">
         <div className="relative mx-auto max-w-[1200px] px-3 pb-[4.5rem] pt-[3.75rem] sm:px-5 sm:pb-24 sm:pt-[5.25rem]">
           <div className="mx-auto max-w-3xl text-center">
             <h1
               id="home-landing-hero-title"
-              className="text-3xl font-bold leading-tight text-[#E60012] [text-shadow:0_0_1px_rgba(255,255,255,0.95),0_1px_2px_rgba(255,255,255,0.85),0_2px_8px_rgba(255,255,255,0.5)] sm:text-4xl md:text-5xl"
+              className="text-3xl font-bold leading-tight text-[#E60012] sm:text-4xl md:text-5xl"
             >
               ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
             </h1>
-            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.15)] sm:text-lg">
+            <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-neutral-700 sm:text-lg">
               เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:mt-12 sm:gap-4">
               <Link
                 href="/game"
-                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-full bg-white px-6 py-3 text-base font-bold text-[#FF2E8C] shadow-lg transition hover:bg-pink-50"
+                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-full bg-white px-6 py-3 text-base font-bold text-[#FF2E8C] shadow-md shadow-pink-200/40 ring-1 ring-pink-100 transition hover:bg-pink-50"
               >
                 เกมและรางวัล
               </Link>
               <Link
                 href="/login/line"
-                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-white/40 bg-[#06C755] px-6 py-3 text-base font-bold text-white shadow-lg transition hover:bg-[#05b34c]"
+                className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#06C755]/50 bg-[#06C755] px-6 py-3 text-base font-bold text-white shadow-md transition hover:bg-[#05b34c]"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden>
                   <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.137h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.084.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
