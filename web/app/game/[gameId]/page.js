@@ -20,9 +20,9 @@ function isValidGameRouteSegment(raw) {
   return UUID_RE.test(s) || GAME_CODE_RE.test(s);
 }
 
-/** ลิงก์บนพื้นครีม (การ์ดหัวข้อ) */
+/** ลิงก์บนพื้นไล่สีครีม–ชมพูอ่อน (การ์ดหัวข้อ) */
 const navLinkCream =
-  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-violet-900/85 transition hover:bg-amber-100/70 hover:text-violet-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#fff9f0]";
+  "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-semibold text-[#3d3030] transition hover:bg-rose-100/60 hover:text-[#1f1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFF9F2]";
 /** ลิงก์บนพื้นไล่สีม่วง (ท้ายหน้า) */
 const navLinkVioletBg =
   "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-amber-100/90 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
@@ -67,9 +67,9 @@ export default async function GamePlayPage({ params }) {
     >
       <main className="relative z-10 mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         <div className="space-y-5">
-          <div className="rounded-2xl border border-amber-300/50 bg-gradient-to-br from-[#fff9f0] via-[#faf0df] to-[#f0dcc8] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-1 ring-amber-400/35 sm:p-6">
+          <div className="rounded-2xl border border-rose-200/80 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] p-5 shadow-[0_12px_36px_rgba(90,40,60,0.12)] ring-1 ring-rose-200/50 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-amber-300/60 bg-white shadow-md ring-1 ring-amber-400/30 sm:mx-0 sm:h-28 sm:w-28">
+              <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-rose-200/90 bg-white shadow-md ring-1 ring-white/80 sm:mx-0 sm:h-28 sm:w-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={centralMeta.coverImageUrl}
@@ -78,29 +78,29 @@ export default async function GamePlayPage({ params }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-amber-900/75 sm:text-xs">
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#6b5348] sm:text-xs">
                   เกมส่วนกลาง
                 </p>
-                <h1 className="mt-1 text-2xl font-bold tracking-tight text-violet-950 sm:text-3xl">
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#2a2228] sm:text-3xl">
                   {centralMeta.title}
                 </h1>
                 {showHeartCosts ? (
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm sm:justify-start">
-                    <span className="font-semibold text-violet-900/75">หักต่อรอบ</span>
+                    <span className="font-semibold text-[#4a3d40]">หักต่อรอบ</span>
                     {centralMeta.pinkHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-pink-100 px-2.5 py-1 text-pink-900 ring-1 ring-pink-300/70">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-pink-300/80 bg-white/90 px-2.5 py-1 text-pink-950 shadow-sm ring-1 ring-pink-200/60">
                         <InlineHeart size="md" className="text-pink-600" />
                         <span className="text-base font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
-                        <span className="text-xs font-semibold text-pink-800">หัวใจชมพู</span>
+                        <span className="text-xs font-semibold text-pink-900">หัวใจชมพู</span>
                       </span>
                     ) : null}
                     {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
-                      <span className="text-zinc-500" aria-hidden>
+                      <span className="text-[#7a6a6e]" aria-hidden>
                         ·
                       </span>
                     ) : null}
                     {centralMeta.redHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-100 px-2.5 py-1 text-red-900 ring-1 ring-red-300/70">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white/90 px-2.5 py-1 text-red-950 shadow-sm ring-1 ring-red-200/60">
                         <InlineHeart size="md" className="text-red-600" />
                         <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
                         <span className="text-xs font-semibold text-red-900">หัวใจแดงห้องเกม</span>
@@ -109,14 +109,14 @@ export default async function GamePlayPage({ params }) {
                   </div>
                 ) : null}
                 <p
-                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-violet-900/70 sm:justify-start ${
+                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-[#4a3d40] sm:justify-start ${
                     showHeartCosts ? "mt-3" : "mt-2"
                   }`}
                 >
                   {centralMeta.creatorUsername ? (
                     <Link
                       href={publicMemberPath(centralMeta.creatorUsername)}
-                      className="font-medium text-pink-800 underline decoration-pink-400/70 underline-offset-2 hover:text-pink-950"
+                      className="font-semibold text-rose-800 underline decoration-rose-500/70 underline-offset-2 hover:text-rose-950"
                     >
                       @{centralMeta.creatorUsername}
                     </Link>
@@ -134,11 +134,11 @@ export default async function GamePlayPage({ params }) {
             </div>
 
             {centralMeta.description ? (
-              <div className="mt-5 border-t border-amber-300/50 pt-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-900/75 sm:text-xs">
+              <div className="mt-5 border-t border-rose-300/55 pt-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#6b5348] sm:text-xs">
                   คำอธิบายเกม
                 </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-violet-950/90 sm:text-base">
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#2a2228] sm:text-base">
                   {centralMeta.description}
                 </p>
               </div>

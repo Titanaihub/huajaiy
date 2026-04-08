@@ -1615,8 +1615,8 @@ export default function FlipGameDemo({
       const label = usePink ? "ชมพู" : "แดง";
       const heartCls = usePink ? "text-rose-500" : "text-red-600";
       return (
-        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
-          <span className="text-slate-500">มีอยู่</span>
+        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1 text-[11px] font-semibold leading-tight text-[#3a3030] sm:text-xs">
+          <span className="text-[#5c4d50]">มีอยู่</span>
           <InlineHeart size="sm" className={`shrink-0 ${heartCls}`} />
           <span className="tabular-nums">{n}</span>
           <span>หัวใจ{label}</span>
@@ -1625,14 +1625,14 @@ export default function FlipGameDemo({
     }
     if (pCost === 0 && rCost === 0) {
       return (
-        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
-          <span className="text-slate-500">มีอยู่</span>
+        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-[#3a3030] sm:text-xs">
+          <span className="text-[#5c4d50]">มีอยู่</span>
           <span className="inline-flex items-center gap-0.5">
             <InlineHeart size="sm" className="shrink-0 text-rose-500" />
             <span className="tabular-nums">{pinkBal}</span>
             <span>ชมพู</span>
           </span>
-          <span className="text-slate-400" aria-hidden>
+          <span className="text-[#8a7a7e]" aria-hidden>
             ·
           </span>
           <span className="inline-flex items-center gap-0.5">
@@ -1640,13 +1640,13 @@ export default function FlipGameDemo({
             <span className="tabular-nums">{redBal}</span>
             <span>แดง</span>
           </span>
-          <span className="text-slate-500">(ไม่หัก)</span>
+          <span className="text-[#5c4d50]">(ไม่หัก)</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
-        <span className="text-slate-500">มีอยู่</span>
+      <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-[#3a3030] sm:text-xs">
+        <span className="text-[#5c4d50]">มีอยู่</span>
         {pCost > 0 ? (
           <span className="inline-flex items-center gap-0.5">
             <InlineHeart size="sm" className="shrink-0 text-rose-500" />
@@ -1655,7 +1655,7 @@ export default function FlipGameDemo({
           </span>
         ) : null}
         {pCost > 0 && rCost > 0 ? (
-          <span className="text-slate-400" aria-hidden>
+          <span className="text-[#8a7a7e]" aria-hidden>
             ·
           </span>
         ) : null}
@@ -2317,7 +2317,7 @@ export default function FlipGameDemo({
               }
               className={
                 isCentralLiveUi
-                  ? "flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-200/90 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-4 py-3.5 text-sm font-bold text-violet-950 shadow-[0_0_22px_rgba(251,191,36,0.45)] transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-violet-800/50 disabled:bg-violet-950/50 disabled:text-amber-200/50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-violet-950"
+                  ? "flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-rose-200/90 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] px-4 py-3.5 text-sm font-bold text-[#2a2228] shadow-md transition hover:brightness-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-300/90 disabled:bg-gradient-to-b disabled:from-zinc-100 disabled:to-zinc-200/90 disabled:text-zinc-500 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2d1f35]"
                   : "flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
               }
             >
@@ -2332,7 +2332,7 @@ export default function FlipGameDemo({
               disabled={busy}
               className={
                 isCentralLiveUi
-                  ? "shrink-0 rounded-xl border-2 border-white/25 bg-gradient-to-b from-white/95 to-slate-200/90 px-4 py-3.5 text-sm font-semibold text-violet-950 shadow-md transition hover:from-white hover:to-slate-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-violet-950 sm:px-5"
+                  ? "shrink-0 rounded-xl border-2 border-rose-200/90 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] px-4 py-3.5 text-sm font-semibold text-[#2a2228] shadow-md transition hover:brightness-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2d1f35] sm:px-5"
                   : "shrink-0 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 sm:px-5"
               }
             >
@@ -2349,7 +2349,7 @@ export default function FlipGameDemo({
               }
               className={
                 isCentralLiveUi
-                  ? "flex-1 rounded-xl border-2 border-white/40 bg-gradient-to-r from-fuchsia-300/95 via-violet-300/95 to-cyan-200/95 px-4 py-3.5 text-sm font-bold text-violet-950 shadow-md transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-violet-800/40 disabled:bg-violet-950/40 disabled:bg-none disabled:text-amber-200/45 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-violet-950"
+                  ? "flex-1 rounded-xl border-2 border-rose-200/90 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] px-4 py-3.5 text-sm font-bold text-[#2a2228] shadow-md transition hover:brightness-[1.02] active:scale-[0.99] disabled:cursor-not-allowed disabled:border-zinc-300/90 disabled:bg-gradient-to-b disabled:from-zinc-100 disabled:to-zinc-200/90 disabled:text-zinc-500 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2d1f35]"
                   : "flex-1 rounded-xl border-2 border-red-500 bg-white px-4 py-3.5 text-sm font-semibold text-red-900 shadow-sm transition hover:bg-red-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
               }
             >
