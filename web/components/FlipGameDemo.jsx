@@ -1578,6 +1578,71 @@ export default function FlipGameDemo({
     redHeartCost,
     centralGiftCtxResolved
   ]);
+
+  /** ข้อความบนปุ่ม「เริ่มเล่นเกม」— สอดคล้องกับที่เซิร์ฟเวอร์จะหักเมื่อกด */
+  const centralStartButtonCostLine = useMemo(() => {
+    if (mode !== "api" || apiGameMode !== "central") return null;
+    const p = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
+    const r = Math.max(0, Math.floor(Number(redHeartCost) || 0));
+    if (p === 0 && r === 0) {
+      return (
+        <span className="text-[11px] font-medium leading-tight text-emerald-800/90 sm:text-xs">
+          ไม่หักหัวใจ
+        </span>
+      );
+    }
+    const eitherEligible =
+      heartCurrencyMode === "either" &&
+      acceptsPinkHeartsMeta !== false &&
+      (p > 0 || r > 0);
+    if (eitherEligible) {
+      const usePink = centralPayWith === "pink";
+      const amt = usePink ? p : r;
+      const label = usePink ? "หัวใจชมพู" : "หัวใจแดงห้องเกม";
+      const heartCls = usePink ? "text-rose-500" : "text-red-600";
+      return (
+        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
+          <span className="text-slate-500">หักครั้งนี้</span>
+          <InlineHeart size="sm" className={`shrink-0 ${heartCls}`} />
+          <span className="tabular-nums">{amt}</span>
+          <span>{label}</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
+        <span className="text-slate-500">หักครั้งนี้</span>
+        {p > 0 ? (
+          <span className="inline-flex items-center gap-0.5">
+            <InlineHeart size="sm" className="shrink-0 text-rose-500" />
+            <span className="tabular-nums">{p}</span>
+            <span>ชมพู</span>
+          </span>
+        ) : null}
+        {p > 0 && r > 0 ? (
+          <span className="text-slate-400" aria-hidden>
+            ·
+          </span>
+        ) : null}
+        {r > 0 ? (
+          <span className="inline-flex items-center gap-0.5">
+            <InlineHeart size="sm" className="shrink-0 text-red-600" />
+            <span className="tabular-nums">{r}</span>
+            <span>แดง</span>
+          </span>
+        ) : null}
+      </span>
+    );
+  }, [
+    mode,
+    apiGameMode,
+    pinkHeartCost,
+    redHeartCost,
+    heartCurrencyMode,
+    acceptsPinkHeartsMeta,
+    centralPayWith
+  ]);
+
   const showCentralPlayActions =
     Boolean(resolvedGameId) &&
     mode === "api" &&
@@ -2183,9 +2248,12 @@ export default function FlipGameDemo({
                 !playLocked ||
                 !centralCanAffordStart
               }
-              className="flex-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
+              className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
-              เริ่มเล่นเกม
+              <span>เริ่มเล่นเกม</span>
+              {centralStartButtonCostLine ? (
+                <span className="w-full font-normal">{centralStartButtonCostLine}</span>
+              ) : null}
             </button>
             <button
               type="button"
