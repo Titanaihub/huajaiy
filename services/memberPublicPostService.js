@@ -168,6 +168,100 @@ function rowToPost(row, opts = {}) {
  * ไม่ส่งชื่อจริง/หัวข้อโพสต์ (แค่ username + postId สำหรับลิงก์)
  * @param {number} [limit]
  */
+/**
+ * ข้อความย่อจากบล็อกแรก (paragraph)
+ * @param {unknown} blocks
+ * @param {number} [maxLen]
+ */
+function excerptFromBodyBlocks(blocks, maxLen = 200) {
+  if (!Array.isArray(blocks)) return "";
+  const cap = Math.min(800, Math.max(40, Math.floor(Number(maxLen) || 200)));
+  for (const b of blocks) {
+    if (!b || typeof b !== "object") continue;
+    if (String(b.type || "").toLowerCase() !== "paragraph") continue;
+    const text = String(b.text ?? "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) continue;
+    return text.length > cap ? `${text.slice(0, cap - 1)}…` : text;
+  }
+  return "";
+}
+
+/**
+ * รูปแรกในเนื้อหา (https)
+ * @param {unknown} blocks
+ */
+function firstHttpsImageFromBodyBlocks(blocks) {
+  if (!Array.isArray(blocks)) return null;
+  for (const b of blocks) {
+    if (!b || typeof b !== "object") continue;
+    if (String(b.type || "").toLowerCase() !== "image") continue;
+    const url = String(b.url || "").trim();
+    if (/^https:\/\//i.test(url) && url.length <= 1024) return url;
+  }
+  return null;
+}
+
+/**
+ * โพสต์สมาชิกล่าสุดสำหรับหน้าแรก — เพจที่ public_page_listed
+ * @param {number} [limit]
+ * @returns {Promise<Array<{ postId: string, username: string, pageDisplayName: string, title: string, excerpt: string, coverImageUrl: string|null, createdAt: string|null }>>}
+ */
+async function listRecentPublicPostsForHome(limit = 6) {
+  let pool;
+  try {
+    pool = requirePool();
+  } catch (e) {
+    if (e && e.code === "DB_REQUIRED") return [];
+    throw e;
+  }
+  const lim = Math.min(12, Math.max(1, Math.floor(Number(limit) || 6)));
+  const r = await pool.query(
+    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.created_at, p.updated_at,
+            u.username, u.public_page_title
+     FROM member_public_posts p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE u.account_disabled = false
+       AND COALESCE(u.role, 'member') <> 'admin'
+       AND u.public_page_listed = true
+     ORDER BY p.updated_at DESC NULLS LAST, p.created_at DESC NULLS LAST
+     LIMIT $1`,
+    [lim]
+  );
+  return r.rows
+    .map((row) => {
+      const post = rowToPost(row);
+      if (!post) return null;
+      const un = String(row.username || "")
+        .trim()
+        .toLowerCase();
+      const id = row.id != null ? String(row.id).trim() : "";
+      if (!un || !UUID_RE.test(id)) return null;
+      const pageTitleRaw = row.public_page_title != null ? String(row.public_page_title).trim() : "";
+      const pageDisplayName = pageTitleRaw || un;
+      const excerpt = excerptFromBodyBlocks(post.bodyBlocks);
+      let cover = sanitizeCoverUrl(row.cover_image_url);
+      if (!cover) cover = firstHttpsImageFromBodyBlocks(post.bodyBlocks);
+      const title = String(post.title || "").trim() || "โพสต์";
+      return {
+        postId: id,
+        username: un,
+        pageDisplayName,
+        title,
+        excerpt,
+        coverImageUrl: cover,
+        createdAt:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : row.created_at
+              ? String(row.created_at)
+              : null
+      };
+    })
+    .filter(Boolean);
+}
+
 async function listRecentPublicPostCoversForHome(limit = 12) {
   let pool;
   try {
@@ -449,6 +543,7 @@ async function deleteForUser(userId, postId) {
 
 module.exports = {
   listRecentPublicPostCoversForHome,
+  listRecentPublicPostsForHome,
   listPublicByUsername,
   getPublicByUsernameAndPostId,
   listByUserId,

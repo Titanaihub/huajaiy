@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
 import HuajaiyCentralTemplate, { IconGamepad, IconShare, IconShop } from "./HuajaiyCentralTemplate";
 import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { formatRelativeTimeTh } from "../lib/publicMemberPosts";
+import { publicMemberPostPath } from "../lib/memberPublicUrls";
 import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
@@ -13,30 +15,6 @@ const PRODUCTS_PLACEHOLDER = [
   { name: "คีย์บอร์ดเกมมิ่ง", price: "2,490", was: "2,990", icon: "⌨️" },
   { name: "เมาส์ออปติคอล", price: "890", was: "1,190", icon: "🖱️" },
   { name: "หูฟังครอบหู", price: "1,590", was: "2,290", icon: "🎧" }
-];
-
-const POSTS_PLACEHOLDER = [
-  {
-    user: "NightOwl",
-    time: "2 ชม. ที่แล้ว",
-    excerpt: "วันนี้เล่นเกมสะสมหัวใจครบเควสแล้ว แชร์ประสบการณ์เล็กน้อยให้เพื่อนๆ ที่กำลังเริ่มต้น",
-    likes: 128,
-    comments: 24
-  },
-  {
-    user: "HeartPlayer",
-    time: "5 ชม. ที่แล้ว",
-    excerpt: "ของรางวัลในร้านค้ามีตัวเลือกน่าสนใจมาก ใครมีเทคนิคแลกของแนะนำหน่อย",
-    likes: 56,
-    comments: 12
-  },
-  {
-    user: "ShopFan",
-    time: "เมื่อวาน",
-    excerpt: "โปรลดราคาช่วงนี้คุ้มมาก กดสั่งแล้วรอของอยู่ แพ็กเกจมาถึงไวดี",
-    likes: 203,
-    comments: 41
-  }
 ];
 
 /** เกมแนะนำ: ขนาดการ์ด (รูปสี่เหลี่ยม) + ช่องว่างระหว่างการ์ด — ใช้คำนวณจำนวนการ์ดต่อแถว */
@@ -93,9 +71,31 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 export default function HomeLandingFigmaShell({
   onHamburgerClick,
   recommendedGames = [],
+  latestMemberPosts = [],
   lineProfileImageUrl,
   profileDisplayName
 }) {
+  const postsToShow = useMemo(() => {
+    const list = Array.isArray(latestMemberPosts) ? latestMemberPosts : [];
+    return list.filter((p) => p && String(p.postId || "").trim() && String(p.username || "").trim()).slice(0, 6);
+  }, [latestMemberPosts]);
+
+  const shareMemberPost = useCallback((e, post) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const path = publicMemberPostPath(post.username, post.postId);
+    const url =
+      typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+    const title = String(post.title || "").trim() || "โพสต์";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      void navigator.share({ title, url }).catch(() => {
+        void navigator.clipboard?.writeText?.(url).catch(() => {});
+      });
+    } else if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }, []);
+
   const gamesToShow = useMemo(() => {
     const list = Array.isArray(recommendedGames) ? recommendedGames : [];
     return list.filter((g) => g && String(g.id || "").trim()).slice(0, 4);
@@ -306,47 +306,80 @@ export default function HomeLandingFigmaShell({
               actionHref="/posts"
               actionLabel="ดูทั้งหมด"
             />
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {POSTS_PLACEHOLDER.map((post) => (
-                <article
-                  key={post.user + post.time}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50"
-                >
-                  <div className="flex items-center gap-3 border-b border-pink-50 p-4">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FF2E8C] to-purple-500 text-sm font-bold text-white"
-                      aria-hidden
+            {postsToShow.length === 0 ? (
+              <p className="rounded-2xl border border-pink-100/80 bg-white px-4 py-10 text-center text-sm leading-relaxed text-neutral-600 shadow-sm">
+                ยังไม่มีโพสต์จากสมาชิกในขณะนี้ ·{" "}
+                <Link href="/posts" className="font-semibold text-[#FF2E8C] underline underline-offset-2 hover:text-[#d9267a]">
+                  ดูโซนโพสต์
+                </Link>
+              </p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {postsToShow.map((post) => {
+                  const displayName = String(post.pageDisplayName || post.username || "").trim() || post.username;
+                  const initial = (displayName || "?").slice(0, 1).toUpperCase();
+                  const href = publicMemberPostPath(post.username, post.postId);
+                  const timeLabel = formatRelativeTimeTh(post.createdAt);
+                  const title = String(post.title || "").trim() || "โพสต์";
+                  const excerpt = String(post.excerpt || "").trim();
+                  const cover = post.coverImageUrl && String(post.coverImageUrl).trim() !== "" ? String(post.coverImageUrl).trim() : null;
+                  return (
+                    <article
+                      key={`${post.username}-${post.postId}`}
+                      className="flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50"
                     >
-                      {post.user.slice(0, 1)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate font-bold text-neutral-900">{post.user}</p>
-                      <p className="text-xs text-neutral-500">{post.time}</p>
-                    </div>
-                  </div>
-                  <p className="grow px-4 py-3 text-sm leading-relaxed text-neutral-700">{post.excerpt}</p>
-                  <div className="mx-4 mb-4 h-36 rounded-xl bg-gradient-to-br from-pink-100/80 to-violet-100/80" aria-hidden />
-                  <div className="flex items-center justify-between border-t border-pink-50 px-4 py-3 text-sm text-neutral-600">
-                    <span className="inline-flex items-center gap-3">
-                      <span className="inline-flex items-center gap-1">
-                        <HeartIcon className="h-4 w-4 text-[#FF2E8C]" />
-                        {post.likes}
-                      </span>
-                      <span className="inline-flex items-center gap-1" aria-hidden>
-                        💬 {post.comments}
-                      </span>
-                    </span>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 font-semibold text-[#FF2E8C] hover:underline"
-                    >
-                      <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
-                      แชร์
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
+                      <Link href={href} className="flex min-h-0 flex-1 flex-col outline-none transition hover:bg-pink-50/40 focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2">
+                        <div className="flex items-center gap-3 border-b border-pink-50 p-4">
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FF2E8C] to-purple-500 text-sm font-bold text-white"
+                            aria-hidden
+                          >
+                            {initial}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-bold text-neutral-900">{displayName}</p>
+                            <p className="text-xs text-neutral-500">{timeLabel || "—"}</p>
+                          </div>
+                        </div>
+                        <div className="grow px-4 py-3">
+                          <h3 className="line-clamp-2 text-base font-bold leading-snug text-neutral-900">{title}</h3>
+                          {excerpt ? (
+                            <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-neutral-700">{excerpt}</p>
+                          ) : null}
+                        </div>
+                        {cover ? (
+                          <div className="mx-4 mb-4 h-36 overflow-hidden rounded-xl bg-neutral-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={cover} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                          </div>
+                        ) : (
+                          <div className="mx-4 mb-4 h-36 rounded-xl bg-gradient-to-br from-pink-100/80 to-violet-100/80" aria-hidden />
+                        )}
+                      </Link>
+                      <div className="flex items-center justify-between border-t border-pink-50 px-4 py-3 text-sm text-neutral-600">
+                        <span className="inline-flex items-center gap-3">
+                          <span className="inline-flex items-center gap-1">
+                            <HeartIcon className="h-4 w-4 text-[#FF2E8C]" />
+                            0
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-neutral-500" aria-hidden>
+                            💬 0
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 font-semibold text-[#FF2E8C] hover:underline"
+                          onClick={(e) => shareMemberPost(e, post)}
+                        >
+                          <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
+                          แชร์
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* สินค้า */}

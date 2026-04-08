@@ -469,6 +469,22 @@ app.get("/api/public/members/:username", async (req, res) => {
   }
 });
 
+/** โพสต์สมาชิกล่าสุดสำหรับหน้าแรก — เพจที่เปิดรายการสาธารณะ */
+app.get("/api/public/home/member-posts", async (req, res) => {
+  try {
+    const raw = req.query.limit;
+    const n = raw != null ? parseInt(String(raw), 10) : 6;
+    const limit = Number.isFinite(n) ? Math.min(12, Math.max(1, n)) : 6;
+    const posts = await memberPublicPostService.listRecentPublicPostsForHome(limit);
+    return res.json({ ok: true, posts });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.json({ ok: true, posts: [] });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /** โพสต์เพจสาธารณะของสมาชิก — เรียงตาม sort_order */
 app.get("/api/public/members/:username/posts", async (req, res) => {
   try {

@@ -1,4 +1,5 @@
 import HomeOrganicChrome from "../components/HomeOrganicChrome";
+import { fetchHomeLatestMemberPosts } from "../lib/publicMemberPosts";
 import { fetchPublicGameList } from "../lib/publicGameMeta";
 
 export const metadata = {
@@ -8,10 +9,16 @@ export const metadata = {
 
 export default async function HomePage() {
   let recommendedGames = [];
+  let latestMemberPosts = [];
   try {
     recommendedGames = await fetchPublicGameList();
   } catch {
     recommendedGames = [];
   }
-  return <HomeOrganicChrome recommendedGames={recommendedGames} />;
+  try {
+    latestMemberPosts = await fetchHomeLatestMemberPosts(6);
+  } catch {
+    latestMemberPosts = [];
+  }
+  return <HomeOrganicChrome recommendedGames={recommendedGames} latestMemberPosts={latestMemberPosts} />;
 }

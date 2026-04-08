@@ -8,9 +8,9 @@ import { useMemberAuth } from "./MemberAuthProvider";
 /**
  * หน้าแรก production: เทมเพลต Next เต็มหน้า (เมนู + hero + เกม/สินค้า/โพสต์ + ฟุตเตอร์)
  * ไม่โหลด iframe organic — เนื้อหาเดิมใน organic-template ไม่แสดงบน /
- * @param {{ recommendedGames?: Array<{ id: string; title?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; playCount?: number }> }} props
+ * @param {{ recommendedGames?: Array<{ id: string; title?: string; gameCoverUrl?: string | null; creatorUsername?: string | null; playCount?: number }>, latestMemberPosts?: Array<{ postId: string; username: string; pageDisplayName: string; title: string; excerpt: string; coverImageUrl: string | null; createdAt: string | null }> }} props
  */
-export default function HomeOrganicChrome({ recommendedGames = [] }) {
+export default function HomeOrganicChrome({ recommendedGames = [], latestMemberPosts = [] }) {
   const router = useRouter();
   const { user } = useMemberAuth();
   const onHamburgerClick = useCallback(() => {
@@ -22,6 +22,7 @@ export default function HomeOrganicChrome({ recommendedGames = [] }) {
       <HomeLandingFigmaShell
         onHamburgerClick={onHamburgerClick}
         recommendedGames={recommendedGames}
+        latestMemberPosts={latestMemberPosts}
         lineProfileImageUrl={user?.linePictureUrl || undefined}
         profileDisplayName={
           user
