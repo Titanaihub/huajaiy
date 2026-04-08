@@ -434,7 +434,9 @@ export default function AdminCentralGamePanel({
   /** หน้าสร้างเกม: ไม่เลือกเกมแรกในรายการอัตโนมัติเมื่อยังไม่มี focus */
   disableEmbeddedAutoSelect = false,
   /** หน้าเดียว: ไม่โชว์ตารางรายการเกม — แก้เฉพาะเกมที่ focus */
-  hideEmbeddedGamesTable = false
+  hideEmbeddedGamesTable = false,
+  /** เพิ่มค่าเมื่อ parent PATCH meta แล้ว — โหลดรายละเอียดเกมใหม่โดยไม่รีเมาต์ทั้งแผง */
+  externalReloadToken = 0
 }) {
   const router = useRouter();
   const [games, setGames] = useState([]);
@@ -664,6 +666,12 @@ export default function AdminCentralGamePanel({
   useEffect(() => {
     if (selectedId) loadDetail(selectedId);
   }, [selectedId, loadDetail]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    if (externalReloadToken <= 0) return;
+    void loadDetail(selectedId);
+  }, [externalReloadToken, selectedId, loadDetail]);
 
   /** ให้ทุกชุดมีอย่างน้อยหนึ่งแถวกติกา (ไม่ใช้ปุ่มเพิ่มแถว) */
   useEffect(() => {
@@ -1150,8 +1158,10 @@ export default function AdminCentralGamePanel({
     memberShellEmbed && memberBasicInfoOnly && selectedId
   );
   const memberCancelHref = memberShellEmbed ? "/member/game" : "/account/my-games";
-  const memberPublishCta =
-    memberShellEmbed && hideEmbeddedGamesTable ? "เผยแพร่ทันที" : "เผยแพร่บนเว็บ";
+  const memberSinglePageGuide = Boolean(memberShellEmbed && hideEmbeddedGamesTable);
+  const memberPublishCta = memberSinglePageGuide ? "เผยแพร่เกม" : "เผยแพร่บนเว็บ";
+  const gameCoverBlockTitle = memberSinglePageGuide ? "รูปหน้าห้องเกม" : "รูปหน้าปกเกม";
+  const tileBackBlockTitle = memberSinglePageGuide ? "รูปหน้าป้าย" : "รูปหน้าปิดป้าย";
 
   return (
     <section className="space-y-8 text-sm">
@@ -1925,7 +1935,7 @@ export default function AdminCentralGamePanel({
 
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="rounded-xl border border-hui-border bg-white p-4">
-                <h3 className="text-sm font-semibold text-hui-section">รูปหน้าปกเกม</h3>
+                <h3 className="text-sm font-semibold text-hui-section">{gameCoverBlockTitle}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนหน้าแรกและหน้าเล่นเกม — ถ้าไม่อัปโหลดหรือกดคืนค่า จะใช้รูปหัวใจสีชมพูเป็นค่าเริ่มต้น
                 </p>
@@ -1952,7 +1962,9 @@ export default function AdminCentralGamePanel({
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
                     <label className="text-sm font-medium text-hui-body">
-                      อัปโหลดรูปหน้าปก (1 ไฟล์)
+                      {memberSinglePageGuide
+                        ? "อัปโหลดรูปหน้าห้องเกม (1 ไฟล์)"
+                        : "อัปโหลดรูปหน้าปก (1 ไฟล์)"}
                     </label>
                     <input
                       type="file"
@@ -1976,7 +1988,7 @@ export default function AdminCentralGamePanel({
               </div>
 
               <div className="rounded-xl border border-hui-border bg-white p-4">
-                <h3 className="text-sm font-semibold text-hui-section">รูปหน้าปิดป้าย</h3>
+                <h3 className="text-sm font-semibold text-hui-section">{tileBackBlockTitle}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-hui-body">
                   แสดงบนกระดานก่อนผู้เล่นเปิดป้าย — ถ้าไม่อัปโหลดหรือกดคืนค่า ระบบใช้รูปเริ่มต้นของเว็บ
                 </p>
@@ -2003,7 +2015,9 @@ export default function AdminCentralGamePanel({
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
                     <label className="text-sm font-medium text-hui-body">
-                      อัปโหลดรูปหน้าปิดป้าย (1 ไฟล์)
+                      {memberSinglePageGuide
+                        ? "อัปโหลดรูปหน้าป้าย (1 ไฟล์)"
+                        : "อัปโหลดรูปหน้าปิดป้าย (1 ไฟล์)"}
                     </label>
                     <input
                       type="file"
@@ -2062,7 +2076,11 @@ export default function AdminCentralGamePanel({
                   type="button"
                   disabled={gameActionBusy || savingAll || !selectedId}
                   onClick={() => deactivate()}
-                  className="rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
+                  className={
+                    memberSinglePageGuide
+                      ? "rounded-2xl border-2 border-red-400 bg-white px-3 py-2 text-sm font-medium text-red-800 shadow-sm hover:bg-red-50/80 disabled:cursor-not-allowed disabled:opacity-50"
+                      : "rounded-2xl border border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-body shadow-soft hover:bg-hui-pageTop disabled:cursor-not-allowed disabled:opacity-50"
+                  }
                 >
                   หยุดการเผยแพร่
                 </button>
@@ -2081,7 +2099,11 @@ export default function AdminCentralGamePanel({
                       : undefined
                   }
                   onClick={() => removeGame()}
-                  className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={
+                    memberSinglePageGuide
+                      ? "rounded-2xl border-2 border-red-500 bg-white px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      : "rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-900 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  }
                 >
                   ลบเกม
                 </button>

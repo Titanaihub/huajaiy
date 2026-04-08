@@ -12,8 +12,17 @@ import {
   CENTRAL_GAME_MAX_TILES
 } from "../lib/centralGameLimits";
 import { getMemberToken } from "../lib/memberApi";
-import { apiAdminCentralGameCreate } from "../lib/rolesApi";
+import {
+  apiAdminCentralGameCreate,
+  apiAdminCentralGameDetail,
+  apiAdminCentralGamePatch
+} from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+/** เซสชันเบราว์เซอร์ — กลับมาหน้าสร้างเกมจะใช้ร่างเดิมก่อนสร้างใหม่ */
+const MEMBER_DRAFT_SESSION_KEY = "huajaiy.memberCreateDraftId";
+/** กัน React Strict Mode / effect ซ้ำยิง POST สร้างร่างสองครั้ง */
+let memberDraftBootstrapPromise = null;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -78,7 +87,10 @@ export default function CreateGameRoomForm({
   const [agreeRules, setAgreeRules] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [introSavedMsg, setIntroSavedMsg] = useState("");
+  const [introTick, setIntroTick] = useState(0);
   const [studioGameId, setStudioGameId] = useState(null);
+  const [draftBootErr, setDraftBootErr] = useState("");
   const studioRef = useRef(null);
 
   useEffect(() => {
@@ -86,14 +98,82 @@ export default function CreateGameRoomForm({
     setStudioGameId(gameFromUrl.trim());
   }, [managingExisting, gameFromUrl]);
 
+  /** สมาชิก /member/create-game ไม่มี ?game= — สร้างเกมร่างทันทีให้แผงล่างโหลดในหน้าเดียว */
+  useEffect(() => {
+    if (!memberShellEmbed || !user || loading) return;
+    if (managingExisting) return;
+
+    let cancelled = false;
+
+    async function bootstrapDraft() {
+      const token = getMemberToken();
+      if (!token) return null;
+
+      const stored = sessionStorage.getItem(MEMBER_DRAFT_SESSION_KEY)?.trim();
+      if (stored && UUID_RE.test(stored)) {
+        try {
+          await apiAdminCentralGameDetail(token, stored);
+          return stored;
+        } catch {
+          sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
+        }
+      }
+
+      const data = await apiAdminCentralGameCreate(token, {
+        title: `เกมใหม่ — ${new Date().toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "short"
+        })}`,
+        description: "",
+        setCount: 1,
+        imagesPerSet: 4,
+        ...DEFAULT_NEW_ROOM_HEART_PRESET
+      });
+      const gid = data.game?.id || data.snapshot?.game?.id || null;
+      if (gid) sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
+      return gid;
+    }
+
+    if (!memberDraftBootstrapPromise) {
+      memberDraftBootstrapPromise = bootstrapDraft().finally(() => {
+        memberDraftBootstrapPromise = null;
+      });
+    }
+
+    memberDraftBootstrapPromise
+      .then((gid) => {
+        if (cancelled || !gid) return;
+        setStudioGameId(gid);
+        setDraftBootErr("");
+        router.replace(`/member/create-game?game=${encodeURIComponent(gid)}`);
+      })
+      .catch((ex) => {
+        if (!cancelled) {
+          setDraftBootErr(ex?.message || "สร้างเกมร่างไม่สำเร็จ");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [memberShellEmbed, user, loading, managingExisting, router]);
+
   useEffect(() => {
     if (!studioGameId || !studioRef.current) return;
     studioRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [studioGameId]);
 
+  function currentGameIdForApi() {
+    if (typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim())) {
+      return gameFromUrl.trim();
+    }
+    return studioGameId;
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     setErr("");
+    setIntroSavedMsg("");
 
     if (!agreeRules) {
       setErr("กรุณากดยืนยันว่ารับทราบกฎระเบียบและความรับผิดชอบ");
@@ -124,8 +204,17 @@ export default function CreateGameRoomForm({
     const title = titleBase.slice(0, 200);
     const description = buildDescription({ purpose, otherReason, prizeConditions });
 
+    const gidExisting = currentGameIdForApi();
+
     setBusy(true);
     try {
+      if (memberShellEmbed && gidExisting) {
+        await apiAdminCentralGamePatch(token, gidExisting, { title, description });
+        setIntroTick((x) => x + 1);
+        setIntroSavedMsg("บันทึกข้อมูลเบื้องต้นแล้ว — ตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
+        return;
+      }
+
       const data = await apiAdminCentralGameCreate(token, {
         title,
         description,
@@ -136,6 +225,9 @@ export default function CreateGameRoomForm({
       const gid = data.game?.id || data.snapshot?.game?.id || null;
       if (!gid) throw new Error("สร้างห้องแล้วแต่ไม่ได้รับรหัสเกม — ลองรีเฟรชหน้า");
       setStudioGameId(gid);
+      if (memberShellEmbed) {
+        sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
+      }
       const nextUrl = memberShellEmbed
         ? `/member/create-game?game=${encodeURIComponent(gid)}`
         : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
@@ -355,10 +447,26 @@ export default function CreateGameRoomForm({
         </label>
 
         <p className="text-sm leading-relaxed text-hui-muted">
-          หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
-          <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
-          <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+          {memberShellEmbed ? (
+            <>
+              ด้านล่างคือ<strong className="font-medium text-hui-section"> ตั้งค่าห้องเกมทั้งหมดในหน้าเดียว</strong>
+              — กดปุ่มชมพูด้านล่างนี้เพื่อ<strong>บันทึกข้อมูลเบื้องต้น</strong> (ชื่อ + คำอธิบายที่รวมวัตถุประสงค์และเงื่อนไขรางวัล)
+              แล้วตั้งค่าหัวใจ ป้าย และรูปในส่วน &quot;ตั้งค่าห้องเกมของฉัน&quot; ได้ทันที
+            </>
+          ) : (
+            <>
+              หลังเปิดห้อง ระบบจะสร้างเกมด้วยค่าเริ่มต้น{" "}
+              <strong className="font-medium text-hui-section">หักหัวใจแดง 1 ต่อรอบ</strong>{" "}
+              <span className="text-hui-muted">(ปรับโหมด/ยอดได้ทันทีในขั้นตอนตั้งค่าเกมด้านล่าง)</span>
+            </>
+          )}
         </p>
+
+        {introSavedMsg ? (
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">
+            {introSavedMsg}
+          </p>
+        ) : null}
 
         {err ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
@@ -369,14 +477,18 @@ export default function CreateGameRoomForm({
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
-            disabled={busy || Boolean(studioGameId)}
+            disabled={busy || (!memberShellEmbed && Boolean(studioGameId))}
             className="hui-btn-primary px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {busy
-              ? "กำลังเปิดห้อง…"
-              : studioGameId
-                ? "สร้างห้องแล้ว"
-                : "เปิดสร้างห้องเกม"}
+              ? memberShellEmbed
+                ? "กำลังบันทึก…"
+                : "กำลังเปิดห้อง…"
+              : memberShellEmbed
+                ? "บันทึกข้อมูลเบื้องต้น"
+                : studioGameId
+                  ? "สร้างห้องแล้ว"
+                  : "เปิดสร้างห้องเกม"}
           </button>
           {isMemberEmbed ? (
             <>
@@ -396,6 +508,18 @@ export default function CreateGameRoomForm({
               >
                 เกมของฉัน
               </a>
+              <button
+                type="button"
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+                onClick={() => {
+                  sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
+                  if (typeof window !== "undefined") {
+                    window.location.assign("/member/create-game");
+                  }
+                }}
+              >
+                เริ่มร่างเกมใหม่
+              </button>
             </>
           ) : (
             <>
@@ -433,9 +557,7 @@ export default function CreateGameRoomForm({
         )}
         <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
           {memberShellEmbed
-            ? managingExisting
-              ? "ตั้งค่าหัวใจ ป้าย รางวัล และรูปหน้าปกในหน้านี้ได้เลย — กดบันทึกและเผยแพร่เมื่อพร้อม"
-              : "อ่านข้อห้ามและกฎด้านบน แล้วกรอกข้อมูลเบื้องต้น — จากนั้นตั้งค่าเกมทั้งหมดด้านล่างในหน้าเดียวกัน"
+            ? "กรอกด้านบนและเลื่อนลงมาตั้งค่าเกมในหน้านี้หน้าเดียว — บันทึกข้อมูล / เผยแพร่เกมที่ส่วนล่างเมื่อพร้อม"
             : managingExisting
               ? "ด้านล่างคือแผงตั้งค่าเกมของคุณ"
               : "เลือกวัตถุประสงค์ อ่านข้อห้ามและกฎระเบียบ แล้วระบุเงื่อนไขรางวัลให้ชัดเจน"}
@@ -466,7 +588,19 @@ export default function CreateGameRoomForm({
         ) : null}
       </div>
 
-      {!managingExisting ? intakeForm : null}
+      {memberShellEmbed || !managingExisting ? intakeForm : null}
+
+      {draftBootErr ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">
+          {draftBootErr}
+        </p>
+      ) : null}
+
+      {memberShellEmbed && user && !panelFocusId && !draftBootErr ? (
+        <p className="text-sm text-hui-muted" aria-live="polite">
+          กำลังเตรียมเกมร่างให้คุณ…
+        </p>
+      ) : null}
 
       {user && (!memberShellEmbed || panelFocusId) ? (
         <div
@@ -485,6 +619,7 @@ export default function CreateGameRoomForm({
               suppressTopPolicyCallouts={Boolean(memberShellEmbed)}
               disableEmbeddedAutoSelect={Boolean(memberShellEmbed)}
               hideEmbeddedGamesTable={Boolean(memberShellEmbed)}
+              externalReloadToken={introTick}
             />
           </div>
         </div>
