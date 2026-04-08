@@ -23,6 +23,11 @@ import {
 import { publicMemberPostPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { PostBodyBlocks, needsExpand } from "./MemberPublicPostBlocks";
+import {
+  BrandFacebookGlyph,
+  BrandLineWordmark,
+  BrandTiktokGlyph
+} from "./MemberSocialBrandMarks";
 
 function newClientId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -309,6 +314,16 @@ function MemberPublicPostCard({
     }
   }, [shareUrl, trackIntent]);
 
+  const onTikTokShare = useCallback(async () => {
+    if (!shareUrl) return;
+    await trackIntent("tiktok");
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      /* ignore */
+    }
+  }, [shareUrl, trackIntent]);
+
   const toggleStats = useCallback(() => {
     setStatsOpen((o) => {
       const next = !o;
@@ -462,29 +477,42 @@ function MemberPublicPostCard({
       {shareUrl ? (
         <div className="mt-2 border-t border-gray-100 pt-2">
           <p className="mb-1.5 text-[11px] font-medium text-gray-600">แชร์โพสต์</p>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <a
               href={lineShareUrl(shareUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("line")}
-              className="inline-flex rounded-md bg-[#06C755] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-95"
+              className="inline-flex h-10 min-w-[4.5rem] shrink-0 items-center justify-center rounded-lg bg-[#06C755] px-2 shadow-sm ring-1 ring-black/5 hover:bg-[#05b64c]"
+              aria-label="แชร์ LINE"
+              title="LINE"
             >
-              LINE
+              <BrandLineWordmark />
             </a>
             <a
               href={facebookShareUrl(shareUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("facebook")}
-              className="inline-flex rounded-md bg-[#1877F2] px-2 py-1 text-[11px] font-semibold text-white hover:opacity-95"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-black/5 hover:bg-gray-50"
+              aria-label="แชร์ Facebook"
+              title="Facebook"
             >
-              Facebook
+              <BrandFacebookGlyph />
             </a>
             <button
               type="button"
+              onClick={onTikTokShare}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black shadow-sm ring-1 ring-black/5 hover:bg-neutral-900"
+              aria-label="คัดลอกลิงก์เพื่อแชร์ TikTok"
+              title="คัดลอกลิงก์ (แชร์ TikTok)"
+            >
+              <BrandTiktokGlyph />
+            </button>
+            <button
+              type="button"
               onClick={onCopyShareLink}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-[11px] font-semibold text-gray-800 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-[11px] font-semibold text-gray-800 shadow-sm hover:bg-gray-50"
             >
               คัดลอกลิงก์
             </button>
@@ -575,9 +603,12 @@ function MemberPublicPostCard({
     </div>
   );
 
+  const cardShell =
+    "overflow-hidden rounded-2xl border border-pink-100/90 bg-white shadow-md shadow-rose-100/30 ring-1 ring-rose-100/40";
+
   if (layout === "stack") {
     return (
-      <article className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <article className={`flex h-full flex-col ${cardShell}`}>
         {media}
         {body}
       </article>
@@ -585,7 +616,7 @@ function MemberPublicPostCard({
   }
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
+    <article className={`flex flex-col md:flex-row ${cardShell}`}>
       {media}
       {body}
     </article>
@@ -602,6 +633,8 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
   const { user } = useMemberAuth();
   const [posts, setPosts] = useState(() => sortPosts(initialPosts));
   const [editingId, setEditingId] = useState(null);
+  /** โพสต์ใหม่: กดปุ่ม 「โพสต์」 แล้วค่อยขยายฟอร์ม */
+  const [composerOpen, setComposerOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [blocks, setBlocks] = useState(defaultBlocks);
@@ -652,6 +685,7 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
 
   const resetComposer = useCallback(() => {
     setEditingId(null);
+    setComposerOpen(false);
     setTitle("");
     setCoverUrl("");
     setBlocks(defaultBlocks());
@@ -666,6 +700,7 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
   const onEdit = useCallback(
     (post) => {
       setEditingId(post.id);
+      setComposerOpen(true);
       setTitle(String(post.title || ""));
       setCoverUrl(String(post.coverImageUrl || "").trim());
       const raw = blocksFromApi(post.bodyBlocks);
@@ -837,6 +872,12 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
         }
         setPosts((prev) => sortPosts([...prev.filter((p) => p.id !== postForList.id), postForList]));
         resetComposer();
+        window.setTimeout(() => {
+          document.getElementById("member-posts-feed-anchor")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 80);
       }
       router.refresh();
     } catch (e) {
@@ -856,16 +897,54 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
     title
   ]);
 
+  const showComposer = isOwner && (Boolean(editingId) || composerOpen);
+
   return (
-    <div className="space-y-4">
-      {isOwner ? (
-        <section className="rounded-xl border border-rose-200/80 bg-white p-4 shadow-sm sm:p-5">
-          <h2 className="text-base font-semibold text-gray-900">
-            {editingId ? "แก้ไขโพสต์" : "สร้างโพสต์ใหม่"}
-          </h2>
-          <p className="mt-1 text-xs text-gray-500">
-            หัวข้อ + รูปปก · คำอธิบายประกอบด้วยย่อหน้า รูป (HTTPS) และลิงก์ข้อความ · เลือกแบบการ์ดและลำดับแสดง
-          </p>
+    <div className="space-y-6">
+      {isOwner && !showComposer ? (
+        <section className="rounded-2xl border border-rose-200/90 bg-gradient-to-br from-white via-rose-50/40 to-white p-4 shadow-sm shadow-rose-100/40 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-gray-900">สร้างโพสต์ใหม่</h2>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                กด 「โพสต์」 เพื่อตั้งค่ารูปปก หัวข้อ คำอธิบาย รูปแบบการ์ด และแจกหัวใจ (ถ้าต้องการ)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setErr("");
+                setComposerOpen(true);
+              }}
+              className="inline-flex shrink-0 items-center justify-center rounded-full border border-rose-200 bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50"
+            >
+              โพสต์
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {showComposer ? (
+        <section className="rounded-2xl border border-rose-200/80 bg-white p-4 shadow-md shadow-rose-100/30 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-gray-900">
+                {editingId ? "แก้ไขโพสต์" : "สร้างโพสต์ใหม่"}
+              </h2>
+              <p className="mt-1 text-xs text-gray-500">
+                หัวข้อ + รูปปก · คำอธิบายประกอบด้วยย่อหน้า รูป (HTTPS) และลิงก์ข้อความ · เลือกแบบการ์ดและลำดับแสดง
+              </p>
+            </div>
+            {!editingId ? (
+              <button
+                type="button"
+                onClick={() => resetComposer()}
+                className="shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100"
+              >
+                ปิดฟอร์ม
+              </button>
+            ) : null}
+          </div>
           {err ? (
             <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">{err}</p>
           ) : null}
@@ -1104,32 +1183,34 @@ export default function MemberPublicPostsFeed({ username, initialPosts }) {
       ) : null}
 
       {posts.length === 0 ? (
-        <div className="mx-auto max-w-2xl rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-dashed border-rose-200/80 bg-gradient-to-b from-white to-rose-50/30 p-10 text-center shadow-sm">
           <p className="text-lg font-semibold text-gray-800">ยังไม่มีโพสต์</p>
           <p className="mt-2 text-sm leading-relaxed text-gray-500">
             {isOwner
-              ? "สร้างโพสต์แรกด้านบน — ผู้เยี่ยมชมจะเห็นการ์ดที่นี่"
+              ? "กด 「โพสต์」 ด้านบนเพื่อสร้างโพสต์แรก — ผู้เยี่ยมชมจะเห็นการ์ดที่นี่"
               : "สมาชิกยังไม่ได้เพิ่มโพสต์บนเพจนี้"}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {posts.map((p) => (
-            <div
-              key={p.id}
-              className={p.layout === "stack" ? "" : "md:col-span-2"}
-            >
-              <MemberPublicPostCard
-                post={p}
-                pageUsername={username}
-                viewerUsername={user?.username}
-                isOwner={isOwner}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onPostUpdated={patchPostInList}
-              />
-            </div>
-          ))}
+        <div id="member-posts-feed-anchor" className="scroll-mt-6 space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {posts.map((p) => (
+              <div
+                key={p.id}
+                className={p.layout === "stack" ? "" : "md:col-span-2"}
+              >
+                <MemberPublicPostCard
+                  post={p}
+                  pageUsername={username}
+                  viewerUsername={user?.username}
+                  isOwner={isOwner}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onPostUpdated={patchPostInList}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

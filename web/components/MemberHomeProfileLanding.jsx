@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { apiPatchPassword, getMemberToken } from "../lib/memberApi";
 import { uploadUrl } from "../lib/config";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
-import { publicMemberPath } from "../lib/memberPublicUrls";
 import { useMemberAuth } from "./MemberAuthProvider";
 import {
   COUNTRY_NON_TH,
@@ -116,7 +115,6 @@ export default function MemberHomeProfileLanding({ user }) {
     DEFAULT_AVATAR;
 
   const username = String(user?.username || "").trim();
-  const publicHref = username ? publicMemberPath(username) : "";
 
   const hearts = heartTotalsFromPublicUser(user);
   const pinkShown = hearts.pink;
@@ -382,9 +380,9 @@ export default function MemberHomeProfileLanding({ user }) {
       {/* หัวโปรไฟล์ — ใช้ชื่อ–นามสกุลจริง (ไม่ใช้ชื่อสมาชิกแยก) · ไม่มีแบนเนอร์ */}
       <div className="relative w-full pb-8 pt-0">
         <div className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/30">
-          <div className="relative bg-white px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:gap-5">
+            <div className="relative bg-white px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border-4 border-pink-100 bg-neutral-100 shadow-md sm:h-28 sm:w-28 md:h-32 md:w-32">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -399,39 +397,32 @@ export default function MemberHomeProfileLanding({ user }) {
                     {fullName}
                   </h1>
                   {username ? (
-                    <p className="mt-0.5 text-sm text-neutral-500">
-                      @{username}
-                      {publicHref ? (
-                        <>
-                          <span className="mx-2 text-neutral-300" aria-hidden>
-                            ·
-                          </span>
-                          <Link
-                            href={publicHref}
-                            className="font-medium text-[#FF2E8C] hover:underline"
-                          >
-                            ดูเพจสาธารณะ
-                          </Link>
-                        </>
-                      ) : null}
-                    </p>
+                    <p className="mt-0.5 text-sm text-neutral-500">@{username}</p>
                   ) : null}
                   {publicBio ? (
                     <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600 sm:text-base">
                       {publicBio}
                     </p>
                   ) : null}
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     {socialLine ? (
                       <a
                         href={socialLine}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#06C755] text-white shadow-sm"
+                        className="inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-[#06C755] px-2 shadow-sm ring-1 ring-black/5"
                         aria-label="LINE"
                         title="LINE"
                       >
-                        LINE
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/icons/line-wordmark.svg"
+                          alt=""
+                          width={72}
+                          height={24}
+                          className="h-6 w-auto max-w-[68px] object-contain"
+                          decoding="async"
+                        />
                       </a>
                     ) : null}
                     {socialFacebook ? (
@@ -439,11 +430,16 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialFacebook}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#1877F2] text-white shadow-sm"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-black/5"
                         aria-label="Facebook"
                         title="Facebook"
                       >
-                        f
+                        <svg className="h-full w-full" viewBox="0 0 24 24" aria-hidden>
+                          <path
+                            fill="#1877F2"
+                            d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                          />
+                        </svg>
                       </a>
                     ) : null}
                     {socialTiktok ? (
@@ -451,11 +447,16 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialTiktok}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-black text-white shadow-sm"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-black shadow-sm ring-1 ring-black/5"
                         aria-label="TikTok"
                         title="TikTok"
                       >
-                        TikTok
+                        <svg className="h-7 w-7" viewBox="0 0 24 24" aria-hidden>
+                          <path
+                            fill="#fff"
+                            d="M12.525.02c1.31-.02 2.61-.01 3.919.02 0 1.38.017 2.76.001 4.14 1.15-.1 2.31-.19 3.47-.1.02 1.2.01 2.41 0 3.61.96.1 1.95.13 2.91.19.01 1.23.01 2.46 0 3.69-.97-.07-1.95-.13-2.91-.21-.02 1.98-.05 3.97-.1 5.94-.79 3.52-4.34 6.03-7.93 5.67-2.92-.29-5.45-2.36-6.39-5.13-.44-1.39-.61-2.89-.56-4.37.14-2.19 1.35-4.2 3.05-5.5 1.71-1.3 3.94-1.83 6.03-1.44.05.64.1 1.27.15 1.91-1.74-.31-3.68.09-4.96 1.41-.83.86-1.35 2.06-1.34 3.35.04 2.03 1.75 3.92 3.79 4.27.96.17 1.95-.02 2.81-.46 1.2-.61 2.01-1.82 2.14-3.12.04-1.67.01-3.35.01-5.02.99-.01 1.99-.01 2.99 0-.03 3.02.03 6.05-.03 9.07-.05.93-.34 1.86-.84 2.63-.8 1.21-2.14 2.03-3.54 2.28-1.39.24-2.85.08-4.14-.57-1.56-.75-2.74-2.16-3.21-3.83-.31-1.05-.28-2.17-.29-3.25.01-2.21.01-4.43-.03-6.64z"
+                          />
+                        </svg>
                       </a>
                     ) : null}
                   </div>

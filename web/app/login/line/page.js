@@ -4,7 +4,10 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import HomeStylePublicHeader from "../../../components/HomeStylePublicHeader";
-import LineLogoMark from "../../../components/LineLogoMark";
+import {
+  LineLoginPinkPillInner,
+  lineLoginPinkPillClassName
+} from "../../../components/LineLoginPinkPill";
 import PublicLegalFooter from "../../../components/PublicLegalFooter";
 import {
   ADMIN_HOME_PATH,
@@ -220,14 +223,15 @@ function LineLoginContent() {
                 </p>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={handleLineSignIn}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-3.5 text-center shadow-sm shadow-pink-400/25 transition hover:brightness-105 active:scale-[0.99]"
-                  >
-                    <span className="text-base font-bold text-white">เข้าสู่ระบบ</span>
-                    <LineLogoMark />
-                  </button>
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleLineSignIn}
+                      className={lineLoginPinkPillClassName}
+                    >
+                      <LineLoginPinkPillInner />
+                    </button>
+                  </div>
                   <p className="text-center text-sm text-slate-500">
                     บัญชีจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
                   </p>

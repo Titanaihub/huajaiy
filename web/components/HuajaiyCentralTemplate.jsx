@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
-import LineLogoMark from "./LineLogoMark";
+import {
+  LineLoginPinkPillInner,
+  lineLoginPinkPillClassName
+} from "./LineLoginPinkPill";
 import { useHearts } from "./HeartsProvider";
 import { useMemberAuth } from "./MemberAuthProvider";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
@@ -384,10 +387,9 @@ export default function HuajaiyCentralTemplate({
               {!memberUser ? (
                 <Link
                   href="/login/line?auto=1"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3 py-2 text-xs font-bold shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:hidden sm:gap-2 sm:px-4 sm:text-sm"
+                  className={`${lineLoginPinkPillClassName} lg:hidden`}
                 >
-                  <span className="text-white">เข้าสู่ระบบ</span>
-                  <LineLogoMark />
+                  <LineLoginPinkPillInner />
                 </Link>
               ) : null}
             </div>
@@ -461,10 +463,9 @@ export default function HuajaiyCentralTemplate({
               ) : (
                 <Link
                   href="/login/line?auto=1"
-                  className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-4 py-2.5 text-sm font-bold shadow-sm shadow-pink-400/25 transition hover:brightness-105 lg:inline-flex"
+                  className={`${lineLoginPinkPillClassName} hidden lg:inline-flex`}
                 >
-                  <span className="text-white">เข้าสู่ระบบ</span>
-                  <LineLogoMark />
+                  <LineLoginPinkPillInner />
                 </Link>
               )}
               {memberUser
