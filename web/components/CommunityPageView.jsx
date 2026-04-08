@@ -1,6 +1,88 @@
 import Link from "next/link";
 import CommunityLobby from "./CommunityLobby";
-import { buildCommunityLobbyPosts } from "../lib/communityLobbyPosts";
+import { publicMemberPath } from "../lib/memberPublicUrls";
+
+const LEGACY_BLOG_TITLES = new Set([
+  "our recent blog",
+  "our blog",
+  "recent blog"
+]);
+
+function normalizeCommunityTitle(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return "เพจชุมชน";
+  if (LEGACY_BLOG_TITLES.has(t.toLowerCase())) return "เพจชุมชน";
+  return t;
+}
+
+function postHasPublicContent(post) {
+  if (!post || typeof post !== "object") return false;
+  const t = String(post.title ?? "").trim();
+  const u = String(post.imageUrl ?? "").trim();
+  const ex = String(post.excerpt ?? "").trim();
+  return Boolean(t || u || ex);
+}
+
+/** ลิงก์เดียวกัน (เช่น /username) ไม่แสดงซ้ำ — คงรายการจาก member API ก่อน */
+function communityPostDedupeKey(post) {
+  const h = String(post?.href ?? "").trim();
+  if (h && h !== "#") {
+    try {
+      let path = h.split("?")[0].replace(/\/+$/, "");
+      if (/^https?:\/\//i.test(path)) {
+        path = new URL(path).pathname || path;
+      }
+      path = path.toLowerCase();
+      return path || `href:${h}`;
+    } catch {
+      return h.toLowerCase();
+    }
+  }
+  const t = String(post?.title ?? "").trim();
+  const u = String(post?.imageUrl ?? "").trim();
+  return `raw:${t}|${u}`;
+}
+
+function dedupeCommunityPosts(orderedPosts) {
+  const seen = new Set();
+  const out = [];
+  for (const p of orderedPosts) {
+    if (!p || typeof p !== "object") continue;
+    const k = communityPostDedupeKey(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(p);
+  }
+  return out;
+}
+
+const MEMBER_EXCERPT_LEN = 200;
+
+function memberDirectoryCard(m) {
+  const un = String(m?.username || "").trim();
+  if (!un) return null;
+  const bio = String(m?.publicPageBio || "").trim();
+  let excerpt = bio;
+  if (excerpt.length > MEMBER_EXCERPT_LEN) {
+    excerpt = `${excerpt.slice(0, MEMBER_EXCERPT_LEN).trim()}…`;
+  }
+  const img =
+    String(m?.publicPageCoverUrl || "").trim() ||
+    String(m?.profilePictureUrl || "").trim() ||
+    "";
+  const title =
+    String(m?.pageTitle || "").trim() ||
+    String(m?.displayName || un).trim() ||
+    un;
+  return {
+    title,
+    category: "เพจสมาชิก",
+    dateLine: `@${un}`,
+    excerpt,
+    imageUrl: img,
+    href: publicMemberPath(un)
+  };
+}
 
 function SmartLink({ href, className, children }) {
   const h = String(href || "").trim();
@@ -24,13 +106,26 @@ function SmartLink({ href, className, children }) {
 /**
  * เนื้อหาเพจชุมชน — โครงเดียวกับหน้า /game (หัวข้อ + ล็อบบี้การ์ด + ทางลัด)
  */
-export default function CommunityPageView({ blogBlock, communityPage, memberPages = [] }) {
-  const { lobbyPosts, viewAllHref, viewAllLabel, title, sub } = buildCommunityLobbyPosts({
-    blogBlock,
-    communityPage,
-    memberPages
-  });
-  const showViewAll = viewAllHref && viewAllHref !== "#";
+export default function CommunityPageView({
+  blogBlock,
+  communityPage,
+  memberPages = []
+}) {
+  const rawTitle = blogBlock?.title?.trim() || "";
+  const title = normalizeCommunityTitle(rawTitle);
+  const rawSub = blogBlock?.subtitle?.trim() || "";
+  const sub =
+    rawSub && !rawSub.toLowerCase().includes("lorem ipsum") ? rawSub : "";
+  const cp = communityPage && typeof communityPage === "object" ? communityPage : {};
+  const posts = Array.isArray(cp.posts) ? cp.posts : [];
+  const visiblePosts = posts.filter(postHasPublicContent);
+  const memberPosts = (Array.isArray(memberPages) ? memberPages : [])
+    .map(memberDirectoryCard)
+    .filter(Boolean)
+    .filter(postHasPublicContent);
+  const lobbyPosts = dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
+  const viewHref = String(cp.viewAllHref || "").trim();
+  const showViewAll = viewHref && viewHref !== "#";
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -50,10 +145,10 @@ export default function CommunityPageView({ blogBlock, communityPage, memberPage
         </div>
         {showViewAll ? (
           <SmartLink
-            href={viewAllHref}
+            href={viewHref}
             className="shrink-0 rounded-xl border border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] px-4 py-2.5 text-center text-sm font-semibold text-[var(--gl-card-cta)] shadow-sm transition hover:border-[color:var(--gl-card-cta-hover)] hover:text-[var(--gl-card-cta-hover)]"
           >
-            {viewAllLabel || "ดูทั้งหมด"}
+            {cp.viewAllLabel || "ดูทั้งหมด"}
           </SmartLink>
         ) : null}
       </div>
