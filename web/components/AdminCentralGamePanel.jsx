@@ -2107,6 +2107,25 @@ export default function AdminCentralGamePanel({
                 >
                   ลบเกม
                 </button>
+                {memberSinglePageGuide && selectedId ? (
+                  <>
+                    <Link
+                      href={`/game/${encodeURIComponent(selectedId)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center rounded-2xl border-2 border-[#FF2E8C] bg-white px-3 py-2 text-sm font-semibold text-[#FF2E8C] shadow-sm hover:bg-pink-50/80"
+                      title="เปิดหน้าเล่นของเกมนี้ในแท็บใหม่ (ร่างที่ยังไม่เผยแพร่อาจไม่โผล่ในล็อบบี้)"
+                    >
+                      ดูตัวอย่างหน้าเล่น
+                    </Link>
+                    <Link
+                      href="/member/game"
+                      className="inline-flex items-center justify-center rounded-2xl border-2 border-hui-border bg-white px-3 py-2 text-sm font-medium text-hui-section shadow-sm hover:bg-hui-pageTop"
+                    >
+                      กลับเกมของฉัน
+                    </Link>
+                  </>
+                ) : null}
               </div>
             </div>
           </form>
