@@ -572,13 +572,18 @@ export default function AdminCentralGamePanel({
       const rawDesc = typeof g.description === "string" ? g.description : "";
       const descTrimmed = String(rawDesc).trim();
       const unpublishedDraft = !g.isPublished && !g.isActive;
-      /** ร่างที่สร้างจากหน้า /member/create-game — โชว์ช่องว่างให้ผู้ใช้กรอกเอง */
-      const looksLikeAutoMemberDraft =
+      /** คำอธิบายที่มาจากการบันทึกฟอร์มบน (วัตถุประสงค์+เงื่อนไข) — โชว์ช่องว่างในแผงสตูดิโอให้กรอกชื่อ/รายละเอียดหน้าเล่นแยก */
+      const introMergedStyleDescription =
+        descTrimmed.length > 0 &&
+        (/^\s*วัตถุประสงค์/m.test(descTrimmed) ||
+          /วัตถุประสงค์เปิดห้องเกม/.test(descTrimmed));
+      /** ร่างอัตโนมัติ หรือมีแต่ข้อมูลจากขั้นตอนบน — ไม่เติมช่องสตูดิโอ */
+      const clearMemberStudioNameAndDetail =
         hideEmbeddedGamesTable &&
         unpublishedDraft &&
-        !descTrimmed &&
-        /^เกมใหม่\s*[—\-–]/u.test(rawTitle);
-      if (looksLikeAutoMemberDraft) {
+        (introMergedStyleDescription ||
+          (!descTrimmed && /^เกมใหม่\s*[—\-–]/u.test(rawTitle)));
+      if (clearMemberStudioNameAndDetail) {
         setTitle("");
         setGameDescription("");
       } else {
@@ -1642,7 +1647,7 @@ export default function AdminCentralGamePanel({
 
           {memberSinglePageGuide ? (
             <p className="text-sm text-hui-muted">
-              กรอก <strong className="text-hui-section">รายละเอียด</strong> และ <strong className="text-hui-section">ชื่อเกม</strong> · ตั้งโครงชุด รูป และกติกา · กด{" "}
+              กรอก <strong className="text-hui-section">ชื่อเกม</strong> และ <strong className="text-hui-section">รายละเอียด</strong> · ตั้งโครงชุด รูป และกติกา · กด{" "}
               <strong className="text-hui-section">บันทึกข้อมูล</strong> ด้านล่างแผงนี้ · การเผยแพร่หรือลบเกมทำได้ที่เมนู{" "}
               <Link href="/member/game" className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta">
                 เกมของฉัน
@@ -1672,16 +1677,6 @@ export default function AdminCentralGamePanel({
             <div className="grid gap-3 sm:grid-cols-2">
               {memberSinglePageGuide ? (
                 <>
-                  <div className="sm:col-span-2">
-                    <label className="text-sm text-hui-section">รายละเอียด</label>
-                    <textarea
-                      value={gameDescription}
-                      onChange={(e) => setGameDescription(e.target.value)}
-                      rows={4}
-                      className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2"
-                      placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
-                    />
-                  </div>
                   <div>
                     <label className="text-sm text-hui-section">
                       ชื่อเกม {creatorLimitedMode ? "(แก้ไขไม่ได้)" : ""}
@@ -1703,6 +1698,16 @@ export default function AdminCentralGamePanel({
                       placeholder="ออกหลังเผยแพร่"
                       className="mt-1 w-full rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 font-mono text-sm text-hui-body"
                       title="รหัสเกมคงเดิม ไม่สามารถแก้ไขได้"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm text-hui-section">รายละเอียด</label>
+                    <textarea
+                      value={gameDescription}
+                      onChange={(e) => setGameDescription(e.target.value)}
+                      rows={4}
+                      className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2"
+                      placeholder="อธิบายเกมให้ผู้เล่นเห็น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
                     />
                   </div>
                 </>
