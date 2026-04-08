@@ -2,13 +2,13 @@
 
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import HomeStylePublicHeader from "../../../components/HomeStylePublicHeader";
+import Link from "next/link";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import CentralAuthPageShell from "../../../components/CentralAuthPageShell";
 import {
   LineLoginPinkPillInner,
   lineLoginPinkPillClassName
 } from "../../../components/LineLoginPinkPill";
-import PublicLegalFooter from "../../../components/PublicLegalFooter";
 import {
   ADMIN_HOME_PATH,
   MEMBER_WORKSPACE_PATH
@@ -53,6 +53,13 @@ function LineLoginContent() {
   const [exchangeRetry, setExchangeRetry] = useState(0);
   const autoStartLine = searchParams.get("auto") === "1";
   const lineAutoOnce = useRef(false);
+
+  const passwordAltHref = useMemo(() => {
+    const next = searchParams.get("next");
+    const n = next && String(next).trim();
+    if (n) return `/login/password?next=${encodeURIComponent(n)}`;
+    return "/login/password";
+  }, [searchParams]);
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -141,16 +148,14 @@ function LineLoginContent() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50">
-      <HomeStylePublicHeader authPage />
-      <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
-        <h1 className="text-xl font-bold text-slate-900">เข้าสู่ระบบ</h1>
-        <p className="mt-2 text-sm text-slate-600">
+    <CentralAuthPageShell>
+      <div className="mx-auto w-full max-w-md px-4 py-8 sm:py-10">
+        <h1 className="text-xl font-bold text-neutral-900">เข้าสู่ระบบ</h1>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           แนะนำให้เข้าด้วยบัญชี LINE · สมาชิกใหม่สมัครผ่าน LINE เท่านั้น
         </p>
-        <p className="mt-1 text-xs text-slate-500">สมาชิก · ผู้ดูแลระบบ (แอดมิน)</p>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-pink-100/90 bg-white/95 p-5 shadow-sm shadow-pink-100/30">
           {status === "loading" ? (
             <p className="text-sm text-slate-500">กำลังตรวจสอบเซสชัน...</p>
           ) : status === "authenticated" && session?.user ? (
@@ -232,7 +237,7 @@ function LineLoginContent() {
                       <LineLoginPinkPillInner />
                     </button>
                   </div>
-                  <p className="text-center text-sm text-slate-500">
+                  <p className="text-center text-sm text-neutral-500">
                     บัญชีจะถูกสร้างอัตโนมัติเมื่อเข้าด้วย LINE — ไม่ต้องสมัครล่วงหน้า
                   </p>
                 </>
@@ -245,21 +250,31 @@ function LineLoginContent() {
             </p>
           ) : null}
         </div>
-      </main>
-      <PublicLegalFooter />
-    </div>
+
+        <div className="mt-6 rounded-2xl border border-neutral-200/90 bg-white/90 p-4 shadow-sm">
+          <p className="text-sm font-semibold text-neutral-900">ผู้ดูแลระบบ · เข้าด้วยรหัส</p>
+          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+            แอดมินและบัญชีที่มีรหัสผ่าน — ใช้ยูสเซอร์ + รหัสผ่าน หรือรหัสสมาชิก 6 หลัก
+          </p>
+          <Link
+            href={passwordAltHref}
+            className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-800 transition hover:bg-neutral-50"
+          >
+            เข้าสู่ระบบด้วยรหัสผ่านหรือรหัสสมาชิก
+          </Link>
+        </div>
+      </div>
+    </CentralAuthPageShell>
   );
 }
 
 function LineLoginFallback() {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50">
-      <HomeStylePublicHeader authPage />
-      <main className="mx-auto w-full max-w-md flex-1 px-4 py-8">
-        <p className="text-sm text-slate-500">กำลังโหลด...</p>
-      </main>
-      <PublicLegalFooter />
-    </div>
+    <CentralAuthPageShell>
+      <div className="mx-auto w-full max-w-md px-4 py-10">
+        <p className="text-sm text-neutral-500">กำลังโหลด...</p>
+      </div>
+    </CentralAuthPageShell>
   );
 }
 
