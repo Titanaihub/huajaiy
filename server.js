@@ -28,6 +28,10 @@ const { router: shopOwnerRouter } = require("./shopOwnerRouter");
 const { initDb } = require("./db/init");
 const { promoteAdminFromEnv } = require("./services/promoteAdminFromEnv");
 const { bootstrapAdminFromEnv } = require("./services/bootstrapAdminFromEnv");
+const {
+  normalizeUploadImageBuffer,
+  clientMessageForImageError
+} = require("./lib/secureImageUpload");
 const centralGameService = require("./services/centralGameService");
 const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralGameSession = require("./centralGameSession");
@@ -97,8 +101,8 @@ const authRateLimit = createSimpleRateLimiter({
 /** อัปโหลด: จำกัดตาม user หลัง optionalAuth — ไม่ล็อกอินจำกัดตาม IP เข้มกว่า */
 function createUploadRateLimiter({
   windowMs = 60 * 1000,
-  maxPerUser = 30,
-  maxPerIp = 10
+  maxPerUser = 20,
+  maxPerIp = 8
 } = {}) {
   const hits = new Map();
   return (req, res, next) => {
@@ -1193,18 +1197,40 @@ app.post(
       });
     }
 
+    let safeBuf;
+    try {
+      const normalized = await normalizeUploadImageBuffer(req.file.buffer);
+      safeBuf = normalized.buffer;
+    } catch (procErr) {
+      const clientMsg = clientMessageForImageError(procErr);
+      if (clientMsg) {
+        return res.status(400).json({ ok: false, error: clientMsg });
+      }
+      throw procErr;
+    }
+
     const uploaded = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "uploads",
-          resource_type: "image"
+          resource_type: "image",
+          use_filename: false,
+          unique_filename: true,
+          overwrite: false,
+          /** หลัง sharp ส่งได้เฉพาะ JPEG/PNG */
+          allowed_formats: ["jpg", "jpeg", "png"],
+          tags: [
+            "huajaiy_upload",
+            `u_${String(req.userId).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64)}`
+          ],
+          context: `uid=${String(req.userId)}|src=member_upload`
         },
         (error, result) => {
           if (error) return reject(error);
           return resolve(result);
         }
       );
-      stream.end(req.file.buffer);
+      stream.end(safeBuf);
     });
 
     return res.json({
