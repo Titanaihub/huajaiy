@@ -95,8 +95,13 @@ export default function CreateGameRoomForm({
 
   useEffect(() => {
     if (!managingExisting) return;
-    setStudioGameId(gameFromUrl.trim());
-  }, [managingExisting, gameFromUrl]);
+    if (typeof gameFromUrl !== "string" || !UUID_RE.test(gameFromUrl.trim())) return;
+    const id = gameFromUrl.trim();
+    setStudioGameId(id);
+    if (memberShellEmbed) {
+      sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, id);
+    }
+  }, [managingExisting, gameFromUrl, memberShellEmbed]);
 
   /** สมาชิก /member/create-game ไม่มี ?game= — สร้างเกมร่างทันทีให้แผงล่างโหลดในหน้าเดียว */
   useEffect(() => {
@@ -145,7 +150,7 @@ export default function CreateGameRoomForm({
         if (cancelled || !gid) return;
         setStudioGameId(gid);
         setDraftBootErr("");
-        router.replace(`/member/create-game?game=${encodeURIComponent(gid)}`);
+        /** ไม่เปลี่ยน URL — หน้าเดียวจริง ไม่รีไดเร็กต์ไป ?game= */
       })
       .catch((ex) => {
         if (!cancelled) {
@@ -156,12 +161,7 @@ export default function CreateGameRoomForm({
     return () => {
       cancelled = true;
     };
-  }, [memberShellEmbed, user, loading, managingExisting, router]);
-
-  useEffect(() => {
-    if (!studioGameId || !studioRef.current) return;
-    studioRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [studioGameId]);
+  }, [memberShellEmbed, user, loading, managingExisting]);
 
   function currentGameIdForApi() {
     if (typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim())) {
@@ -211,7 +211,10 @@ export default function CreateGameRoomForm({
       if (memberShellEmbed && gidExisting) {
         await apiAdminCentralGamePatch(token, gidExisting, { title, description });
         setIntroTick((x) => x + 1);
-        setIntroSavedMsg("บันทึกข้อมูลเบื้องต้นแล้ว — ตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
+        setIntroSavedMsg("บันทึกข้อมูลเบื้องต้นแล้ว — เลื่อนลงไปตั้งค่าป้ายและรางวัลด้านล่างได้เลย");
+        requestAnimationFrame(() => {
+          studioRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
         return;
       }
 
@@ -227,12 +230,11 @@ export default function CreateGameRoomForm({
       setStudioGameId(gid);
       if (memberShellEmbed) {
         sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
+        return;
       }
-      const nextUrl = memberShellEmbed
-        ? `/member/create-game?game=${encodeURIComponent(gid)}`
-        : `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
+      const nextUrl = `/account/create-game?game=${encodeURIComponent(gid)}#game-studio`;
       router.replace(nextUrl);
-      if (!memberShellEmbed && typeof window !== "undefined") {
+      if (typeof window !== "undefined") {
         window.location.assign(nextUrl);
       }
     } catch (ex) {
@@ -552,7 +554,11 @@ export default function CreateGameRoomForm({
       <div>
         {hideShellPageTitle ? null : (
           <h2 className="hui-h2">
-            {managingExisting ? "จัดการห้องเกม" : "เปิดห้องเกม"}
+            {memberShellEmbed
+              ? "สร้างเกม"
+              : managingExisting
+                ? "จัดการห้องเกม"
+                : "เปิดห้องเกม"}
           </h2>
         )}
         <p className={`text-sm text-hui-muted ${hideShellPageTitle ? "" : "mt-1"}`}>
