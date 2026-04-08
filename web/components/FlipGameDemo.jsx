@@ -1981,14 +1981,14 @@ export default function FlipGameDemo({
       <div
         className={
           isCentralLiveUi
-            ? "rounded-2xl border-2 border-amber-500/40 bg-gradient-to-b from-zinc-950 via-zinc-900 to-black p-4 text-sm shadow-[0_20px_50px_-24px_rgba(0,0,0,0.9)] ring-1 ring-amber-500/20 sm:p-5"
+            ? "rounded-2xl border border-pink-200 bg-gradient-to-b from-pink-50 to-pink-100/90 p-4 text-sm text-zinc-800 shadow-sm ring-1 ring-pink-100 sm:p-5"
             : "rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
         }
       >
         <p
           className={
             isCentralLiveUi
-              ? "text-xs font-bold uppercase tracking-[0.22em] text-amber-500"
+              ? "text-xs font-bold uppercase tracking-[0.22em] text-pink-900"
               : "text-sm font-semibold uppercase tracking-wide text-slate-500"
           }
         >
@@ -1998,7 +1998,7 @@ export default function FlipGameDemo({
           <ul
             className={
               isCentralLiveUi
-                ? "mt-4 grid grid-cols-1 gap-3 text-zinc-200 sm:grid-cols-2 sm:gap-3.5"
+                ? "mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5"
                 : "mt-3 space-y-2.5 text-slate-800"
             }
           >
@@ -2021,13 +2021,13 @@ export default function FlipGameDemo({
                   key={p.key}
                   className={
                     isCentralLiveUi
-                      ? "flex gap-3 rounded-xl border border-amber-500/40 bg-zinc-950/80 p-3.5 shadow-md ring-1 ring-amber-500/15 transition hover:border-amber-400/55 hover:ring-amber-400/25 sm:p-4"
+                      ? "flex gap-3 rounded-xl border border-pink-200 bg-pink-100/90 p-3.5 shadow-sm transition hover:border-pink-300 hover:shadow sm:p-4"
                       : "flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
                   }
                 >
                   {showBadge && badge ? (
                     <div
-                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-amber-600/45 p-1 shadow-inner ring-1 ring-black/20 ${badge.boxClass}`}
+                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-pink-300/80 p-1 shadow-inner ring-1 ring-pink-200/60 ${badge.boxClass}`}
                     >
                       <span
                         className={
@@ -2043,7 +2043,7 @@ export default function FlipGameDemo({
                     <div
                       className={
                         isCentralLiveUi
-                          ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 border-amber-600/40 bg-black/50 ring-1 ring-amber-500/20"
+                          ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-pink-200 bg-white ring-1 ring-pink-100"
                           : "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
                       }
                     >
@@ -2060,7 +2060,7 @@ export default function FlipGameDemo({
                         <div
                           className={
                             isCentralLiveUi
-                              ? "flex h-full items-center justify-center text-xs font-bold text-amber-400/90"
+                              ? "flex h-full items-center justify-center text-xs font-bold text-pink-800"
                               : "flex h-full items-center justify-center text-sm font-medium text-slate-500"
                           }
                         >
@@ -2072,20 +2072,20 @@ export default function FlipGameDemo({
                   <div
                     className={
                       isCentralLiveUi
-                        ? "min-w-0 flex-1 text-sm leading-relaxed text-zinc-200"
+                        ? "min-w-0 flex-1 text-sm leading-relaxed text-zinc-800"
                         : "min-w-0 flex-1 text-sm leading-relaxed text-slate-800"
                     }
                   >
                     {p.prizeCategory === "none" ? (
                       <>
-                        <p className={isCentralLiveUi ? "text-zinc-100" : ""}>
+                        <p className={isCentralLiveUi ? "text-zinc-900" : ""}>
                           {centralRuleNoneHeadLine(p, cap)}
                         </p>
                         <p className="mt-1.5">
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-medium text-amber-200/55"
+                                ? "font-medium text-zinc-600"
                                 : "font-medium text-slate-500"
                             }
                           >
@@ -2094,7 +2094,7 @@ export default function FlipGameDemo({
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                ? "font-mono font-semibold tabular-nums text-zinc-900"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
                           >
@@ -2103,7 +2103,7 @@ export default function FlipGameDemo({
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-mono text-amber-200/40"
+                                ? "font-mono text-zinc-400"
                                 : "font-mono text-slate-500"
                             }
                           >
@@ -2112,7 +2112,7 @@ export default function FlipGameDemo({
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                ? "font-mono font-semibold tabular-nums text-zinc-900"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
                           >
@@ -2122,24 +2122,24 @@ export default function FlipGameDemo({
                       </>
                     ) : (
                       <>
-                        <p className={isCentralLiveUi ? "font-medium text-red-300/95" : ""}>
+                        <p className={isCentralLiveUi ? "font-medium text-rose-800" : ""}>
                           {centralRuleSetConditionLine(p, cap)}
                         </p>
-                        <p className={isCentralLiveUi ? "mt-1.5 text-amber-100/90" : "mt-1.5"}>
+                        <p className={isCentralLiveUi ? "mt-1.5 text-zinc-900" : "mt-1.5"}>
                           {centralRulePrizeDescriptionLine(p)}
                         </p>
                         <p
                           className={
-                            isCentralLiveUi ? "mt-1 text-sm text-zinc-400" : "mt-1 text-sm text-slate-800"
+                            isCentralLiveUi ? "mt-1 text-sm text-zinc-600" : "mt-1 text-sm text-slate-800"
                           }
                         >
                           {centralRuleFulfillmentLine(p)}
                         </p>
-                        <p className={isCentralLiveUi ? "mt-1.5 text-zinc-200" : "mt-1.5 text-slate-800"}>
+                        <p className={isCentralLiveUi ? "mt-1.5 text-zinc-800" : "mt-1.5 text-slate-800"}>
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-medium text-amber-200/55"
+                                ? "font-medium text-zinc-600"
                                 : "font-medium text-slate-500"
                             }
                           >
@@ -2148,20 +2148,20 @@ export default function FlipGameDemo({
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                ? "font-mono font-semibold tabular-nums text-zinc-900"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
                           >
                             {opened}/{cap}
                           </span>
-                          <span className={isCentralLiveUi ? "text-zinc-600" : "text-slate-500"}>
+                          <span className={isCentralLiveUi ? "text-zinc-500" : "text-slate-500"}>
                             {" "}
                             ,{" "}
                           </span>
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-medium text-amber-200/55"
+                                ? "font-medium text-zinc-600"
                                 : "font-medium text-slate-500"
                             }
                           >
@@ -2170,7 +2170,7 @@ export default function FlipGameDemo({
                           <span
                             className={
                               isCentralLiveUi
-                                ? "font-mono font-semibold tabular-nums text-amber-100"
+                                ? "font-mono font-semibold tabular-nums text-zinc-900"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
                           >
@@ -2181,7 +2181,7 @@ export default function FlipGameDemo({
                             onClick={() => setRecipientsModalPrize(p)}
                             className={
                               isCentralLiveUi
-                                ? "inline font-semibold text-amber-400 underline decoration-amber-600/60 underline-offset-2 hover:text-amber-300"
+                                ? "inline font-semibold text-pink-800 underline decoration-pink-400 underline-offset-2 hover:text-pink-950"
                                 : "inline font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
                             }
                           >
