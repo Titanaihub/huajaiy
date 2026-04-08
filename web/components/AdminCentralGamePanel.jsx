@@ -1683,7 +1683,7 @@ export default function AdminCentralGamePanel({
                 ตั้งค่า กิจกรรม / รางวัล — โครงชุดและรูปภาพ
               </h3>
               <p className="mt-1 text-sm text-hui-muted">
-                รวม <span className="font-mono text-hui-body">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา
+                ตั้งจำนวนชุดและป้ายต่อชุดด้านล่าง · กติกาและรางวัลอยู่คอลัมน์ถัดจากรูป (เว้นช่องขวาสุดสำหรับการจ่ายรางวัล)
               </p>
             </div>
 
@@ -1781,38 +1781,6 @@ export default function AdminCentralGamePanel({
                   </div>
                 </>
               )}
-              <div>
-                <label className="text-sm text-hui-section">
-                  จำนวนชุด
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={setCount}
-                  onChange={(e) => {
-                    const n = Math.max(1, parseInt(e.target.value, 10) || 1);
-                    setSetCount(n);
-                    setSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
-                  }}
-                  disabled={awardEditLocked}
-                  className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2 disabled:cursor-not-allowed disabled:bg-hui-pageTop"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-hui-section">
-                  ป้ายรวม (คำนวณอัตโนมัติ)
-                </label>
-                <p
-                  className={`mt-2 font-mono text-sm ${
-                    tileCount > CENTRAL_GAME_MAX_TILES ? "font-semibold text-red-700" : "text-hui-body"
-                  }`}
-                >
-                  {tileCount}
-                  {tileCount > CENTRAL_GAME_MAX_TILES
-                    ? ` — เกินกำหนดสูงสุด ${CENTRAL_GAME_MAX_TILES} ป้าย`
-                    : null}
-                </p>
-              </div>
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
                 <p className="text-sm font-semibold text-hui-body">การหักหัวใจต่อรอบ</p>
                 <p className="mt-1 text-sm leading-relaxed text-hui-body">
@@ -1877,6 +1845,36 @@ export default function AdminCentralGamePanel({
               <p className="text-sm font-semibold text-hui-section">
                 แต่ละชุด — ซ้าย: ป้ายและรูป · ขวา: กติกาและรางวัล (ชิดรูปเพื่อมีที่สำหรับคอลัมน์การจ่ายรางวัล)
               </p>
+              <div className="flex flex-wrap items-end gap-x-8 gap-y-3 rounded-lg border border-hui-border bg-hui-pageTop/70 px-3 py-2.5">
+                <div>
+                  <label className="text-sm text-hui-section">จำนวนชุด</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={setCount}
+                    onChange={(e) => {
+                      const n = Math.max(1, parseInt(e.target.value, 10) || 1);
+                      setSetCount(n);
+                      setSetSizes((prev) => resizeSetSizes(prev, n, prev[prev.length - 1] || 4));
+                    }}
+                    disabled={awardEditLocked}
+                    className="mt-1 block w-full max-w-[8rem] rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-hui-section">ป้ายรวม (คำนวณอัตโนมัติ)</label>
+                  <p
+                    className={`mt-2 font-mono text-sm tabular-nums ${
+                      tileCount > CENTRAL_GAME_MAX_TILES ? "font-semibold text-red-700" : "text-hui-body"
+                    }`}
+                  >
+                    {tileCount}
+                    {tileCount > CENTRAL_GAME_MAX_TILES
+                      ? ` — เกินกำหนดสูงสุด ${CENTRAL_GAME_MAX_TILES} ป้าย`
+                      : null}
+                  </p>
+                </div>
+              </div>
               {Array.from({ length: setCount }, (_, s) => {
                 const cap = Math.max(1, parseInt(String(setSizes[s]), 10) || 1);
                 const preview = imageMap[`${s}-0`];
@@ -1892,86 +1890,89 @@ export default function AdminCentralGamePanel({
                 return (
                   <div
                     key={s}
-                    className="flex flex-col gap-4 rounded-xl border border-hui-border bg-hui-pageTop/80 p-4 xl:flex-row xl:items-stretch"
+                    className="rounded-xl border border-hui-border bg-hui-pageTop/80 p-3 sm:p-4"
                   >
-                    <div className="flex flex-shrink-0 flex-wrap items-end gap-3 border-b border-hui-border pb-4 xl:w-[min(100%,240px)] xl:border-b-0 xl:border-r xl:border-hui-border xl:pb-0 xl:pr-3">
-                      <div className="flex flex-col">
+                    <div className="grid gap-4 xl:grid-cols-[minmax(0,17rem)_minmax(0,1fr)_minmax(5.5rem,7.5rem)] xl:items-start xl:gap-3">
+                      <div className="flex min-w-0 flex-col gap-3 border-b border-hui-border pb-4 xl:border-b-0 xl:border-r xl:border-hui-border xl:pb-0 xl:pr-3">
                         <span className="text-sm font-semibold text-hui-body">ชุดที่ {s + 1}</span>
-                        <label className="mt-1 text-sm text-hui-muted">จำนวนป้ายในชุดนี้</label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={cap}
-                          onChange={(e) => {
-                            const v = Math.max(1, parseInt(e.target.value, 10) || 1);
-                            setSetSizes((prev) => {
-                              const next = [...prev];
-                              next[s] = v;
-                              return next;
-                            });
-                          }}
-                          disabled={awardEditLocked}
-                          className="mt-0.5 w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
-                        />
-                      </div>
-                      <div className="w-28 shrink-0 sm:w-32">
-                        <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
-                        <div className="aspect-square w-full overflow-hidden rounded-lg border border-hui-border bg-hui-pageTop">
-                          {preview ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              key={preview}
-                              src={preview}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center p-1 text-center text-sm leading-tight text-hui-muted">
-                              เลือกรูป
+                        <div className="flex flex-wrap items-start gap-3">
+                          <div className="w-28 shrink-0 sm:w-32">
+                            <p className="mb-1 text-sm text-hui-muted">ตัวอย่าง</p>
+                            <div className="aspect-square w-full overflow-hidden rounded-lg border border-hui-border bg-hui-pageTop">
+                              {preview ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  key={preview}
+                                  src={preview}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full items-center justify-center p-1 text-center text-sm leading-tight text-hui-muted">
+                                  เลือกรูป
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
+                          <div className="min-w-0 min-w-[12rem] flex-1">
+                            <label className="text-sm font-medium text-hui-body">
+                              อัปโหลดรูปชุดนี้ (1 ไฟล์)
+                            </label>
+                            <p className="mt-1 text-xs leading-relaxed text-hui-muted">
+                              แนะนำสี่เหลี่ยมจัตุรัส{" "}
+                              <span className="font-medium text-hui-body/90">1:1</span> เช่น{" "}
+                              <span className="whitespace-nowrap font-medium text-hui-body/90">
+                                800×800 px
+                              </span>{" "}
+                              หรือ{" "}
+                              <span className="whitespace-nowrap font-medium text-hui-body/90">
+                                1024×1024 px
+                              </span>{" "}
+                              — แสดงบนกระดานแบบครอปเต็มช่องป้าย
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={awardEditLocked}
+                              className="mt-1 block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy disabled:cursor-not-allowed disabled:opacity-50"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0] || null;
+                                void onPickImage(s, 0, f);
+                                e.target.value = "";
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-1 border-t border-dashed border-hui-border/80 pt-3">
+                          <label className="text-sm text-hui-muted">จำนวนป้ายในชุดนี้</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={cap}
+                            onChange={(e) => {
+                              const v = Math.max(1, parseInt(e.target.value, 10) || 1);
+                              setSetSizes((prev) => {
+                                const next = [...prev];
+                                next[s] = v;
+                                return next;
+                              });
+                            }}
+                            disabled={awardEditLocked}
+                            className="mt-0.5 block w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm disabled:cursor-not-allowed disabled:bg-hui-pageTop"
+                          />
                         </div>
                       </div>
-                      <div className="min-w-[180px] flex-1">
-                        <label className="text-sm font-medium text-hui-body">
-                          อัปโหลดรูปชุดนี้ (1 ไฟล์)
-                        </label>
-                        <p className="mt-1 text-xs leading-relaxed text-hui-muted">
-                          แนะนำสี่เหลี่ยมจัตุรัส{" "}
-                          <span className="font-medium text-hui-body/90">1:1</span> เช่น{" "}
-                          <span className="whitespace-nowrap font-medium text-hui-body/90">
-                            800×800 px
-                          </span>{" "}
-                          หรือ{" "}
-                          <span className="whitespace-nowrap font-medium text-hui-body/90">
-                            1024×1024 px
-                          </span>{" "}
-                          — แสดงบนกระดานแบบครอปเต็มช่องป้าย
-                        </p>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          disabled={awardEditLocked}
-                          className="mt-1 block w-full text-sm file:mr-2 file:rounded file:border-0 file:bg-hui-pageMid file:px-2 file:py-1 file:text-sm file:font-medium file:text-hui-burgundy disabled:cursor-not-allowed disabled:opacity-50"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0] || null;
-                            void onPickImage(s, 0, f);
-                            e.target.value = "";
-                          }}
-                        />
-                      </div>
-                    </div>
 
-                    <div className="min-w-0 flex-1 space-y-2 xl:pl-1">
-                      <div className="space-y-0.5">
-                        <span className="text-sm font-semibold text-hui-body">
-                          กติกาและรางวัล — ชุดที่ {s + 1}
-                        </span>
-                        <p className="text-sm leading-snug text-hui-muted">
-                          ลำดับตรวจเริ่มที่เลขชุด ({s + 1}) — ปรับได้ถ้าต้องการให้ชุดอื่นตรวจก่อน/หลัง
-                        </p>
-                      </div>
-                      <div className="space-y-3 pb-1">
+                      <div className="min-w-0 space-y-2 xl:border-l xl:border-hui-border xl:pl-3">
+                        <div className="space-y-0.5">
+                          <span className="text-sm font-semibold text-hui-body">
+                            กติกาและรางวัล — ชุดที่ {s + 1}
+                          </span>
+                          <p className="text-sm leading-snug text-hui-muted">
+                            ลำดับตรวจเริ่มที่เลขชุด ({s + 1}) — ปรับได้ถ้าต้องการให้ชุดอื่นตรวจก่อน/หลัง
+                          </p>
+                        </div>
+                        <div className="space-y-3 pb-1">
                         {ruleEntries.map(({ r, idx }) => (
                           <RuleEditorRow
                             key={r.id || `rule-${idx}`}
@@ -1987,6 +1988,14 @@ export default function AdminCentralGamePanel({
                             structureLocked={awardEditLocked}
                           />
                         ))}
+                        </div>
+                      </div>
+
+                      <div className="flex min-h-[2.75rem] flex-col justify-start rounded-lg border border-dashed border-hui-border/70 bg-white/50 px-2 py-3 text-center xl:min-h-0 xl:border-l xl:border-solid xl:border-hui-border xl:bg-transparent xl:pl-3 xl:text-left">
+                        <span className="text-xs font-medium text-hui-muted">การจ่ายรางวัล</span>
+                        <span className="mt-1 block text-[11px] leading-tight text-hui-muted/85">
+                          พื้นที่สำหรับคอลัมน์จ่ายรางวัล (เร็วๆ นี้)
+                        </span>
                       </div>
                     </div>
                   </div>
