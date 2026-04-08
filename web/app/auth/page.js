@@ -1,38 +1,25 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
-
-/**
- * เดิมเป็นหน้า NextAuth — ตอนนี้ signIn page อยู่ที่ /login/line
- * ส่งต่อ query (callbackUrl, error ฯลฯ) เพื่อไม่ให้ลิงก์เก่าวนกลับมาที่นี่โดยไม่แลก JWT สมาชิก
- */
-function AuthRedirect() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const qs = searchParams.toString();
-    router.replace(qs ? `/login/line?${qs}` : "/login/line");
-  }, [router, searchParams]);
-
-  return (
-    <p className="mx-auto max-w-md px-4 py-12 text-center text-sm text-hui-muted">
-      กำลังไปหน้าเข้าสู่ระบบด้วย LINE…
-    </p>
-  );
+function buildLoginLineQuery(searchParams) {
+  if (!searchParams || typeof searchParams !== "object") return "";
+  const p = new URLSearchParams();
+  for (const key of Object.keys(searchParams)) {
+    const val = searchParams[key];
+    if (val === undefined) continue;
+    if (Array.isArray(val)) {
+      for (const item of val) p.append(key, String(item));
+    } else {
+      p.set(key, String(val));
+    }
+  }
+  return p.toString();
 }
 
-export default function AuthPage() {
-  return (
-    <Suspense
-      fallback={
-        <p className="mx-auto max-w-md px-4 py-12 text-center text-sm text-hui-muted">
-          กำลังโหลด…
-        </p>
-      }
-    >
-      <AuthRedirect />
-    </Suspense>
-  );
+/**
+ * ลิงก์เก่า /auth และ NextAuth signIn เดิม — ส่งต่อ query (callbackUrl, error ฯลฯ)
+ * Middleware ส่ง /auth → /login/line อยู่แล้ว; หน้านี้เป็นทางรองเมื่อเข้าถึง route โดยตรง
+ */
+export default function AuthPage({ searchParams }) {
+  const qs = buildLoginLineQuery(searchParams);
+  redirect(qs ? `/login/line?${qs}` : "/login/line");
 }

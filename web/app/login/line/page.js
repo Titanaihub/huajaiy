@@ -53,6 +53,14 @@ function LineLoginContent() {
   const [exchangeRetry, setExchangeRetry] = useState(0);
   const autoStartLine = searchParams.get("auto") === "1";
   const lineAutoOnce = useRef(false);
+  /** หลัง OAuth กลับมาให้ยังมี next สำหรับ member-from-line redirect */
+  const lineOAuthReturnUrl = useMemo(() => {
+    const q = new URLSearchParams();
+    const next = searchParams.get("next");
+    if (next && String(next).trim()) q.set("next", String(next).trim());
+    const qs = q.toString();
+    return qs ? `/login/line?${qs}` : "/login/line";
+  }, [searchParams]);
 
   const passwordAltHref = useMemo(() => {
     const next = searchParams.get("next");
@@ -120,9 +128,8 @@ function LineLoginContent() {
 
   const handleLineSignIn = useCallback(async () => {
     setAuthError("");
-    const returnTo = "/login/line";
     const result = await signIn("line", {
-      callbackUrl: returnTo,
+      callbackUrl: lineOAuthReturnUrl,
       redirect: false
     });
     if (result?.error) {
@@ -132,7 +139,7 @@ function LineLoginContent() {
     } else if (result?.url) {
       window.location.href = result.url;
     }
-  }, []);
+  }, [lineOAuthReturnUrl]);
 
   useEffect(() => {
     if (!autoStartLine || authError) return;
@@ -154,6 +161,19 @@ function LineLoginContent() {
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           แนะนำให้เข้าด้วยบัญชี LINE · สมาชิกใหม่สมัครผ่าน LINE เท่านั้น
         </p>
+
+        <div
+          className="mt-4 hidden rounded-xl border border-sky-200/90 bg-sky-50/90 px-3.5 py-3 text-sm leading-relaxed text-sky-950 md:block"
+          role="note"
+        >
+          <p className="font-medium text-sky-950">เข้าบนเครื่องคอมพิวเตอร์</p>
+          <p className="mt-1.5 text-sky-900/95">
+            ถ้าเบราว์เซอร์ยังไม่ได้ล็อกอิน LINE จะเห็นหลายหน้าจอของ LINE (ล็อกอินหรือสแกน QR)
+            — เป็นขั้นตอนของ LINE ไม่ใช่ข้อผิดพลาดของเว็บ แนะนำใช้{" "}
+            <strong>สแกน QR ด้วยมือถือ</strong> ที่ล็อกอิน LINE อยู่แล้วจะเร็วที่สุด
+            หรือเปิดลิงก์นี้บนมือถือ
+          </p>
+        </div>
 
         <div className="mt-6 rounded-2xl border border-pink-100/90 bg-white/95 p-5 shadow-sm shadow-pink-100/30">
           {status === "loading" ? (
