@@ -206,10 +206,9 @@ export default function HomeLandingFigmaShell({
             />
             <div
               ref={gamesGridRef}
-              className="grid gap-1.5"
+              className="grid justify-center gap-1.5"
               style={{
-                gridTemplateColumns: `repeat(${recGameCols}, ${REC_GAME_CARD_PX}px)`,
-                justifyContent: "start"
+                gridTemplateColumns: `repeat(${recGameCols}, ${REC_GAME_CARD_PX}px)`
               }}
             >
               {gamesToShow.length === 0 ? (
