@@ -1,9 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { uploadUrl } from "../lib/config";
 import { useMemberAuth } from "./MemberAuthProvider";
+
+function normalizeHttpsProfileUrl(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return null;
+  let s = t;
+  if (/^http:\/\//i.test(s)) s = s.replace(/^http:/i, "https:");
+  else if (!/^https:\/\//i.test(s)) s = `https://${s}`;
+  return s;
+}
+
+async function uploadPublicImage(file) {
+  const body = new FormData();
+  body.append("image", file);
+  const res = await fetch(uploadUrl(), { method: "POST", body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok || !data.publicUrl) {
+    throw new Error(data.error || "อัปโหลดรูปไม่สำเร็จ");
+  }
+  return data.publicUrl;
+}
 
 function loadImage(fileBlob) {
   return new Promise((resolve, reject) => {
@@ -105,6 +126,11 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
   const [bioDraft, setBioDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [lineDraft, setLineDraft] = useState("");
+  const [fbDraft, setFbDraft] = useState("");
+  const [ttDraft, setTtDraft] = useState("");
+  const [socialSaving, setSocialSaving] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [listedBusy, setListedBusy] = useState(false);
@@ -129,6 +155,12 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
     setBioDraft(String(member?.publicPageBio || "").trim());
   }, [member?.publicPageTitle, member?.publicPageBio]);
 
+  useEffect(() => {
+    setLineDraft(String(member?.socialLineUrl || "").trim());
+    setFbDraft(String(member?.socialFacebookUrl || "").trim());
+    setTtDraft(String(member?.socialTiktokUrl || "").trim());
+  }, [member?.socialLineUrl, member?.socialFacebookUrl, member?.socialTiktokUrl]);
+
   const onPickCover = useCallback(
     async (e) => {
       const file = e.target.files?.[0];
@@ -150,6 +182,64 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
     },
     [isOwner, patchProfile, router]
   );
+
+  const onPickAvatar = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file || !isOwner) return;
+      setErr("");
+      setMsg("");
+      setAvatarBusy(true);
+      try {
+        const url = await uploadPublicImage(file);
+        await patchProfile({ profilePictureUrl: url });
+        setMsg("อัปโหลดรูปโลโก้/รูปกลมแล้ว");
+        router.refresh();
+      } catch (ce) {
+        setErr(ce instanceof Error ? ce.message : String(ce));
+      } finally {
+        setAvatarBusy(false);
+      }
+    },
+    [isOwner, patchProfile, router]
+  );
+
+  const clearAvatar = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setSaving(true);
+    try {
+      await patchProfile({ profilePictureUrl: null });
+      setMsg("ลบรูปที่อัปโหลดแล้ว — ถ้าล็อกอิน LINE ไว้จะใช้รูปจาก LINE");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setSaving(false);
+    }
+  }, [isOwner, patchProfile, router]);
+
+  const saveSocial = useCallback(async () => {
+    if (!isOwner) return;
+    setErr("");
+    setMsg("");
+    setSocialSaving(true);
+    try {
+      await patchProfile({
+        socialLineUrl: normalizeHttpsProfileUrl(lineDraft),
+        socialFacebookUrl: normalizeHttpsProfileUrl(fbDraft),
+        socialTiktokUrl: normalizeHttpsProfileUrl(ttDraft)
+      });
+      setMsg("บันทึกลิงก์ LINE / Facebook / TikTok แล้ว");
+      router.refresh();
+    } catch (ce) {
+      setErr(ce instanceof Error ? ce.message : String(ce));
+    } finally {
+      setSocialSaving(false);
+    }
+  }, [fbDraft, isOwner, lineDraft, patchProfile, router, ttDraft]);
 
   const clearCover = useCallback(async () => {
     if (!isOwner) return;
@@ -226,7 +316,7 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={listedBusy || saving || uploadBusy}
+          disabled={listedBusy || saving || uploadBusy || avatarBusy || socialSaving}
           onClick={toggleListed}
           className={
             listedOnPage
@@ -255,11 +345,11 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
       {open ? (
         <div className="mt-3 space-y-4 border-t border-amber-200/80 pt-3">
           <p className="text-xs leading-relaxed text-amber-900/90">
-            แบนเนอร์: แนะนำความกว้างอย่างน้อย{" "}
-            <strong className="font-semibold">1200 px</strong> อัตราส่วนแนวนอนประมาณ{" "}
-            <strong className="font-semibold">2.6:1 ถึง 3:1</strong> (เช่น{" "}
-            <strong className="font-semibold">1200×450</strong> หรือ{" "}
-            <strong className="font-semibold">1640×624</strong>) — ระบบจะครอปให้พอดีกับแถบปก
+            <strong className="font-semibold">แบนเนอร์</strong> แนะนำความกว้างอย่างน้อย{" "}
+            <strong className="font-semibold">1200 px</strong> อัตราส่วนประมาณ{" "}
+            <strong className="font-semibold">3:1 ถึง 4:1</strong> (เช่น{" "}
+            <strong className="font-semibold">1200×400</strong> หรือ{" "}
+            <strong className="font-semibold">1200×300</strong>) — ระบบครอปให้พอดีแถบปกบนเว็บ
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80">
@@ -268,20 +358,104 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 className="sr-only"
-                disabled={uploadBusy || saving}
+                disabled={uploadBusy || saving || avatarBusy || socialSaving}
                 onChange={onPickCover}
               />
             </label>
             {String(member?.publicPageCoverUrl || "").trim() ? (
               <button
                 type="button"
-                disabled={saving || uploadBusy}
+                disabled={saving || uploadBusy || avatarBusy || socialSaving}
                 onClick={clearCover}
                 className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80 disabled:opacity-50"
               >
                 เอารูปแบนเนอร์ออก
               </button>
             ) : null}
+          </div>
+
+          <p className="text-xs leading-relaxed text-amber-900/90">
+            <strong className="font-semibold">รูปโลโก้ (วงกลม)</strong> อัปโหลดเป็น{" "}
+            <strong className="font-semibold">สี่เหลี่ยมจัตุรัส</strong> แนะนำ{" "}
+            <strong className="font-semibold">500×500 px</strong> (อย่างน้อย{" "}
+            <strong className="font-semibold">400×400</strong>) — ระบบแสดงเป็นวงกลม
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80">
+              {avatarBusy ? "กำลังอัปโหลด…" : "อัปโหลดรูปโลโก้"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                disabled={avatarBusy || saving || uploadBusy || socialSaving}
+                onChange={onPickAvatar}
+              />
+            </label>
+            {String(member?.profilePictureUrl || "").trim() ? (
+              <button
+                type="button"
+                disabled={saving || avatarBusy || uploadBusy || socialSaving}
+                onClick={clearAvatar}
+                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-amber-950 shadow ring-1 ring-amber-300/80 hover:bg-amber-100/80 disabled:opacity-50"
+              >
+                ใช้รูปจาก LINE แทน
+              </button>
+            ) : null}
+          </div>
+
+          <div className="rounded-lg border border-amber-200/80 bg-white/70 px-3 py-3">
+            <p className="text-xs font-semibold text-amber-950">ลิงก์โซเชียล (ไอคอนสีบนเพจ)</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-900/85">
+              ใส่ URL เต็มขึ้นต้นด้วย <code className="rounded bg-amber-100/90 px-1">https://</code>{" "}
+              หรือพิมพ์เฉพาะโดเมน ระบบจะเติมให้ — ว่าง = ยังไม่เชื่อมลิงก์
+            </p>
+            <label className="mt-2 block text-[11px] font-medium text-amber-900" htmlFor="owner-social-line">
+              LINE
+            </label>
+            <input
+              id="owner-social-line"
+              type="url"
+              value={lineDraft}
+              onChange={(e) => setLineDraft(e.target.value)}
+              placeholder="https://line.me/ti/p/~..."
+              className="mt-0.5 w-full rounded-lg border border-amber-200/90 bg-white px-2.5 py-1.5 text-xs text-gray-900 outline-none focus:border-amber-400"
+            />
+            <label className="mt-2 block text-[11px] font-medium text-amber-900" htmlFor="owner-social-fb">
+              Facebook
+            </label>
+            <input
+              id="owner-social-fb"
+              type="url"
+              value={fbDraft}
+              onChange={(e) => setFbDraft(e.target.value)}
+              placeholder="https://facebook.com/..."
+              className="mt-0.5 w-full rounded-lg border border-amber-200/90 bg-white px-2.5 py-1.5 text-xs text-gray-900 outline-none focus:border-amber-400"
+            />
+            <label className="mt-2 block text-[11px] font-medium text-amber-900" htmlFor="owner-social-tt">
+              TikTok
+            </label>
+            <input
+              id="owner-social-tt"
+              type="url"
+              value={ttDraft}
+              onChange={(e) => setTtDraft(e.target.value)}
+              placeholder="https://www.tiktok.com/@..."
+              className="mt-0.5 w-full rounded-lg border border-amber-200/90 bg-white px-2.5 py-1.5 text-xs text-gray-900 outline-none focus:border-amber-400"
+            />
+            <button
+              type="button"
+              disabled={socialSaving || saving || uploadBusy || avatarBusy}
+              onClick={() => void saveSocial()}
+              className="mt-3 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {socialSaving ? "กำลังบันทึก…" : "บันทึกลิงก์โซเชียล"}
+            </button>
+            <p className="mt-2 text-[10px] text-amber-900/75">
+              แก้ได้ที่นี่หรือที่{" "}
+              <Link href="/member" className="font-semibold text-amber-950 underline underline-offset-2">
+                เมนูสมาชิก
+              </Link>
+            </p>
           </div>
           <div>
             <label htmlFor="public-page-title" className="block text-xs font-medium text-amber-900">
@@ -316,7 +490,7 @@ export default function PublicMemberPageOwnerPanel({ username, member }) {
           </div>
           <button
             type="button"
-            disabled={saving || uploadBusy}
+            disabled={saving || uploadBusy || avatarBusy || socialSaving}
             onClick={saveText}
             className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-700 disabled:opacity-50"
           >

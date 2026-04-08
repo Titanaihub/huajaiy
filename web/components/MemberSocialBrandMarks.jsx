@@ -1,7 +1,7 @@
 /**
- * โลโก้ LINE / Facebook / TikTok แบบเดียวกันทั้งหน้าเพจสาธารณะและการ์ดโพสต์
+ * โลโก้ LINE / Facebook / TikTok แบบเดียวกันทั้งหน้าเพจสาธารณะและการ์ดโพสต์ — สีเต็ม (ไม่จาง)
  */
-export function BrandLineWordmark({ muted, className = "" }) {
+export function BrandLineWordmark({ className = "" }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -9,16 +9,16 @@ export function BrandLineWordmark({ muted, className = "" }) {
       alt=""
       width={72}
       height={24}
-      className={`h-6 w-auto max-w-[68px] object-contain ${muted ? "opacity-40 grayscale" : ""} ${className}`.trim()}
+      className={`h-11 w-auto max-w-[4.75rem] object-contain ${className}`.trim()}
       decoding="async"
     />
   );
 }
 
-export function BrandFacebookGlyph({ muted, className = "" }) {
+export function BrandFacebookGlyph({ className = "" }) {
   return (
     <svg
-      className={`h-7 w-7 ${muted ? "opacity-40" : ""} ${className}`.trim()}
+      className={`h-7 w-7 ${className}`.trim()}
       viewBox="0 0 24 24"
       aria-hidden
     >
@@ -30,10 +30,11 @@ export function BrandFacebookGlyph({ muted, className = "" }) {
   );
 }
 
-export function BrandTiktokGlyph({ muted, className = "" }) {
+/** โน้ต TikTok สีขาวบนปุ่มดำ — คมชัดเต็มที่ ไม่ลด opacity */
+export function BrandTiktokGlyph({ className = "" }) {
   return (
     <svg
-      className={`h-7 w-7 ${muted ? "opacity-40" : ""} ${className}`.trim()}
+      className={`h-7 w-7 ${className}`.trim()}
       viewBox="0 0 24 24"
       aria-hidden
     >

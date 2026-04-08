@@ -19,18 +19,18 @@ function trimUrl(v) {
 }
 
 const SOCIAL_BTN =
-  "inline-flex shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-black/5 transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
+  "inline-flex shrink-0 items-center justify-center rounded-lg shadow-md ring-1 ring-black/10 transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
 
-/** ไอคอนโซเชียลแถวแท็บ — สี่เหลี่ยมโลโก้แบรนด์เมื่อมีลิงก์, เทาเมื่อยังไม่กรอก */
+/** ปุ่มโลโก้แบรนด์เต็มสีทั้งกรณีมีลิงก์และยังไม่ตั้ง (ไม่จาง/ไม่ grayscale) */
 function SocialTabIcon({ href, label, platform, children }) {
   const active = Boolean(href);
-  const activeByPlatform = {
-    line: `${SOCIAL_BTN} h-11 min-w-[4.75rem] bg-[#06C755] px-2 hover:bg-[#05b64c] focus-visible:ring-[#06C755]/55`,
+  const brandClsByPlatform = {
+    /* รูป line-wordmark.svg มีพื้นเขียวในตัว — ไม่ล้อมพื้นเขียวซ้ำ */
+    line: `${SOCIAL_BTN} h-11 min-w-[4.75rem] overflow-hidden rounded-lg bg-transparent p-0 shadow-none ring-0 hover:opacity-90 focus-visible:ring-[#06C755]/50`,
     facebook: `${SOCIAL_BTN} h-11 w-11 bg-white hover:bg-gray-50 focus-visible:ring-[#1877F2]/55`,
-    tiktok: `${SOCIAL_BTN} h-11 w-11 bg-black hover:bg-neutral-900 focus-visible:ring-neutral-600`
+    tiktok: `${SOCIAL_BTN} h-11 w-11 bg-black hover:bg-neutral-900 focus-visible:ring-neutral-700`
   };
-  const activeCls = activeByPlatform[platform] || activeByPlatform.line;
-  const idleCls = `${SOCIAL_BTN} h-11 w-11 cursor-default bg-gray-100 text-gray-400 focus-visible:ring-gray-300`;
+  const cls = brandClsByPlatform[platform] || brandClsByPlatform.line;
   if (active) {
     return (
       <a
@@ -39,7 +39,7 @@ function SocialTabIcon({ href, label, platform, children }) {
         rel="noopener noreferrer"
         aria-label={label}
         title={label}
-        className={activeCls}
+        className={cls}
       >
         {children}
       </a>
@@ -47,9 +47,9 @@ function SocialTabIcon({ href, label, platform, children }) {
   }
   return (
     <span
-      className={idleCls}
-      aria-label={`${label} — ยังไม่ได้เพิ่มลิงก์`}
-      title="สมาชิกยังไม่ได้เพิ่มลิงก์ในโปรไฟล์"
+      className={`${cls} cursor-default`}
+      aria-label={`${label} — ยังไม่ได้ตั้งลิงก์`}
+      title="ยังไม่ได้ตั้งลิงก์ — เจ้าของเพจตั้งได้ที่แผง「แก้ไขเพจของฉัน」หรือเมนูสมาชิก → โปรไฟล์"
       role="img"
     >
       {children}
@@ -205,7 +205,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
               </div>
             </div>
 
-            {/* แท็บ + ไอคอนโซเชียล (สีแบรนด์เมื่อมีลิงก์, เทาเมื่อยังไม่กรอก) */}
+            {/* แท็บ + ไอคอนโซเชียล (โลโก้แบรนด์เต็มสี — ยังไม่ตั้งลิงก์ก็แสดงสีเดิม) */}
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200">
               <div className="flex min-w-0 gap-0" role="tablist" aria-label="ส่วนเพจ">
                 <button
@@ -247,11 +247,11 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                     platform={s.platform}
                   >
                     {s.key === "line" ? (
-                      <BrandLineWordmark muted={!s.href} />
+                      <BrandLineWordmark />
                     ) : s.key === "facebook" ? (
-                      <BrandFacebookGlyph muted={!s.href} />
+                      <BrandFacebookGlyph />
                     ) : (
-                      <BrandTiktokGlyph muted={!s.href} />
+                      <BrandTiktokGlyph />
                     )}
                   </SocialTabIcon>
                 ))}
@@ -280,7 +280,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                 <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                   <h2 className="text-lg font-semibold text-gray-900">ช่องทางติดต่อ</h2>
                   <p className="mt-1 text-xs text-gray-500">
-                    ไอคอนด้านบนใช้สีตามแบรนด์แต่ละช่องทางเมื่อมีลิงก์ — แก้ไขได้ที่เมนูสมาชิก → โปรไฟล์
+                    ไอคอนด้านบนเป็นโลโก้สีตามแบรนด์ — ตั้งลิงก์ได้ที่แผง「แก้ไขเพจของฉัน」หรือเมนูสมาชิก → โปรไฟล์
                   </p>
                   <ul className="mt-4 space-y-2 text-sm">
                     {socialSlots.map((s) => (
