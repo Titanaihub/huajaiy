@@ -1863,18 +1863,6 @@ export default function AdminCentralGamePanel({
                       {lobbyVisible ? "แสดง (เผยแพร่แล้วหรือเป็นเกมที่กำลังเปิดใช้)" : "ยังไม่แสดง"} — เปิด/ปิดด้วยปุ่มเผยแพร่หรือ「หยุดการเผยแพร่」ด้านล่าง (ไม่ใช่ช่องติ๊ก เพื่อไม่ให้บันทึกล้มเมื่อรูปยังไม่ครบ)
                     </p>
                   </div>
-                  <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3">
-                    <input
-                      id="central-game-allow-gift-red"
-                      type="checkbox"
-                      checked={allowGiftRedPlay}
-                      onChange={(e) => setAllowGiftRedPlay(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-hui-border"
-                    />
-                    <label htmlFor="central-game-allow-gift-red" className="text-sm leading-relaxed text-amber-950">
-                      <span className="font-semibold">รับหัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง)</span>
-                    </label>
-                  </div>
                 </>
               )}
               <div className="sm:col-span-2 rounded-lg border border-rose-100 bg-rose-50/40 p-3">
@@ -1897,19 +1885,6 @@ export default function AdminCentralGamePanel({
                       <option value="red_only">รับเฉพาะหัวใจแดง</option>
                       <option value="either">รับชมพูหรือแดงอย่างใดอย่างหนึ่ง (ผู้เล่นเลือกตอนเริ่ม)</option>
                     </select>
-                  </div>
-                  <div className="sm:col-span-2 flex gap-2 rounded-lg border border-hui-border bg-white/80 px-3 py-2">
-                    <input
-                      id="central-accepts-pink"
-                      type="checkbox"
-                      checked={acceptsPinkHearts}
-                      onChange={(e) => setAcceptsPinkHearts(e.target.checked)}
-                      disabled={awardEditLocked}
-                      className="mt-0.5 h-4 w-4 rounded border-hui-border"
-                    />
-                    <label htmlFor="central-accepts-pink" className="text-sm leading-relaxed text-hui-body">
-                      ห้องนี้รับหัวใจชมพู (ปิดถ้าต้องการให้เล่นด้วยแดงเท่านั้น — โหมดจ่ายอย่างใดอย่างหนึ่งจะเหลือแค่แดง)
-                    </label>
                   </div>
                   <div>
                     <label className="text-sm text-hui-body">หักหัวใจชมพูต่อรอบ</label>
