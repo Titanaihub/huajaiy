@@ -33,11 +33,12 @@ export async function getCommunityPageMetadata() {
 }
 
 /**
- * @param {{ activeNavKey: 'posts' | 'page'; scrollToSection?: 'lobby' | 'title' | null }} props
+ * @param {{ activeNavKey: 'posts' | 'page'; scrollToSection?: 'lobby' | 'title' | null; showShortcutNav?: boolean }} props
  */
 export default async function CommunityPageRoute({
   activeNavKey,
-  scrollToSection = null
+  scrollToSection = null,
+  showShortcutNav = true
 }) {
   const [raw, gameLobbyTheme, memberPages] = await Promise.all([
     fetchOrganicHomePublic(),
@@ -67,6 +68,7 @@ export default async function CommunityPageRoute({
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
         memberPages={memberPages}
+        showShortcutNav={showShortcutNav}
       />
     </PublicOrganicShell>
   );

@@ -105,11 +105,13 @@ function SmartLink({ href, className, children }) {
 
 /**
  * เนื้อหาเพจชุมชน — โครงเดียวกับหน้า /game (หัวข้อ + ล็อบบี้การ์ด + ทางลัด)
+ * @param {{ showShortcutNav?: boolean }} props — แถบลิงก์ล่าง (หน้าแรก/เกม/ร้าน/ตะกร้า); ปิดได้ที่ /posts /pages
  */
 export default function CommunityPageView({
   blogBlock,
   communityPage,
-  memberPages = []
+  memberPages = [],
+  showShortcutNav = true
 }) {
   const rawTitle = blogBlock?.title?.trim() || "";
   const title = normalizeCommunityTitle(rawTitle);
@@ -157,35 +159,37 @@ export default function CommunityPageView({
         <CommunityLobby posts={lobbyPosts} />
       </div>
 
-      <nav
-        className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"
-        aria-label="ทางลัดจากเพจชุมชน"
-      >
-        <Link
-          href="/"
-          className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
+      {showShortcutNav ? (
+        <nav
+          className="mt-10 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-[color:var(--gl-card-border)] pt-8"
+          aria-label="ทางลัดจากเพจชุมชน"
         >
-          ← หน้าแรก
-        </Link>
-        <Link
-          href="/game"
-          className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
-        >
-          เกมและรางวัล
-        </Link>
-        <Link
-          href="/shop"
-          className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
-        >
-          ร้านค้า
-        </Link>
-        <Link
-          href="/cart"
-          className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
-        >
-          ตะกร้า
-        </Link>
-      </nav>
+          <Link
+            href="/"
+            className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
+          >
+            ← หน้าแรก
+          </Link>
+          <Link
+            href="/game"
+            className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
+          >
+            เกมและรางวัล
+          </Link>
+          <Link
+            href="/shop"
+            className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
+          >
+            ร้านค้า
+          </Link>
+          <Link
+            href="/cart"
+            className="shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-[var(--gl-footer-nav)] transition hover:bg-black/[0.04] hover:text-[var(--gl-footer-nav-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2"
+          >
+            ตะกร้า
+          </Link>
+        </nav>
+      ) : null}
     </main>
   );
 }

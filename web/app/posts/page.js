@@ -11,6 +11,10 @@ export async function generateMetadata() {
 
 export default async function CommunityPostsPage() {
   return (
-    <CommunityPageRoute activeNavKey="posts" scrollToSection="lobby" />
+    <CommunityPageRoute
+      activeNavKey="posts"
+      scrollToSection="lobby"
+      showShortcutNav={false}
+    />
   );
 }
