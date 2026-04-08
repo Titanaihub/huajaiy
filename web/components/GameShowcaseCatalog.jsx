@@ -101,10 +101,6 @@ export default function GameShowcaseCatalog({ games = [], creatorFilter = "" }) 
                           ))}
                         </span>
                       </p>
-                      <div className="mt-3">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">รางวัล</span>
-                        <p className="mt-0.5 text-sm font-medium text-neutral-700">ตามกติกาเกม</p>
-                      </div>
                       <span className="mt-4 inline-flex min-h-[2.75rem] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FF2D85] to-[#FF6BA8] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/25 transition group-hover:brightness-105">
                         <IconGamepadBtn className="h-5 w-5 shrink-0 text-white" />
                         เล่นเลย
