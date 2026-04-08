@@ -80,7 +80,8 @@ function memberDirectoryCard(m) {
     dateLine: `@${un}`,
     excerpt,
     imageUrl: img,
-    href: publicMemberPath(un)
+    href: publicMemberPath(un),
+    avatarUrl: String(m?.profilePictureUrl || "").trim()
   };
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { DEFAULT_CENTRAL_GAME_COVER_PATH } from "../lib/centralGameDefaults";
+import { useCallback, useMemo, useState } from "react";
+import { IconShare } from "./HuajaiyCentralTemplate";
+import HeartIcon from "./HeartIcon";
 
 const DESC_LEN = 180;
 
@@ -35,114 +36,146 @@ function communityCardListKey(post, index) {
   return `card-fallback-${index}`;
 }
 
-function MetaCalendarIcon({ className }) {
-  return (
-    <svg
-      className={className}
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      aria-hidden
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
-    </svg>
-  );
-}
-
-function MetaFolderIcon({ className }) {
-  return (
-    <svg
-      className={className}
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-    </svg>
-  );
-}
-
-/** แบนเนอร์แนวนอนกว้าง (~10:3 ใกล้ปกโปรโมชัน/แบนเนอร์เพจ) → เมตา → หัวข้อ → คำอธิบาย */
-function CardInner({ post, cardClass, mediaShell }) {
-  const src = resolveCommunityImageSrc(post?.imageUrl);
+/**
+ * การ์ดโพสต์แนวฟีด — โครงเดียวกับหน้าแรก (หัวผู้โพสต์ → หัวข้อ → คำอธิบาย → รูป → แถบไลก์/แชร์)
+ */
+function FeedCard({ post, onShare }) {
   const phref = post?.href;
   const hasNav = isNavigableHref(phref);
-  const category = String(post?.category || "").trim();
-  const dateLine = String(post?.dateLine || "").trim();
+  const isMemberPage = String(post?.category || "").trim() === "เพจสมาชิก";
 
-  const media = (
-    <div className={mediaShell}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src || DEFAULT_CENTRAL_GAME_COVER_PATH}
-        alt=""
-        className="h-full w-full object-cover object-center transition duration-200 group-hover:opacity-95"
-        width={1000}
-        height={300}
-      />
-    </div>
-  );
+  const headerName = isMemberPage
+    ? String(post?.title || "").trim() || "เพจสมาชิก"
+    : String(post?.category || "").trim() || "โพสต์ชุมชน";
+  const secondaryMeta = String(post?.dateLine || "").trim() || "—";
+  const headline = isMemberPage ? "" : String(post?.title || "").trim();
+  const excerpt = clipDescription(post?.excerpt);
+  const avatarUrl = String(post?.avatarUrl || "").trim();
+  const initial = (headerName || "?").slice(0, 1).toUpperCase();
 
-  const body = (
+  const rawSrc = resolveCommunityImageSrc(post?.imageUrl);
+  const showImg = Boolean(rawSrc);
+
+  const cardBody = (
     <>
-      {media}
-      <div className="flex min-h-0 flex-1 flex-col bg-[var(--gl-card-bg)] p-3 sm:p-3.5">
-        <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase leading-none tracking-wide text-[var(--gl-card-muted)]">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <MetaCalendarIcon className="shrink-0 opacity-85" />
-            <span className="truncate">{dateLine || "—"}</span>
+      <div className="flex items-center gap-3 border-b border-pink-50 p-4">
+        {avatarUrl && /^https:\/\//i.test(avatarUrl) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-pink-100/80"
+            width={40}
+            height={40}
+          />
+        ) : (
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FF2E8C] to-purple-500 text-sm font-bold text-white"
+            aria-hidden
+          >
+            {initial}
           </div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <MetaFolderIcon className="shrink-0 opacity-85" />
-            <span>{category || "—"}</span>
-          </div>
+        )}
+        <div className="min-w-0">
+          <p className="truncate font-bold text-neutral-900">{headerName}</p>
+          <p className="text-xs text-neutral-500">{secondaryMeta}</p>
         </div>
-        <h2 className="mt-2.5 line-clamp-2 text-base font-bold leading-snug text-[var(--gl-card-title)] sm:text-lg">
-          {post?.title || "โพสต์"}
-        </h2>
-        {post?.excerpt ? (
-          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[var(--gl-card-body)]">
-            {clipDescription(post.excerpt)}
+      </div>
+      <div className="grow px-4 py-3">
+        {headline ? (
+          <h2 className="line-clamp-2 text-base font-bold leading-snug text-neutral-900">{headline}</h2>
+        ) : null}
+        {excerpt ? (
+          <p
+            className={`line-clamp-3 text-sm leading-relaxed text-neutral-700 ${headline ? "mt-1.5" : ""}`}
+          >
+            {excerpt}
           </p>
         ) : null}
       </div>
+      {showImg ? (
+        <div className="mx-4 mb-4 h-36 overflow-hidden rounded-xl bg-neutral-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={rawSrc}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ) : (
+        <div className="mx-4 mb-4 h-36 rounded-xl bg-gradient-to-br from-pink-100/80 to-violet-100/80" aria-hidden />
+      )}
     </>
   );
 
-  if (hasNav && /^https:\/\//i.test(String(phref))) {
-    return (
-      <a href={phref} className={cardClass} target="_blank" rel="noopener noreferrer">
-        {body}
+  const linkClassName =
+    "flex min-h-0 flex-1 flex-col outline-none transition hover:bg-pink-50/40 focus-visible:ring-2 focus-visible:ring-[#FF2E8C]/35 focus-visible:ring-offset-2";
+
+  const mainLink =
+    hasNav && /^https:\/\//i.test(String(phref)) ? (
+      <a href={phref} className={linkClassName} target="_blank" rel="noopener noreferrer">
+        {cardBody}
       </a>
-    );
-  }
-  if (hasNav) {
-    return (
-      <Link href={phref} className={cardClass}>
-        {body}
+    ) : hasNav ? (
+      <Link href={phref} className={linkClassName}>
+        {cardBody}
       </Link>
+    ) : (
+      <div className={linkClassName}>{cardBody}</div>
     );
-  }
-  return <div className={cardClass}>{body}</div>;
+
+  return (
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50">
+      {mainLink}
+      <div className="flex items-center justify-between border-t border-pink-50 px-4 py-3 text-sm text-neutral-600">
+        <span className="inline-flex items-center gap-3">
+          <span className="inline-flex items-center gap-1">
+            <HeartIcon className="h-4 w-4 text-[#FF2E8C]" />
+            0
+          </span>
+          <span className="inline-flex items-center gap-1 text-neutral-500" aria-hidden>
+            💬 0
+          </span>
+        </span>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 font-semibold text-[#FF2E8C] hover:underline"
+          onClick={(e) => onShare(e, phref, headline || headerName)}
+        >
+          <IconShare className="h-4 w-4 shrink-0 text-[#FF2E8C]" />
+          แชร์
+        </button>
+      </div>
+    </article>
+  );
 }
 
 /**
- * ล็อบบี้เพจชุมชน — โครงเดียวกับ GameLobby (ค้นหา + การ์ด + CSS vars ธีมหน้าเกม)
+ * ล็อบบี้เพจชุมชน — การ์ดโพสต์แนวฟีด (ค้นหา + กริด)
  * @param {{ posts: Array<object> }} props
  */
 export default function CommunityLobby({ posts = [] }) {
   const [q, setQ] = useState("");
+
+  const sharePost = useCallback((e, href, label) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const h = String(href || "").trim();
+    if (!h || h === "#") return;
+    const url = /^https:\/\//i.test(h)
+      ? h
+      : `${typeof window !== "undefined" ? window.location.origin : ""}${h.startsWith("/") ? h : `/${h}`}`;
+    const t = String(label || "").trim() || "HUAJAIY";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      void navigator.share({ title: t, url }).catch(() => {
+        void navigator.clipboard?.writeText?.(url).catch(() => {});
+      });
+    } else if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -160,13 +193,6 @@ export default function CommunityLobby({ posts = [] }) {
       );
     });
   }, [posts, q]);
-
-  const cardShell =
-    "group flex h-full flex-col overflow-hidden rounded-2xl border text-left shadow-sm transition hover:shadow-md";
-  const cardClass = `${cardShell} border-[color:var(--gl-card-border)] bg-[var(--gl-card-bg)] hover:border-[color:var(--gl-card-cta-hover)]`;
-  /* แบนเนอร์แนวนอนกว้าง ~10:3 — โชว์รูปปกเพจแบบแบนเนอร์ (ไม่ใช่จัตุรัส) */
-  const mediaShell =
-    "relative aspect-[10/3] w-full shrink-0 overflow-hidden rounded-t-2xl border-b border-[color:var(--gl-card-border)] bg-[var(--gl-card-media-bg)]";
 
   return (
     <div className="space-y-6">
@@ -198,7 +224,7 @@ export default function CommunityLobby({ posts = [] }) {
         <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {filtered.map((post, i) => (
             <li key={communityCardListKey(post, i)}>
-              <CardInner post={post} cardClass={cardClass} mediaShell={mediaShell} />
+              <FeedCard post={post} onShare={sharePost} />
             </li>
           ))}
         </ul>
