@@ -480,11 +480,9 @@ function CreatorPrizeCard({
               (หักจากยอดคงเหลือปัจจุบันด้านบน — ดูรายการและยกเลิกได้ในตารางด้านล่าง)
             </p>
           ) : null}
-          {cashItems.length > 0 ? (
+          {cashItems.length > 0 && !cashAllowsTransfer ? (
             <p className="mt-2 text-sm text-hui-muted">
-              {cashAllowsTransfer
-                ? "ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ (เฉพาะรางวัลที่กติกากำหนดเป็นโอนรางวัลให้)"
-                : "รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง"}
+              รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง
             </p>
           ) : null}
           {onRefreshWithdrawals ? (
@@ -600,15 +598,13 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
 
       {open ? (
         <div className="mt-4 border-t border-hui-border/70 pt-4">
-          <div className="mb-3 flex flex-col gap-2 rounded-lg border border-hui-border bg-hui-pageTop/90 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-hui-body">
-              {allPickup
-                ? "ผู้สร้างตั้งค่าให้มารับเอง — กด「กดรับรางวัล」ในแต่ละแถวเพื่อแจ้งผู้สร้างว่าคุณรับทราบและจะมารับตามที่นัดหมาย"
-                : allShip
+          {!allPickup ? (
+            <div className="mb-3 flex flex-col gap-2 rounded-lg border border-hui-border bg-hui-pageTop/90 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-hui-body">
+                {allShip
                   ? "จัดส่งตามที่อยู่ที่บันทึกในโปรไฟล์ — ใช้ได้ทั้งรายการเดียวหรือหลายรายการในกลุ่มนี้เมื่อผู้สร้างเลือกส่งของ"
                   : "ในกลุ่มนี้อาจมีทั้งแบบมารับเองและจัดส่ง — ดูคอลัมน์「วิธีรับรางวัล」ของแต่ละแถว"}
-            </p>
-            {!allPickup ? (
+              </p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -618,8 +614,8 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
                   ตั้งค่าที่อยู่จัดส่ง (ทั้งหมดในกลุ่ม)
                 </button>
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           {pickupAckErr ? (
             <p className="mb-2 text-sm text-red-700" role="alert">
@@ -750,12 +746,6 @@ function ItemPrizeGroupCard({ group, onRefreshAwards }) {
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-sm text-hui-muted">
-            การอัปเดตสถานะจัดส่งเป็นหน้าที่ผู้สร้างเกม — ฝั่งคุณสามารถตรวจสอบที่อยู่ในโปรไฟล์ให้ถูกต้องก่อนผู้สร้างจัดส่ง
-            {allPickup || receiptModes.some((m) => m === "pickup")
-              ? " · มารับเอง: กด「แจ้งผู้สร้างว่าจะมารับ」เพื่อบันทึกเวลาให้ผู้สร้างเห็น — ติดต่อนัดรับผ่าน LINE ด้านขวา"
-              : ""}
-          </p>
         </div>
       ) : null}
     </li>
