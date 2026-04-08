@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_CENTRAL_GAME_COVER_PATH,
@@ -119,6 +120,41 @@ function resizeSetSizes(prev, n, fill) {
   const f = Math.max(1, parseInt(String(fill), 10) || 1);
   while (out.length < n) out.push(out[out.length - 1] ?? f);
   return out;
+}
+
+/** ข้อห้าม + กฎผู้สร้าง — แสดงเฉพาะขั้นตอนกรอกข้อมูลเบื้องต้น (สมาชิก) */
+function MemberStudioIntroPolicyStack() {
+  return (
+    <div className="space-y-6">
+      <div
+        className="rounded-2xl border-2 border-rose-200 bg-rose-50/95 p-5 shadow-sm dark:border-rose-800/55 dark:bg-rose-950/35"
+        role="note"
+      >
+        <p className="text-lg font-bold text-rose-950 dark:text-rose-50">ข้อห้ามใช้งาน</p>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-rose-950 dark:text-rose-100/95">
+          <li>
+            <strong>ห้าม</strong>ใช้เกมหรือห้องเกมเพื่อธุรกิจหรือกิจกรรมที่เป็น<strong>การพนัน</strong>{" "}
+            หรือชักจูงให้เล่นพนัน
+          </li>
+          <li>
+            <strong>ห้าม</strong>ใช้เนื้อหา<strong>สื่อลามก</strong> หรือเนื้อหาที่ผิดกฎหมายและศีลธรรมอันดี
+          </li>
+        </ul>
+      </div>
+      <div className="rounded-2xl border-2 border-amber-200 bg-amber-50/95 p-5 shadow-sm dark:border-amber-800/45 dark:bg-amber-950/30">
+        <p className="text-lg font-bold text-amber-950 dark:text-amber-50">กฎระเบียบสำหรับผู้สร้างเกม</p>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-amber-950 dark:text-amber-100">
+          <li>
+            ผู้สร้างเกมมีหน้าที่<strong>จ่ายรางวัล</strong>ตามที่กำหนดและประกาศไว้ต่อผู้เล่น
+          </li>
+          <li>
+            ต้อง<strong>แจ้งเงื่อนไข</strong>การได้รับรางวัล วิธีรับ และระยะเวลาให้<strong>ชัดเจน</strong>{" "}
+            เพื่อลดความขัดแย้ง
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 function CentralGamePolicyCallout() {
@@ -389,6 +425,8 @@ export default function AdminCentralGamePanel({
   embedded = false,
   /** ฝังใน /member + TailAdmin — หลังเผยแพร่ไปหน้าเกมของฉันในเชลล์สมาชิก */
   memberShellEmbed = false,
+  /** สมาชิก: แสดงเฉพาะชื่อเกม + คำอธิบาย — ตั้งค่าป้าย/รูป/รางวัลไปที่ ?edit=full */
+  memberBasicInfoOnly = false,
   focusGameId = null
 }) {
   const [games, setGames] = useState([]);
@@ -430,6 +468,7 @@ export default function AdminCentralGamePanel({
   /** หลังสร้างเกมใหม่ — ชวนเผยแพร่ */
   const [publishPrompt, setPublishPrompt] = useState(null);
   const [savingAll, setSavingAll] = useState(false);
+  const [savingBasicIntro, setSavingBasicIntro] = useState(false);
   /** เผยแพร่ / ปิดใช้ / ลบ — กันซ้ำและให้เห็นสถานะ */
   const [gameActionBusy, setGameActionBusy] = useState(false);
   /** ซ่อนฟอร์มสร้างเกม — ลดความซ้ำกับโหมดแก้ไข */
@@ -827,6 +866,32 @@ export default function AdminCentralGamePanel({
     }
   }
 
+  /** สมาชิกขั้นตอนแรก — บันทึกเฉพาะชื่อและคำอธิบาย */
+  async function saveBasicIntro() {
+    if (!selectedId || savingBasicIntro) return;
+    setSavingBasicIntro(true);
+    setErr("");
+    setMsg("");
+    try {
+      const token = getMemberToken();
+      if (!token) throw new Error("หมดเซสชัน — ล็อกอินใหม่");
+      const t = String(title || "").trim();
+      if (!t) throw new Error("กรุณากรอกชื่อเกม");
+      await apiAdminCentralGamePatch(token, selectedId, {
+        title: t,
+        description: gameDescription
+      });
+      await loadList();
+      await loadDetail(selectedId);
+      setMsg("บันทึกข้อมูลแล้ว");
+    } catch (e) {
+      setErr(e.message || String(e));
+      setMsg("");
+    } finally {
+      setSavingBasicIntro(false);
+    }
+  }
+
   async function publishGameById(id) {
     if (!id) {
       setErr("ไม่พบรหัสเกม — รีเฟรชรายการแล้วลองใหม่");
@@ -1067,6 +1132,14 @@ export default function AdminCentralGamePanel({
     );
   }
 
+  const showMemberBasicIntro = Boolean(
+    memberShellEmbed && memberBasicInfoOnly && selectedId
+  );
+  const fullStudioHref = memberShellEmbed
+    ? `/member/game-studio?game=${encodeURIComponent(selectedId || "")}&edit=full`
+    : `/account/game-studio?game=${encodeURIComponent(selectedId || "")}&edit=full`;
+  const memberCancelHref = memberShellEmbed ? "/member/game" : "/account/my-games";
+
   return (
     <section className="space-y-8 text-sm">
       {err ? <p className="text-red-600">{err}</p> : null}
@@ -1080,6 +1153,7 @@ export default function AdminCentralGamePanel({
         </p>
       ) : null}
 
+      {showMemberBasicIntro ? <MemberStudioIntroPolicyStack /> : null}
       <CentralGamePolicyCallout />
 
       {!embedded ? (
@@ -1256,7 +1330,7 @@ export default function AdminCentralGamePanel({
         </div>
       ) : null}
 
-      {games.length > 0 ? (
+      {games.length > 0 && !showMemberBasicIntro ? (
         <div className="overflow-x-auto rounded-xl border border-hui-border bg-white">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hui-border bg-hui-pageTop px-3 py-2">
             <h3 className="text-sm font-semibold text-hui-body">รายการเกม — คลิกแถวเพื่อเลือกแก้ไข</h3>
@@ -1357,7 +1431,84 @@ export default function AdminCentralGamePanel({
         </div>
       ) : null}
 
-      {selectedId ? (
+      {selectedId && showMemberBasicIntro ? (
+        <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
+          {loading ? <p className="text-hui-muted">กำลังโหลด…</p> : null}
+          {awardEditLocked ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-950">
+              <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
+            </div>
+          ) : null}
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            noValidate
+            className="space-y-4 rounded-xl border border-hui-border bg-hui-surface/90 p-4 shadow-soft"
+          >
+            <h3 className="text-lg font-semibold text-hui-section">
+              ข้อมูลรายละเอียดเบื้องต้นของเกม
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium text-hui-section">หัวข้อเกม / ชื่อเกม</label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  readOnly={creatorLimitedMode}
+                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-hui-body ${creatorLimitedMode ? "border-hui-border bg-hui-pageTop" : "border-hui-border"}`}
+                  placeholder={creatorLimitedMode ? "ชื่อเกม (ล็อก)" : "ชื่อเกมที่แสดงให้ผู้เล่น"}
+                  title={creatorLimitedMode ? "ชื่อเกมถูกล็อก แก้ไขไม่ได้" : undefined}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium text-hui-section">คำอธิบายรายละเอียดเบื้องต้น</label>
+                <textarea
+                  value={gameDescription}
+                  onChange={(e) => setGameDescription(e.target.value)}
+                  rows={6}
+                  className="mt-1 w-full resize-y rounded-lg border border-hui-border px-3 py-2 text-hui-body"
+                  placeholder="อธิบายเกมหรือเงื่อนไขให้ผู้เล่น (แสดงในหน้าเล่นเมื่อเผยแพร่ — ไม่บังคับ)"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-sm text-hui-body">รหัสเกม</label>
+                <input
+                  readOnly
+                  value={gameCode}
+                  placeholder="ออกหลังเผยแพร่"
+                  className="mt-1 w-full rounded-lg border border-hui-border bg-hui-pageTop px-3 py-2 font-mono text-sm text-hui-body"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={savingBasicIntro || loading || !selectedId}
+                onClick={() => void saveBasicIntro()}
+                className="hui-btn-primary px-6 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingBasicIntro ? "กำลังบันทึก…" : "บันทึกข้อมูล"}
+              </button>
+              <Link
+                href={memberCancelHref}
+                className="text-sm font-medium text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                ยกเลิก
+              </Link>
+            </div>
+            <p className="border-t border-hui-border pt-4 text-sm leading-relaxed text-hui-muted">
+              พร้อมตั้งค่าป้าย รูป และรางวัลแล้วหรือยัง —{" "}
+              <Link
+                href={fullStudioHref}
+                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                ถัดไป — ตั้งค่าป้าย รูป และรางวัล
+              </Link>
+            </p>
+          </form>
+        </div>
+      ) : null}
+
+      {selectedId && !showMemberBasicIntro ? (
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
           {loading ? <p className="text-hui-muted">กำลังโหลด…</p> : null}
 
@@ -1365,6 +1516,17 @@ export default function AdminCentralGamePanel({
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-950">
               <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
             </div>
+          ) : null}
+
+          {memberShellEmbed ? (
+            <p className="text-sm text-hui-muted">
+              <Link
+                href={`/member/game-studio?game=${encodeURIComponent(selectedId || "")}`}
+                className="font-semibold text-hui-section underline decoration-hui-border/80 underline-offset-2 hover:text-hui-cta"
+              >
+                ← กลับแก้ชื่อเกมและคำอธิบายเบื้องต้น
+              </Link>
+            </p>
           ) : null}
 
           <p className="text-sm text-hui-muted">
@@ -1379,7 +1541,7 @@ export default function AdminCentralGamePanel({
           >
             <div>
               <h3 className="font-semibold text-hui-section">
-                โครงชุดและรูปภาพ
+                ตั้งค่า กิจกรรม / รางวัล — โครงชุดและรูปภาพ
               </h3>
               <p className="mt-1 text-sm text-hui-muted">
                 รวม <span className="font-mono text-hui-body">{tileCount}</span> ป้าย · ตั้งกติกาในแต่ละแถวชุดด้านขวา

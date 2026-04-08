@@ -2,6 +2,11 @@
  * เมื่อเปิด NEXT_PUBLIC_HUAJAIY_STRICT_ROUTES=1 — อนุญาตเฉพาะ path ที่ใช้งานจริง + callback OAuth + static ที่จำเป็น
  */
 
+import {
+  ADMIN_DASH_SLUG_TO_TAB,
+  MEMBER_SLUG_TO_TAIL
+} from "./memberWorkspacePath";
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -41,41 +46,13 @@ const RESERVED_TOP = new Set([
 ]);
 
 const ADMIN_FIRST = new Set([
-  "profile",
-  "prizes",
-  "hearts",
-  "game",
-  "shops",
-  "orders",
-  "prize-withdraw",
-  "hearts-top-up",
-  "give-hearts",
-  /** แดชบอร์ด Next */
+  ...Object.keys(ADMIN_DASH_SLUG_TO_TAB),
+  ...Object.keys(MEMBER_SLUG_TO_TAIL),
   "panel",
-  /** เมนูแอดมินใน TailAdmin / Vue */
-  "theme",
-  "all-shops",
-  "game-settings",
-  "central-games",
-  "prize-payouts",
-  "heart-packs",
-  "slip-approvals",
-  "name-changes"
+  "profile"
 ]);
 
-const MEMBER_FIRST = new Set([
-  "pink-history",
-  "hearts",
-  "hearts-top-up",
-  "prizes",
-  "game",
-  "game-studio",
-  "create-game",
-  "shops",
-  "orders",
-  "prize-withdraw",
-  "give-hearts"
-]);
+const MEMBER_FIRST = new Set([...Object.keys(MEMBER_SLUG_TO_TAIL), "profile"]);
 
 const STATIC_PREFIXES = [
   "/organic-template",
@@ -139,8 +116,34 @@ export function isPathAllowed(pathname) {
     return true;
   }
 
-  if (p === "/auth/line/callback" || p.startsWith("/auth/line/callback/")) {
+  /** หน้าสมัคร / เข้าสู่ระบบ / ตะกร้า / คำสั่งซื้อ / เจ้าของร้าน / HUI */
+  if (
+    p === "/register" ||
+    p === "/cart" ||
+    p === "/orders" ||
+    p === "/owner" ||
+    p === "/hui" ||
+    p === "/hui/login"
+  ) {
     return true;
+  }
+
+  if (p === "/auth" || p.startsWith("/auth/")) {
+    return true;
+  }
+
+  /** โปรไฟล์สาธารณะแบบย่อ /u/username (คนละ path กับ /{username}) */
+  if (p.startsWith("/u/")) {
+    const rest = p.slice("/u/".length).split("/").filter(Boolean);
+    if (rest.length === 1) {
+      const seg = decodeURIComponent(rest[0]).toLowerCase();
+      return USERNAME_RE.test(seg);
+    }
+    if (rest.length === 3 && rest[1] === "post") {
+      const seg = decodeURIComponent(rest[0]).toLowerCase();
+      return USERNAME_RE.test(seg) && UUID_RE.test(rest[2]);
+    }
+    return false;
   }
 
   if (p === "/admin") return true;

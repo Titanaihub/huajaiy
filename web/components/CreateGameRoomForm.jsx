@@ -61,6 +61,7 @@ export default function CreateGameRoomForm({ hideShellPageTitle = false } = {}) 
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
   const isMemberEmbed = searchParams.get("member_embed") === "1";
+  const studioEditFull = searchParams.get("edit") === "full";
   const managingExisting =
     typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim());
 
@@ -421,6 +422,7 @@ export default function CreateGameRoomForm({ hideShellPageTitle = false } = {}) 
               key={studioGameId || "my-games-studio"}
               embedded
               memberShellEmbed={isMemberEmbed}
+              memberBasicInfoOnly={isMemberEmbed && !studioEditFull}
               focusGameId={studioGameId || null}
             />
           </div>
