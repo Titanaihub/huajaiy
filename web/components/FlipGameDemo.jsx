@@ -12,6 +12,8 @@ import {
   addHearts,
   canAffordPinkRed,
   getHearts,
+  getPinkHearts,
+  getRedHearts,
   trySpend,
   trySpendPinkRed
 } from "../lib/hearts";
@@ -49,6 +51,21 @@ function resolveCentralGiftCtx(partial, user) {
     }
   }
   return { gameCreatedBy: null, allowGiftRedPlay };
+}
+
+/** ยอดหัวใจชมพู / แดงรวมห้อง — ใช้แสดงใต้ปุ่ม「เริ่มเล่นเกม」(สอดคล้อง canAffordCentralEntry) */
+function getCentralWalletBalances(user, ctx) {
+  const c = ctx || {};
+  if (user) {
+    const pu = Math.max(0, Math.floor(Number(user.pinkHeartsBalance)) || 0);
+    const generalRed = Math.max(0, Math.floor(Number(user.redHeartsBalance)) || 0);
+    let giftPool = 0;
+    if (c.allowGiftRedPlay) giftPool = totalRoomGiftRed(user);
+    else if (c.gameCreatedBy) giftPool = roomGiftRedForCreator(user, c.gameCreatedBy);
+    const totalRed = generalRed + giftPool;
+    return { pink: pu, red: totalRed };
+  }
+  return { pink: getPinkHearts(), red: getRedHearts() };
 }
 
 function currencyMetaFromApi(meta) {
@@ -1579,55 +1596,73 @@ export default function FlipGameDemo({
     centralGiftCtxResolved
   ]);
 
-  /** ข้อความบนปุ่ม「เริ่มเล่นเกม」— สอดคล้องกับที่เซิร์ฟเวอร์จะหักเมื่อกด */
-  const centralStartButtonCostLine = useMemo(() => {
+  /** ยอดหัวใจที่มีตอนนี้ใต้ปุ่ม「เริ่มเล่นเกม」— หลังกดเริ่มระบบหักตามเดิม */
+  const centralStartButtonBalanceLine = useMemo(() => {
     if (mode !== "api" || apiGameMode !== "central") return null;
-    const p = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
-    const r = Math.max(0, Math.floor(Number(redHeartCost) || 0));
-    if (p === 0 && r === 0) {
-      return (
-        <span className="text-[11px] font-medium leading-tight text-emerald-800/90 sm:text-xs">
-          ไม่หักหัวใจ
-        </span>
-      );
-    }
+    const pCost = Math.max(0, Math.floor(Number(pinkHeartCost) || 0));
+    const rCost = Math.max(0, Math.floor(Number(redHeartCost) || 0));
+    const { pink: pinkBal, red: redBal } = getCentralWalletBalances(
+      user,
+      centralGiftCtxResolved
+    );
     const eitherEligible =
       heartCurrencyMode === "either" &&
       acceptsPinkHeartsMeta !== false &&
-      (p > 0 || r > 0);
+      (pCost > 0 || rCost > 0);
     if (eitherEligible) {
       const usePink = centralPayWith === "pink";
-      const amt = usePink ? p : r;
-      const label = usePink ? "หัวใจชมพู" : "หัวใจแดงห้องเกม";
+      const n = usePink ? pinkBal : redBal;
+      const label = usePink ? "ชมพู" : "แดง";
       const heartCls = usePink ? "text-rose-500" : "text-red-600";
       return (
         <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-1 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
-          <span className="text-slate-500">หักครั้งนี้</span>
+          <span className="text-slate-500">มีอยู่</span>
           <InlineHeart size="sm" className={`shrink-0 ${heartCls}`} />
-          <span className="tabular-nums">{amt}</span>
-          <span>{label}</span>
+          <span className="tabular-nums">{n}</span>
+          <span>หัวใจ{label}</span>
+        </span>
+      );
+    }
+    if (pCost === 0 && rCost === 0) {
+      return (
+        <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
+          <span className="text-slate-500">มีอยู่</span>
+          <span className="inline-flex items-center gap-0.5">
+            <InlineHeart size="sm" className="shrink-0 text-rose-500" />
+            <span className="tabular-nums">{pinkBal}</span>
+            <span>ชมพู</span>
+          </span>
+          <span className="text-slate-400" aria-hidden>
+            ·
+          </span>
+          <span className="inline-flex items-center gap-0.5">
+            <InlineHeart size="sm" className="shrink-0 text-red-600" />
+            <span className="tabular-nums">{redBal}</span>
+            <span>แดง</span>
+          </span>
+          <span className="text-slate-500">(ไม่หัก)</span>
         </span>
       );
     }
     return (
       <span className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] font-semibold leading-tight text-slate-700 sm:text-xs">
-        <span className="text-slate-500">หักครั้งนี้</span>
-        {p > 0 ? (
+        <span className="text-slate-500">มีอยู่</span>
+        {pCost > 0 ? (
           <span className="inline-flex items-center gap-0.5">
             <InlineHeart size="sm" className="shrink-0 text-rose-500" />
-            <span className="tabular-nums">{p}</span>
+            <span className="tabular-nums">{pinkBal}</span>
             <span>ชมพู</span>
           </span>
         ) : null}
-        {p > 0 && r > 0 ? (
+        {pCost > 0 && rCost > 0 ? (
           <span className="text-slate-400" aria-hidden>
             ·
           </span>
         ) : null}
-        {r > 0 ? (
+        {rCost > 0 ? (
           <span className="inline-flex items-center gap-0.5">
             <InlineHeart size="sm" className="shrink-0 text-red-600" />
-            <span className="tabular-nums">{r}</span>
+            <span className="tabular-nums">{redBal}</span>
             <span>แดง</span>
           </span>
         ) : null}
@@ -1636,11 +1671,13 @@ export default function FlipGameDemo({
   }, [
     mode,
     apiGameMode,
+    user,
     pinkHeartCost,
     redHeartCost,
     heartCurrencyMode,
     acceptsPinkHeartsMeta,
-    centralPayWith
+    centralPayWith,
+    centralGiftCtxResolved
   ]);
 
   const showCentralPlayActions =
@@ -2251,8 +2288,8 @@ export default function FlipGameDemo({
               className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-emerald-500 bg-white px-4 py-3.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
             >
               <span>เริ่มเล่นเกม</span>
-              {centralStartButtonCostLine ? (
-                <span className="w-full font-normal">{centralStartButtonCostLine}</span>
+              {centralStartButtonBalanceLine ? (
+                <span className="w-full font-normal">{centralStartButtonBalanceLine}</span>
               ) : null}
             </button>
             <button
