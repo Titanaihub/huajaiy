@@ -218,7 +218,7 @@ app.get("/api/health", (_req, res) => {
 /** ข้อมูลกติกาเกมโดยไม่สร้าง session — ให้ฝั่งเว็บเช็กหัวใจก่อนเรียก start */
 async function getActiveCentralSnapshot() {
   try {
-    return await centralGameService.getActiveGameSnapshot();
+    return await centralGameService.getActiveGameSnapshotForPublic();
   } catch (e) {
     if (e.code === "DB_REQUIRED") return null;
     throw e;
@@ -451,6 +451,10 @@ function heartBalancesPayload(u) {
  * @returns {Promise<{ ok: true, viewer: object | null } | { ok: false }>}
  */
 async function assertPublicMemberPageAccess(req, res, pageUser) {
+  if (pageUser.accountDisabled) {
+    res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
+    return { ok: false };
+  }
   const auth = await tryResolveBearerUser(req);
   if (auth.kind === "reject") {
     res.status(auth.status).json({
@@ -794,6 +798,11 @@ app.get(
           return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือกติกา" });
         }
         gameId = String(snap.game.id);
+      } else {
+        const snapPub = await getPublishedCentralSnapshot(gameId);
+        if (!snapPub?.game?.id) {
+          return res.status(404).json({ ok: false, error: "ไม่พบเกมหรือกติกา" });
+        }
       }
       const data = await centralPrizeAwardService.listPublicRecipientsForRule(
         gameId,

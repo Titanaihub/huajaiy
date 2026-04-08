@@ -302,6 +302,20 @@ async function getActiveGameSnapshot() {
   return getGameSnapshotById(g.rows[0].id);
 }
 
+/** เหมือน getActiveGameSnapshot แต่ไม่คืนเกมที่เจ้าของ (created_by) ถูกระงับบัญชี — ใช้ฝั่งสาธารณะเท่านั้น */
+async function getActiveGameSnapshotForPublic() {
+  const pool = requirePool();
+  const g = await pool.query(
+    `SELECT g.* FROM central_games g
+     LEFT JOIN users u ON u.id = g.created_by
+     WHERE g.is_active = TRUE
+       AND (g.created_by IS NULL OR COALESCE(u.account_disabled, FALSE) = FALSE)
+     LIMIT 1`
+  );
+  if (g.rows.length === 0) return null;
+  return getGameSnapshotById(g.rows[0].id);
+}
+
 /** แสดงในหน้าเกม: เผยแพร่แล้ว หรือเป็นเกมที่กำลังเปิดใช้ (รองรับข้อมูลเก่าก่อนมีคอลัมน์ is_published) */
 async function listPublishedGamesForPublic() {
   const pool = requirePool();
@@ -321,13 +335,15 @@ async function listPublishedGamesForPublic() {
         AND (meta->>'gameId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
       GROUP BY (meta->>'gameId')::uuid
     ) ps ON ps.game_id = g.id
-    WHERE g.is_published = TRUE OR g.is_active = TRUE
+    WHERE (g.is_published = TRUE OR g.is_active = TRUE)
+      AND (g.created_by IS NULL OR COALESCE(u.account_disabled, FALSE) = FALSE)
     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`;
   const sqlSimple = `
     SELECT g.*, u.username AS creator_username
     FROM central_games g
     LEFT JOIN users u ON u.id = g.created_by
-    WHERE g.is_published = TRUE OR g.is_active = TRUE
+    WHERE (g.is_published = TRUE OR g.is_active = TRUE)
+      AND (g.created_by IS NULL OR COALESCE(u.account_disabled, FALSE) = FALSE)
     ORDER BY g.updated_at DESC NULLS LAST, g.created_at DESC`;
   let r;
   try {
@@ -365,7 +381,11 @@ async function listPublishedGamesForPublic() {
 async function getPublishedGameSnapshotById(gameId) {
   const pool = requirePool();
   const g = await pool.query(
-    `SELECT id FROM central_games WHERE id = $1 AND (is_published = TRUE OR is_active = TRUE)`,
+    `SELECT g.id FROM central_games g
+     LEFT JOIN users u ON u.id = g.created_by
+     WHERE g.id = $1
+       AND (g.is_published = TRUE OR g.is_active = TRUE)
+       AND (g.created_by IS NULL OR COALESCE(u.account_disabled, FALSE) = FALSE)`,
     [gameId]
   );
   if (g.rows.length === 0) return null;
@@ -1372,6 +1392,7 @@ async function countGamesByCreator(userId) {
 
 module.exports = {
   getActiveGameSnapshot,
+  getActiveGameSnapshotForPublic,
   getGameSnapshotById,
   getPublishedGameSnapshotById,
   getPublishedGameSnapshotByGameCode,

@@ -316,6 +316,7 @@ async function listPublicByUsername(username) {
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
      WHERE u.username = $1
+       AND COALESCE(u.account_disabled, FALSE) = FALSE
      ORDER BY p.sort_order ASC, p.created_at DESC`,
     [un]
   );
@@ -338,7 +339,8 @@ async function getPublicByUsernameAndPostId(username, postId) {
             u.public_page_heart_accent AS owner_public_page_heart_accent
      FROM member_public_posts p
      JOIN users u ON u.id = p.user_id
-     WHERE u.username = $1 AND p.id = $2`,
+     WHERE u.username = $1 AND p.id = $2
+       AND COALESCE(u.account_disabled, FALSE) = FALSE`,
     [un, postId]
   );
   return rowToPost(r.rows[0]);
