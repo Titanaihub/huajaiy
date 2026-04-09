@@ -19,6 +19,13 @@ function normUser(s) {
     .replace(/^@+/, "");
 }
 
+/** จับคู่ creatorId กับ postOwnerId ใน ledger (กันคนละรูปแบบตัวอักษร UUID) */
+function normId(s) {
+  return String(s ?? "")
+    .trim()
+    .toLowerCase();
+}
+
 function asDateMs(v) {
   if (!v) return 0;
   const ms = new Date(v).getTime();
@@ -155,7 +162,8 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
     for (const entry of ledgerEntries) {
       if (String(entry?.kind || "") !== "public_post_share_reward") continue;
       const meta = entry.meta && typeof entry.meta === "object" ? entry.meta : null;
-      const oid = meta?.postOwnerId != null ? String(meta.postOwnerId).trim() : "";
+      const oidRaw = meta?.postOwnerId != null ? String(meta.postOwnerId).trim() : "";
+      const oid = normId(oidRaw);
       if (!oid) continue;
       const rd = Math.max(0, Math.floor(Number(entry.redDelta) || 0));
       if (rd <= 0) continue;
@@ -265,8 +273,12 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
               const creatorId = g.creatorId != null ? String(g.creatorId) : "";
               const rowsWithBalance = buildRowsWithBalance(bal, creatorId, roomHistoryByCreator);
               const shareRows = creatorId
-                ? shareRewardsByPostOwner.get(creatorId) || []
+                ? shareRewardsByPostOwner.get(normId(creatorId)) || []
                 : [];
+              const shareLifetimeTotal = shareRows.reduce(
+                (s, r) => s + Math.max(0, Math.floor(Number(r.amount) || 0)),
+                0
+              );
 
               return (
                 <li
@@ -275,15 +287,29 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                 >
                   <div className="flex flex-1 flex-col gap-2 p-4">
                     <h3 className="text-base font-semibold leading-snug text-hui-section">
-                      หัวใจแดงจาก {label}
+                      หัวใจแดงจากรหัสห้อง {label}
                     </h3>
                     <p className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-hui-muted">เหลือ</span>
+                      <span className="text-hui-muted">เหลือ (รหัสห้อง)</span>
                       <span className="inline-flex items-center gap-1 text-lg font-bold tabular-nums text-red-800">
                         <InlineHeart className="text-red-600" />
                         {bal.toLocaleString("th-TH")}
                       </span>
                       <span className="text-hui-muted">ดวง</span>
+                    </p>
+                    {shareLifetimeTotal > 0 ? (
+                      <p className="text-sm leading-snug text-hui-body">
+                        <span className="text-hui-muted">รับจากแชร์โพสต์ (เข้ากระเป๋าหลัก) สะสม </span>
+                        <span className="font-bold tabular-nums text-red-800">
+                          {shareLifetimeTotal.toLocaleString("th-TH")}
+                        </span>
+                        <span className="text-hui-muted"> ดวง</span>
+                      </p>
+                    ) : null}
+                    <p className="text-[11px] leading-relaxed text-hui-muted">
+                      เลขด้านบน &quot;เหลือ (รหัสห้อง)&quot; ไม่รวมแดงจากแชร์ — แชร์เข้า
+                      <span className="font-medium text-hui-body"> กระเป๋าหลัก </span>
+                      ใช้เล่นเกมคนละกติกากับห้องนี้
                     </p>
                     {g.creatorUsername ? (
                       <p className="text-sm text-hui-muted">

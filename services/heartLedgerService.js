@@ -488,6 +488,52 @@ async function ensurePinkLedgerOpeningBalance(userId) {
   }
 }
 
+/**
+ * แถว public_post_share_reward เก่ามีแค่ postId — เติม postOwnerId จาก member_public_posts ตอนอ่าน
+ * (ไม่บังคับรัน backfill ก่อน)
+ */
+async function enrichShareRewardPostOwnersFromPosts(entries) {
+  const need = [];
+  for (let i = 0; i < entries.length; i += 1) {
+    const e = entries[i];
+    if (e.kind !== "public_post_share_reward" || !e.meta || typeof e.meta !== "object") continue;
+    const pid = e.meta.postId != null ? String(e.meta.postId).trim() : "";
+    const oid = e.meta.postOwnerId != null ? String(e.meta.postOwnerId).trim() : "";
+    if (!pid || oid) continue;
+    if (!UUID_RE.test(pid)) continue;
+    need.push({ i, postId: pid });
+  }
+  if (need.length === 0) return entries;
+  const ids = [...new Set(need.map((x) => x.postId))];
+  let pr;
+  try {
+    pr = await requirePool().query(
+      `SELECT id, user_id::text AS "userId" FROM member_public_posts WHERE id = ANY($1::uuid[])`,
+      [ids]
+    );
+  } catch {
+    return entries;
+  }
+  const ownerByPost = new Map();
+  for (const row of pr.rows) {
+    ownerByPost.set(String(row.id), String(row.userId));
+  }
+  const out = entries.map((e) => ({
+    ...e,
+    meta:
+      e.meta && typeof e.meta === "object" && !Array.isArray(e.meta)
+        ? { ...e.meta }
+        : e.meta
+  }));
+  for (const { i, postId } of need) {
+    const ou = ownerByPost.get(postId);
+    if (!ou) continue;
+    if (!out[i].meta || typeof out[i].meta !== "object") continue;
+    out[i].meta.postOwnerId = ou;
+  }
+  return out;
+}
+
 async function listForUser(userId, opts = {}) {
   const pool = requirePool();
   const pinkOnly = Boolean(opts.pinkOnly);
@@ -531,7 +577,8 @@ async function listForUser(userId, opts = {}) {
   const withCodes = await enrichEntriesWithCentralGameCodes(rows);
   const withRounds = await enrichEntriesFromRoundOutcomesTable(userId, withCodes);
   const withAwardSid = await enrichEntriesFromPrizeAwards(userId, withRounds);
-  return enrichEntriesFromPrizeAwardsByGameTime(userId, withAwardSid);
+  const withShareOwner = await enrichShareRewardPostOwnersFromPosts(withAwardSid);
+  return enrichEntriesFromPrizeAwardsByGameTime(userId, withShareOwner);
 }
 
 /**
