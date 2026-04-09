@@ -373,12 +373,6 @@ export default function MemberHomeProfileLanding({ user }) {
                   {shareWalletEscrow.toLocaleString("th-TH")} ดวง
                 </p>
               ) : null}
-              {shareGiveawayEscrow > 0 ? (
-                <p className="mt-1 text-[11px] text-slate-600">
-                  แคมเปญแชร์โพสต์ใช้แดงแจกอีก{" "}
-                  {shareGiveawayEscrow.toLocaleString("th-TH")} ดวง — ดูการ์ด「หัวใจแดงสำหรับแจก」
-                </p>
-              ) : null}
             </div>
           </div>
         </div>
