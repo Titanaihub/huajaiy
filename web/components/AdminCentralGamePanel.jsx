@@ -396,7 +396,7 @@ function RuleEditorRow({
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
-              {u}
+              {u} หน่วย
             </option>
           ))}
         </select>

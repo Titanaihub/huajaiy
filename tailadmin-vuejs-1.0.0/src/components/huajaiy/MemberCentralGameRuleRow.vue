@@ -117,7 +117,7 @@
         :disabled="isNone || structureLocked"
         @change="emitPatch('prizeUnit', ($event.target as HTMLSelectElement).value)"
       >
-        <option v-for="u in units" :key="u" :value="u">{{ u }}</option>
+        <option v-for="u in units" :key="u" :value="u">{{ u }} หน่วย</option>
       </select>
     </div>
     <div class="sm:col-span-2">
