@@ -981,13 +981,19 @@ router.get("/central-prize-withdrawals/available", authMiddleware, async (req, r
 router.post("/central-prize-withdrawals", authMiddleware, async (req, res) => {
   try {
     const body = req.body || {};
+    const rawPickup = body.pickupCashHandoff;
+    const pickupCashHandoff =
+      rawPickup === true ||
+      rawPickup === 1 ||
+      String(rawPickup || "").toLowerCase() === "true";
     const rec = await centralPrizeWithdrawalService.createRequest({
       requesterUserId: req.userId,
       creatorUsername: body.creatorUsername,
       amountThb: body.amountThb,
       accountHolderName: body.accountHolderName,
       accountNumber: body.accountNumber,
-      bankName: body.bankName
+      bankName: body.bankName,
+      pickupCashHandoff
     });
     return res.json({ ok: true, withdrawal: rec });
   } catch (e) {

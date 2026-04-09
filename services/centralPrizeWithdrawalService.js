@@ -3,6 +3,9 @@ const centralPrizeAwardService = require("./centralPrizeAwardService");
 const userService = require("./userService");
 const auditEventService = require("./auditEventService");
 const MIN_WITHDRAW_BAHT = 20;
+/** บันทึกในฐานข้อมูลเมื่อผู้เล่นขอถอนแบบมารับเงินสด (ไม่โอนบัญชี) */
+const PICKUP_ACCOUNT_NUMBER_PLACEHOLDER = "มารับเอง";
+const PICKUP_BANK_NAME_PLACEHOLDER = "รับเงินสดหน้างาน";
 
 function requirePool() {
   const pool = getPool();
@@ -57,6 +60,19 @@ async function sumReservedBahtWithClient(client, requesterUserId, creatorUserId)
     [requesterUserId, creatorUserId]
   );
   return Math.max(0, Number(r.rows[0]?.s) || 0);
+}
+
+/** รางวัลเงินสดจากผู้สร้างรายนี้เป็นแบบมารับเองทั้งหมด (ใช้ตรวจคำขอถอนแบบไม่ใส่บัญชี) */
+async function cashAwardsFromCreatorAllPickup(requesterUserId, creatorUsernameLower) {
+  const awards = await centralPrizeAwardService.listAwardsForUser(requesterUserId);
+  const cu = String(creatorUsernameLower || "").trim().toLowerCase();
+  const cashItems = awards.filter(
+    (a) =>
+      String(a.prizeCategory || "") === "cash" &&
+      String(a.creatorUsername || "").trim().toLowerCase() === cu
+  );
+  if (cashItems.length === 0) return false;
+  return cashItems.every((a) => String(a.prizeFulfillmentMode || "").toLowerCase() === "pickup");
 }
 
 function normalizeTransferSlipUrl(raw, { required = false } = {}) {
@@ -158,7 +174,8 @@ async function createRequest({
   amountThb,
   accountHolderName,
   accountNumber,
-  bankName
+  bankName,
+  pickupCashHandoff = false
 }) {
   const pool = requirePool();
   const amt = Math.floor(Number(amountThb));
@@ -167,16 +184,38 @@ async function createRequest({
     e.code = "VALIDATION";
     throw e;
   }
+
+  const avail = await getAvailability(requesterUserId, creatorUsername);
+  const pickup = Boolean(pickupCashHandoff);
+
+  if (pickup) {
+    const allPickup = await cashAwardsFromCreatorAllPickup(requesterUserId, avail.creatorUsername);
+    if (!allPickup) {
+      const e = new Error(
+        "รางวัลเงินสดจากผู้สร้างรายนี้ไม่ได้เป็นแบบมารับเองทั้งหมด — กรุณาถอนผ่านบัญชีธนาคาร"
+      );
+      e.code = "VALIDATION";
+      throw e;
+    }
+  }
+
   const ah = String(accountHolderName || "").trim();
-  const an = String(accountNumber || "").trim();
-  const bn = String(bankName || "").trim();
-  if (!ah || !an || !bn) {
+  let an = String(accountNumber || "").trim();
+  let bn = String(bankName || "").trim();
+
+  if (pickup) {
+    if (!ah) {
+      const e = new Error("ไม่พบชื่อจากโปรไฟล์ — กรุณาอัปเดตชื่อ–นามสกุลในข้อมูลส่วนตัว");
+      e.code = "VALIDATION";
+      throw e;
+    }
+    an = PICKUP_ACCOUNT_NUMBER_PLACEHOLDER;
+    bn = PICKUP_BANK_NAME_PLACEHOLDER;
+  } else if (!ah || !an || !bn) {
     const e = new Error("กรุณากรอกชื่อเจ้าของบัญชี หมายเลขบัญชี และชื่อธนาคารให้ครบ");
     e.code = "VALIDATION";
     throw e;
   }
-
-  const avail = await getAvailability(requesterUserId, creatorUsername);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -224,7 +263,8 @@ async function createRequest({
         amountThb: amt,
         earnedBaht: Math.floor(Number(avail.earnedBaht) || 0),
         reservedBahtBefore: reservedNow,
-        availableBahtBefore: availableNow
+        availableBahtBefore: availableNow,
+        pickupCashHandoff: pickup
       }
     });
     await client.query("COMMIT");

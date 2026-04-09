@@ -62,6 +62,12 @@ function formatBaht(n) {
 }
 
 const MIN_WITHDRAW_BAHT = 20;
+const PICKUP_WITHDRAW_BANK_LABEL = "รับเงินสดหน้างาน";
+
+function isPickupCashWithdrawal(w) {
+  if (!w || typeof w !== "object") return false;
+  return String(w.bankName || "").trim() === PICKUP_WITHDRAW_BANK_LABEL;
+}
 
 function cashPrizeFulfillmentMode(a) {
   const m = String(a.prizeFulfillmentMode || "").toLowerCase();
@@ -438,7 +444,9 @@ function CreatorPrizeCard({
                         —
                       </td>
                       <td className="px-3 py-2.5 font-medium text-rose-900">ถอนเงิน</td>
-                      <td className="px-3 py-2.5 text-sm text-hui-body">โอนรางวัลให้</td>
+                      <td className="px-3 py-2.5 text-sm text-hui-body">
+                        {isPickupCashWithdrawal(row.withdrawal) ? "มารับเอง / นัดรับเงินสด" : "โอนรางวัลให้"}
+                      </td>
                       <td className="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium text-rose-800">
                         −{formatBaht(Math.abs(row.cashAmt))} บาท
                       </td>
@@ -466,10 +474,18 @@ function CreatorPrizeCard({
               >
                 ถอนเงินรางวัล
               </Link>
-            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0 ? (
+            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT ? (
+              <Link
+                href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}&pickup=1`}
+                className="hui-btn-primary inline-flex shrink-0 items-center justify-center px-4 py-2.5 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2"
+              >
+                ขอถอน / ระบุจำนวนบาท (มารับเอง)
+              </Link>
+            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0 && finalCashBalance < MIN_WITHDRAW_BAHT ? (
               <p className="max-w-md text-sm leading-relaxed text-hui-body">
                 รางวัลเงินสดจากผู้สร้างรายนี้ตั้งเป็น{" "}
-                <span className="font-semibold">มารับเอง</span> — ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
+                <span className="font-semibold">มารับเอง</span> — ยอดคงเหลือต่ำกว่าขั้นต่ำถอน ({MIN_WITHDRAW_BAHT}{" "}
+                บาท) ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
               </p>
             ) : null}
           </div>
@@ -482,7 +498,7 @@ function CreatorPrizeCard({
           ) : null}
           {cashItems.length > 0 && !cashAllowsTransfer ? (
             <p className="mt-2 text-sm text-hui-muted">
-              รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง
+              กรณีมารับเอง — ส่งคำขอระบุจำนวนบาทได้จากปุ่มด้านบน (ไม่ต้องกรอกบัญชีธนาคาร) หรือติดต่อผู้สร้างโดยตรง
             </p>
           ) : null}
           {onRefreshWithdrawals ? (

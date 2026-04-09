@@ -16,6 +16,7 @@ import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const MIN_WITHDRAW_BAHT = 20;
+const PICKUP_BANK_NAME_PLACEHOLDER = "รับเงินสดหน้างาน";
 
 function formatBaht(n) {
   if (!Number.isFinite(n)) return "0";
@@ -36,6 +37,8 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
     () => parseRefCreator(searchParams.get("ref")),
     [searchParams]
   );
+  const pickupMode = useMemo(() => searchParams.get("pickup") === "1", [searchParams]);
+  const balanceFromQuery = useMemo(() => searchParams.get("balance"), [searchParams]);
   const [pickedCreator, setPickedCreator] = useState("");
   const [creatorChoices, setCreatorChoices] = useState([]);
   const [creatorLoading, setCreatorLoading] = useState(false);
@@ -151,6 +154,14 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
     }
   }, [authLoading, user, refCreator, loadCreatorChoices]);
 
+  useEffect(() => {
+    if (!balanceFromQuery) return;
+    const n = parseInt(String(balanceFromQuery).replace(/[^\d]/g, ""), 10);
+    if (Number.isFinite(n) && n > 0) {
+      setAmountDigits(String(n));
+    }
+  }, [balanceFromQuery, effectiveCreator]);
+
   async function handleCancelRequest(id) {
     const token = getMemberToken();
     if (!token) return;
@@ -193,7 +204,7 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
     }
     const an = accountNumber.trim();
     const bn = bankName.trim();
-    if (!an || !bn) {
+    if (!pickupMode && (!an || !bn)) {
       setSubmitErr("กรุณากรอกหมายเลขบัญชีและชื่อธนาคาร");
       return;
     }
@@ -203,13 +214,23 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
     }
     setBusy(true);
     try {
-      const res = await apiPostPrizeWithdrawalRequest(token, {
-        creatorUsername: effectiveCreator,
-        amountThb: amt,
-        accountHolderName: accountHolderName.trim(),
-        accountNumber: an,
-        bankName: bn
-      });
+      const res = await apiPostPrizeWithdrawalRequest(
+        token,
+        pickupMode
+          ? {
+              creatorUsername: effectiveCreator,
+              amountThb: amt,
+              accountHolderName: accountHolderName.trim(),
+              pickupCashHandoff: true
+            }
+          : {
+              creatorUsername: effectiveCreator,
+              amountThb: amt,
+              accountHolderName: accountHolderName.trim(),
+              accountNumber: an,
+              bankName: bn
+            }
+      );
       setDone(true);
       setAmountDigits("");
       setAccountNumber("");
@@ -279,11 +300,23 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
     <section className="space-y-6">
       <div>
         {hideShellPageTitle ? null : (
-          <h2 className="text-lg font-semibold text-hui-section">ถอนเงินรางวัล (เงินสด)</h2>
+          <h2 className="text-lg font-semibold text-hui-section">
+            {pickupMode ? "ขอถอน / นัดรับเงินสด (มารับเอง)" : "ถอนเงินรางวัล (เงินสด)"}
+          </h2>
         )}
         <p className={`text-sm text-hui-body ${hideShellPageTitle ? "" : "mt-1"}`}>
-          คำขอจะส่งถึงผู้สร้างเกม <span className="font-semibold text-hui-cta">@{effectiveCreator}</span>{" "}
-          เพื่อโอนเงิน — หลังจ่ายแล้วผู้สร้างจะกดอนุมัติในระบบ
+          {pickupMode ? (
+            <>
+              คำขอจะส่งถึงผู้สร้างเกม{" "}
+              <span className="font-semibold text-hui-cta">@{effectiveCreator}</span> เพื่อบันทึกจำนวนบาทที่ต้องการนัดรับ
+              (มารับเอง) — ไม่ต้องกรอกบัญชีธนาคาร
+            </>
+          ) : (
+            <>
+              คำขอจะส่งถึงผู้สร้างเกม{" "}
+              <span className="font-semibold text-hui-cta">@{effectiveCreator}</span> เพื่อโอนเงิน — หลังจ่ายแล้วผู้สร้างจะกดอนุมัติในระบบ
+            </>
+          )}
         </p>
       </div>
 
@@ -314,9 +347,18 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
           className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
           role="status"
         >
-          <p className="font-semibold">ส่งคำขอถอนเงินแล้ว</p>
+          <p className="font-semibold">ส่งคำขอแล้ว</p>
           <p className="mt-1">
-            ผู้สร้างเกมจะเห็นคำขอในเมนู「คำขอถอนรางวัลถึงฉัน」— หลังโอนแล้วกดอนุมัติ และคุณติดตามสถานะได้ใน「ประวัติการขอถอน」ด้านล่าง
+            {pickupMode ? (
+              <>
+                ผู้สร้างเกมจะเห็นคำขอในเมนู「คำขอถอนรางวัลถึงฉัน」— นัดรับเงินสดตามที่ตกลง แล้วกดอนุมัติในระบบ
+                คุณติดตามสถานะได้ใน「ประวัติการขอถอน」ด้านล่าง
+              </>
+            ) : (
+              <>
+                ผู้สร้างเกมจะเห็นคำขอในเมนู「คำขอถอนรางวัลถึงฉัน」— หลังโอนแล้วกดอนุมัติ และคุณติดตามสถานะได้ใน「ประวัติการขอถอน」ด้านล่าง
+              </>
+            )}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
@@ -377,33 +419,44 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
           </p>
         </div>
 
-        <div>
-          <label htmlFor="withdraw-account" className="block text-sm font-medium text-hui-body">
-            หมายเลขบัญชี <span className="text-rose-600">*</span>
-          </label>
-          <input
-            id="withdraw-account"
-            name="accountNumber"
-            value={accountNumber}
-            onChange={(e) => setAccountNumber(e.target.value.slice(0, 32))}
-            className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
-            autoComplete="off"
-          />
-        </div>
+        {pickupMode ? (
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 text-sm text-emerald-950">
+            <p className="font-medium">มารับเอง — ไม่ต้องกรอกบัญชีธนาคาร</p>
+            <p className="mt-1 text-emerald-900/90">
+              ระบบจะบันทึกคำขอให้ผู้สร้างเห็นว่าเป็นการรับเงินสดหน้างาน ({PICKUP_BANK_NAME_PLACEHOLDER})
+            </p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <label htmlFor="withdraw-account" className="block text-sm font-medium text-hui-body">
+                หมายเลขบัญชี <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="withdraw-account"
+                name="accountNumber"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value.slice(0, 32))}
+                className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
+                autoComplete="off"
+              />
+            </div>
 
-        <div>
-          <label htmlFor="withdraw-bank" className="block text-sm font-medium text-hui-body">
-            ชื่อธนาคาร <span className="text-rose-600">*</span>
-          </label>
-          <input
-            id="withdraw-bank"
-            name="bankName"
-            value={bankName}
-            onChange={(e) => setBankName(e.target.value.slice(0, 120))}
-            placeholder="เช่น ธนาคารกสิกรไทย"
-            className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
-          />
-        </div>
+            <div>
+              <label htmlFor="withdraw-bank" className="block text-sm font-medium text-hui-body">
+                ชื่อธนาคาร <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="withdraw-bank"
+                name="bankName"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value.slice(0, 120))}
+                placeholder="เช่น ธนาคารกสิกรไทย"
+                className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
+              />
+            </div>
+          </>
+        )}
 
         {submitErr ? (
           <p className="text-sm font-medium text-red-600" role="alert">
@@ -422,7 +475,7 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
           }
           className="hui-btn-primary w-full py-3.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busy ? "กำลังส่งคำขอ…" : "ถอนเงิน"}
+          {busy ? "กำลังส่งคำขอ…" : pickupMode ? "ส่งคำขอ (ระบุจำนวนบาท)" : "ถอนเงิน"}
         </button>
       </form>
 
@@ -439,7 +492,9 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
       />
 
       <p className="text-sm text-hui-muted">
-        การถอนเป็นการประสานงานกับผู้สร้างเกม — ยังไม่มีการโอนอัตโนมัติจากเว็บ
+        {pickupMode
+          ? "การนัดรับเงินสดเป็นการประสานงานกับผู้สร้างเกม — ยังไม่มีการโอนอัตโนมัติจากเว็บ"
+          : "การถอนเป็นการประสานงานกับผู้สร้างเกม — ยังไม่มีการโอนอัตโนมัติจากเว็บ"}
       </p>
     </section>
   );
