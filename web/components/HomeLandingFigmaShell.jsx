@@ -11,6 +11,9 @@ import { publicMemberPostPath } from "../lib/memberPublicUrls";
 import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
 
+/** ปิดการแสดงบล็อก「สินค้า」บนหน้าแรก — เปิดเป็น true ถ้าต้องการโชว์การ์ดตัวอย่างอีกครั้ง */
+const SHOW_HOME_PRODUCT_SECTION = false;
+
 const PRODUCTS_PLACEHOLDER = [
   { name: "คอนโทรลเลอร์ไร้สาย", price: "3,900", was: "4,500", icon: "🎮" },
   { name: "คีย์บอร์ดเกมมิ่ง", price: "2,490", was: "2,990", icon: "⌨️" },
@@ -65,7 +68,7 @@ function SectionHeader({ id, icon, title, extra, actionHref, actionLabel }) {
 }
 
 /**
- * หน้าแรก — เทมเพลตกลาง + พื้นหลังขาว + เกม / โพสต์ / สินค้า (การ์ดเดิม)
+ * หน้าแรก — เทมเพลตกลาง + พื้นหลังขาว + เกม / โพสต์ (บล็อกสินค้าตัวอย่างปิดตาม SHOW_HOME_PRODUCT_SECTION)
  * ลิงก์เมนูใช้เส้นทางเดิมของเว็บ · เกมแนะนำดึงจาก API สาธารณะ
  */
 export default function HomeLandingFigmaShell({
@@ -408,45 +411,46 @@ export default function HomeLandingFigmaShell({
             )}
           </section>
 
-          {/* สินค้า */}
-          <section aria-labelledby="home-sec-products">
-            <SectionHeader
-              id="home-sec-products"
-              icon={<IconShop className="h-5 w-5" />}
-              title="สินค้า"
-              extra="ลดสูงสุด 40%"
-              actionHref={PUBLIC_SHOP_PATH}
-              actionLabel="ดูทั้งหมด"
-            />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {PRODUCTS_PLACEHOLDER.map((p) => (
-                <div
-                  key={p.name}
-                  className="relative flex flex-col rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.04] hover:shadow-md"
-                >
-                  <span className="absolute right-3 top-3 z-[1] rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                    HOT
-                  </span>
-                  <div className="flex h-40 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
-                    {p.icon}
+          {SHOW_HOME_PRODUCT_SECTION ? (
+            <section aria-labelledby="home-sec-products">
+              <SectionHeader
+                id="home-sec-products"
+                icon={<IconShop className="h-5 w-5" />}
+                title="สินค้า"
+                extra="ลดสูงสุด 40%"
+                actionHref={PUBLIC_SHOP_PATH}
+                actionLabel="ดูทั้งหมด"
+              />
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {PRODUCTS_PLACEHOLDER.map((p) => (
+                  <div
+                    key={p.name}
+                    className="relative flex flex-col rounded-2xl border border-pink-100/80 bg-white shadow-sm shadow-pink-100/50 transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.04] hover:shadow-md"
+                  >
+                    <span className="absolute right-3 top-3 z-[1] rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-2 py-0.5 text-[10px] font-bold uppercase text-white">
+                      HOT
+                    </span>
+                    <div className="flex h-40 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-50 to-pink-50/80 text-5xl">
+                      {p.icon}
+                    </div>
+                    <div className="flex flex-1 flex-col rounded-b-2xl p-4">
+                      <h3 className="font-bold text-neutral-900">{p.name}</h3>
+                      <p className="mt-2 text-lg font-bold text-[#FF2E8C]">฿{p.price}</p>
+                      <p className="text-sm font-medium text-[#E60012] line-through decoration-neutral-700 decoration-2">
+                        ฿{p.was}
+                      </p>
+                      <Link
+                        href={PUBLIC_SHOP_PATH}
+                        className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
+                      >
+                        ซื้อเลยตอนนี้
+                      </Link>
+                    </div>
                   </div>
-                  <div className="flex flex-1 flex-col rounded-b-2xl p-4">
-                    <h3 className="font-bold text-neutral-900">{p.name}</h3>
-                    <p className="mt-2 text-lg font-bold text-[#FF2E8C]">฿{p.price}</p>
-                    <p className="text-sm font-medium text-[#E60012] line-through decoration-neutral-700 decoration-2">
-                      ฿{p.was}
-                    </p>
-                    <Link
-                      href={PUBLIC_SHOP_PATH}
-                      className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] py-2.5 text-sm font-bold text-white shadow-md shadow-pink-400/20 transition hover:brightness-105"
-                    >
-                      ซื้อเลยตอนนี้
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       </div>
     </HuajaiyCentralTemplate>
