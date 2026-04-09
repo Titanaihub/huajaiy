@@ -579,10 +579,36 @@ async function recordCentralRoundOutcome(p) {
   }
 }
 
+/**
+ * เติม meta.postOwnerId ใน heart_ledger สำหรับรางวัลแชร์เก่า (มีแค่ postId)
+ * — idempotent · รันจาก initDb ตอนสตาร์ท API
+ * @returns {Promise<{ updated: number }>}
+ */
+async function backfillShareRewardPostOwnerMeta() {
+  const pool = requirePool();
+  try {
+    const r = await pool.query(`
+      UPDATE heart_ledger hl
+      SET meta = COALESCE(hl.meta, '{}'::jsonb) || jsonb_build_object('postOwnerId', p.user_id::text)
+      FROM member_public_posts p
+      WHERE hl.kind = 'public_post_share_reward'
+        AND hl.meta ? 'postId'
+        AND (hl.meta->>'postOwnerId' IS NULL OR btrim(hl.meta->>'postOwnerId') = '')
+        AND hl.meta->>'postId' ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+        AND p.id = (hl.meta->>'postId')::uuid
+    `);
+    return { updated: r.rowCount || 0 };
+  } catch (e) {
+    console.warn("[heart_ledger] backfillShareRewardPostOwnerMeta:", e?.message || e);
+    return { updated: 0 };
+  }
+}
+
 module.exports = {
   insertWithClient,
   ensurePinkLedgerOpeningBalance,
   listForUser,
   mergeMetaJsonByPlaySession,
-  recordCentralRoundOutcome
+  recordCentralRoundOutcome,
+  backfillShareRewardPostOwnerMeta
 };

@@ -1,4 +1,5 @@
 const { getPool } = require("./pool");
+const heartLedgerService = require("../services/heartLedgerService");
 
 async function initDb() {
   const pool = getPool();
@@ -1043,6 +1044,17 @@ async function initDb() {
       CREATE INDEX IF NOT EXISTS idx_mpp_share_reward_post
       ON member_public_post_share_reward_recipients(post_id, created_at DESC);
     `);
+
+    try {
+      const bf = await heartLedgerService.backfillShareRewardPostOwnerMeta();
+      if (bf.updated > 0) {
+        console.log(
+          `[db] backfill heart_ledger public_post_share_reward postOwnerId: ${bf.updated} แถว`
+        );
+      }
+    } catch (e) {
+      console.warn("[db] backfill share reward postOwnerId:", e?.message || e);
+    }
 
     console.log(
       "[db] PostgreSQL schema พร้อม — รวมตารางหลักและคอลัมน์เพจสมาชิกบน users (public_page_cover_url, public_page_bio, public_page_listed)"
