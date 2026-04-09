@@ -147,7 +147,7 @@
           ถอนเงินรางวัล
         </a>
         <a
-          v-else-if="cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT"
+          v-else-if="cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0"
           :href="prizeWithdrawPickupHref"
           target="_parent"
           rel="noopener noreferrer"
@@ -155,19 +155,6 @@
         >
           ขอถอน / ระบุจำนวนบาท (มารับเอง)
         </a>
-        <p
-          v-else-if="
-            cashItems.length > 0 &&
-            !cashAllowsTransfer &&
-            finalCashBalance > 0 &&
-            finalCashBalance < MIN_WITHDRAW_BAHT
-          "
-          class="max-w-md text-sm leading-relaxed text-gray-700 dark:text-gray-300"
-        >
-          รางวัลเงินสดจากผู้สร้างรายนี้ตั้งเป็น
-          <span class="font-semibold">มารับเอง</span> — ยอดคงเหลือต่ำกว่าขั้นต่ำถอน ({{ MIN_WITHDRAW_BAHT }} บาท)
-          ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
-        </p>
       </div>
       <p v-if="pendingHoldBaht > 0" class="mt-2 text-sm text-amber-800 dark:text-amber-200">
         มีคำขอถอนรอดำเนินการรวม

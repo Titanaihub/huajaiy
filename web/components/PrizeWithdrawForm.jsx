@@ -16,6 +16,7 @@ import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const MIN_WITHDRAW_BAHT = 20;
+const MIN_PICKUP_WITHDRAW_BAHT = 1;
 const MAX_PICKUP_NOTE_LEN = 500;
 const PICKUP_BANK_NAME_PLACEHOLDER = "รับเงินสดหน้างาน";
 
@@ -196,8 +197,9 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
       return;
     }
     const amt = parseInt(amountDigits, 10);
-    if (!Number.isFinite(amt) || amt < MIN_WITHDRAW_BAHT) {
-      setSubmitErr(`ถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
+    const minAmt = pickupMode ? MIN_PICKUP_WITHDRAW_BAHT : MIN_WITHDRAW_BAHT;
+    if (!Number.isFinite(amt) || amt < minAmt) {
+      setSubmitErr(pickupMode ? `ถอนขั้นต่ำ ${MIN_PICKUP_WITHDRAW_BAHT} บาท` : `ถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
       return;
     }
     if (!accountHolderName.trim()) {
@@ -404,7 +406,15 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
             className="mt-1.5 w-full rounded-xl border border-hui-border px-3 py-2.5 font-mono text-base tabular-nums shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
           />
           <p className="mt-1 text-sm text-hui-muted">
-            ขั้นต่ำ {MIN_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
+            {pickupMode ? (
+              <>
+                มารับเองไม่มีขั้นต่ำถอน {MIN_WITHDRAW_BAHT} บาท — ระบุจำนวนตั้งแต่ {MIN_PICKUP_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
+              </>
+            ) : (
+              <>
+                ขั้นต่ำ {MIN_WITHDRAW_BAHT} บาท · ระบบจะตรวจไม่ให้เกินยอดถอนได้ — คำขอที่รอดำเนินการจะถูกหักจากยอดนี้
+              </>
+            )}
           </p>
         </div>
 
@@ -493,7 +503,7 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
           disabled={
             busy ||
             !avail ||
-            avail.availableBaht < MIN_WITHDRAW_BAHT ||
+            avail.availableBaht < (pickupMode ? MIN_PICKUP_WITHDRAW_BAHT : MIN_WITHDRAW_BAHT) ||
             loadingAvail ||
             done
           }

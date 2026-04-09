@@ -3,6 +3,8 @@ const centralPrizeAwardService = require("./centralPrizeAwardService");
 const userService = require("./userService");
 const auditEventService = require("./auditEventService");
 const MIN_WITHDRAW_BAHT = 20;
+/** มารับเอง — ไม่ใช้ขั้นต่ำ 20 บาท (ยังต้องเป็นจำนวนเต็ม ≥ 1) */
+const MIN_PICKUP_WITHDRAW_BAHT = 1;
 /** บันทึกในฐานข้อมูลเมื่อผู้เล่นขอถอนแบบมารับเงินสด (ไม่โอนบัญชี) */
 const PICKUP_ACCOUNT_NUMBER_PLACEHOLDER = "มารับเอง";
 const PICKUP_BANK_NAME_PLACEHOLDER = "รับเงินสดหน้างาน";
@@ -183,8 +185,8 @@ async function createRequest({
 }) {
   const pool = requirePool();
   const amt = Math.floor(Number(amountThb));
-  if (!Number.isFinite(amt) || amt < MIN_WITHDRAW_BAHT) {
-    const e = new Error(`จำนวนเงินถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
+  if (!Number.isFinite(amt)) {
+    const e = new Error("จำนวนเงินไม่ถูกต้อง");
     e.code = "VALIDATION";
     throw e;
   }
@@ -193,6 +195,11 @@ async function createRequest({
   const pickup = Boolean(pickupCashHandoff);
 
   if (pickup) {
+    if (amt < MIN_PICKUP_WITHDRAW_BAHT) {
+      const e = new Error(`จำนวนเงินต้องไม่น้อยกว่า ${MIN_PICKUP_WITHDRAW_BAHT} บาท`);
+      e.code = "VALIDATION";
+      throw e;
+    }
     const allPickup = await cashAwardsFromCreatorAllPickup(requesterUserId, avail.creatorUsername);
     if (!allPickup) {
       const e = new Error(
@@ -201,6 +208,10 @@ async function createRequest({
       e.code = "VALIDATION";
       throw e;
     }
+  } else if (amt < MIN_WITHDRAW_BAHT) {
+    const e = new Error(`จำนวนเงินถอนขั้นต่ำ ${MIN_WITHDRAW_BAHT} บาท`);
+    e.code = "VALIDATION";
+    throw e;
   }
 
   const ah = String(accountHolderName || "").trim();

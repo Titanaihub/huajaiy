@@ -474,19 +474,13 @@ function CreatorPrizeCard({
               >
                 ถอนเงินรางวัล
               </Link>
-            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT ? (
+            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0 ? (
               <Link
                 href={`/account/prize-withdraw?ref=${encodeURIComponent(creatorDisplay)}&balance=${encodeURIComponent(String(finalCashBalance))}&pickup=1`}
                 className="hui-btn-primary inline-flex shrink-0 items-center justify-center px-4 py-2.5 text-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hui-cta/30 focus-visible:ring-offset-2"
               >
                 ขอถอน / ระบุจำนวนบาท (มารับเอง)
               </Link>
-            ) : cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0 && finalCashBalance < MIN_WITHDRAW_BAHT ? (
-              <p className="max-w-md text-sm leading-relaxed text-hui-body">
-                รางวัลเงินสดจากผู้สร้างรายนี้ตั้งเป็น{" "}
-                <span className="font-semibold">มารับเอง</span> — ยอดคงเหลือต่ำกว่าขั้นต่ำถอน ({MIN_WITHDRAW_BAHT}{" "}
-                บาท) ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
-              </p>
             ) : null}
           </div>
           {pendingHoldBaht > 0 ? (

@@ -1,6 +1,8 @@
 /** Pure helpers ported from web/components/AccountMyPrizesSection.jsx */
 
 export const MIN_WITHDRAW_BAHT = 20
+/** มารับเอง — ไม่ใช้ขั้นต่ำ 20 บาท (ยังต้องเป็นจำนวนเต็ม ≥ 1) */
+export const MIN_PICKUP_WITHDRAW_BAHT = 1
 
 /** ตรงกับค่าที่ API บันทึกเมื่อถอนแบบมารับเอง */
 export const PICKUP_WITHDRAW_BANK_LABEL = 'รับเงินสดหน้างาน'
