@@ -18,8 +18,9 @@ import {
   pickBackgroundSliceForPathname
 } from "../lib/siteThemeStyle";
 import { getSiteUrl } from "../lib/siteUrl";
+import { SITE_SHARE_DESCRIPTION } from "../lib/siteShareMetadata";
 
-const site = getSiteUrl();
+const site = getSiteUrl() || "https://www.huajaiy.com";
 let metadataBase;
 try {
   metadataBase = site ? new URL(`${site}/`) : undefined;
@@ -30,20 +31,30 @@ try {
 export const metadata = {
   ...(metadataBase ? { metadataBase } : {}),
   title: "HUAJAIY",
-  description: "แพลตฟอร์มเบา โหลดไว — ร้านค้า เกม และอัปโหลดรูป",
+  description: SITE_SHARE_DESCRIPTION,
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }]
   },
   openGraph: {
     title: "HUAJAIY",
-    description: "ร้านค้า เกม อัปโหลดรูป — ใช้งานบนมือถือได้สะดวก",
+    description: SITE_SHARE_DESCRIPTION,
     type: "website",
-    locale: "th_TH"
+    locale: "th_TH",
+    images: [
+      {
+        url: "/og-share.png",
+        width: 1200,
+        height: 630,
+        alt: "HUAJAIY",
+        type: "image/png"
+      }
+    ]
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "HUAJAIY",
-    description: "ร้านค้า เกม อัปโหลดรูป — ใช้งานบนมือถือได้สะดวก"
+    description: SITE_SHARE_DESCRIPTION,
+    images: ["/og-share.png"]
   }
 };
 

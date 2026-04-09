@@ -25,6 +25,7 @@ const RESERVED_TOP = new Set([
   "page",
   "posts",
   "pages",
+  "search",
   "api",
   "u",
   "owner",
@@ -97,7 +98,7 @@ export function isPathAllowed(pathname) {
 
   if (p === "/page" || p.startsWith("/page/")) return true;
 
-  if (p === "/posts" || p === "/pages") return true;
+  if (p === "/posts" || p === "/pages" || p === "/search") return true;
 
   if (p === "/game") return true;
   if (p.startsWith("/game/")) {

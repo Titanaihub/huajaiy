@@ -305,6 +305,84 @@ async function listRecentPublicPostCoversForHome(limit = 12) {
     .filter(Boolean);
 }
 
+/**
+ * ค้นหาโพสต์สาธารณะ (หัวข้อหรือเนื้อหาใน body_blocks)
+ * @param {string} q
+ * @param {number} [limit]
+ */
+async function searchPublicPostsForSiteSearch(q, limit = 12) {
+  const needle = String(q ?? "")
+    .trim()
+    .slice(0, 80);
+  const lim = Math.min(24, Math.max(1, Math.floor(Number(limit) || 12)));
+  if (!needle) return [];
+
+  let pool;
+  try {
+    pool = requirePool();
+  } catch (e) {
+    if (e && e.code === "DB_REQUIRED") return [];
+    throw e;
+  }
+
+  const r = await pool.query(
+    `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.created_at, p.updated_at,
+            u.username, u.public_page_title,
+            p.share_red_per_member, p.share_red_pool_remaining, p.share_red_initial_budget,
+            p.share_red_status, p.share_red_recipients_count,
+            u.public_page_heart_accent AS owner_public_page_heart_accent
+     FROM member_public_posts p
+     INNER JOIN users u ON u.id = p.user_id
+     WHERE u.account_disabled = false
+       AND COALESCE(u.role, 'member') <> 'admin'
+       AND u.public_page_listed = true
+       AND (
+         position(lower($1) in lower(COALESCE(p.title,''))) > 0
+         OR position(lower($1) in lower(p.body_blocks::text)) > 0
+       )
+     ORDER BY p.updated_at DESC NULLS LAST, p.created_at DESC NULLS LAST
+     LIMIT $2`,
+    [needle, lim]
+  );
+  return r.rows
+    .map((row) => {
+      const post = rowToPost(row);
+      if (!post) return null;
+      const un = String(row.username || "")
+        .trim()
+        .toLowerCase();
+      const id = row.id != null ? String(row.id).trim() : "";
+      if (!un || !UUID_RE.test(id)) return null;
+      const pageTitleRaw =
+        row.public_page_title != null ? String(row.public_page_title).trim() : "";
+      const pageDisplayName = pageTitleRaw || un;
+      const excerpt = excerptFromBodyBlocks(post.bodyBlocks);
+      let cover = sanitizeCoverUrl(row.cover_image_url);
+      if (!cover) cover = firstHttpsImageFromBodyBlocks(post.bodyBlocks);
+      const title = String(post.title || "").trim() || "โพสต์";
+      const heartTint = userService.sanitizePublicPageHeartAccent(
+        row.owner_public_page_heart_accent
+      );
+      return {
+        postId: id,
+        username: un,
+        pageDisplayName,
+        title,
+        excerpt,
+        coverImageUrl: cover,
+        createdAt:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : row.created_at
+              ? String(row.created_at)
+              : null,
+        shareReward: shareRewardPayload(row, { forOwner: false }),
+        shareRewardHeartTint: heartTint || null
+      };
+    })
+    .filter(Boolean);
+}
+
 async function listPublicByUsername(username) {
   const pool = requirePool();
   const un = String(username || "").toLowerCase().trim();
@@ -555,6 +633,7 @@ async function deleteForUser(userId, postId) {
 module.exports = {
   listRecentPublicPostCoversForHome,
   listRecentPublicPostsForHome,
+  searchPublicPostsForSiteSearch,
   listPublicByUsername,
   getPublicByUsernameAndPostId,
   listByUserId,

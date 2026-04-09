@@ -398,7 +398,7 @@ export default function HuajaiyCentralTemplate({
               {heartsPill}
               {!memberUser ? (
                 <div className="flex items-center gap-0.5 sm:gap-1">
-                  <Link href="/pages" className={iconBtnClass} aria-label="ค้นหา">
+                  <Link href="/search" className={iconBtnClass} aria-label="ค้นหา">
                     <IconSearch className="h-5 w-5" />
                   </Link>
                   {lineProfileImageUrl ? (

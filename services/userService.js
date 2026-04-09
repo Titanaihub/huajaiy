@@ -291,6 +291,69 @@ async function listPublicMemberDirectory(limit = 12) {
   });
 }
 
+/**
+ * ค้นหาเพจสมาชิกที่เปิดรายการ (ชื่อผู้ใช้ / ชื่อเพจ / ชื่อแสดง / ไบโอ)
+ * @param {string} q
+ * @param {number} [limit]
+ */
+async function searchPublicMemberDirectory(q, limit = 12) {
+  const needle = String(q ?? "")
+    .trim()
+    .slice(0, 80);
+  const lim = Math.min(24, Math.max(1, Math.floor(Number(limit) || 12)));
+  if (!needle) return [];
+
+  const pool = getPool();
+  if (!pool) {
+    const rows = userStore.listForAdmin({ q: needle, limit: 200, offset: 0 });
+    return rows
+      .filter((u) => !u.accountDisabled && String(u.role || MEMBER) !== ADMIN)
+      .filter((u) => u.publicPageListed !== false)
+      .slice(0, lim)
+      .map((raw) => {
+        const u = enrichFileUserShipping(raw);
+        return {
+          username: u.username,
+          pageTitle: sanitizePublicPageTitle(u.publicPageTitle),
+          displayName: publicDirectoryDisplayName(u),
+          profilePictureUrl: publicDirectoryAvatarUrl(u),
+          publicPageCoverUrl: u.publicPageCoverUrl || null,
+          publicPageBio: u.publicPageBio || null
+        };
+      });
+  }
+
+  const r = await pool.query(
+    `SELECT username, first_name, last_name,
+            profile_picture_url, line_picture_url,
+            public_page_cover_url, public_page_bio, public_page_title
+     FROM users
+     WHERE account_disabled = false
+       AND COALESCE(role, 'member') <> 'admin'
+       AND public_page_listed = true
+       AND (
+         position(lower($1) in lower(username)) > 0
+         OR position(lower($1) in lower(COALESCE(public_page_title,''))) > 0
+         OR position(lower($1) in lower(TRIM(COALESCE(first_name,'') || ' ' || COALESCE(last_name,'')))) > 0
+         OR position(lower($1) in lower(COALESCE(public_page_bio,''))) > 0
+       )
+     ORDER BY created_at DESC NULLS LAST
+     LIMIT $2`,
+    [needle, lim]
+  );
+  return r.rows.map((row) => {
+    const u = rowToUser(row);
+    return {
+      username: u.username,
+      pageTitle: sanitizePublicPageTitle(u.publicPageTitle),
+      displayName: publicDirectoryDisplayName(u),
+      profilePictureUrl: publicDirectoryAvatarUrl(u),
+      publicPageCoverUrl: u.publicPageCoverUrl || null,
+      publicPageBio: u.publicPageBio || null
+    };
+  });
+}
+
 async function findById(id) {
   const pool = getPool();
   if (!pool) {
@@ -1689,6 +1752,7 @@ module.exports = {
   updateOfficialNames,
   publicUser,
   listPublicMemberDirectory,
+  searchPublicMemberDirectory,
   adminMemberListItem,
   adminMemberDetail,
   listMembers,

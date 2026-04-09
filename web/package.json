@@ -12,6 +12,7 @@
     "lint": "next lint",
     "demo:build-tailadmin": "npm --prefix ../tailadmin-vuejs-1.0.0 ci && npm --prefix ../tailadmin-vuejs-1.0.0 run build-only",
     "demo:build-dashui": "npm --prefix ../DashUI-1.0.0 install --legacy-peer-deps && npm --prefix ../DashUI-1.0.0 run build",
+    "generate-og": "node scripts/generate-og-share.mjs",
     "demo:copy-admin": "node scripts/copy-admin-theme-demos.mjs",
     "demo:admin-themes": "npm run demo:build-tailadmin && npm run demo:build-dashui && npm run demo:copy-admin"
   },
@@ -24,6 +25,7 @@
   "devDependencies": {
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.41",
+    "sharp": "^0.34.5",
     "tailwindcss": "^3.4.10"
   }
 }

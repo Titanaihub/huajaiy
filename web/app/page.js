@@ -1,10 +1,19 @@
 import HomeOrganicChrome from "../components/HomeOrganicChrome";
 import { fetchHomeLatestMemberPosts } from "../lib/publicMemberPosts";
 import { fetchPublicGameList } from "../lib/publicGameMeta";
+import { SITE_SHARE_DESCRIPTION } from "../lib/siteShareMetadata";
 
 export const metadata = {
   title: "หน้าแรก | HUAJAIY",
-  description: "HUAJAIY — แพลตฟอร์มหัวใจ เกม และร้านค้า"
+  description: SITE_SHARE_DESCRIPTION,
+  openGraph: {
+    title: "HUAJAIY",
+    description: SITE_SHARE_DESCRIPTION
+  },
+  twitter: {
+    title: "HUAJAIY",
+    description: SITE_SHARE_DESCRIPTION
+  }
 };
 
 export default async function HomePage() {

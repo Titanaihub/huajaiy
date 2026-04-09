@@ -42,6 +42,7 @@ const siteThemeService = require("./services/siteThemeService");
 const organicHomeContent = require("./services/organicHomeContent");
 const memberPublicPostService = require("./services/memberPublicPostService");
 const memberPublicPostShareService = require("./services/memberPublicPostShareService");
+const sitePublicSearchService = require("./services/sitePublicSearchService");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -720,6 +721,17 @@ app.post(
     }
   }
 );
+
+/** ค้นหาทั้งเว็บ (เกม / เพจ / โพสต์ / สินค้า) — สาธารณะ */
+app.get("/api/public/site-search", async (req, res) => {
+  try {
+    const raw = req.query?.q != null ? String(req.query.q) : "";
+    const data = await sitePublicSearchService.searchSitePublic(raw);
+    return res.json(data);
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 /** รายการเพจสมาชิกสำหรับหน้าแรก/ชุมชน */
 app.get("/api/public/member-pages", async (req, res) => {
