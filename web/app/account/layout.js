@@ -35,6 +35,14 @@ export default async function AccountLayout({ children }) {
     return <>{children}</>;
   }
 
+  /** ถอนเงินรางวัล = เทมเพลตกลาง HuajaiyCentralTemplate (เดียวกับ /central-template) — ไม่ใช้ SiteHeader/AccountBackOfficeShell เดิม */
+  if (
+    pathname === "/account/prize-withdraw" ||
+    pathname.startsWith("/account/prize-withdraw/")
+  ) {
+    return <>{children}</>;
+  }
+
   return (
     <>
       <SiteHeader />
