@@ -29,14 +29,20 @@ export const MEMBER_SHELL_MENU_ITEMS = [
     tailStart: TAILADMIN_SHOP_DASHBOARD_START
   },
   { key: "prizes", label: "รางวัลของฉัน", kind: "shell", tailStart: TAILADMIN_MY_PRIZES_START },
-  { key: "hearts", label: "หัวใจแดงจากผู้สร้าง", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
+  { key: "hearts", label: "เล่นเกม", kind: "shell", tailStart: TAILADMIN_MY_HEARTS_START },
   {
     key: "pinkHistory",
     label: "ประวัติหัวใจชมพู",
     kind: "shell",
     tailStart: TAILADMIN_PINK_HISTORY_START
   },
-  { key: "games", label: "เกมของฉัน", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
+  { key: "games", label: "สร้างเกม", kind: "shell", tailStart: TAILADMIN_MY_GAMES_START },
+  {
+    key: "redeemRedCode",
+    label: "ใส่รหัสหัวใจแดง",
+    kind: "shell",
+    tailStart: TAILADMIN_MY_GAMES_START
+  },
   { key: "shops", label: "ร้านค้าของฉัน", kind: "closed", tailStart: TAILADMIN_MY_SHOPS_START },
   { key: "page", label: "เพจของฉัน", kind: "publicPage" },
   { key: "orders", label: "คำสั่งซื้อ", kind: "closed", tailStart: TAILADMIN_MY_ORDERS_START },
@@ -48,7 +54,7 @@ export const MEMBER_SHELL_MENU_ITEMS = [
   },
   {
     key: "heartsShop",
-    label: "เติมหัวใจแดง",
+    label: "เติมหัวใจแดงไว้แจก",
     kind: "shell",
     tailStart: TAILADMIN_HEARTS_TOP_UP_START
   },

@@ -455,8 +455,48 @@ export default function FlipGameDemo({
   const [centralSolutionShown, setCentralSolutionShown] = useState(false);
   /** ลำดับการเปิดป้ายในรอบ (เกมส่วนกลาง) — ใช้เลือกกรอบเขียวครบ need ใบในชุดที่จบรอบ */
   const centralRevealSeqRef = useRef(0);
+  /** เสียงเปิดป้าย (สร้างผ่าน WebAudio หลังมี gesture ผู้ใช้) */
+  const flipAudioCtxRef = useRef(null);
   /** รูปตัวแทนแต่ละชุด (จาก API) — แสดงข้างกติกา */
   const [setPreviewUrls, setSetPreviewUrls] = useState([]);
+
+  const playFlipSfx = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    try {
+      if (!flipAudioCtxRef.current) {
+        flipAudioCtxRef.current = new Ctx();
+      }
+      const ctx = flipAudioCtxRef.current;
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(760, now + 0.07);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.065, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    } catch {
+      // เบราว์เซอร์บางตัวอาจบล็อกเสียงไว้ — ไม่ให้เกมพัง
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (flipAudioCtxRef.current) {
+        void flipAudioCtxRef.current.close().catch(() => {});
+        flipAudioCtxRef.current = null;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (!recipientsModalPrize) {
@@ -1233,6 +1273,7 @@ export default function FlipGameDemo({
   }
 
   function reveal(i) {
+    playFlipSfx();
     if (mode === "api") revealApi(i);
     else revealLocal(i);
   }

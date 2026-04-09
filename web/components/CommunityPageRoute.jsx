@@ -68,6 +68,7 @@ export default async function CommunityPageRoute({
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
         memberPages={memberPages}
+        contentMode={activeNavKey === "posts" ? "posts" : activeNavKey === "page" ? "pages" : "mixed"}
         showShortcutNav={showShortcutNav}
       />
     </PublicOrganicShell>

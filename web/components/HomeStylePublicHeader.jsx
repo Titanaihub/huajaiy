@@ -254,7 +254,7 @@ export default function HomeStylePublicHeader({
                   aria-haspopup="true"
                   onClick={() => setMoreOpen((o) => !o)}
                 >
-                  เพิ่มเติม
+                  เมนูสมาชิก
                   <span className="text-xs opacity-70" aria-hidden>
                     ▾
                   </span>

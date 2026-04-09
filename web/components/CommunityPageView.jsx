@@ -112,6 +112,7 @@ export default function CommunityPageView({
   blogBlock,
   communityPage,
   memberPages = [],
+  contentMode = "mixed",
   showShortcutNav = true
 }) {
   const rawTitle = blogBlock?.title?.trim() || "";
@@ -126,7 +127,12 @@ export default function CommunityPageView({
     .map(memberDirectoryCard)
     .filter(Boolean)
     .filter(postHasPublicContent);
-  const lobbyPosts = dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
+  const lobbyPosts =
+    contentMode === "posts"
+      ? dedupeCommunityPosts([...visiblePosts])
+      : contentMode === "pages"
+        ? dedupeCommunityPosts([...memberPosts])
+        : dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
   const viewHref = String(cp.viewAllHref || "").trim();
   const showViewAll = viewHref && viewHref !== "#";
 
