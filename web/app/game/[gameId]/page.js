@@ -31,17 +31,41 @@ const navLinkVioletBg =
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
   const gameRef = typeof raw === "string" ? raw.trim() : "";
+  const pagePath = gameRef ? `/game/${encodeURIComponent(gameRef)}` : "/game";
   if (!isValidGameRouteSegment(gameRef)) {
-    return { title: "เกม | HUAJAIY" };
+    return {
+      title: "เกม | HUAJAIY",
+      alternates: { canonical: "/game" }
+    };
   }
   const m = await fetchPublicCentralGameMetaById(gameRef);
   if (m) {
+    const title = `${m.title} | HUAJAIY`;
+    const description = m.description?.trim() || `เล่น ${m.title} — เกมเปิดป้ายบนเว็บ`;
+    const imageUrl = String(m.coverImageUrl || "").trim();
     return {
-      title: `${m.title} | HUAJAIY`,
-      description: m.description?.trim() || `เล่น ${m.title} — เกมเปิดป้ายบนเว็บ`
+      title,
+      description,
+      alternates: { canonical: pagePath },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        url: pagePath,
+        ...(imageUrl ? { images: [{ url: imageUrl, alt: m.title }] } : {})
+      },
+      twitter: {
+        card: imageUrl ? "summary_large_image" : "summary",
+        title,
+        description,
+        ...(imageUrl ? { images: [imageUrl] } : {})
+      }
     };
   }
-  return { title: "เกม | HUAJAIY" };
+  return {
+    title: "เกม | HUAJAIY",
+    alternates: { canonical: pagePath }
+  };
 }
 
 export default async function GamePlayPage({ params }) {
