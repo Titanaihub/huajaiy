@@ -149,6 +149,31 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
     return out;
   }, [ledgerEntries, redemptionRows]);
 
+  /** รางวัลแชร์โพสต์ — เข้ากระเป๋าแดงหลัก ไม่เข้ายอด roomGiftRed แต่ผูกกับเจ้าของโพสต์เพื่อแสดงใต้การ์ดเดียวกัน */
+  const shareRewardsByPostOwner = useMemo(() => {
+    const out = new Map();
+    for (const entry of ledgerEntries) {
+      if (String(entry?.kind || "") !== "public_post_share_reward") continue;
+      const meta = entry.meta && typeof entry.meta === "object" ? entry.meta : null;
+      const oid = meta?.postOwnerId != null ? String(meta.postOwnerId).trim() : "";
+      if (!oid) continue;
+      const rd = Math.max(0, Math.floor(Number(entry.redDelta) || 0));
+      if (rd <= 0) continue;
+      const row = {
+        createdAt: entry.createdAt || null,
+        item:
+          String(entry.label || "").trim() || "รางวัลแชร์โพสต์ (หัวใจแดง)",
+        amount: rd
+      };
+      if (!out.has(oid)) out.set(oid, []);
+      out.get(oid).push(row);
+    }
+    for (const rows of out.values()) {
+      rows.sort((a, b) => asDateMs(b.createdAt) - asDateMs(a.createdAt));
+    }
+    return out;
+  }, [ledgerEntries]);
+
   async function onRedeem(e) {
     e.preventDefault();
     const token = getMemberToken();
@@ -239,6 +264,9 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
               const label = g.creatorUsername ? `@${g.creatorUsername}` : "เจ้าของห้อง";
               const creatorId = g.creatorId != null ? String(g.creatorId) : "";
               const rowsWithBalance = buildRowsWithBalance(bal, creatorId, roomHistoryByCreator);
+              const shareRows = creatorId
+                ? shareRewardsByPostOwner.get(creatorId) || []
+                : [];
 
               return (
                 <li
@@ -272,51 +300,102 @@ export default function AccountMyHeartsSection({ hideShellPageTitle = false } = 
                       <summary className="cursor-pointer text-sm font-semibold text-hui-section">
                         ดูรายละเอียด (วันที่ · เกม · คงเหลือ)
                       </summary>
-                      <div className="mt-2 overflow-x-auto">
-                        {rowsWithBalance.length === 0 ? (
-                          <p className="text-sm text-hui-muted">
-                            ยังไม่มีประวัติการรับ/ใช้หัวใจของผู้สร้างนี้
-                          </p>
-                        ) : (
-                          <table className="min-w-full text-left text-sm">
-                            <thead>
-                              <tr className="border-b border-hui-border text-hui-muted">
-                                <th className="px-1 py-1">วันที่</th>
-                                <th className="px-1 py-1">รหัส</th>
-                                <th className="px-1 py-1">รายการ</th>
-                                <th className="px-1 py-1 text-right">จำนวน</th>
-                                <th className="px-1 py-1 text-right">คงเหลือ</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {rowsWithBalance.map((r, idx) => (
-                                <tr key={`${r.createdAt || "na"}-${idx}`} className="border-b border-hui-border/60">
-                                  <td className="whitespace-nowrap px-1 py-1 text-hui-body">
-                                    {r.createdAt
-                                      ? new Date(r.createdAt).toLocaleString("th-TH", {
-                                          dateStyle: "short",
-                                          timeStyle: "short"
-                                        })
-                                      : "—"}
-                                  </td>
-                                  <td className="px-1 py-1 font-mono text-hui-body">{r.code || "—"}</td>
-                                  <td className="px-1 py-1 text-hui-body">{r.item}</td>
-                                  <td
-                                    className={`px-1 py-1 text-right tabular-nums font-semibold ${
-                                      r.isPlus ? "text-emerald-700" : "text-red-700"
-                                    }`}
-                                  >
-                                    {r.isPlus ? "+" : "-"}
-                                    {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
-                                  </td>
-                                  <td className="px-1 py-1 text-right tabular-nums font-semibold text-hui-section">
-                                    {Math.max(0, Math.floor(Number(r.balanceAfter) || 0)).toLocaleString("th-TH")}
-                                  </td>
+                      <div className="mt-2 space-y-4">
+                        <p className="text-xs leading-relaxed text-hui-muted">
+                          ยอด &quot;เหลือ&quot; ด้านบนนับเฉพาะหัวใจแดงจากรหัสห้องของ {label}{" "}
+                          รางวัลจะแชร์โพสต์เข้า
+                          <span className="font-semibold text-hui-body"> กระเป๋าหลัก </span>
+                          ไม่รวมในยอดห้องด้านบน — แสดงแยกด้านล่างเมื่อมี
+                        </p>
+                        <div className="overflow-x-auto">
+                          {rowsWithBalance.length === 0 ? (
+                            <p className="text-sm text-hui-muted">
+                              ยังไม่มีประวัติรับรหัสห้อง / เล่นเกมหักจากห้องนี้
+                            </p>
+                          ) : (
+                            <table className="min-w-full text-left text-sm">
+                              <thead>
+                                <tr className="border-b border-hui-border text-hui-muted">
+                                  <th className="px-1 py-1">วันที่</th>
+                                  <th className="px-1 py-1">รหัส</th>
+                                  <th className="px-1 py-1">รายการ</th>
+                                  <th className="px-1 py-1 text-right">จำนวน</th>
+                                  <th className="px-1 py-1 text-right">คงเหลือ</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        )}
+                              </thead>
+                              <tbody>
+                                {rowsWithBalance.map((r, idx) => (
+                                  <tr key={`${r.createdAt || "na"}-${idx}`} className="border-b border-hui-border/60">
+                                    <td className="whitespace-nowrap px-1 py-1 text-hui-body">
+                                      {r.createdAt
+                                        ? new Date(r.createdAt).toLocaleString("th-TH", {
+                                            dateStyle: "short",
+                                            timeStyle: "short"
+                                          })
+                                        : "—"}
+                                    </td>
+                                    <td className="px-1 py-1 font-mono text-hui-body">{r.code || "—"}</td>
+                                    <td className="px-1 py-1 text-hui-body">{r.item}</td>
+                                    <td
+                                      className={`px-1 py-1 text-right tabular-nums font-semibold ${
+                                        r.isPlus ? "text-emerald-700" : "text-red-700"
+                                      }`}
+                                    >
+                                      {r.isPlus ? "+" : "-"}
+                                      {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
+                                    </td>
+                                    <td className="px-1 py-1 text-right tabular-nums font-semibold text-hui-section">
+                                      {Math.max(0, Math.floor(Number(r.balanceAfter) || 0)).toLocaleString("th-TH")}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                        {shareRows.length > 0 ? (
+                          <div className="border-t border-hui-border/70 pt-3">
+                            <p className="text-xs font-semibold text-hui-section">
+                              รางวัลแชร์โพสต์ของ {label} (เข้ากระเป๋าหลัก)
+                            </p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-hui-muted">
+                              ยอดนี้ไม่บวกในตัวเลข &quot;เหลือ&quot; ของห้องด้านบน — ใช้ได้กับเกมที่รับแดงจากกระเป๋าหลัก
+                            </p>
+                            <div className="mt-2 overflow-x-auto">
+                              <table className="min-w-full text-left text-sm">
+                                <thead>
+                                  <tr className="border-b border-hui-border text-hui-muted">
+                                    <th className="px-1 py-1">วันที่</th>
+                                    <th className="px-1 py-1">รายการ</th>
+                                    <th className="px-1 py-1 text-right">จำนวน</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {shareRows.map((r, idx) => (
+                                    <tr
+                                      key={`share-${r.createdAt || "na"}-${idx}`}
+                                      className="border-b border-hui-border/60"
+                                    >
+                                      <td className="whitespace-nowrap px-1 py-1 text-hui-body">
+                                        {r.createdAt
+                                          ? new Date(r.createdAt).toLocaleString("th-TH", {
+                                              dateStyle: "short",
+                                              timeStyle: "short"
+                                            })
+                                          : "—"}
+                                      </td>
+                                      <td className="px-1 py-1 text-hui-body">{r.item}</td>
+                                      <td className="px-1 py-1 text-right tabular-nums font-semibold text-emerald-700">
+                                        +
+                                        {Math.max(0, Math.floor(Number(r.amount) || 0)).toLocaleString("th-TH")}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </details>
                   </div>

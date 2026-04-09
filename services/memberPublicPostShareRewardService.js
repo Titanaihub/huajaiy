@@ -103,7 +103,8 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
   await userService.adjustDualHeartsWithClient(client, recId, 0, per, {
     kind: "public_post_share_reward",
     label: "รางวัลแชร์โพสต์ (หัวใจแดง)",
-    meta: { postId }
+    /** ใช้ผูกประวัติบนหน้าเจ้าของห้อง — รางวัลเข้า red_hearts_balance ไม่เข้ายอด roomGiftRed */
+    meta: { postId, postOwnerId: ownerId }
   });
 
   const postTitle = String(row.title || "").trim() || "โพสต์";
