@@ -95,7 +95,8 @@ async function createPurchase(userId, packageId, slipUrl) {
       id, user_id, package_id, pink_qty, red_qty, price_thb_snapshot, slip_url, status
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
     RETURNING *`,
-    [id, userId, packageId, pkg.pinkQty, pkg.redQty, pkg.priceThb, url]
+    /* ช่องทางสลิป = ซื้อหัวใจแดง (แจก) เท่านั้น — ไม่บันทึก/ไม่จ่ายชมพู */
+    [id, userId, packageId, 0, pkg.redQty, pkg.priceThb, url]
   );
   return rowToPurchase(r.rows[0]);
 }
@@ -192,7 +193,7 @@ async function listHistoryForAdmin(options = {}) {
       COUNT(*)::int AS total,
       COALESCE(SUM(p.price_thb_snapshot), 0)::bigint AS sum_price_thb,
       COALESCE(SUM(CASE WHEN p.status = 'approved' THEN p.red_qty ELSE 0 END), 0)::bigint AS sum_red_approved,
-      COALESCE(SUM(CASE WHEN p.status = 'approved' THEN p.pink_qty ELSE 0 END), 0)::bigint AS sum_pink_approved
+      0::bigint AS sum_pink_approved
     FROM heart_purchases p
     JOIN users u ON u.id = p.user_id
     ${whereSql}
@@ -320,7 +321,8 @@ async function approve(purchaseId, adminUserId, note) {
       throw e;
     }
     const buyerId = row.user_id;
-    const pink = Math.max(0, Math.floor(Number(row.pink_qty) || 0));
+    /** อนุมัติสลิปซื้อแพ็กหัวใจแดง — เติมเฉพาะยอดแดงแจก ไม่มีหัวใจชมพู */
+    const pink = 0;
     const red = Math.max(0, Math.floor(Number(row.red_qty) || 0));
     const pkgR = await client.query(`SELECT title FROM heart_packages WHERE id = $1`, [
       row.package_id
@@ -375,6 +377,7 @@ async function approve(purchaseId, adminUserId, note) {
     await client.query(
       `UPDATE heart_purchases SET
         status = 'approved',
+        pink_qty = 0,
         resolved_at = NOW(),
         resolved_by = $2,
         admin_note = COALESCE($3, admin_note)

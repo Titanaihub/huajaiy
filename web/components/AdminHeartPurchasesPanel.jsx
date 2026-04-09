@@ -35,8 +35,7 @@ export default function AdminHeartPurchasesPanel() {
   const [histTotal, setHistTotal] = useState(0);
   const [histSummary, setHistSummary] = useState({
     sumPriceThb: 0,
-    sumRedApproved: 0,
-    sumPinkApproved: 0
+    sumRedApproved: 0
   });
 
   const load = useCallback(async () => {
@@ -72,8 +71,7 @@ export default function AdminHeartPurchasesPanel() {
       if (data.summary) {
         setHistSummary({
           sumPriceThb: Number(data.summary.sumPriceThb) || 0,
-          sumRedApproved: Number(data.summary.sumRedApproved) || 0,
-          sumPinkApproved: Number(data.summary.sumPinkApproved) || 0
+          sumRedApproved: Number(data.summary.sumRedApproved) || 0
         });
       }
     } catch (e) {
@@ -139,7 +137,8 @@ export default function AdminHeartPurchasesPanel() {
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-hui-section">คำขอที่รออนุมัติ</h3>
         <p className="text-sm text-hui-body">
-          คำขอที่รอแอดมินตรวจสลิป — อนุมัติแล้วระบบจะเติมหัวใจชมพู/แดงตามแพ็กเกจที่ซื้อ (ตอนสั่งซื้อ)
+          คำขอที่รอแอดมินตรวจสลิป — อนุมัติแล้วระบบจะเติม<strong className="font-semibold">หัวใจแดงแจกผู้เล่น</strong>ตามแพ็กเท่านั้น
+          (ไม่มีหัวใจชมพูจากช่องทางนี้)
         </p>
         <div>
           <label className="text-sm font-medium text-hui-body">
@@ -177,18 +176,9 @@ export default function AdminHeartPurchasesPanel() {
                 </p>
                 <p className="mt-1 text-sm text-hui-body">
                   แพ็กเกจ: <span className="font-medium">{p.packageTitle}</span>
-                  {p.pinkQty > 0 ? (
-                    <>
-                      {" "}
-                      · ชมพู <span className="text-rose-600">{p.pinkQty}</span> แดง{" "}
-                      <span className="text-red-700">{p.redQty}</span>
-                    </>
-                  ) : (
-                    <>
-                      {" "}
-                      · แดงแจก <span className="text-red-700">{p.redQty}</span>
-                    </>
-                  )}{" "}
+                  {" "}
+                  · แดงแจก <span className="text-red-700">{p.redQty}</span>
+                  {" "}
                   · ราคาตอนซื้อ ฿{p.priceThbSnapshot?.toLocaleString("th-TH")}
                 </p>
                 <p className="mt-1 text-sm text-hui-muted">
@@ -211,7 +201,7 @@ export default function AdminHeartPurchasesPanel() {
                     onClick={() => approve(p.id)}
                     className="hui-btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
                   >
-                    อนุมัติและเติมหัวใจ
+                    อนุมัติและเติมแดงแจก
                   </button>
                   <button
                     type="button"
@@ -251,15 +241,6 @@ export default function AdminHeartPurchasesPanel() {
             <p className="text-sm font-medium text-hui-body">หัวใจที่อนุมัติจ่ายแล้ว (ในรายการที่กรอง)</p>
             <p className="mt-1 text-sm tabular-nums text-hui-section">
               แดงแจก <span className="font-semibold text-red-700">{histSummary.sumRedApproved}</span>
-              {histSummary.sumPinkApproved > 0 ? (
-                <>
-                  {" "}
-                  · ชมพู{" "}
-                  <span className="font-semibold text-rose-600">
-                    {histSummary.sumPinkApproved}
-                  </span>
-                </>
-              ) : null}
             </p>
           </div>
         </div>
@@ -355,13 +336,7 @@ export default function AdminHeartPurchasesPanel() {
                         {p.packageTitle}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-sm">
-                        {p.pinkQty > 0 ? (
-                          <>
-                            ชมพู {p.pinkQty} · แดง {p.redQty}
-                          </>
-                        ) : (
-                          <>แดงแจก {p.redQty}</>
-                        )}
+                        แดงแจก {p.redQty}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 tabular-nums text-hui-body">
                         ฿{Number(p.priceThbSnapshot || 0).toLocaleString("th-TH")}
