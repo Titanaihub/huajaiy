@@ -24,8 +24,10 @@ const HEART_RED_SRC = "/hearts/red-heart.png";
 const DEFAULT_AVATAR = "/tailadmin-template/images/default-member-avatar-heart.svg";
 /** ประวัติหัวใจชมพู — เชลล์สมาชิก /member/pink-history (TailAdmin /pink-history) */
 const HEART_HISTORY_PINK = "/member/pink-history";
-const HEART_HISTORY_RED_WALLET = "/account/heart-history/purchases";
-const HEART_HISTORY_GIVEAWAY = "/account/heart-history/giveaway";
+/** ประวัติหัวใจแดง — เชลล์สมาชิก /member/hearts */
+const HEART_HISTORY_RED_WALLET = "/member/hearts";
+/** ประวัติหัวใจแดงสำหรับแจก — เชลล์สมาชิก /member/give-hearts */
+const HEART_HISTORY_GIVEAWAY = "/member/give-hearts";
 
 function formatBirthDate(v) {
   if (!v) return "ยังไม่ได้กรอก";
@@ -360,8 +362,8 @@ export default function MemberHomeProfileLanding({ user }) {
                 <p className="min-w-0 flex-1 text-sm font-medium leading-snug">หัวใจแดง</p>
                 <Link
                   href={HEART_HISTORY_RED_WALLET}
-                  title="เปิดประวัติหัวใจแดง (กระเป๋าและห้อง)"
-                  aria-label="ประวัติหัวใจแดง กระเป๋าและห้อง"
+                  title="เปิดประวัติหัวใจแดง — /member/hearts"
+                  aria-label="ประวัติหัวใจแดง"
                   className="shrink-0 pt-0.5 text-sm font-semibold text-red-600 underline-offset-2 hover:text-red-700 hover:underline"
                 >
                   ประวัติ
