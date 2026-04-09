@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { getPool } = require("../db/pool");
+const auditEventService = require("./auditEventService");
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,24 +61,40 @@ async function insertWithClient(client, row) {
         metaVal
       ]
     );
-    return;
+  } else {
+    await client.query(
+      `INSERT INTO heart_ledger (
+        id, user_id, pink_delta, red_delta, pink_balance_after, red_balance_after, kind, label, meta
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)`,
+      [
+        id,
+        row.userId,
+        row.pinkDelta,
+        row.redDelta,
+        row.pinkAfter,
+        row.redAfter,
+        String(row.kind || "unknown").slice(0, 48),
+        row.label != null ? String(row.label).slice(0, 500) : null,
+        metaVal
+      ]
+    );
   }
-  await client.query(
-    `INSERT INTO heart_ledger (
-      id, user_id, pink_delta, red_delta, pink_balance_after, red_balance_after, kind, label, meta
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)`,
-    [
-      id,
-      row.userId,
-      row.pinkDelta,
-      row.redDelta,
-      row.pinkAfter,
-      row.redAfter,
-      String(row.kind || "unknown").slice(0, 48),
-      row.label != null ? String(row.label).slice(0, 500) : null,
-      metaVal
-    ]
-  );
+  await auditEventService.recordWithClient(client, {
+    actorUserId: row.actorUserId || null,
+    targetUserId: row.userId,
+    eventType: "heart_ledger.entry_created",
+    entityType: "heart_ledger",
+    entityId: id,
+    payload: {
+      kind: String(row.kind || "unknown"),
+      pinkDelta: Math.floor(Number(row.pinkDelta) || 0),
+      redDelta: Math.floor(Number(row.redDelta) || 0),
+      pinkBalanceAfter: Math.floor(Number(row.pinkAfter) || 0),
+      redBalanceAfter: Math.floor(Number(row.redAfter) || 0),
+      label: row.label != null ? String(row.label).slice(0, 500) : null,
+      meta: metaVal
+    }
+  });
 }
 
 /**

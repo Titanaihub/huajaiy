@@ -29,6 +29,7 @@ const {
   previewMarch2026AunyaweePhongCleanup
 } = require("./services/oneoffUserCleanupMarch2026");
 const siteThemeService = require("./services/siteThemeService");
+const auditEventService = require("./services/auditEventService");
 
 const router = express.Router();
 
@@ -129,6 +130,31 @@ router.get("/ping", authMiddleware, requireRole("admin"), (req, res) => {
     role: req.userRole
   });
 });
+
+router.get(
+  "/audit-events",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const events = await auditEventService.listEventsForAdmin({
+        limit: req.query.limit,
+        offset: req.query.offset,
+        actorUserId: req.query.actorUserId,
+        targetUserId: req.query.targetUserId,
+        eventType: req.query.eventType,
+        entityType: req.query.entityType,
+        entityId: req.query.entityId
+      });
+      return res.json({ ok: true, events });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: "ระบบฐานข้อมูลยังไม่พร้อม" });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
 
 router.get(
   "/site-theme",
@@ -991,7 +1017,8 @@ router.post(
         withdrawalId: id,
         action,
         note,
-        transferSlipUrl
+        transferSlipUrl,
+        adminUserId: req.userId
       });
       return res.json({ ok: true, withdrawal: rec });
     } catch (e) {

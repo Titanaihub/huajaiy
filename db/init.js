@@ -811,6 +811,35 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS audit_events (
+        id UUID PRIMARY KEY,
+        actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        target_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        event_type VARCHAR(80) NOT NULL,
+        entity_type VARCHAR(64),
+        entity_id VARCHAR(120),
+        trace_id VARCHAR(80),
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_audit_events_created_at ON audit_events(created_at DESC);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_audit_events_actor ON audit_events(actor_user_id, created_at DESC);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_audit_events_target ON audit_events(target_user_id, created_at DESC);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_audit_events_entity ON audit_events(entity_type, entity_id, created_at DESC);`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_audit_events_type ON audit_events(event_type, created_at DESC);`
+    );
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_theme (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         background_image_url TEXT NOT NULL DEFAULT '',

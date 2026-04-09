@@ -1,5 +1,6 @@
 const { getPool } = require("../db/pool");
 const heartLedgerService = require("./heartLedgerService");
+const auditEventService = require("./auditEventService");
 
 function requirePool() {
   const pool = getPool();
@@ -178,6 +179,25 @@ async function tryRecordWin({ userId, gameId, ruleId, playSessionId }) {
         fulfillment
       ]
     );
+    if (ins.rows.length > 0) {
+      await auditEventService.recordWithClient(client, {
+        actorUserId: userId,
+        targetUserId: userId,
+        eventType: "central_prize_award.win_recorded",
+        entityType: "central_prize_awards",
+        entityId: String(ins.rows[0].id),
+        payload: {
+          awardId: String(ins.rows[0].id),
+          gameId: String(gameId),
+          ruleId: String(ruleId),
+          playSessionId: sid,
+          prizeCategory: String(rule.prize_category || ""),
+          prizeTitle: rule.prize_title != null ? String(rule.prize_title) : null,
+          prizeValueText: rule.prize_value_text != null ? String(rule.prize_value_text) : null,
+          prizeUnit: rule.prize_unit != null ? String(rule.prize_unit) : null
+        }
+      });
+    }
     await client.query("COMMIT");
     if (ins.rows.length === 0) {
       return { inserted: false, reason: "SESSION_ALREADY_RECORDED" };
@@ -465,6 +485,17 @@ async function acknowledgeWinnerPickupByWinner({ awardId, winnerUserId }) {
        RETURNING winner_pickup_ack_at AS "winnerPickupAckAt"`,
       [awardId]
     );
+    await auditEventService.recordWithClient(client, {
+      actorUserId: winnerUserId,
+      targetUserId: winnerUserId,
+      eventType: "central_prize_award.winner_pickup_ack",
+      entityType: "central_prize_awards",
+      entityId: String(awardId),
+      payload: {
+        awardId: String(awardId),
+        winnerUserId: String(winnerUserId)
+      }
+    });
     await client.query("COMMIT");
     return {
       winnerPickupAckAt: u.rows[0]?.winnerPickupAckAt || null,
@@ -786,6 +817,25 @@ async function resolveItemAwardByCreator({
         shippingSnapshot
       ]
     );
+    await auditEventService.recordWithClient(client, {
+      actorUserId: creatorUserId,
+      targetUserId: String(row.winner_user_id || ""),
+      eventType: "central_prize_award.item_resolved_by_creator",
+      entityType: "central_prize_awards",
+      entityId: String(awardId),
+      payload: {
+        awardId: String(awardId),
+        creatorUserId: String(creatorUserId),
+        winnerUserId: String(row.winner_user_id || ""),
+        mode: m,
+        status: s,
+        note: note != null && String(note).trim() ? String(note).trim().slice(0, 1000) : null,
+        trackingCode:
+          trackingCode != null && String(trackingCode).trim()
+            ? String(trackingCode).trim().slice(0, 120)
+            : null
+      }
+    });
     await client.query("COMMIT");
   } catch (e) {
     try {

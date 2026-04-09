@@ -1,6 +1,7 @@
 const { getPool } = require("../db/pool");
 const centralPrizeAwardService = require("./centralPrizeAwardService");
 const userService = require("./userService");
+const auditEventService = require("./auditEventService");
 const MIN_WITHDRAW_BAHT = 20;
 
 function requirePool() {
@@ -45,6 +46,35 @@ async function sumReservedBaht(requesterUserId, creatorUserId) {
     [requesterUserId, creatorUserId]
   );
   return Math.max(0, Number(r.rows[0]?.s) || 0);
+}
+
+async function sumReservedBahtWithClient(client, requesterUserId, creatorUserId) {
+  const r = await client.query(
+    `SELECT COALESCE(SUM(amount_thb), 0)::bigint AS s
+     FROM central_prize_withdrawal_requests
+     WHERE requester_user_id = $1::uuid AND creator_user_id = $2::uuid
+       AND status IN ('pending', 'approved')`,
+    [requesterUserId, creatorUserId]
+  );
+  return Math.max(0, Number(r.rows[0]?.s) || 0);
+}
+
+function normalizeTransferSlipUrl(raw, { required = false } = {}) {
+  const slip = raw != null ? String(raw).trim().slice(0, 800) : "";
+  if (!slip) {
+    if (required) {
+      const err = new Error("กรุณากรอก URL สลิป");
+      err.code = "VALIDATION";
+      throw err;
+    }
+    return "";
+  }
+  if (!/^https?:\/\//i.test(slip)) {
+    const err = new Error("URL สลิปต้องเป็น https หรือ http");
+    err.code = "VALIDATION";
+    throw err;
+  }
+  return slip;
 }
 
 /**
@@ -147,30 +177,68 @@ async function createRequest({
   }
 
   const avail = await getAvailability(requesterUserId, creatorUsername);
-  if (amt > avail.availableBaht) {
-    const e = new Error(
-      `จำนวนเงินเกินยอดที่ถอนได้ (เหลือ ${avail.availableBaht} บาท)`
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    // serialize คำขอถอนของคู่ requester+creator เดียวกัน ป้องกันยิงพร้อมกันเกินยอด
+    await client.query(
+      `SELECT pg_advisory_xact_lock(hashtext($1::text), hashtext($2::text))`,
+      [String(requesterUserId), String(avail.creatorUserId)]
     );
-    e.code = "INSUFFICIENT_BALANCE";
-    throw e;
-  }
-
-  const ins = await pool.query(
-    `INSERT INTO central_prize_withdrawal_requests (
-      requester_user_id, creator_user_id, amount_thb,
-      account_holder_name, account_number, bank_name, status
-    ) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, 'pending')
-    RETURNING *`,
-    [
+    const reservedNow = await sumReservedBahtWithClient(
+      client,
       requesterUserId,
-      avail.creatorUserId,
-      amt,
-      ah.slice(0, 200),
-      an.slice(0, 64),
-      bn.slice(0, 120)
-    ]
-  );
-  return mapRow(ins.rows[0]);
+      avail.creatorUserId
+    );
+    const availableNow = Math.max(0, (Number(avail.earnedBaht) || 0) - reservedNow);
+    if (amt > availableNow) {
+      const e = new Error(`จำนวนเงินเกินยอดที่ถอนได้ (เหลือ ${availableNow} บาท)`);
+      e.code = "INSUFFICIENT_BALANCE";
+      throw e;
+    }
+    const ins = await client.query(
+      `INSERT INTO central_prize_withdrawal_requests (
+        requester_user_id, creator_user_id, amount_thb,
+        account_holder_name, account_number, bank_name, status
+      ) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, 'pending')
+      RETURNING *`,
+      [
+        requesterUserId,
+        avail.creatorUserId,
+        amt,
+        ah.slice(0, 200),
+        an.slice(0, 64),
+        bn.slice(0, 120)
+      ]
+    );
+    await auditEventService.recordWithClient(client, {
+      actorUserId: requesterUserId,
+      targetUserId: requesterUserId,
+      eventType: "prize_withdrawal.request_created",
+      entityType: "central_prize_withdrawal_requests",
+      entityId: String(ins.rows[0]?.id || ""),
+      payload: {
+        requesterUserId: String(requesterUserId),
+        creatorUserId: String(avail.creatorUserId),
+        creatorUsername: String(avail.creatorUsername || ""),
+        amountThb: amt,
+        earnedBaht: Math.floor(Number(avail.earnedBaht) || 0),
+        reservedBahtBefore: reservedNow,
+        availableBahtBefore: availableNow
+      }
+    });
+    await client.query("COMMIT");
+    return mapRow(ins.rows[0]);
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ignore rollback errors
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
 }
 
 async function listForRequester(userId) {
@@ -246,6 +314,20 @@ async function cancelByRequester({ withdrawalId, requesterUserId }) {
     e.code = "NOT_FOUND";
     throw e;
   }
+  try {
+    await auditEventService.record({
+      actorUserId: requesterUserId,
+      targetUserId: requesterUserId,
+      eventType: "prize_withdrawal.request_cancelled_by_requester",
+      entityType: "central_prize_withdrawal_requests",
+      entityId: String(withdrawalId || ""),
+      payload: {
+        statusAfter: "cancelled"
+      }
+    });
+  } catch {
+    /* non-blocking audit */
+  }
   return mapRow(up.rows[0]);
 }
 
@@ -267,12 +349,7 @@ async function resolveByCreator({
   const nextStatus = act === "approve" ? "approved" : "rejected";
   let slipTrim = "";
   if (act === "approve" && transferSlipUrl != null) {
-    slipTrim = String(transferSlipUrl).trim().slice(0, 800);
-    if (slipTrim && !/^https?:\/\//i.test(slipTrim)) {
-      const err = new Error("URL สลิปต้องเป็น https หรือ http");
-      err.code = "VALIDATION";
-      throw err;
-    }
+    slipTrim = normalizeTransferSlipUrl(transferSlipUrl);
   }
   let dateParam = null;
   if (act === "approve" && transferDate != null && String(transferDate).trim()) {
@@ -326,6 +403,29 @@ async function resolveByCreator({
     const e = new Error("อัปเดตไม่สำเร็จ");
     e.code = "CONFLICT";
     throw e;
+  }
+  try {
+    await auditEventService.record({
+      actorUserId: creatorUserId,
+      targetUserId: String(row.requester_user_id || ""),
+      eventType:
+        nextStatus === "approved"
+          ? "prize_withdrawal.request_approved_by_creator"
+          : "prize_withdrawal.request_rejected_by_creator",
+      entityType: "central_prize_withdrawal_requests",
+      entityId: String(withdrawalId || ""),
+      payload: {
+        statusAfter: nextStatus,
+        creatorUserId: String(creatorUserId),
+        requesterUserId: String(row.requester_user_id || ""),
+        amountThb: Math.floor(Number(row.amount_thb) || 0),
+        note: noteTrim || null,
+        transferSlipUrl: slipTrim || null,
+        transferDate: dateParam || null
+      }
+    });
+  } catch {
+    /* non-blocking audit */
   }
   return mapRow(up.rows[0]);
 }
@@ -384,9 +484,9 @@ async function withdrawalReserveTotalsByRequester() {
 
 /**
  * แอดมินอนุมัติ/ปฏิเสธคำขอถอน (ไม่จำกัดเฉพาะผู้สร้างเกม)
- * @param {{ withdrawalId: string, action: 'approve'|'reject', note?: string, transferSlipUrl?: string }} p
+ * @param {{ withdrawalId: string, action: 'approve'|'reject', note?: string, transferSlipUrl?: string, adminUserId?: string }} p
  */
-async function resolveByAdmin({ withdrawalId, action, note, transferSlipUrl }) {
+async function resolveByAdmin({ withdrawalId, action, note, transferSlipUrl, adminUserId }) {
   const pool = requirePool();
   const act = String(action || "").toLowerCase();
   if (act !== "approve" && act !== "reject") {
@@ -418,7 +518,9 @@ async function resolveByAdmin({ withdrawalId, action, note, transferSlipUrl }) {
   }
   const noteTrim = note != null ? String(note).trim().slice(0, 500) : "";
   const slipTrim =
-    transferSlipUrl != null && act === "approve" ? String(transferSlipUrl).trim().slice(0, 800) : "";
+    transferSlipUrl != null && act === "approve"
+      ? normalizeTransferSlipUrl(transferSlipUrl)
+      : "";
   const up = await pool.query(
     `UPDATE central_prize_withdrawal_requests
      SET status = $2,
@@ -436,6 +538,28 @@ async function resolveByAdmin({ withdrawalId, action, note, transferSlipUrl }) {
     const e = new Error("อัปเดตไม่สำเร็จ");
     e.code = "CONFLICT";
     throw e;
+  }
+  try {
+    await auditEventService.record({
+      actorUserId: adminUserId || null,
+      targetUserId: String(r.rows[0]?.requester_user_id || ""),
+      eventType:
+        nextStatus === "approved"
+          ? "prize_withdrawal.request_approved_by_admin"
+          : "prize_withdrawal.request_rejected_by_admin",
+      entityType: "central_prize_withdrawal_requests",
+      entityId: String(withdrawalId || ""),
+      payload: {
+        statusAfter: nextStatus,
+        requesterUserId: String(r.rows[0]?.requester_user_id || ""),
+        creatorUserId: String(r.rows[0]?.creator_user_id || ""),
+        amountThb: Math.floor(Number(r.rows[0]?.amount_thb) || 0),
+        note: noteTrim || null,
+        transferSlipUrl: slipTrim || null
+      }
+    });
+  } catch {
+    /* non-blocking audit */
   }
   return mapRow(up.rows[0]);
 }
