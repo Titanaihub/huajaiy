@@ -14,6 +14,7 @@ import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import {
   TAILADMIN_MY_HEARTS_START,
+  TAILADMIN_PINK_HISTORY_START,
   TAILADMIN_SHOP_DASHBOARD_START,
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
@@ -227,30 +228,59 @@ export default function HuajaiyCentralTemplate({
     giveawayRedShown = 0;
   }
 
-  const heartsHref = memberUser
+  const loginForHeartsHref = "/login";
+  const pinkHistoryHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_PINK_HISTORY_START, memberUser.role)
+    : loginForHeartsHref;
+  const redFromCreatorsHref = memberUser
     ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
-    : "/login";
+    : loginForHeartsHref;
+  const redGiveawayHistoryHref = memberUser
+    ? "/account/heart-history/giveaway"
+    : loginForHeartsHref;
   const profileHref = memberUser
     ? workspaceShellUrl(TAILADMIN_SHOP_DASHBOARD_START, memberUser.role)
     : "/login";
 
-  const heartsPillInner = (
-    <>
-      <span className="inline-flex items-center gap-1" title="หัวใจชมพู">
+  const heartSegClass =
+    "inline-flex items-center gap-1 rounded-md px-0.5 py-0.5 outline-offset-2 transition hover:bg-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400";
+
+  const heartsPill = (
+    <div
+      className="flex items-center gap-2.5 rounded-full border border-pink-200/90 bg-gradient-to-r from-pink-50 to-fuchsia-50 px-3 py-1.5 shadow-sm transition hover:brightness-[1.02] sm:gap-3 sm:px-4 sm:py-2"
+      role="group"
+      aria-label={memberUser ? "ยอดหัวใจ — แตะแต่ละยอดเพื่อไปหน้าที่เกี่ยวข้อง" : "เข้าสู่ระบบเพื่อดูยอดหัวใจ"}
+    >
+      <Link
+        href={pinkHistoryHref}
+        className={heartSegClass}
+        title="ประวัติหัวใจชมพู"
+        aria-label="ประวัติหัวใจชมพู"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={HEART_PINK_SRC} alt="" width={20} height={20} className="h-5 w-5" />
         <span className="text-sm font-bold tabular-nums text-pink-600">
           {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
         </span>
-      </span>
-      <span className="inline-flex items-center gap-1" title="หัวใจแดงจากผู้เล่น">
+      </Link>
+      <Link
+        href={redFromCreatorsHref}
+        className={heartSegClass}
+        title="หัวใจแดงจากผู้สร้าง"
+        aria-label="หัวใจแดงจากผู้สร้าง"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={HEART_RED_SRC} alt="" width={20} height={20} className="h-5 w-5" />
         <span className="text-sm font-bold tabular-nums text-red-600">
           {heartsLoading ? "…" : redFromUsersShown.toLocaleString("th-TH")}
         </span>
-      </span>
-      <span className="inline-flex items-center gap-1" title="หัวใจแดงสำหรับแจก">
+      </Link>
+      <Link
+        href={redGiveawayHistoryHref}
+        className={heartSegClass}
+        title="ประวัติหัวใจแดงสำหรับแจก"
+        aria-label="ประวัติหัวใจแดงสำหรับแจก"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={HEART_RED_SRC}
@@ -262,19 +292,8 @@ export default function HuajaiyCentralTemplate({
         <span className="text-sm font-bold tabular-nums text-red-800">
           {heartsLoading ? "…" : giveawayRedShown.toLocaleString("th-TH")}
         </span>
-      </span>
-    </>
-  );
-
-  const heartsPill = (
-    <Link
-      href={heartsHref}
-      className="flex items-center gap-2.5 rounded-full border border-pink-200/90 bg-gradient-to-r from-pink-50 to-fuchsia-50 px-3 py-1.5 shadow-sm transition hover:brightness-[1.02] sm:gap-3 sm:px-4 sm:py-2"
-      aria-label={memberUser ? "ยอดหัวใจ — ไปหน้าหัวใจ" : "เข้าสู่ระบบเพื่อดูยอดหัวใจ"}
-      title={memberUser ? "หัวใจชมพู · แดงจากผู้เล่น · แดงแจก" : "เข้าสู่ระบบเพื่อดูยอดหัวใจ"}
-    >
-      {heartsPillInner}
-    </Link>
+      </Link>
+    </div>
   );
 
   const iconBtnClass =

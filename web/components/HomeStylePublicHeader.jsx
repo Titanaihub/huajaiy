@@ -9,6 +9,7 @@ import { GLOBAL_PRIMARY_NAV_BASE } from "../lib/globalPrimaryNav";
 import { MEMBER_SHELL_MENU_ITEMS } from "../lib/memberSidebarNav";
 import {
   TAILADMIN_MY_HEARTS_START,
+  TAILADMIN_PINK_HISTORY_START,
   TAILADMIN_PROFILE_START,
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
@@ -69,12 +70,16 @@ export default function HomeStylePublicHeader({
     giveawayRedShown = 0;
   }
 
-  const heartsHref = memberUser
+  const loginForHeartsHref = "/login";
+  const pinkHistoryHref = memberUser
+    ? workspaceShellUrl(TAILADMIN_PINK_HISTORY_START, memberUser.role)
+    : loginForHeartsHref;
+  const redFromCreatorsHref = memberUser
     ? workspaceShellUrl(TAILADMIN_MY_HEARTS_START, memberUser.role)
-    : "/login";
-  const heartsTitle = memberUser
-    ? "หัวใจชมพู (ระบบส่วนกลาง) · แดงจากผู้เล่น · แดงสำหรับแจก — แตะเพื่อหน้าหัวใจแดงห้องเกม"
-    : "เข้าสู่ระบบเพื่อดูยอดหัวใจจากเซิร์ฟเวอร์";
+    : loginForHeartsHref;
+  const redGiveawayHistoryHref = memberUser
+    ? "/account/heart-history/giveaway"
+    : loginForHeartsHref;
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -129,19 +134,20 @@ export default function HomeStylePublicHeader({
           </div>
 
           {!authPage ? (
-            <Link
-              href={heartsHref}
+            <div
               className={`flex w-full shrink-0 items-center justify-center gap-2.5 rounded-md py-1 sm:w-auto sm:justify-start sm:gap-3 sm:px-1 lg:px-0 ${heartsRowHover}`}
-              title={heartsTitle}
+              role="group"
               aria-label={
                 heartsLoading
                   ? "กำลังโหลดยอดหัวใจ"
-                  : `หัวใจชมพู ${pinkShown} แดงจากผู้เล่น ${redFromUsersShown} แดงแจก ${giveawayRedShown}`
+                  : `หัวใจชมพู ${pinkShown} แดงจากผู้สร้าง ${redFromUsersShown} แดงแจก ${giveawayRedShown}`
               }
             >
-              <span
-                className="inline-flex items-center gap-1"
-                title="หัวใจชมพู — ยอดจากระบบส่วนกลาง"
+              <Link
+                href={pinkHistoryHref}
+                className="inline-flex items-center gap-1 rounded-md px-0.5 py-0.5 outline-offset-2 transition hover:bg-black/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
+                title="ประวัติหัวใจชมพู"
+                aria-label="ประวัติหัวใจชมพู"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -154,10 +160,12 @@ export default function HomeStylePublicHeader({
                 <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-pink-600 sm:text-base">
                   {heartsLoading ? "…" : pinkShown.toLocaleString("th-TH")}
                 </span>
-              </span>
-              <span
-                className="inline-flex items-center gap-1"
-                title="หัวใจแดง — กระเป๋า + จากผู้เล่นในห้องเกม"
+              </Link>
+              <Link
+                href={redFromCreatorsHref}
+                className="inline-flex items-center gap-1 rounded-md px-0.5 py-0.5 outline-offset-2 transition hover:bg-black/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
+                title="หัวใจแดงจากผู้สร้าง"
+                aria-label="หัวใจแดงจากผู้สร้าง"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -170,10 +178,12 @@ export default function HomeStylePublicHeader({
                 <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-600 sm:text-base">
                   {heartsLoading ? "…" : redFromUsersShown.toLocaleString("th-TH")}
                 </span>
-              </span>
-              <span
-                className="inline-flex items-center gap-1"
-                title="หัวใจแดงสำหรับแจก"
+              </Link>
+              <Link
+                href={redGiveawayHistoryHref}
+                className="inline-flex items-center gap-1 rounded-md px-0.5 py-0.5 outline-offset-2 transition hover:bg-black/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-400"
+                title="ประวัติหัวใจแดงสำหรับแจก"
+                aria-label="ประวัติหัวใจแดงสำหรับแจก"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -186,8 +196,8 @@ export default function HomeStylePublicHeader({
                 <span className="min-w-[0.6rem] text-sm font-semibold tabular-nums text-red-700 sm:text-base">
                   {heartsLoading ? "…" : giveawayRedShown.toLocaleString("th-TH")}
                 </span>
-              </span>
-            </Link>
+              </Link>
+            </div>
           ) : null}
 
           {/* เมนูกลาง-ขวา (เทียบ col-lg + justify-content-lg-end) */}
