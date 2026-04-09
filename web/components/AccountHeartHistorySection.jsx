@@ -321,6 +321,37 @@ function buildTableRows(mode, entries) {
 
   if (mode === "giveaway") {
     for (const e of entries) {
+      if (
+        e.kind === "admin_adjust" ||
+        e.kind === "script_set_exact" ||
+        e.kind === "adjustment"
+      ) {
+        const m = e.meta && typeof e.meta === "object" ? e.meta : {};
+        const giveD = Math.floor(Number(m.redGiveawayDelta) || 0);
+        if (giveD === 0) continue;
+        const after =
+          m.redGiveawayBalanceAfter != null
+            ? Math.floor(Number(m.redGiveawayBalanceAfter))
+            : null;
+        const hint = KIND_HINT[e.kind] || e.kind || "";
+        rows.push({
+          id: e.id,
+          createdAt: e.createdAt,
+          item: (
+            <div className="space-y-1">
+              <p className="font-medium text-slate-800">{e.label || "—"}</p>
+              {hint ? <p className="text-xs font-medium text-slate-500">{hint}</p> : null}
+            </div>
+          ),
+          amountDisplay: null,
+          amountNumeric: giveD,
+          balanceDisplay:
+            after != null && Number.isFinite(after)
+              ? after.toLocaleString("th-TH")
+              : "—"
+        });
+        continue;
+      }
       if (e.kind === "heart_purchase_approved") {
         const m = e.meta && typeof e.meta === "object" ? e.meta : {};
         const g = Math.max(0, Math.floor(Number(m.redGrantedToGiveaway) || 0));
@@ -354,6 +385,8 @@ function buildTableRows(mode, entries) {
         const postId = m.postId ? String(m.postId).trim() : "";
         const poolAfter =
           m.sharePoolRemainingAfter != null ? Math.floor(Number(m.sharePoolRemainingAfter)) : null;
+        const giveAfterReward =
+          m.redGiveawayBalanceAfter != null ? Math.floor(Number(m.redGiveawayBalanceAfter)) : null;
         const whoLabel = ru ? `@${ru}` : rid ? `ผู้ใช้ ${rid.slice(0, 8)}…` : "ผู้แชร์";
         const titleBit =
           pt.length > 0
@@ -378,9 +411,11 @@ function buildTableRows(mode, entries) {
           amountDisplay: null,
           amountNumeric: -amt,
           balanceDisplay:
-            poolAfter != null && Number.isFinite(poolAfter)
-              ? `มัดจำแชร์โพสต์คงเหลือ ${poolAfter.toLocaleString("th-TH")} ดวง`
-              : "—"
+            giveAfterReward != null && Number.isFinite(giveAfterReward)
+              ? giveAfterReward.toLocaleString("th-TH")
+              : poolAfter != null && Number.isFinite(poolAfter)
+                ? `มัดจำโพสต์ ${poolAfter.toLocaleString("th-TH")} ดวง`
+                : "—"
         });
         continue;
       }
@@ -546,7 +581,7 @@ export default function AccountHeartHistorySection({
       ? "รายการรับหรือหักหัวใจชมพูจากระบบ เช่น เริ่มเล่นเกมส่วนกลาง"
       : mode === "red"
         ? "รวมหัก/รับแดงในกระเป๋า แลกรหัสได้แดงห้อง และหักแดงตอนเริ่มเกม (กระเป๋า/ห้อง)"
-        : "เติมแดงแจกจากแพ็กที่อนุมัติ และหัก/คืนแดงแจกเมื่อสร้างหรือลบรหัสแจกห้อง";
+        : "รวมเติม/หักแดงแจกจากแพ็กที่อนุมัติ แอดมินปรับยอด แชร์โพสต์ และสร้าง/ลบรหัสแจกห้อง — คงเหลือต่อแถวคือยอดแดงแจกหลังรายการนั้น";
 
   const tableRows = useMemo(() => {
     const raw = buildTableRows(mode, entries);
@@ -579,7 +614,7 @@ export default function AccountHeartHistorySection({
           token,
           mode === "pink"
             ? { limit: 500, offset: 0, pinkOnly: true }
-            : { limit: 400, offset: 0 }
+            : { limit: 1000, offset: 0 }
         );
         if (cancelled) return;
         setEntries(Array.isArray(data.entries) ? data.entries : []);

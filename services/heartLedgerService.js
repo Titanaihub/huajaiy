@@ -478,8 +478,8 @@ async function listForUser(userId, opts = {}) {
     await ensurePinkLedgerOpeningBalance(userId);
   }
   const defaultLim = pinkOnly ? 400 : 80;
-  /** pinkOnly: ดึงได้ลึก — กันประวัติชมพูหายเพราะโควตาแคบ */
-  const maxLim = pinkOnly ? 3000 : 200;
+  /** pinkOnly: ดึงได้ลึก — กันประวัติชมพูหายเพราะโควตาแคบ · ไม่ pink: ให้ดึงลึกพอสำหรับประวัติแดง/แจก */
+  const maxLim = pinkOnly ? 3000 : 2000;
   const lim = Math.min(maxLim, Math.max(1, Math.floor(Number(opts.limit) || defaultLim)));
   const off = Math.max(0, Math.floor(Number(opts.offset) || 0));
   const pinkSql = pinkOnly ? " AND COALESCE(pink_delta, 0) <> 0 " : "";
