@@ -565,8 +565,7 @@ function MemberPublicPostCard({
                     <strong>{stats.shareIntentAnonymous}</strong>
                   </p>
                   <p className="text-[10px] leading-snug text-amber-900/90">
-                    มอบหัวใจรางวัล: สมาชิกต้องมีแถวกดแชร์ (ล็อกอิน) และการเปิดลิงก์{" "}
-                    <span className="font-mono">?ref=</span> ของคนนั้นต้องถึงเกณฑ์ — แถว &quot;ผู้เยี่ยมชม&quot; ไม่ได้รางวัล
+                    มอบหัวใจรางวัล: สมาชิกที่ล็อกอินและกดแชร์จากปุ่มในหน้าเว็บจะได้รางวัลทันที (คนละครั้งต่อโพสต์) — แถว &quot;ผู้เยี่ยมชม&quot; ไม่ได้รางวัล
                   </p>
                   <div>
                     <p className="font-semibold text-gray-800">รายการกดแชร์จากเว็บ (ล่าสุด)</p>
@@ -610,8 +609,7 @@ function MemberPublicPostCard({
                     )}
                   </div>
                   <p className="text-[10px] leading-snug text-gray-500">
-                    ไลน์/เฟสบุ๊กไม่แจ้งว่า &quot;ใคร&quot; แชร์จริง — จึงใช้การกดปุ่มบนเว็บเป็นหลัก และนับการเปิดลิงก์เมื่อลิงก์ยังมี{" "}
-                    <span className="font-mono">?ref=</span>
+                    ไลน์/เฟสบุ๊กไม่แจ้งว่า &quot;ใคร&quot; แชร์จริง — ระบบจึงยึดการกดปุ่มแชร์บนเว็บขณะล็อกอินเป็นหลัก
                   </p>
                 </>
               ) : null}
