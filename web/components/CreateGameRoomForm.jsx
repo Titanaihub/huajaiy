@@ -92,6 +92,7 @@ export default function CreateGameRoomForm({
   const [draftBootErr, setDraftBootErr] = useState("");
   const [bootstrapNotice, setBootstrapNotice] = useState("");
   const studioRef = useRef(null);
+  const memberInitRunIdRef = useRef(0);
 
   useEffect(() => {
     if (!managingExisting) return;
@@ -103,39 +104,6 @@ export default function CreateGameRoomForm({
     }
   }, [managingExisting, gameFromUrl, isMemberEmbed]);
 
-  /**
-   * โหมดสมาชิก: กู้ร่างจาก session เฉพาะเมื่อเกมนั้นยังไม่มีผู้ได้รางวัล
-   * (ถ้ามีรางวัลแล้ว — ไม่ดึงมาโชว์หน้า «สร้างเกมใหม่» ให้ไปจัดการจาก «เกมของฉัน»)
-   */
-  useEffect(() => {
-    if (!isMemberEmbed || !user || loading) return;
-    if (managingExisting) return;
-    if (studioGameId) return;
-
-    const stored = sessionStorage.getItem(MEMBER_DRAFT_SESSION_KEY)?.trim();
-    if (!stored || !UUID_RE.test(stored)) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = getMemberToken();
-        if (!token) return;
-        const data = await apiAdminCentralGameDetail(token, stored);
-        const awardCount = Math.max(0, Math.floor(Number(data?.prizeAwardCount)) || 0);
-        if (awardCount > 0) {
-          sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
-          return;
-        }
-        if (!cancelled) setStudioGameId(stored);
-      } catch {
-        sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isMemberEmbed, user, loading, managingExisting, studioGameId]);
-
   /** หลังสร้างร่าง — ใส่ ?game= ให้ตรงกับแถบที่อยู่ รีเฟรชแล้วยังกลับมาแก้ต่อได้ */
   function syncMemberCreateGameUrl(gid) {
     if (!gid || !UUID_RE.test(String(gid).trim())) return;
@@ -146,77 +114,110 @@ export default function CreateGameRoomForm({
     router.replace(`${path}?${q.toString()}#game-studio`);
   }
 
-  async function handleMemberCreateDraft() {
-    setErr("");
-    setDraftBootErr("");
-    setBootstrapNotice("");
-    try {
-      buildMemberIntroMergeOrThrow();
-    } catch (e) {
-      setErr(e?.message || String(e));
-      return;
-    }
-    const token = getMemberToken();
-    if (!token) {
-      setErr("ไม่ได้เข้าสู่ระบบ — กรุณาล็อกอินใหม่");
-      return;
-    }
-    setBusy(true);
-    try {
-      const description = buildDescription({
-        purpose,
-        otherReason,
-        prizeConditions: ""
-      });
-      const title = `เกมใหม่ — ${new Date().toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "short"
-      })}`;
-      const data = await apiAdminCentralGameCreate(token, {
-        title,
-        description,
-        setCount: 1,
-        imagesPerSet: 4,
-        ...DEFAULT_NEW_ROOM_HEART_PRESET
-      });
-      const gid = data.game?.id || data.snapshot?.game?.id || null;
-      if (!gid) {
-        throw new Error("สร้างร่างแล้วแต่ไม่ได้รับรหัสเกมจากระบบ — ลองรีเฟรชหน้า");
-      }
-      sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
-      setStudioGameId(gid);
-      syncMemberCreateGameUrl(gid);
-      if (typeof window !== "undefined") {
-        requestAnimationFrame(() => {
-          document.getElementById("game-studio")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      }
-    } catch (ex) {
-      const msg = ex?.message || String(ex);
-      if (isCentralGameQuotaError(msg)) {
+  /**
+   * โหมดสมาชิก (/member/create-game): ไม่ต้องกดปุ่มสร้างร่าง — โหลดแล้วสร้างร่างอัตโนมัติ (หรือกู้ร่างจาก session ถ้ายังไม่มีผู้ได้รางวัล)
+   */
+  useEffect(() => {
+    if (!isMemberEmbed || !user || loading) return;
+    if (managingExisting) return;
+
+    const runId = ++memberInitRunIdRef.current;
+    let cancelled = false;
+
+    (async () => {
+      const token = getMemberToken();
+      if (!token) return;
+
+      const stored = sessionStorage.getItem(MEMBER_DRAFT_SESSION_KEY)?.trim();
+      if (stored && UUID_RE.test(stored)) {
         try {
-          const list = await apiAdminCentralGamesList(token);
-          const games = Array.isArray(list.games) ? list.games : [];
-          const pick = games[0];
-          const id = pick && pick.id ? String(pick.id).trim() : "";
-          if (id && UUID_RE.test(id)) {
-            sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, id);
-            setStudioGameId(id);
-            syncMemberCreateGameUrl(id);
-            setBootstrapNotice(
-              `บัญชีนี้มีเกมครบ ${CENTRAL_GAME_MAX_PER_MEMBER} เกมแล้ว — เปิดเกมล่าสุดให้แก้ไขด้านล่าง หากต้องการสร้างร่างใหม่ให้ลบเกมเก่าที่ «เกมของฉัน» ก่อน`
-            );
+          const data = await apiAdminCentralGameDetail(token, stored);
+          const awardCount = Math.max(0, Math.floor(Number(data?.prizeAwardCount)) || 0);
+          if (awardCount > 0) {
+            sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
+          } else if (!cancelled && runId === memberInitRunIdRef.current) {
+            setStudioGameId(stored);
+            syncMemberCreateGameUrl(stored);
+            requestAnimationFrame(() => {
+              document.getElementById("game-studio")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
             return;
           }
         } catch {
-          /* fall through */
+          sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
         }
       }
-      setDraftBootErr(ex?.message || "สร้างเกมร่างไม่สำเร็จ");
-    } finally {
-      setBusy(false);
-    }
-  }
+
+      if (cancelled || runId !== memberInitRunIdRef.current) return;
+
+      setBusy(true);
+      setDraftBootErr("");
+      setBootstrapNotice("");
+      try {
+        const description = buildDescription({
+          purpose: "shop_sales",
+          otherReason: "",
+          prizeConditions: ""
+        });
+        const title = `เกมใหม่ — ${new Date().toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "short"
+        })}`;
+        const data = await apiAdminCentralGameCreate(token, {
+          title,
+          description,
+          setCount: 1,
+          imagesPerSet: 4,
+          ...DEFAULT_NEW_ROOM_HEART_PRESET
+        });
+        const gid = data.game?.id || data.snapshot?.game?.id || null;
+        if (!gid) {
+          throw new Error("สร้างร่างแล้วแต่ไม่ได้รับรหัสเกมจากระบบ — ลองรีเฟรชหน้า");
+        }
+        if (cancelled || runId !== memberInitRunIdRef.current) return;
+        sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
+        setStudioGameId(gid);
+        syncMemberCreateGameUrl(gid);
+        requestAnimationFrame(() => {
+          document.getElementById("game-studio")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      } catch (ex) {
+        const msg = ex?.message || String(ex);
+        if (isCentralGameQuotaError(msg)) {
+          try {
+            const list = await apiAdminCentralGamesList(token);
+            const games = Array.isArray(list.games) ? list.games : [];
+            const pick = games[0];
+            const id = pick && pick.id ? String(pick.id).trim() : "";
+            if (id && UUID_RE.test(id)) {
+              sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, id);
+              if (!cancelled && runId === memberInitRunIdRef.current) {
+                setStudioGameId(id);
+                syncMemberCreateGameUrl(id);
+                setBootstrapNotice(
+                  `บัญชีนี้มีเกมครบ ${CENTRAL_GAME_MAX_PER_MEMBER} เกมแล้ว — เปิดเกมล่าสุดให้แก้ไขด้านล่าง หากต้องการสร้างร่างใหม่ให้ลบเกมเก่าที่ «เกมของฉัน» ก่อน`
+                );
+              }
+              return;
+            }
+          } catch {
+            /* fall through */
+          }
+        }
+        if (!cancelled && runId === memberInitRunIdRef.current) {
+          setDraftBootErr(ex?.message || "สร้างเกมร่างไม่สำเร็จ");
+        }
+      } finally {
+        if (!cancelled && runId === memberInitRunIdRef.current) {
+          setBusy(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isMemberEmbed, user, loading, managingExisting]);
 
   /** ใช้ร่วมกับปุ่ม «บันทึกข้อมูล» ในแผงสตูดิโอ — ผนวกเฉพาะเหตุผล (อื่นๆ) ถ้ามี ไม่แทรกบรรทัดวัตถุประสงค์ */
   function buildMemberIntroMergeOrThrow() {
@@ -508,23 +509,9 @@ export default function CreateGameRoomForm({
         </label>
 
         {isMemberEmbed ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <button
-              type="button"
-              disabled={busy || Boolean(studioGameId)}
-              onClick={() => void handleMemberCreateDraft()}
-              className="hui-btn-primary px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {busy
-                ? "กำลังสร้างร่าง…"
-                : studioGameId
-                  ? "สร้างร่างแล้ว — เลื่อนลงไปตั้งค่าได้ด้านล่าง"
-                  : "สร้างร่างเกมและเปิดแผงตั้งค่า"}
-            </button>
-            <p className="text-sm text-hui-muted">
-              ระบบจะบันทึกเกมเป็นร่างเมื่อกดปุ่มนี้เท่านั้น — แค่เข้ามาดูหน้านี้จะไม่สร้างเกมในรายการให้
-            </p>
-          </div>
+          <p className="text-sm text-hui-muted">
+            ระบบจะเตรียมร่างเกมให้อัตโนมัติเมื่อเข้าหน้านี้ — ตั้งค่าด้านล่างได้ทันทีหลังโหลด (กดบันทึกเมื่อพร้อม)
+          </p>
         ) : null}
 
         {!isMemberEmbed ? (
