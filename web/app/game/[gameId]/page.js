@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CentralGamePlayRedeemRow from "../../../components/CentralGamePlayRedeemRow";
 import FlipGameDemo from "../../../components/FlipGameDemo";
 import InlineHeart from "../../../components/InlineHeart";
 import PublicOrganicShell from "../../../components/PublicOrganicShell";
@@ -110,27 +111,36 @@ export default async function GamePlayPage({ params }) {
                   {centralMeta.title}
                 </h1>
                 {showHeartCosts ? (
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm sm:justify-start">
-                    <span className="font-semibold text-[#4a3d40]">หักต่อรอบ</span>
-                    {centralMeta.pinkHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-pink-300/80 bg-white/90 px-2.5 py-1 text-pink-950 shadow-sm ring-1 ring-pink-200/60">
-                        <InlineHeart size="md" className="text-pink-600" />
-                        <span className="text-base font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
-                        <span className="text-xs font-semibold text-pink-900">หัวใจชมพู</span>
-                      </span>
-                    ) : null}
-                    {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
-                      <span className="text-[#7a6a6e]" aria-hidden>
-                        ·
-                      </span>
-                    ) : null}
-                    {centralMeta.redHeartCost > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white/90 px-2.5 py-1 text-red-950 shadow-sm ring-1 ring-red-200/60">
-                        <InlineHeart size="md" className="text-red-600" />
-                        <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                        <span className="text-xs font-semibold text-red-900">หัวใจแดงเล่นเกม</span>
-                      </span>
-                    ) : null}
+                  <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-sm sm:justify-start">
+                      <span className="font-semibold text-[#4a3d40]">หักต่อรอบ</span>
+                      {centralMeta.pinkHeartCost > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-pink-300/80 bg-white/90 px-2.5 py-1 text-pink-950 shadow-sm ring-1 ring-pink-200/60">
+                          <InlineHeart size="md" className="text-pink-600" />
+                          <span className="text-base font-bold tabular-nums">{centralMeta.pinkHeartCost}</span>
+                          <span className="text-xs font-semibold text-pink-900">หัวใจชมพู</span>
+                        </span>
+                      ) : null}
+                      {centralMeta.pinkHeartCost > 0 && centralMeta.redHeartCost > 0 ? (
+                        <span className="text-[#7a6a6e]" aria-hidden>
+                          ·
+                        </span>
+                      ) : null}
+                      {centralMeta.redHeartCost > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white/90 px-2.5 py-1 text-red-950 shadow-sm ring-1 ring-red-200/60">
+                          <InlineHeart size="md" className="text-red-600" />
+                          <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
+                          <span className="text-xs font-semibold text-red-900">หัวใจแดงเล่นเกม</span>
+                        </span>
+                      ) : null}
+                    </div>
+                    <CentralGamePlayRedeemRow
+                      pinkHeartCost={centralMeta.pinkHeartCost}
+                      redHeartCost={centralMeta.redHeartCost}
+                      heartCurrencyMode={centralMeta.heartCurrencyMode}
+                      acceptsPinkHearts={centralMeta.acceptsPinkHearts}
+                      className="w-full shrink-0 text-center sm:text-left lg:max-w-[min(100%,22rem)]"
+                    />
                   </div>
                 ) : null}
                 <p
