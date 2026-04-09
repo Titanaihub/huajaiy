@@ -93,9 +93,9 @@ export default async function GamePlayPage({ params }) {
 
   const gameLobbyMainStyle = isTp1PlayPage
     ? {
-        backgroundColor: "#0c4a6e",
+        backgroundColor: "#e0f2fe",
         backgroundImage:
-          "linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(14,116,144,0.2) 40%, rgba(15,23,42,0.62) 100%), url(/game-bg/tp1.png)",
+          "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(224,242,254,0.2) 42%, rgba(255,255,255,0.35) 100%), url(/game-bg/tp1.png)",
         backgroundSize: "cover",
         backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
