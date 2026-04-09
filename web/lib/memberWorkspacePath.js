@@ -22,6 +22,7 @@ export const ADMIN_DASH_SLUG_TO_TAB = Object.freeze({
   "central-games": "centralGame",
   "prize-payouts": "prizePayouts",
   "heart-packs": "heartPackages",
+  "pink-gift-codes": "pinkGiftCodes",
   "slip-approvals": "heartPurchases",
   "name-changes": "nameChanges"
 });

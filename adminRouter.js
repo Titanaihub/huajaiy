@@ -22,6 +22,7 @@ const centralPrizeAwardService = require("./services/centralPrizeAwardService");
 const centralPrizeWithdrawalService = require("./services/centralPrizeWithdrawalService");
 const heartLedgerService = require("./services/heartLedgerService");
 const roomRedGiftService = require("./services/roomRedGiftService");
+const pinkGiftCodeService = require("./services/pinkGiftCodeService");
 const phoneHistoryService = require("./services/phoneHistoryService");
 const {
   runMarch2026AunyaweePhongCleanup,
@@ -561,6 +562,86 @@ router.delete(
       }
       if (e.code === "CONFLICT") {
         return res.status(409).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/** รหัสแลกหัวใจชมพู (แอดมินออก — สมาชิกแลกที่หน้าประวัติชมพู) */
+router.get(
+  "/pink-gift-codes",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const codes = await pinkGiftCodeService.listPinkGiftCodesAdmin();
+      return res.json({ ok: true, codes });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/pink-gift-codes",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const result = await pinkGiftCodeService.issuePinkGiftCodes(req.userId, {
+        pinkAmount: req.body?.pinkAmount,
+        codeCount: req.body?.codeCount ?? req.body?.quantity,
+        maxUses: req.body?.maxUses,
+        expiresAt: req.body?.expiresAt,
+        note: req.body?.note
+      });
+      return res.json({ ok: true, ...result });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ — ตรวจการตั้งค่า PostgreSQL บนบริการ API"
+        });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.delete(
+  "/pink-gift-codes/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const out = await pinkGiftCodeService.cancelPinkGiftCode(req.userId, id);
+      return res.json({ ok: true, ...out });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({
+          ok: false,
+          error: "ฐานข้อมูลยังไม่ได้เชื่อมต่อ"
+        });
+      }
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      if (e.code === "VALIDATION") {
+        return res.status(400).json({ ok: false, error: e.message });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }

@@ -3,6 +3,7 @@ const { authMiddleware } = require("./authRouter");
 const heartPackageService = require("./services/heartPackageService");
 const heartPurchaseService = require("./services/heartPurchaseService");
 const roomRedGiftService = require("./services/roomRedGiftService");
+const pinkGiftCodeService = require("./services/pinkGiftCodeService");
 const userService = require("./services/userService");
 
 const router = express.Router();
@@ -218,6 +219,38 @@ router.get("/room-red-codes/batch-detail", authMiddleware, async (req, res) => {
     }
     if (e.code === "FORBIDDEN") {
       return res.status(403).json({ ok: false, error: e.message });
+    }
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** แลกรหัสหัวใจชมพูที่แอดมินออก — เพิ่ม pink_hearts_balance */
+router.post("/pink-gift-redeem", authMiddleware, async (req, res) => {
+  try {
+    const raw = req.body?.code;
+    const result = await pinkGiftCodeService.redeemPinkCode(req.userId, raw);
+    const user = await userService.findById(req.userId);
+    return res.json({
+      ok: true,
+      ...result,
+      user: user ? userService.publicUser(user) : null
+    });
+  } catch (e) {
+    if (e.code === "DB_REQUIRED") {
+      return res.status(503).json({
+        ok: false,
+        error: "การแลกรหัสต้องใช้ฐานข้อมูล PostgreSQL"
+      });
+    }
+    if (
+      e.code === "NOT_FOUND" ||
+      e.code === "EXPIRED" ||
+      e.code === "EXHAUSTED" ||
+      e.code === "CANCELED" ||
+      e.code === "ALREADY_REDEEMED" ||
+      e.code === "VALIDATION"
+    ) {
+      return res.status(400).json({ ok: false, error: e.message, code: e.code });
     }
     return res.status(500).json({ ok: false, error: e.message });
   }

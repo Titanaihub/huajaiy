@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   apiGetMyHeartLedger,
   apiGetRoomRedCodesBatchDetail,
+  apiRedeemPinkGiftCode,
   getMemberToken
 } from "../lib/memberApi";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -20,6 +21,7 @@ const KIND_HINT = {
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
   room_red_code_refund: "ลบรหัสห้อง · คืนแดง",
   room_red_code_redeem: "แลกรหัสห้อง",
+  pink_gift_code_redeem: "แลกรหัสหัวใจชมพู",
   public_post_share_reward_paid: "จ่ายรางวัลแชร์โพสต์ (จากมัดจำแคมเปญ)"
 };
 
@@ -156,6 +158,81 @@ function RoomRedIssueExpandBlock({ codeIds }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function PinkGiftRedeemForm({ onSuccess }) {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const { refresh } = useMemberAuth();
+
+  async function submit(e) {
+    e.preventDefault();
+    setMsg("");
+    const token = getMemberToken();
+    if (!token) {
+      setMsg("ต้องเข้าสู่ระบบ");
+      return;
+    }
+    const raw = String(code || "").trim();
+    if (raw.length < 4) {
+      setMsg("กรุณากรอกรหัส");
+      return;
+    }
+    setBusy(true);
+    try {
+      await apiRedeemPinkGiftCode(token, raw);
+      setCode("");
+      setMsg("แลกสำเร็จ — ยอดหัวใจชมพูอัปเดตแล้ว");
+      await refresh();
+      onSuccess?.();
+    } catch (err) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="rounded-2xl border border-pink-200/90 bg-gradient-to-br from-pink-50/95 to-white px-4 py-4 shadow-sm"
+    >
+      <p className="text-sm font-semibold text-pink-950">แลกรหัสหัวใจชมพู</p>
+      <p className="mt-1 text-xs text-pink-900/80">
+        กรอกรหัสที่ได้จากผู้ดูแลระบบ (ขึ้นต้นด้วย P) จากนั้นกดแลก — รายการจะไปแสดงในตารางด้านล่าง
+      </p>
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">รหัส</span>
+          <input
+            type="text"
+            autoComplete="off"
+            autoCapitalize="characters"
+            value={code}
+            onChange={(ev) => setCode(ev.target.value)}
+            placeholder="เช่น PABC12XYZ"
+            className="w-full rounded-lg border border-pink-200 bg-white px-3 py-2 font-mono text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </label>
+        <button
+          type="submit"
+          disabled={busy}
+          className="shrink-0 rounded-lg bg-pink-600 px-4 py-2 text-sm font-semibold text-white hover:bg-pink-700 disabled:opacity-50"
+        >
+          {busy ? "กำลังแลก…" : "แลกรหัส"}
+        </button>
+      </div>
+      {msg ? (
+        <p
+          className={`mt-2 text-sm ${msg.includes("สำเร็จ") ? "text-emerald-800" : "text-red-600"}`}
+          role="status"
+        >
+          {msg}
+        </p>
+      ) : null}
+    </form>
   );
 }
 
@@ -559,6 +636,7 @@ export default function AccountHeartHistorySection({
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [dbRequired, setDbRequired] = useState(false);
+  const [ledgerTick, setLedgerTick] = useState(0);
 
   const mode =
     variant === "giveaway"
@@ -628,7 +706,7 @@ export default function AccountHeartHistorySection({
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading, mode]);
+  }, [user, authLoading, mode, ledgerTick]);
 
   if (authLoading) {
     return <p className="text-sm text-slate-500">กำลังโหลด…</p>;
@@ -656,6 +734,10 @@ export default function AccountHeartHistorySection({
         )}
         <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{blurb}</p>
       </header>
+
+      {mode === "pink" ? (
+        <PinkGiftRedeemForm onSuccess={() => setLedgerTick((t) => t + 1)} />
+      ) : null}
 
       {err ? (
         <p className="text-sm font-medium text-red-600" role="alert">

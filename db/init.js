@@ -780,6 +780,37 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS pink_gift_codes (
+        id UUID PRIMARY KEY,
+        code VARCHAR(16) NOT NULL UNIQUE,
+        created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        pink_amount INTEGER NOT NULL CHECK (pink_amount > 0),
+        max_uses INTEGER NOT NULL DEFAULT 1 CHECK (max_uses > 0),
+        uses_count INTEGER NOT NULL DEFAULT 0 CHECK (uses_count >= 0),
+        expires_at TIMESTAMPTZ,
+        note TEXT,
+        canceled_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_pink_gift_codes_created_by ON pink_gift_codes(created_by, created_at DESC);`
+    );
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pink_gift_redemptions (
+        id UUID PRIMARY KEY,
+        code_id UUID NOT NULL REFERENCES pink_gift_codes(id) ON DELETE CASCADE,
+        redeemer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        pink_amount INTEGER NOT NULL CHECK (pink_amount > 0),
+        redeemed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(code_id, redeemer_id)
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_pink_gift_redemptions_redeemer ON pink_gift_redemptions(redeemer_id, redeemed_at DESC);`
+    );
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_theme (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         background_image_url TEXT NOT NULL DEFAULT '',

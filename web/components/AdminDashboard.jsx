@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AdminHeartPackagesPanel from "./AdminHeartPackagesPanel";
 import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
+import AdminPinkGiftCodesPanel from "./AdminPinkGiftCodesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import AdminPrizePayoutPanel from "./AdminPrizePayoutPanel";
 import AdminSiteThemePanel from "./AdminSiteThemePanel";
@@ -43,7 +44,8 @@ const HEART_LEDGER_KIND_LABEL_TH = {
   adjustment: "ปรับยอด",
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
   room_red_code_refund: "คืนแดงห้อง",
-  room_red_code_redeem: "แลกรหัสห้อง"
+  room_red_code_redeem: "แลกรหัสห้อง",
+  pink_gift_code_redeem: "แลกรหัสหัวใจชมพู"
 };
 
 function heartLedgerKindLabelTh(kind) {
@@ -59,6 +61,7 @@ const ADMIN_TAB_KEYS = [
   "centralGame",
   "prizePayouts",
   "heartPackages",
+  "pinkGiftCodes",
   "heartPurchases",
   "nameChanges"
 ];
@@ -72,6 +75,7 @@ const ADMIN_MAIN_NAV = [
   { tab: "centralGame", label: "เกมส่วนกลาง" },
   { tab: "prizePayouts", label: "จ่ายรางวัล" },
   { tab: "heartPackages", label: "แพ็กขายหัวใจ" },
+  { tab: "pinkGiftCodes", label: "รหัสหัวใจชมพู" },
   { tab: "heartPurchases", label: "อนุมัติสลิป" },
   { tab: "nameChanges", label: "คำขอเปลี่ยนชื่อ" }
 ];
@@ -1689,6 +1693,11 @@ export default function AdminDashboard() {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-hui-section">แพ็กเกจขายหัวใจ</h2>
           <AdminHeartPackagesPanel />
+        </section>
+      ) : tab === "pinkGiftCodes" ? (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-hui-section">รหัสแลกหัวใจชมพู</h2>
+          <AdminPinkGiftCodesPanel />
         </section>
       ) : tab === "heartPurchases" ? (
         <section className="space-y-4">

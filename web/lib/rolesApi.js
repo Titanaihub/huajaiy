@@ -398,6 +398,43 @@ export async function apiAdminDeleteHeartPackage(token, id) {
   return data;
 }
 
+export async function apiAdminPinkGiftCodes(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/pink-gift-codes`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "โหลดรหัสชมพูไม่สำเร็จ");
+  return data;
+}
+
+/** @param body {{ pinkAmount: number, codeCount?: number, maxUses?: number, expiresAt?: string | null, note?: string | null }} */
+export async function apiAdminCreatePinkGiftCodes(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/pink-gift-codes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "สร้างรหัสไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCancelPinkGiftCode(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/pink-gift-codes/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "ยกเลิกรหัสไม่สำเร็จ");
+  return data;
+}
+
 export async function apiAdminPendingHeartPurchases(token) {
   const r = await fetch(`${apiRoot()}/api/admin/heart-purchases/pending`, {
     headers: { Authorization: `Bearer ${token}` }

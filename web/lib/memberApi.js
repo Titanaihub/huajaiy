@@ -503,6 +503,23 @@ export async function apiRedeemRoomRedGiftCode(token, code) {
   return data;
 }
 
+/** แลกรหัสหัวใจชมพูที่แอดมินออก — POST /api/hearts/pink-gift-redeem */
+export async function apiRedeemPinkGiftCode(token, code) {
+  const r = await fetch(`${apiRoot()}/api/hearts/pink-gift-redeem`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ code })
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "แลกรหัสไม่สำเร็จ");
+  }
+  return data;
+}
+
 /** โพสต์เพจสมาชิก (สาธารณะ) */
 export async function apiFetchPublicMemberPosts(username) {
   const un = String(username || "").trim();
