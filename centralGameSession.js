@@ -125,15 +125,42 @@ function flip(sessionId, index, opts = {}) {
   if (!auth.ok) {
     return { ok: false, status: auth.status, error: auth.error };
   }
-  if (session.winnerRuleId || session.lossRuleId) {
-    return { ok: false, error: "จบรอบแล้ว กรุณาเริ่มรอบใหม่" };
-  }
   const n = session.deck.length;
   if (index < 0 || index >= n || !Number.isInteger(index)) {
     return { ok: false, error: "ตำแหน่งป้ายไม่ถูกต้อง" };
   }
+  if (session.winnerRuleId || session.lossRuleId) {
+    const { winner, loss } = buildWinnerLossPayload(session);
+    return {
+      ok: true,
+      gameMode: "central",
+      gameId: session.gameId,
+      finished: true,
+      alreadyFinished: true,
+      flips: session.flips,
+      setCounts: getSetCounts(session),
+      winner,
+      loss
+    };
+  }
   if (session.revealed[index]) {
-    return { ok: false, error: "เปิดป้ายนี้แล้ว" };
+    const cell = session.deck[index];
+    const { setIndex, imageIndex } = cell;
+    const url = imageUrlForCell(session.gameSnapshot, setIndex, imageIndex);
+    return {
+      ok: true,
+      gameMode: "central",
+      gameId: session.gameId,
+      setIndex,
+      imageIndex,
+      imageUrl: url,
+      flips: session.flips,
+      setCounts: getSetCounts(session),
+      winner: null,
+      loss: null,
+      finished: false,
+      alreadyRevealed: true
+    };
   }
 
   session.revealed[index] = true;

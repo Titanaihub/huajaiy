@@ -277,6 +277,15 @@ async function fetchGameFlip(sessionId, index, sessionProof) {
   return data;
 }
 
+function gameAuthJsonHeaders() {
+  const headers = { "Content-Type": "application/json" };
+  if (typeof window !== "undefined") {
+    const token = getMemberToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function fetchGameMeta(centralGameId) {
   const id = centralGameId && String(centralGameId).trim();
   const bust = `_nc=${Date.now()}`;
@@ -301,7 +310,7 @@ async function fetchGameAbandon(sessionId, sessionProof) {
   try {
     await fetch(gameApiUrl("abandon"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: gameAuthJsonHeaders(),
       body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
     });
   } catch {
@@ -350,7 +359,7 @@ function clearStoredSession() {
 async function fetchGameState(sessionId, sessionProof) {
   const r = await fetch(gameApiUrl("state"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: gameAuthJsonHeaders(),
     body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
   });
   const data = await r.json().catch(() => ({}));
@@ -363,7 +372,7 @@ async function fetchGameState(sessionId, sessionProof) {
 async function fetchRevealRemaining(sessionId, sessionProof) {
   const r = await fetch(gameApiUrl("reveal-remaining"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: gameAuthJsonHeaders(),
     body: JSON.stringify({ sessionId, sessionProof: sessionProof || undefined })
   });
   const data = await r.json().catch(() => ({}));

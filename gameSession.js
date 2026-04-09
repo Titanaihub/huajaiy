@@ -57,13 +57,30 @@ function flip(sessionId, index) {
     return { ok: false, error: "ไม่พบรอบเกม หรือหมดอายุ" };
   }
   if (session.winner) {
-    return { ok: false, error: "จบรอบแล้ว กรุณาเริ่มรอบใหม่" };
+    const win = PRIZES.find((p) => p.key === session.winner) || null;
+    return {
+      ok: true,
+      counts: getCounts(session),
+      flips: session.flips,
+      winner: win ? { key: win.key, label: win.label, emoji: win.emoji } : null,
+      finished: true,
+      alreadyFinished: true
+    };
   }
   if (index < 0 || index >= CARD_COUNT || !Number.isInteger(index)) {
     return { ok: false, error: "ตำแหน่งป้ายไม่ถูกต้อง" };
   }
   if (session.revealed[index]) {
-    return { ok: false, error: "เปิดป้ายนี้แล้ว" };
+    const symbol = session.deck[index];
+    return {
+      ok: true,
+      symbol,
+      counts: getCounts(session),
+      flips: session.flips,
+      winner: null,
+      finished: false,
+      alreadyRevealed: true
+    };
   }
 
   session.revealed[index] = true;
