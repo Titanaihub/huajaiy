@@ -109,7 +109,13 @@
                 </td>
                 <td class="whitespace-nowrap px-3 py-2.5 font-mono text-sm text-gray-400">—</td>
                 <td class="px-3 py-2.5 font-medium text-rose-900 dark:text-rose-300">ถอนเงิน</td>
-                <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">โอนรางวัลให้</td>
+                <td class="px-3 py-2.5 text-sm text-gray-600 dark:text-gray-400">
+                  {{
+                    row.kind === 'withdraw' && isPickupCashWithdrawal(row.withdrawal)
+                      ? 'มารับเอง / นัดรับเงินสด'
+                      : 'โอนรางวัลให้'
+                  }}
+                </td>
                 <td class="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-rose-800 dark:text-rose-400">
                   −{{ formatBaht(Math.abs(row.cashAmt)) }} บาท
                 </td>
@@ -140,12 +146,27 @@
         >
           ถอนเงินรางวัล
         </a>
+        <a
+          v-else-if="cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance >= MIN_WITHDRAW_BAHT"
+          :href="prizeWithdrawPickupHref"
+          target="_parent"
+          rel="noopener noreferrer"
+          class="inline-flex shrink-0 items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-rose-700"
+        >
+          ขอถอน / ระบุจำนวนบาท (มารับเอง)
+        </a>
         <p
-          v-else-if="cashItems.length > 0 && !cashAllowsTransfer && finalCashBalance > 0"
+          v-else-if="
+            cashItems.length > 0 &&
+            !cashAllowsTransfer &&
+            finalCashBalance > 0 &&
+            finalCashBalance < MIN_WITHDRAW_BAHT
+          "
           class="max-w-md text-sm leading-relaxed text-gray-700 dark:text-gray-300"
         >
           รางวัลเงินสดจากผู้สร้างรายนี้ตั้งเป็น
-          <span class="font-semibold">มารับเอง</span> — ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
+          <span class="font-semibold">มารับเอง</span> — ยอดคงเหลือต่ำกว่าขั้นต่ำถอน ({{ MIN_WITHDRAW_BAHT }} บาท)
+          ติดต่อผู้สร้างเมื่อพร้อมรับเงิน
         </p>
       </div>
       <p v-if="pendingHoldBaht > 0" class="mt-2 text-sm text-amber-800 dark:text-amber-200">
@@ -153,12 +174,11 @@
         <span class="font-semibold tabular-nums">{{ formatBaht(pendingHoldBaht) }} บาท</span>
         (หักจากยอดคงเหลือปัจจุบันด้านบน — ดูรายการและยกเลิกได้ในตารางด้านล่าง)
       </p>
-      <p v-if="cashItems.length > 0" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        {{
-          cashAllowsTransfer
-            ? 'ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ (เฉพาะรางวัลที่กติกากำหนดเป็นโอนรางวัลให้)'
-            : 'รางวัลเงินสดที่กำหนดมารับเองไม่ใช้ระบบถอนผ่านบัญชี — ติดต่อผู้สร้างโดยตรง'
-        }}
+      <p v-if="cashItems.length > 0 && cashAllowsTransfer" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        ส่งคำขอถอนไปยังผู้สร้างเกม — กรอกจำนวนเงินและบัญชีรับเงิน ระบบจะหักจากยอดถอนได้คงเหลือ (เฉพาะรางวัลที่กติกากำหนดเป็นโอนรางวัลให้)
+      </p>
+      <p v-if="cashItems.length > 0 && !cashAllowsTransfer" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        กรณีมารับเอง — ส่งคำขอระบุจำนวนบาทได้จากปุ่มด้านบน (ไม่ต้องกรอกบัญชีธนาคาร) หรือติดต่อผู้สร้างโดยตรง
       </p>
 
       <MemberPrizeWithdrawalHistoryTable
@@ -188,6 +208,7 @@ import {
   displayGameCode,
   formatBaht,
   formatWonAt,
+  isPickupCashWithdrawal,
   parseCashBaht,
   prizeLine
 } from '@/utils/memberPrizeUtils'
@@ -248,6 +269,12 @@ const prizeWithdrawHref = computed(() => {
   const ref = encodeURIComponent(creatorDisplay.value)
   const bal = encodeURIComponent(String(finalCashBalance.value))
   return `/account/prize-withdraw?ref=${ref}&balance=${bal}`
+})
+
+const prizeWithdrawPickupHref = computed(() => {
+  const ref = encodeURIComponent(creatorDisplay.value)
+  const bal = encodeURIComponent(String(finalCashBalance.value))
+  return `/account/prize-withdraw?ref=${ref}&balance=${bal}&pickup=1`
 })
 
 async function handleCancelWithdrawal(id: string) {

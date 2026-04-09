@@ -2,6 +2,14 @@
 
 export const MIN_WITHDRAW_BAHT = 20
 
+/** ตรงกับค่าที่ API บันทึกเมื่อถอนแบบมารับเอง */
+export const PICKUP_WITHDRAW_BANK_LABEL = 'รับเงินสดหน้างาน'
+
+export function isPickupCashWithdrawal(w: PrizeWithdrawalRow | undefined): boolean {
+  if (!w || typeof w !== 'object') return false
+  return String(w.bankName || '').trim() === PICKUP_WITHDRAW_BANK_LABEL
+}
+
 export const CAT_LABEL: Record<string, string> = {
   cash: 'เงินสด',
   item: 'สิ่งของ',
