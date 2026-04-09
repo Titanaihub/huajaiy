@@ -48,6 +48,7 @@ export interface PrizeWithdrawalRow {
   accountNumber?: string
   bankName?: string
   creatorNote?: string
+  requesterNote?: string
   transferDate?: string
   transferSlipUrl?: string
 }

@@ -16,6 +16,7 @@ import { MEMBER_WORKSPACE_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
 const MIN_WITHDRAW_BAHT = 20;
+const MAX_PICKUP_NOTE_LEN = 500;
 const PICKUP_BANK_NAME_PLACEHOLDER = "รับเงินสดหน้างาน";
 
 function formatBaht(n) {
@@ -58,6 +59,7 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
   const [loadingWd, setLoadingWd] = useState(false);
   const [focusRowId, setFocusRowId] = useState(null);
   const [cancelingId, setCancelingId] = useState(null);
+  const [pickupNote, setPickupNote] = useState("");
 
   const accountHolderName = useMemo(() => {
     if (!user) return "";
@@ -221,7 +223,8 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
               creatorUsername: effectiveCreator,
               amountThb: amt,
               accountHolderName: accountHolderName.trim(),
-              pickupCashHandoff: true
+              pickupCashHandoff: true,
+              requesterNote: pickupNote.trim().slice(0, MAX_PICKUP_NOTE_LEN)
             }
           : {
               creatorUsername: effectiveCreator,
@@ -235,6 +238,7 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
       setAmountDigits("");
       setAccountNumber("");
       setBankName("");
+      setPickupNote("");
       await loadAvail();
       await loadWithdrawals();
       const newId = res?.withdrawal?.id;
@@ -420,12 +424,32 @@ export default function PrizeWithdrawForm({ hideShellPageTitle = false } = {}) {
         </div>
 
         {pickupMode ? (
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 text-sm text-emerald-950">
-            <p className="font-medium">มารับเอง — ไม่ต้องกรอกบัญชีธนาคาร</p>
-            <p className="mt-1 text-emerald-900/90">
-              ระบบจะบันทึกคำขอให้ผู้สร้างเห็นว่าเป็นการรับเงินสดหน้างาน ({PICKUP_BANK_NAME_PLACEHOLDER})
-            </p>
-          </div>
+          <>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-3 text-sm text-emerald-950">
+              <p className="font-medium">มารับเอง — ไม่ต้องกรอกบัญชีธนาคาร</p>
+              <p className="mt-1 text-emerald-900/90">
+                ระบบจะบันทึกคำขอให้ผู้สร้างเห็นว่าเป็นการรับเงินสดหน้างาน ({PICKUP_BANK_NAME_PLACEHOLDER})
+              </p>
+            </div>
+            <div>
+              <label htmlFor="withdraw-pickup-note" className="block text-sm font-medium text-hui-body">
+                หมายเหตุ <span className="font-normal text-hui-muted">(ถ้ามี)</span>
+              </label>
+              <textarea
+                id="withdraw-pickup-note"
+                name="pickupNote"
+                value={pickupNote}
+                onChange={(e) => setPickupNote(e.target.value.slice(0, MAX_PICKUP_NOTE_LEN))}
+                rows={3}
+                placeholder="เช่น ช่วงเวลาที่สะดวกนัดรับ หรือข้อความถึงผู้สร้าง"
+                className="mt-1.5 w-full resize-y rounded-xl border border-hui-border px-3 py-2.5 text-sm shadow-sm focus:border-hui-cta focus:outline-none focus:ring-2 focus:ring-hui-cta/20"
+                autoComplete="off"
+              />
+              <p className="mt-1 text-sm text-hui-muted">
+                แสดงให้ผู้สร้างเกมเห็นพร้อมคำขอ — สูงสุด {MAX_PICKUP_NOTE_LEN} ตัวอักษร
+              </p>
+            </div>
+          </>
         ) : (
           <>
             <div>

@@ -147,6 +147,7 @@ function mapRow(row) {
     bankName: row.bank_name != null ? String(row.bank_name) : "",
     status: row.status != null ? String(row.status) : "pending",
     creatorNote: row.creator_note != null ? String(row.creator_note) : "",
+    requesterNote: row.requester_note != null ? String(row.requester_note) : "",
     resolvedAt: row.resolved_at || null,
     createdAt: row.created_at || null,
     transferSlipUrl: row.transfer_slip_url != null ? String(row.transfer_slip_url).trim() : "",
@@ -168,6 +169,8 @@ function mapAdminWithdrawalRow(row) {
   };
 }
 
+const MAX_REQUESTER_NOTE_LEN = 500;
+
 async function createRequest({
   requesterUserId,
   creatorUsername,
@@ -175,7 +178,8 @@ async function createRequest({
   accountHolderName,
   accountNumber,
   bankName,
-  pickupCashHandoff = false
+  pickupCashHandoff = false,
+  requesterNote
 }) {
   const pool = requirePool();
   const amt = Math.floor(Number(amountThb));
@@ -216,6 +220,11 @@ async function createRequest({
     e.code = "VALIDATION";
     throw e;
   }
+  const rnTrim = String(requesterNote || "")
+    .trim()
+    .slice(0, MAX_REQUESTER_NOTE_LEN);
+  const rnInsert = rnTrim.length > 0 ? rnTrim : null;
+
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -238,8 +247,8 @@ async function createRequest({
     const ins = await client.query(
       `INSERT INTO central_prize_withdrawal_requests (
         requester_user_id, creator_user_id, amount_thb,
-        account_holder_name, account_number, bank_name, status
-      ) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, 'pending')
+        account_holder_name, account_number, bank_name, status, requester_note
+      ) VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, 'pending', $7)
       RETURNING *`,
       [
         requesterUserId,
@@ -247,7 +256,8 @@ async function createRequest({
         amt,
         ah.slice(0, 200),
         an.slice(0, 64),
-        bn.slice(0, 120)
+        bn.slice(0, 120),
+        rnInsert
       ]
     );
     await auditEventService.recordWithClient(client, {
@@ -264,7 +274,8 @@ async function createRequest({
         earnedBaht: Math.floor(Number(avail.earnedBaht) || 0),
         reservedBahtBefore: reservedNow,
         availableBahtBefore: availableNow,
-        pickupCashHandoff: pickup
+        pickupCashHandoff: pickup,
+        requesterNote: rnTrim || null
       }
     });
     await client.query("COMMIT");

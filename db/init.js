@@ -714,6 +714,10 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE central_prize_withdrawal_requests
+      ADD COLUMN IF NOT EXISTS requester_note TEXT;
+    `);
+    await client.query(`
+      ALTER TABLE central_prize_withdrawal_requests
       DROP CONSTRAINT IF EXISTS central_prize_withdrawal_requests_status_check;
     `);
     await client.query(`

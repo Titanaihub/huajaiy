@@ -406,6 +406,12 @@ export default function CreatorWithdrawalsSection({
                         <div className="mt-1 text-sm text-hui-muted">เลขบัญชี / ธนาคาร</div>
                         <div className="font-mono text-sm">{r.accountNumber || "—"}</div>
                         <div>{r.bankName || "—"}</div>
+                        {r.requesterNote ? (
+                          <div className="mt-2 rounded-lg border border-sky-100 bg-sky-50/80 px-2 py-1.5 text-xs leading-relaxed text-hui-body">
+                            <span className="font-semibold text-hui-muted">หมายเหตุผู้ขอ:</span>{" "}
+                            {r.requesterNote}
+                          </div>
+                        ) : null}
                       </td>
                       <td className="px-3 py-3">
                         <span

@@ -993,7 +993,8 @@ router.post("/central-prize-withdrawals", authMiddleware, async (req, res) => {
       accountHolderName: body.accountHolderName,
       accountNumber: body.accountNumber,
       bankName: body.bankName,
-      pickupCashHandoff
+      pickupCashHandoff,
+      requesterNote: body.requesterNote
     });
     return res.json({ ok: true, withdrawal: rec });
   } catch (e) {

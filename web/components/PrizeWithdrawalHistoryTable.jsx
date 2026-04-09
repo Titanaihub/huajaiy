@@ -216,6 +216,12 @@ export default function PrizeWithdrawalHistoryTable({
                       <tr className="border-b border-hui-border/70 bg-gradient-to-b from-hui-pageTop/90 to-white">
                         <td colSpan={5} className="px-3 py-4 sm:px-4">
                           <div className="mx-auto max-w-xl space-y-4 rounded-xl border border-hui-border bg-white p-4 text-sm text-hui-body shadow-sm">
+                            {w.requesterNote ? (
+                              <p className="rounded-lg border border-sky-100 bg-sky-50/90 px-3 py-2 text-sm text-sky-950">
+                                <span className="font-medium text-hui-body">หมายเหตุของคุณ (ตอนส่งคำขอ):</span>{" "}
+                                {w.requesterNote}
+                              </p>
+                            ) : null}
                             <div>
                               <p className="text-sm font-bold uppercase tracking-wide text-hui-muted">
                                 บัญชีรับเงิน (ตอนส่งคำขอ)

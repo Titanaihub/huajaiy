@@ -103,6 +103,13 @@
                 <div
                   class="mx-auto max-w-xl space-y-4 rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                 >
+                  <p
+                    v-if="w.requesterNote"
+                    class="rounded-lg border border-sky-100 bg-sky-50/90 px-3 py-2 text-sm text-sky-950 dark:border-sky-900/40 dark:bg-sky-950/25 dark:text-sky-100"
+                  >
+                    <span class="font-medium text-gray-800 dark:text-gray-200">หมายเหตุของคุณ (ตอนส่งคำขอ):</span>
+                    {{ w.requesterNote }}
+                  </p>
                   <div>
                     <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       บัญชีรับเงิน (ตอนส่งคำขอ)

@@ -153,6 +153,13 @@
                     <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">เลขบัญชี / ธนาคาร</div>
                     <div class="font-mono text-sm">{{ r.accountNumber || '—' }}</div>
                     <div>{{ r.bankName || '—' }}</div>
+                    <div
+                      v-if="r.requesterNote"
+                      class="mt-2 rounded-lg border border-sky-100 bg-sky-50/80 px-2 py-1.5 text-xs leading-relaxed text-gray-800 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-gray-200"
+                    >
+                      <span class="font-semibold text-gray-500 dark:text-gray-400">หมายเหตุผู้ขอ:</span>
+                      {{ r.requesterNote }}
+                    </div>
                   </td>
                   <td class="px-3 py-3">
                     <span :class="wdStatusBadge(r.status)">{{ wdStatusText(r.status) }}</span>
