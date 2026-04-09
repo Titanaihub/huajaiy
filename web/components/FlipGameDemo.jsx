@@ -383,14 +383,12 @@ async function fetchRevealRemaining(sessionId, sessionProof) {
 }
 
 /**
- * @param {{ serverCentralPublished?: boolean; centralGameId?: string | null; playSurfaceTheme?: "tp1" | null }} props
+ * @param {{ serverCentralPublished?: boolean; centralGameId?: string | null }} props
  * เซิร์ฟเวอร์หน้าเกมรู้แล้วว่ามีเกมเผยแพร่ — ใช้เตือนเมื่อฝั่งเบราว์เซอร์ตกไปโหมดสาธิต (หัวใจไม่พอ / API ล้ม)
- * playSurfaceTheme — ธีมพิเศษหน้าเล่น (เช่น tp1 = พื้นหลังรูป + การ์ด frosted)
  */
 export default function FlipGameDemo({
   serverCentralPublished = false,
-  centralGameId = null,
-  playSurfaceTheme = null
+  centralGameId = null
 } = {}) {
   const resolvedGameId =
     centralGameId != null && String(centralGameId).trim()
@@ -1737,50 +1735,32 @@ export default function FlipGameDemo({
   const isCentralLiveUi = mode === "api" && apiGameMode === "central";
   /** หน้า /game/[id] — ลดข้อความซ้ำกับหัวข้อหน้า */
   const compactPlayLayout = Boolean(resolvedGameId);
-  const useTp1PlaySurface = Boolean(
-    compactPlayLayout && playSurfaceTheme === "tp1"
-  );
-  /** ธีมม่วงเข้มเดิม — ปิดเมื่อใช้ธีม tp1 (การ์ดอ่านง่ายบนพื้นรูป) */
-  const centralUiDark = isCentralLiveUi && !useTp1PlaySurface;
-  /** ป้ายกระดาน: tp1 = สว่างบนพื้นภาพ · dark = เดิม */
-  const tileSurface =
-    useTp1PlaySurface && isCentralLiveUi ? "tp1" : isCentralLiveUi ? "dark" : "light";
   const showCompactCentralStatsBar =
     compactPlayLayout && mode === "api" && apiGameMode === "central";
   const compactCentralStatsBar = showCompactCentralStatsBar ? (
     <div
       className={
-        useTp1PlaySurface
-          ? "rounded-xl border border-sky-200/85 bg-white/92 px-3 py-3 text-slate-800 shadow-[0_8px_28px_rgba(15,23,42,0.14)] backdrop-blur-md sm:px-4"
-          : centralUiDark
-            ? "rounded-xl border border-amber-400/35 bg-violet-950/50 px-3 py-3 text-amber-50 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:px-4"
-            : "rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4"
+        isCentralLiveUi
+          ? "rounded-xl border border-amber-400/35 bg-violet-950/50 px-3 py-3 text-amber-50 shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-md sm:px-4"
+          : "rounded-xl border border-slate-200 bg-white px-3 py-3 text-slate-800 shadow-sm sm:px-4"
       }
     >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-sm">
         <span className="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1.5">
           <span
             className={
-              centralUiDark
-                ? "shrink-0 font-medium text-amber-100"
-                : "shrink-0 font-medium text-slate-800"
+              isCentralLiveUi ? "shrink-0 font-medium text-amber-100" : "shrink-0 font-medium text-slate-800"
             }
           >
             {cards.length} ป้าย
           </span>
           {pinkHeartCost > 0 || redHeartCost > 0 ? (
             <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span
-                className={
-                  centralUiDark ? "text-amber-200/75" : "text-slate-500"
-                }
-              >
-                หักต่อรอบ
-              </span>
+              <span className={isCentralLiveUi ? "text-amber-200/75" : "text-slate-500"}>หักต่อรอบ</span>
               {pinkHeartCost > 0 ? (
                 <span
                   className={
-                    centralUiDark
+                    isCentralLiveUi
                       ? "inline-flex items-center gap-2 rounded-lg border border-pink-400/35 bg-pink-950/45 px-2.5 py-1.5 text-pink-100 ring-1 ring-pink-400/25"
                       : "inline-flex items-center gap-2 rounded-lg bg-pink-50 px-2.5 py-1.5 text-pink-900 ring-1 ring-pink-200/90"
                   }
@@ -1788,29 +1768,18 @@ export default function FlipGameDemo({
                 >
                   <InlineHeart size="xl" className="text-pink-400" />
                   <span className="text-sm font-bold tabular-nums">{pinkHeartCost}</span>
-                  <span
-                    className={
-                      centralUiDark
-                        ? "text-sm font-semibold text-pink-100"
-                        : "text-sm font-semibold text-pink-900"
-                    }
-                  >
-                    หัวใจชมพู
-                  </span>
+                  <span className="text-sm font-semibold text-pink-100">หัวใจชมพู</span>
                 </span>
               ) : null}
               {pinkHeartCost > 0 && redHeartCost > 0 ? (
-                <span
-                  className={centralUiDark ? "text-violet-400/60" : "text-slate-300"}
-                  aria-hidden
-                >
+                <span className={isCentralLiveUi ? "text-violet-400/60" : "text-slate-300"} aria-hidden>
                   ·
                 </span>
               ) : null}
               {redHeartCost > 0 ? (
                 <span
                   className={
-                    centralUiDark
+                    isCentralLiveUi
                       ? "inline-flex items-center gap-2 rounded-lg border border-red-500/35 bg-red-950/40 px-2.5 py-1.5 text-red-100 ring-1 ring-red-500/25"
                       : "inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
                   }
@@ -1818,31 +1787,15 @@ export default function FlipGameDemo({
                 >
                   <InlineHeart size="xl" className="text-red-400" />
                   <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                  <span
-                    className={
-                      centralUiDark
-                        ? "text-sm font-semibold text-red-100"
-                        : "text-sm font-semibold text-red-900"
-                    }
-                  >
-                    หัวใจแดงเล่นเกม
-                  </span>
+                  <span className="text-sm font-semibold text-red-100">หัวใจแดงเล่นเกม</span>
                 </span>
               ) : null}
             </span>
           ) : (
-            <span
-              className={centralUiDark ? "text-amber-200/70" : "text-slate-500"}
-            >
-              เริ่มรอบฟรี
-            </span>
+            <span className={isCentralLiveUi ? "text-amber-200/70" : "text-slate-500"}>เริ่มรอบฟรี</span>
           )}
         </span>
-        <span
-          className={
-            centralUiDark ? "shrink-0 text-amber-200/80" : "shrink-0 text-slate-500"
-          }
-        >
+        <span className={isCentralLiveUi ? "shrink-0 text-amber-200/80" : "shrink-0 text-slate-500"}>
           เปิดแล้ว {flips} ครั้ง
         </span>
       </div>
@@ -1851,13 +1804,7 @@ export default function FlipGameDemo({
 
   if (mode === null && cards.length === 0) {
     return (
-      <div
-        className={
-          useTp1PlaySurface
-            ? "mt-6 rounded-xl border border-sky-200/85 bg-white/92 p-8 text-center text-sm text-slate-600 shadow-lg backdrop-blur-md"
-            : "mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm"
-        }
-      >
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
         <span className="inline-flex items-center gap-2">
           <span
             className="h-2 w-2 animate-pulse rounded-full bg-rose-500"
@@ -2130,11 +2077,7 @@ export default function FlipGameDemo({
       {compactPlayLayout && bootError ? (
         <p
           className={
-            centralUiDark
-              ? "text-sm text-amber-400"
-              : useTp1PlaySurface
-                ? "text-sm font-medium text-amber-800"
-                : "text-sm text-amber-700"
+            isCentralLiveUi ? "text-sm text-amber-400" : "text-sm text-amber-700"
           }
         >
           {bootError}
@@ -2143,20 +2086,16 @@ export default function FlipGameDemo({
 
       <div
         className={
-          useTp1PlaySurface
-            ? "rounded-2xl border border-sky-200/80 bg-white/93 p-4 text-sm text-slate-800 shadow-[0_12px_36px_rgba(15,23,42,0.12)] ring-1 ring-sky-100/60 backdrop-blur-md sm:p-5"
-            : centralUiDark
-              ? "rounded-2xl border border-amber-500/30 bg-violet-950/55 p-4 text-sm text-amber-100/95 shadow-[0_12px_36px_rgba(0,0,0,0.35)] ring-1 ring-amber-400/20 backdrop-blur-md sm:p-5"
-              : "rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
+          isCentralLiveUi
+            ? "rounded-2xl border border-amber-500/30 bg-violet-950/55 p-4 text-sm text-amber-100/95 shadow-[0_12px_36px_rgba(0,0,0,0.35)] ring-1 ring-amber-400/20 backdrop-blur-md sm:p-5"
+            : "rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-sm"
         }
       >
         <p
           className={
-            useTp1PlaySurface
-              ? "text-xs font-bold uppercase tracking-[0.22em] text-sky-800/90"
-              : centralUiDark
-                ? "text-xs font-bold uppercase tracking-[0.22em] text-amber-200/90"
-                : "text-sm font-semibold uppercase tracking-wide text-slate-500"
+            isCentralLiveUi
+              ? "text-xs font-bold uppercase tracking-[0.22em] text-amber-200/90"
+              : "text-sm font-semibold uppercase tracking-wide text-slate-500"
           }
         >
           {compactPlayLayout ? "กติกา" : "กติกา / ความคืบหน้า"}
@@ -2164,7 +2103,7 @@ export default function FlipGameDemo({
         {mode === "api" && apiGameMode === "central" ? (
           <ul
             className={
-              centralUiDark || useTp1PlaySurface
+              isCentralLiveUi
                 ? "mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5"
                 : "mt-3 space-y-2.5 text-slate-800"
             }
@@ -2187,11 +2126,9 @@ export default function FlipGameDemo({
                 <li
                   key={p.key}
                   className={
-                    useTp1PlaySurface
-                      ? "flex gap-3 rounded-xl border border-sky-100/90 bg-white/88 p-3.5 shadow-sm ring-1 ring-slate-100/80 transition hover:bg-white sm:p-4"
-                      : centralUiDark
-                        ? "flex gap-3 rounded-xl border border-amber-400/25 bg-violet-900/45 p-3.5 shadow-inner transition hover:border-amber-400/45 hover:bg-violet-900/55 sm:p-4"
-                        : "flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
+                    isCentralLiveUi
+                      ? "flex gap-3 rounded-xl border border-amber-400/25 bg-violet-900/45 p-3.5 shadow-inner transition hover:border-amber-400/45 hover:bg-violet-900/55 sm:p-4"
+                      : "flex gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-200"
                   }
                 >
                   {showBadge && badge ? (
@@ -2211,7 +2148,7 @@ export default function FlipGameDemo({
                   ) : (
                     <div
                       className={
-                        centralUiDark
+                        isCentralLiveUi
                           ? "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-amber-400/35 bg-violet-950/50 ring-1 ring-amber-500/20"
                           : "h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
                       }
@@ -2228,7 +2165,7 @@ export default function FlipGameDemo({
                       ) : (
                         <div
                           className={
-                            centralUiDark
+                            isCentralLiveUi
                               ? "flex h-full items-center justify-center text-xs font-bold text-amber-200"
                               : "flex h-full items-center justify-center text-sm font-medium text-slate-500"
                           }
@@ -2240,20 +2177,20 @@ export default function FlipGameDemo({
                   )}
                   <div
                     className={
-                      centralUiDark
+                      isCentralLiveUi
                         ? "min-w-0 flex-1 text-sm leading-relaxed text-amber-50/95"
                         : "min-w-0 flex-1 text-sm leading-relaxed text-slate-800"
                     }
                   >
                     {p.prizeCategory === "none" ? (
                       <>
-                        <p className={centralUiDark ? "text-amber-50" : ""}>
+                        <p className={isCentralLiveUi ? "text-amber-50" : ""}>
                           {centralRuleNoneHeadLine(p, cap)}
                         </p>
                         <p className="mt-1.5">
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-medium text-amber-200/85"
                                 : "font-medium text-slate-500"
                             }
@@ -2262,7 +2199,7 @@ export default function FlipGameDemo({
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-mono font-semibold tabular-nums text-amber-50"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
@@ -2271,7 +2208,7 @@ export default function FlipGameDemo({
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-mono text-amber-300/70"
                                 : "font-mono text-slate-500"
                             }
@@ -2280,7 +2217,7 @@ export default function FlipGameDemo({
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-mono font-semibold tabular-nums text-amber-50"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
@@ -2291,35 +2228,23 @@ export default function FlipGameDemo({
                       </>
                     ) : (
                       <>
-                        <p
-                          className={
-                            centralUiDark ? "font-medium text-rose-200" : "font-medium text-rose-700"
-                          }
-                        >
+                        <p className={isCentralLiveUi ? "font-medium text-rose-200" : ""}>
                           {centralRuleSetConditionLine(p, cap)}
                         </p>
-                        <p
-                          className={centralUiDark ? "mt-1.5 text-amber-50" : "mt-1.5 text-slate-900"}
-                        >
+                        <p className={isCentralLiveUi ? "mt-1.5 text-amber-50" : "mt-1.5"}>
                           {centralRulePrizeDescriptionLine(p)}
                         </p>
                         <p
                           className={
-                            centralUiDark
-                              ? "mt-1 text-sm text-amber-200/85"
-                              : "mt-1 text-sm text-slate-700"
+                            isCentralLiveUi ? "mt-1 text-sm text-amber-200/85" : "mt-1 text-sm text-slate-800"
                           }
                         >
                           {centralRuleFulfillmentLine(p)}
                         </p>
-                        <p
-                          className={
-                            centralUiDark ? "mt-1.5 text-amber-100/95" : "mt-1.5 text-slate-800"
-                          }
-                        >
+                        <p className={isCentralLiveUi ? "mt-1.5 text-amber-100/95" : "mt-1.5 text-slate-800"}>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-medium text-amber-200/85"
                                 : "font-medium text-slate-500"
                             }
@@ -2328,22 +2253,20 @@ export default function FlipGameDemo({
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-mono font-semibold tabular-nums text-amber-50"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
                           >
                             {opened}/{cap}
                           </span>
-                          <span
-                            className={centralUiDark ? "text-amber-300/75" : "text-slate-500"}
-                          >
+                          <span className={isCentralLiveUi ? "text-amber-300/75" : "text-slate-500"}>
                             {" "}
                             ,{" "}
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-medium text-amber-200/85"
                                 : "font-medium text-slate-500"
                             }
@@ -2352,7 +2275,7 @@ export default function FlipGameDemo({
                           </span>
                           <span
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "font-mono font-semibold tabular-nums text-amber-50"
                                 : "font-mono font-semibold tabular-nums text-slate-900"
                             }
@@ -2363,9 +2286,9 @@ export default function FlipGameDemo({
                             type="button"
                             onClick={() => setRecipientsModalPrize(p)}
                             className={
-                              centralUiDark
+                              isCentralLiveUi
                                 ? "inline font-semibold text-cyan-200 underline decoration-cyan-400/70 underline-offset-2 hover:text-cyan-100"
-                                : "inline font-semibold text-sky-700 underline decoration-sky-400/70 underline-offset-2 hover:text-sky-900"
+                                : "inline font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-rose-600"
                             }
                           >
                             ดูรายละเอียด
@@ -2399,22 +2322,12 @@ export default function FlipGameDemo({
           (pinkHeartCost > 0 || redHeartCost > 0) ? (
             <div
               className={
-                useTp1PlaySurface
-                  ? "rounded-lg border border-sky-200/80 bg-white/92 px-3 py-2 text-sm text-slate-800 shadow-md backdrop-blur-sm"
-                  : centralUiDark
-                    ? "rounded-lg border border-amber-400/30 bg-violet-950/55 px-3 py-2 text-sm text-amber-100 shadow-md backdrop-blur-sm"
-                    : "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm"
+                isCentralLiveUi
+                  ? "rounded-lg border border-amber-400/30 bg-violet-950/55 px-3 py-2 text-sm text-amber-100 shadow-md backdrop-blur-sm"
+                  : "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm"
               }
             >
-              <p
-                className={
-                  useTp1PlaySurface
-                    ? "font-medium text-slate-900"
-                    : centralUiDark
-                      ? "font-medium text-amber-50"
-                      : "font-medium text-slate-800"
-                }
-              >
+              <p className={isCentralLiveUi ? "font-medium text-amber-50" : "font-medium text-slate-800"}>
                 เกมนี้จ่ายได้ทั้งชมพูหรือแดง — เลือกก่อนเริ่มรอบ
               </p>
               <div className="mt-2 flex flex-wrap gap-4">
@@ -2499,11 +2412,9 @@ export default function FlipGameDemo({
           {resolvedGameId && centralAffordHint && !centralCanAffordStart ? (
             <p
               className={
-                useTp1PlaySurface
-                  ? "rounded-lg border border-amber-300/80 bg-amber-50/95 px-3 py-2 text-sm font-medium text-amber-950 ring-1 ring-amber-200/80"
-                  : centralUiDark
-                    ? "rounded-lg border border-amber-500/35 bg-amber-950/55 px-3 py-2 text-sm font-medium text-amber-100 ring-1 ring-amber-400/25"
-                    : "rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-950 ring-1 ring-amber-200/90"
+                isCentralLiveUi
+                  ? "rounded-lg border border-amber-500/35 bg-amber-950/55 px-3 py-2 text-sm font-medium text-amber-100 ring-1 ring-amber-400/25"
+                  : "rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-950 ring-1 ring-amber-200/90"
               }
             >
               {centralAffordHint}
@@ -2514,11 +2425,9 @@ export default function FlipGameDemo({
 
       <div
         className={
-          useTp1PlaySurface
-            ? "rounded-2xl border border-sky-200/75 bg-white/82 p-3 shadow-[0_12px_32px_rgba(15,23,42,0.1)] backdrop-blur-md ring-1 ring-white/50 sm:p-4"
-            : centralUiDark
-              ? "rounded-2xl border border-amber-500/25 bg-violet-950/40 p-3 shadow-[inset_0_1px_0_rgba(255,215,128,0.12)] backdrop-blur-sm sm:p-4"
-              : "rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100/90 p-3 shadow-inner sm:p-4"
+          isCentralLiveUi
+            ? "rounded-2xl border border-amber-500/25 bg-violet-950/40 p-3 shadow-[inset_0_1px_0_rgba(255,215,128,0.12)] backdrop-blur-sm sm:p-4"
+            : "rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100/90 p-3 shadow-inner sm:p-4"
         }
       >
         <div className={gridClass}>
@@ -2560,7 +2469,7 @@ export default function FlipGameDemo({
                 ((winner !== null || centralLoss !== null) && !card.revealed)
               }
               className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border-2 text-2xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                tileSurface === "dark"
+                isCentralLiveUi
                   ? showRedUnpicked
                     ? "border-red-500 ring-2 ring-red-400/90 focus-visible:ring-red-400"
                     : isCentralOutcomeHighlight
@@ -2572,29 +2481,17 @@ export default function FlipGameDemo({
                           : playLocked
                             ? "cursor-not-allowed border-violet-800/55 bg-violet-950/40 opacity-80 focus-visible:ring-violet-500"
                             : "border-amber-500/85 bg-[#141e46] shadow-[inset_0_0_0_2px_rgba(218,165,55,0.38),0_6px_16px_rgba(0,0,0,0.42)] hover:border-amber-400/95 hover:bg-[#1a2860] hover:shadow-[inset_0_0_0_2px_rgba(245,200,90,0.48),0_8px_20px_rgba(0,0,0,0.48)] active:scale-[0.97] focus-visible:ring-amber-400"
-                  : tileSurface === "tp1"
-                    ? showRedUnpicked
-                      ? "border-red-500 ring-2 ring-red-400/90 focus-visible:ring-red-400"
-                      : isCentralOutcomeHighlight
-                        ? "z-[1] border-emerald-500 bg-emerald-100 shadow-md ring-2 ring-emerald-400/85 focus-visible:ring-emerald-500"
-                        : showCentralSolutionDim
-                          ? "border-slate-300 bg-slate-100/95 focus-visible:ring-slate-400"
-                          : card.revealed
-                            ? "border-amber-400/80 bg-white focus-visible:ring-amber-400"
-                            : playLocked
-                              ? "cursor-not-allowed border-sky-300/80 bg-slate-200/50 opacity-80 focus-visible:ring-sky-400"
-                              : "border-sky-500/85 bg-white shadow-[0_6px_18px_rgba(14,116,144,0.22)] hover:border-sky-400 hover:bg-sky-50/95 active:scale-[0.97] focus-visible:ring-sky-400"
-                    : showRedUnpicked
-                      ? "border-red-500 ring-2 ring-red-400/90 focus-visible:ring-rose-400"
-                      : isCentralOutcomeHighlight
-                        ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80 focus-visible:ring-rose-400"
-                        : showCentralSolutionDim
+                  : showRedUnpicked
+                    ? "border-red-500 ring-2 ring-red-400/90 focus-visible:ring-rose-400"
+                    : isCentralOutcomeHighlight
+                      ? "z-[1] border-emerald-500 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-400/80 focus-visible:ring-rose-400"
+                      : showCentralSolutionDim
+                        ? "border-slate-200 bg-slate-50 focus-visible:ring-rose-400"
+                        : card.revealed
                           ? "border-slate-200 bg-slate-50 focus-visible:ring-rose-400"
-                          : card.revealed
-                            ? "border-slate-200 bg-slate-50 focus-visible:ring-rose-400"
-                            : playLocked
-                              ? "cursor-not-allowed border-slate-200 bg-slate-300/40 opacity-80 focus-visible:ring-rose-400"
-                              : "border-slate-300 bg-slate-200/60 hover:bg-slate-200/80 active:scale-[0.97] focus-visible:ring-rose-400"
+                          : playLocked
+                            ? "cursor-not-allowed border-slate-200 bg-slate-300/40 opacity-80 focus-visible:ring-rose-400"
+                            : "border-slate-300 bg-slate-200/60 hover:bg-slate-200/80 active:scale-[0.97] focus-visible:ring-rose-400"
               } ${roundFinished && !card.revealed && !showRedUnpicked ? "opacity-50" : ""}`}
             >
               {card.revealed && card.imageUrl ? (

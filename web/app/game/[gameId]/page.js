@@ -22,18 +22,12 @@ function isValidGameRouteSegment(raw) {
   return UUID_RE.test(s) || GAME_CODE_RE.test(s);
 }
 
-/** ธีมพิเศษ — รหัสเกมสั้น (สงกรานต์ / พื้นหลัง TP1) */
-const TP1_PLAY_GAME_CODE = "2026040901";
-
 /** ลิงก์บนพื้นไล่สีครีม–ชมพูอ่อน (การ์ดหัวข้อ) */
 const navLinkCream =
   "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-semibold text-[#3d3030] transition hover:bg-rose-100/60 hover:text-[#1f1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFF9F2]";
 /** ลิงก์บนพื้นไล่สีม่วง (ท้ายหน้า) */
 const navLinkVioletBg =
   "shrink-0 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium text-amber-100/90 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
-/** ลิงก์ท้ายหน้าเมื่อใช้พื้นหลังภาพ (อ่านชัดบนโฟโต้) */
-const navLinkPhotoFooter =
-  "shrink-0 whitespace-nowrap rounded-lg border border-white/40 bg-black/35 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
 
 export async function generateMetadata({ params }) {
   const raw = params?.gameId;
@@ -89,35 +83,17 @@ export default async function GamePlayPage({ params }) {
   const showHeartCosts =
     centralMeta.pinkHeartCost > 0 || centralMeta.redHeartCost > 0;
 
-  const isTp1PlayPage = gameRef === TP1_PLAY_GAME_CODE;
-
-  const gameLobbyMainStyle = isTp1PlayPage
-    ? {
-        backgroundColor: "#fff8f6",
-        backgroundImage: "url(/game-bg/tp1.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center top",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "scroll",
-        minHeight: "100%"
-      }
-    : {
+  return (
+    <PublicOrganicShell
+      gameLobbyMainStyle={{
         background: "linear-gradient(165deg, #1e0b2e 0%, #3d1450 38%, #6b2d5c 72%, #8a3d6b 100%)",
         backgroundAttachment: "fixed",
         minHeight: "100%"
-      };
-
-  return (
-    <PublicOrganicShell gameLobbyMainStyle={gameLobbyMainStyle}>
+      }}
+    >
       <main className="relative z-10 mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         <div className="space-y-5">
-          <div
-            className={
-              isTp1PlayPage
-                ? "rounded-2xl border border-white/50 bg-white/93 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.22)] ring-1 ring-white/40 backdrop-blur-md sm:p-6"
-                : "rounded-2xl border border-rose-200/80 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] p-5 shadow-[0_12px_36px_rgba(90,40,60,0.12)] ring-1 ring-rose-200/50 sm:p-6"
-            }
-          >
+          <div className="rounded-2xl border border-rose-200/80 bg-gradient-to-b from-[#FFF9F2] to-[#F7D7D7] p-5 shadow-[0_12px_36px_rgba(90,40,60,0.12)] ring-1 ring-rose-200/50 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-rose-200/90 bg-white shadow-md ring-1 ring-white/80 sm:mx-0 sm:h-28 sm:w-28">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -128,22 +104,10 @@ export default async function GamePlayPage({ params }) {
                 />
               </div>
               <div className="min-w-0 flex-1 text-center sm:text-left">
-                <p
-                  className={
-                    isTp1PlayPage
-                      ? "text-[10px] font-bold uppercase tracking-[0.35em] text-sky-900/85 sm:text-xs"
-                      : "text-[10px] font-bold uppercase tracking-[0.35em] text-[#6b5348] sm:text-xs"
-                  }
-                >
+                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#6b5348] sm:text-xs">
                   เกมส่วนกลาง
                 </p>
-                <h1
-                  className={
-                    isTp1PlayPage
-                      ? "mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
-                      : "mt-1 text-2xl font-bold tracking-tight text-[#2a2228] sm:text-3xl"
-                  }
-                >
+                <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#2a2228] sm:text-3xl">
                   {centralMeta.title}
                 </h1>
                 {showHeartCosts ? (
@@ -180,9 +144,9 @@ export default async function GamePlayPage({ params }) {
                   </div>
                 ) : null}
                 <p
-                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm sm:justify-start ${
-                    isTp1PlayPage ? "text-slate-700" : "text-[#4a3d40]"
-                  } ${showHeartCosts ? "mt-3" : "mt-2"}`}
+                  className={`flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-[#4a3d40] sm:justify-start ${
+                    showHeartCosts ? "mt-3" : "mt-2"
+                  }`}
                 >
                   {centralMeta.creatorUsername ? (
                     <Link
@@ -229,53 +193,27 @@ export default async function GamePlayPage({ params }) {
             </div>
 
             {centralMeta.description ? (
-              <div
-                className={
-                  isTp1PlayPage
-                    ? "mt-5 border-t border-sky-200/70 pt-5"
-                    : "mt-5 border-t border-rose-300/55 pt-5"
-                }
-              >
-                <p
-                  className={
-                    isTp1PlayPage
-                      ? "text-[10px] font-bold uppercase tracking-[0.28em] text-sky-900/80 sm:text-xs"
-                      : "text-[10px] font-bold uppercase tracking-[0.28em] text-[#6b5348] sm:text-xs"
-                  }
-                >
+              <div className="mt-5 border-t border-rose-300/55 pt-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#6b5348] sm:text-xs">
                   คำอธิบายเกม
                 </p>
-                <p
-                  className={
-                    isTp1PlayPage
-                      ? "mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800 sm:text-base"
-                      : "mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#2a2228] sm:text-base"
-                  }
-                >
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#2a2228] sm:text-base">
                   {centralMeta.description}
                 </p>
               </div>
             ) : null}
           </div>
 
-          <FlipGameDemo
-            serverCentralPublished
-            centralGameId={centralMeta.gameId}
-            playSurfaceTheme={isTp1PlayPage ? "tp1" : null}
-          />
+          <FlipGameDemo serverCentralPublished centralGameId={centralMeta.gameId} />
 
           <nav
-            className={
-              isTp1PlayPage
-                ? "flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-white/25 pt-6"
-                : "flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-amber-400/25 pt-6"
-            }
+            className="flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-amber-400/25 pt-6"
             aria-label="ทางลัดหลังเล่นเกม"
           >
-            <Link href="/game" className={isTp1PlayPage ? navLinkPhotoFooter : navLinkVioletBg}>
+            <Link href="/game" className={navLinkVioletBg}>
               ← รายการเกม
             </Link>
-            <Link href="/" className={isTp1PlayPage ? navLinkPhotoFooter : navLinkVioletBg}>
+            <Link href="/" className={navLinkVioletBg}>
               หน้าแรก
             </Link>
           </nav>
