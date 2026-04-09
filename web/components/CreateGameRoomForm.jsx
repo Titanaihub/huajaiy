@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import { DEFAULT_NEW_ROOM_HEART_PRESET } from "../lib/centralGameDefaults";
@@ -15,12 +14,11 @@ import { getMemberToken } from "../lib/memberApi";
 import {
   apiAdminCentralGameCreate,
   apiAdminCentralGameDetail,
-  apiAdminCentralGamePatch,
   apiAdminCentralGamesList
 } from "../lib/rolesApi";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-/** เซสชันเบราว์เซอร์ — กลับมาหน้าสร้างเกมจะใช้ร่างเดิมก่อนสร้างใหม่ */
+/** เซสชันเบราว์เซอร์ — กู้ร่างเดิมได้เฉพาะเกมที่ยังไม่มีผู้ได้รางวัล (ดูใน useEffect) */
 const MEMBER_DRAFT_SESSION_KEY = "huajaiy.memberCreateDraftId";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -72,12 +70,12 @@ export default function CreateGameRoomForm({
   memberShellEmbed = false
 } = {}) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const gameFromUrl = searchParams.get("game");
   /** ทั้ง /member/create-game และ /account/create-game?member_embed=1 (iframe ในเชลล์สมาชิก) */
   const isMemberEmbed =
     Boolean(memberShellEmbed) || searchParams.get("member_embed") === "1";
-  const studioEditFull = searchParams.get("edit") === "full";
   const managingExisting =
     typeof gameFromUrl === "string" && UUID_RE.test(gameFromUrl.trim());
 
@@ -106,8 +104,8 @@ export default function CreateGameRoomForm({
   }, [managingExisting, gameFromUrl, isMemberEmbed]);
 
   /**
-   * โหมดสมาชิก: ไม่สร้างร่างใน DB ตอนเข้าหน้า — กู้คืนเฉพาะเมื่อมีรหัสใน sessionStorage
-   * และรอบนั้นยังมีเกมอยู่จริง (กลับมาแก้ต่อในแท็บเดียวกัน)
+   * โหมดสมาชิก: กู้ร่างจาก session เฉพาะเมื่อเกมนั้นยังไม่มีผู้ได้รางวัล
+   * (ถ้ามีรางวัลแล้ว — ไม่ดึงมาโชว์หน้า «สร้างเกมใหม่» ให้ไปจัดการจาก «เกมของฉัน»)
    */
   useEffect(() => {
     if (!isMemberEmbed || !user || loading) return;
@@ -122,7 +120,12 @@ export default function CreateGameRoomForm({
       try {
         const token = getMemberToken();
         if (!token) return;
-        await apiAdminCentralGameDetail(token, stored);
+        const data = await apiAdminCentralGameDetail(token, stored);
+        const awardCount = Math.max(0, Math.floor(Number(data?.prizeAwardCount)) || 0);
+        if (awardCount > 0) {
+          sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
+          return;
+        }
         if (!cancelled) setStudioGameId(stored);
       } catch {
         sessionStorage.removeItem(MEMBER_DRAFT_SESSION_KEY);
@@ -132,6 +135,16 @@ export default function CreateGameRoomForm({
       cancelled = true;
     };
   }, [isMemberEmbed, user, loading, managingExisting, studioGameId]);
+
+  /** หลังสร้างร่าง — ใส่ ?game= ให้ตรงกับแถบที่อยู่ รีเฟรชแล้วยังกลับมาแก้ต่อได้ */
+  function syncMemberCreateGameUrl(gid) {
+    if (!gid || !UUID_RE.test(String(gid).trim())) return;
+    const id = String(gid).trim();
+    const q = new URLSearchParams(searchParams.toString());
+    q.set("game", id);
+    const path = pathname || "/member/create-game";
+    router.replace(`${path}?${q.toString()}#game-studio`);
+  }
 
   async function handleMemberCreateDraft() {
     setErr("");
@@ -172,6 +185,7 @@ export default function CreateGameRoomForm({
       }
       sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, gid);
       setStudioGameId(gid);
+      syncMemberCreateGameUrl(gid);
       if (typeof window !== "undefined") {
         requestAnimationFrame(() => {
           document.getElementById("game-studio")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -188,6 +202,7 @@ export default function CreateGameRoomForm({
           if (id && UUID_RE.test(id)) {
             sessionStorage.setItem(MEMBER_DRAFT_SESSION_KEY, id);
             setStudioGameId(id);
+            syncMemberCreateGameUrl(id);
             setBootstrapNotice(
               `บัญชีนี้มีเกมครบ ${CENTRAL_GAME_MAX_PER_MEMBER} เกมแล้ว — เปิดเกมล่าสุดให้แก้ไขด้านล่าง หากต้องการสร้างร่างใหม่ให้ลบเกมเก่าที่ «เกมของฉัน» ก่อน`
             );
