@@ -27,7 +27,7 @@ import {
 } from "../lib/centralGameLimits";
 import { useMemberAuth } from "./MemberAuthProvider";
 
-const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง"];
+const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง", "หน่วย"];
 
 const PUBLISH_CONFIRM_MESSAGE =
   "โปรดตรวจสอบรูปแบบเกมและรางวัลให้ถูกต้องตรงตามความต้องการ\n\nหากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้\n\nยืนยันเผยแพร่หรือไม่?";
@@ -396,7 +396,7 @@ function RuleEditorRow({
         >
           {UNITS.map((u) => (
             <option key={u} value={u}>
-              {u} หน่วย
+              {u}
             </option>
           ))}
         </select>
