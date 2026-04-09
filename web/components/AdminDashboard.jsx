@@ -101,6 +101,8 @@ export default function AdminDashboard() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
   const [heartPinkDelta, setHeartPinkDelta] = useState("");
+  /** หัวใจแดงสำหรับแจก (red_giveaway_balance) — ไม่ใช่แดงเล่นได้ */
+  const [heartRedGiveawayDelta, setHeartRedGiveawayDelta] = useState("");
   const [heartPinkReason, setHeartPinkReason] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
   const [admUsername, setAdmUsername] = useState("");
@@ -419,10 +421,19 @@ export default function AdminDashboard() {
     }
   }
 
-  async function applyHeartDeltasAndRefresh(pd, successMsg) {
+  function parseHeartDeltaInt(raw) {
+    const s = String(raw ?? "").trim();
+    if (s === "") return 0;
+    const n = Number.parseInt(s, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  async function applyHeartAdjustAndRefresh(pinkDelta, redGiveawayDelta, successMsg) {
     if (!selectedId) return;
-    if (pd === 0) {
-      setPanelMsg("ไม่มีการเปลี่ยนแปลง");
+    if (pinkDelta === 0 && redGiveawayDelta === 0) {
+      setPanelMsg(
+        "ใส่ตัวเลขเต็มในช่องชมพูหรือแดงแจก อย่างน้อยหนึ่งช่อง — บวกเพิ่ม ลบลด"
+      );
       return;
     }
     const token = getMemberToken();
@@ -431,12 +442,15 @@ export default function AdminDashboard() {
     setPanelMsg("");
     try {
       const data = await apiAdminAdjustMemberHearts(token, selectedId, {
-        pinkDelta: pd,
+        pinkDelta,
+        redDelta: 0,
+        redGiveawayDelta,
         ...(heartPinkReason.trim()
           ? { reason: heartPinkReason.trim().slice(0, 500) }
           : {})
       });
       setHeartPinkDelta("");
+      setHeartRedGiveawayDelta("");
       setHeartPinkReason("");
       if (data?.user) {
         setMemberFull((prev) =>
@@ -461,14 +475,11 @@ export default function AdminDashboard() {
   async function submitHeartAdjust(e) {
     e.preventDefault();
     if (!selectedId) return;
-    const pd = parseInt(heartPinkDelta, 10);
-    const pinkDelta = Number.isFinite(pd) ? pd : 0;
-    if (pinkDelta === 0) {
-      setPanelMsg("ใส่ตัวเลขเต็มในช่องชมพูอย่างน้อย 1 ค่า — บวกเพิ่ม ลบลด");
-      return;
-    }
-    await applyHeartDeltasAndRefresh(
+    const pinkDelta = parseHeartDeltaInt(heartPinkDelta);
+    const redGiveawayDelta = parseHeartDeltaInt(heartRedGiveawayDelta);
+    await applyHeartAdjustAndRefresh(
       pinkDelta,
+      redGiveawayDelta,
       "ปรับหัวใจในระบบแล้ว (ฟรี — ไม่ผ่านสลิป) — สมาชิกกด「รีเฟรชยอด」ที่บัญชี"
     );
   }
@@ -1086,7 +1097,9 @@ export default function AdminDashboard() {
                       เติมหัวใจให้สมาชิก (ฟรี — ไม่ผ่านสลิป)
                     </h4>
                     <p className="mt-1 text-sm text-hui-body">
-                      ปรับได้เฉพาะหัวใจชมพู — หัวใจแดงเป็นส่วนการแจกของผู้สร้างห้อง/เกม
+                      ปรับ<strong className="font-semibold">หัวใจชมพูเล่นได้</strong> และ/หรือ{" "}
+                      <strong className="font-semibold">หัวใจแดงสำหรับแจก</strong> (ยอดแดงแจก — ใช้ออกรหัสห้อง)
+                      — ไม่รวมหัวใจแดงเล่นได้จากรหัสห้อง (ช่องนั้นปรับแยกไม่ได้จากที่นี่)
                     </p>
                     <form onSubmit={submitHeartAdjust} className="mt-2 space-y-3">
                       <div className="flex flex-wrap items-end gap-3">
@@ -1100,6 +1113,19 @@ export default function AdminDashboard() {
                             className="w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                           />
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-red-800">
+                            แดงแจก Δ
+                          </label>
+                          <input
+                            type="number"
+                            value={heartRedGiveawayDelta}
+                            onChange={(e) => setHeartRedGiveawayDelta(e.target.value)}
+                            placeholder="0"
+                            title="หัวใจแดงสำหรับแจกผู้เล่น (red_giveaway_balance)"
+                            className="w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm"
+                          />
+                        </div>
                         <button
                           type="submit"
                           disabled={heartBusy}
@@ -1110,13 +1136,13 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <label className="block text-sm text-hui-body">
-                          หมายเหตุ (แสดงในประวัติหัวใจชมพูของสมาชิก — ไม่บังคับ)
+                          หมายเหตุ (แสดงในประวัติหัวใจของสมาชิก — ไม่บังคับ)
                         </label>
                         <input
                           type="text"
                           value={heartPinkReason}
                           onChange={(e) => setHeartPinkReason(e.target.value)}
-                          placeholder="เช่น โบนัสกิจกรรม, ชดเชยระบบ, รางวัลแนะนำเพื่อน"
+                          placeholder="เช่น โบนัสกิจกรรม, ชดเชยระบบ, เติมแดงแจกให้ผู้สร้างเกม"
                           maxLength={500}
                           className="mt-0.5 w-full max-w-lg rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
