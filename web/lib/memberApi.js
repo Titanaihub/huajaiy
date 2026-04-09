@@ -102,6 +102,20 @@ export async function apiMe(token) {
   return data;
 }
 
+export async function apiCompleteLineOaFriendPrompt(token) {
+  const r = await fetch(memberAuthApiUrl("line-oa-friend-prompt/complete"), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) {
+    throw new Error(data.error || "ยืนยันไม่สำเร็จ");
+  }
+  return data;
+}
+
 export async function apiPatchProfile(token, body) {
   const r = await fetch(memberAuthApiUrl("profile"), {
     method: "PATCH",

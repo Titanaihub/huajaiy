@@ -11,6 +11,7 @@ import {
   TAILADMIN_SHOP_DASHBOARD_START
 } from "../lib/memberWorkspacePath";
 import HuajaiyCentralTemplate from "./HuajaiyCentralTemplate";
+import LineOaFriendPromptBanner from "./LineOaFriendPromptBanner";
 import MemberHomeProfileLanding from "./MemberHomeProfileLanding";
 import MemberWorkspaceMainPanels from "./MemberWorkspaceMainPanels";
 import { useMemberAuth } from "./MemberAuthProvider";
@@ -133,6 +134,7 @@ export default function MemberTailadminWorkspace() {
       pinkBarMenuLabel={pinkBarMenuLabel}
       mainClassName="flex min-h-0 min-w-0 flex-1 flex-col bg-[#fce7f3]/45"
     >
+      <LineOaFriendPromptBanner />
       {children}
     </HuajaiyCentralTemplate>
   );

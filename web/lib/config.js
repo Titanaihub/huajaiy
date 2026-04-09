@@ -29,3 +29,17 @@ export function gameApiUrl(path) {
 export function uploadUrl() {
   return "/upload";
 }
+
+/** ลิงก์เพิ่มเพื่อน LINE OA — ตั้ง NEXT_PUBLIC_LINE_ADD_FRIEND_URL (เช่น https://line.me/R/ti/p/@xxxx) */
+export function getPublicLineAddFriendUrl() {
+  const raw = process.env.NEXT_PUBLIC_LINE_ADD_FRIEND_URL;
+  if (raw == null || String(raw).trim() === "") return "";
+  const s = String(raw).trim();
+  if (!/^https:\/\//i.test(s)) return "";
+  return s;
+}
+
+export function getPublicLineOaFriendBonusPink() {
+  const n = Math.floor(Number(process.env.NEXT_PUBLIC_LINE_OA_FRIEND_BONUS_PINK) || 5);
+  return Math.max(1, Math.min(100, n));
+}

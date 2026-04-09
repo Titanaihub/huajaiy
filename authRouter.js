@@ -470,6 +470,34 @@ async function postLoginLine(req, res) {
 
 router.post("/login-line", postLoginLine);
 
+/** สมาชิกเชื่อม LINE — ยืนยันเพิ่มเพื่อน OA + รับโบนัสหัวใจชมพู (ครั้งเดียว) */
+router.post(
+  "/line-oa-friend-prompt/complete",
+  authMiddleware,
+  requireRole(MEMBER),
+  async (req, res) => {
+    try {
+      const out = await userService.completeLineOaFriendPrompt(req.userId);
+      return res.json({
+        ok: true,
+        alreadyCompleted: out.alreadyCompleted,
+        bonusPinkGranted: out.bonusGranted,
+        user: await publicUserWithRoomGiftRed(out.user),
+        ...capabilitiesPayloadForUser(out.user)
+      });
+    } catch (e) {
+      if (e.code === "NOT_LINE_USER") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      console.error("[line-oa-friend-prompt/complete]", e);
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await userService.findById(req.userId);

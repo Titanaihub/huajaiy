@@ -22,7 +22,8 @@ const KIND_HINT = {
   room_red_code_refund: "ลบรหัสห้อง · คืนแดง",
   room_red_code_redeem: "แลกรหัสห้อง",
   pink_gift_code_redeem: "แลกรหัสหัวใจชมพู",
-  public_post_share_reward_paid: "จ่ายรางวัลแชร์โพสต์ (จากมัดจำแคมเปญ)"
+  public_post_share_reward_paid: "จ่ายรางวัลแชร์โพสต์ (จากมัดจำแคมเปญ)",
+  line_oa_friend_bonus: "โบนัสเพิ่มเพื่อน LINE (เล่นเกมครั้งแรก)"
 };
 
 function formatWhen(iso) {

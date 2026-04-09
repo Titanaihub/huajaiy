@@ -161,7 +161,10 @@ function rowToUser(row) {
     selfServiceNameEdits: Math.max(
       0,
       Math.floor(Number(row.self_service_name_edits) || 0)
-    )
+    ),
+    lineOaFriendPromptCompletedAt: row.line_oa_friend_prompt_completed_at
+      ? row.line_oa_friend_prompt_completed_at
+      : null
   };
 }
 
@@ -641,7 +644,8 @@ function publicUser(u) {
         : null,
     publicPageTitle: sanitizePublicPageTitle(u.publicPageTitle),
     publicPageListed: u.publicPageListed !== false,
-    publicPageHeartAccent: sanitizePublicPageHeartAccent(u.publicPageHeartAccent)
+    publicPageHeartAccent: sanitizePublicPageHeartAccent(u.publicPageHeartAccent),
+    lineOaFriendPromptCompleted: Boolean(u.lineOaFriendPromptCompletedAt)
   };
 }
 
@@ -1090,6 +1094,75 @@ async function adjustDualHeartsWithClient(client, userId, pinkDelta = 0, redDelt
     meta: ledgerOpts?.meta ?? null
   });
   return { pinkAfter: pAfter, redAfter: rAfter };
+}
+
+function lineOaFriendBonusPinkAmount() {
+  const n = Math.floor(Number(process.env.LINE_OA_FRIEND_BONUS_PINK) || 5);
+  return Math.max(1, Math.min(100, n));
+}
+
+/**
+ * สมาชิกที่เชื่อม LINE กดยืนยันเพิ่มเพื่อน OA — ให้หัวใจชมพูครั้งเดียว + บันทึกว่าไม่ต้องโชว์แบนเนอร์อีก
+ * @returns {{ alreadyCompleted: boolean; bonusGranted: number; user: object }}
+ */
+async function completeLineOaFriendPrompt(userId) {
+  const pool = getPool();
+  if (!pool) {
+    const err = new Error("ต้องใช้ PostgreSQL");
+    err.code = "DB_REQUIRED";
+    throw err;
+  }
+  const bonus = lineOaFriendBonusPinkAmount();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const lock = await client.query(
+      `SELECT id, line_user_id, line_oa_friend_prompt_completed_at
+       FROM users WHERE id = $1::uuid FOR UPDATE`,
+      [userId]
+    );
+    if (lock.rows.length === 0) {
+      await client.query("ROLLBACK");
+      const e = new Error("ไม่พบบัญชี");
+      e.code = "NOT_FOUND";
+      throw e;
+    }
+    const row = lock.rows[0];
+    const lid =
+      row.line_user_id != null ? String(row.line_user_id).trim() : "";
+    if (!lid) {
+      await client.query("ROLLBACK");
+      const e = new Error("บัญชีนี้ไม่ได้เชื่อม LINE");
+      e.code = "NOT_LINE_USER";
+      throw e;
+    }
+    if (row.line_oa_friend_prompt_completed_at) {
+      await client.query("COMMIT");
+      const user = await findById(userId);
+      return { alreadyCompleted: true, bonusGranted: 0, user };
+    }
+    await adjustDualHeartsWithClient(client, userId, bonus, 0, {
+      kind: "line_oa_friend_bonus",
+      label: "โบนัสเพิ่มเพื่อน LINE (เล่นเกมครั้งแรก)",
+      meta: { source: "line_oa_friend_prompt" }
+    });
+    await client.query(
+      `UPDATE users SET line_oa_friend_prompt_completed_at = NOW() WHERE id = $1::uuid`,
+      [userId]
+    );
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
+  const user = await findById(userId);
+  return { alreadyCompleted: false, bonusGranted: bonus, user };
 }
 
 /**
@@ -1747,6 +1820,7 @@ module.exports = {
   adjustHeartsBalance,
   adjustDualHearts,
   adjustDualHeartsWithClient,
+  completeLineOaFriendPrompt,
   adjustRedWalletAndGiveawayWithClient,
   updateProfile,
   updateOfficialNames,

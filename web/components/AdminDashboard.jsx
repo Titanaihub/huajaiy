@@ -45,7 +45,8 @@ const HEART_LEDGER_KIND_LABEL_TH = {
   room_red_code_issue: "สร้างรหัสแจกแดงห้อง",
   room_red_code_refund: "คืนแดงห้อง",
   room_red_code_redeem: "แลกรหัสห้อง",
-  pink_gift_code_redeem: "แลกรหัสหัวใจชมพู"
+  pink_gift_code_redeem: "แลกรหัสหัวใจชมพู",
+  line_oa_friend_bonus: "โบนัสเพิ่มเพื่อน LINE (เล่นเกมครั้งแรก)"
 };
 
 function heartLedgerKindLabelTh(kind) {

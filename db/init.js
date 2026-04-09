@@ -115,6 +115,10 @@ async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS line_oa_friend_prompt_completed_at TIMESTAMPTZ;
+    `);
+    await client.query(`
+      ALTER TABLE users
       ADD COLUMN IF NOT EXISTS profile_picture_url VARCHAR(1024);
     `);
     await client.query(`
