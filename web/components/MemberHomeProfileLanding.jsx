@@ -12,6 +12,12 @@ import {
   validateNamesForCountry,
   validatePhoneClient
 } from "../lib/registerValidation";
+import {
+  BrandFacebookGlyph,
+  BrandLineWordmark,
+  BrandTiktokGlyph,
+  SOCIAL_BRAND_ICON_WRAP_CLASS
+} from "./MemberSocialBrandMarks";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -456,19 +462,11 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialLine}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 min-w-[4.75rem] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent p-0 shadow-md ring-1 ring-black/10 transition hover:opacity-90"
+                        className={SOCIAL_BRAND_ICON_WRAP_CLASS}
                         aria-label="LINE"
                         title="LINE"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/social/line.png"
-                          alt=""
-                          width={120}
-                          height={40}
-                          className="h-10 w-auto max-w-[5.5rem] object-contain sm:h-11 sm:max-w-[5.75rem]"
-                          decoding="async"
-                        />
+                        <BrandLineWordmark />
                       </a>
                     ) : null}
                     {socialFacebook ? (
@@ -476,19 +474,11 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialFacebook}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-gray-50"
+                        className={SOCIAL_BRAND_ICON_WRAP_CLASS}
                         aria-label="Facebook"
                         title="Facebook"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/social/facebook.png"
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="h-full w-full object-contain"
-                          decoding="async"
-                        />
+                        <BrandFacebookGlyph />
                       </a>
                     ) : null}
                     {socialTiktok ? (
@@ -496,19 +486,11 @@ export default function MemberHomeProfileLanding({ user }) {
                         href={socialTiktok}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black p-1.5 shadow-md ring-1 ring-black/10 transition hover:bg-neutral-900"
+                        className={SOCIAL_BRAND_ICON_WRAP_CLASS}
                         aria-label="TikTok"
                         title="TikTok"
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/social/tiktok.png"
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="h-full w-full object-contain"
-                          decoding="async"
-                        />
+                        <BrandTiktokGlyph />
                       </a>
                     ) : null}
                   </div>

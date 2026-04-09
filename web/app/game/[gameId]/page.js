@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import FlipGameDemo from "../../../components/FlipGameDemo";
 import InlineHeart from "../../../components/InlineHeart";
 import PublicOrganicShell from "../../../components/PublicOrganicShell";
+import { SOCIAL_BRAND_ICON_IMG_CLASS } from "../../../components/MemberSocialBrandMarks";
 import { publicMemberPath } from "../../../lib/memberPublicUrls";
 import { fetchPublicCentralGameMetaById } from "../../../lib/publicGameMeta";
 
@@ -103,7 +104,7 @@ export default async function GamePlayPage({ params }) {
                       <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-300/80 bg-white/90 px-2.5 py-1 text-red-950 shadow-sm ring-1 ring-red-200/60">
                         <InlineHeart size="md" className="text-red-600" />
                         <span className="text-base font-bold tabular-nums">{centralMeta.redHeartCost}</span>
-                        <span className="text-xs font-semibold text-red-900">หัวใจแดงห้องเกม</span>
+                        <span className="text-xs font-semibold text-red-900">หัวใจแดงเล่นเกม</span>
                       </span>
                     ) : null}
                   </div>
@@ -129,6 +130,30 @@ export default async function GamePlayPage({ params }) {
                   <Link href="/game" className={navLinkCream}>
                     ← รายการเกม
                   </Link>
+                  {centralMeta.creatorSocialLineUrl ? (
+                    <>
+                      <span className="text-zinc-400" aria-hidden>
+                        ·
+                      </span>
+                      <a
+                        href={centralMeta.creatorSocialLineUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 font-semibold text-rose-700 underline decoration-rose-400/70 underline-offset-2 transition hover:text-rose-900"
+                        title="เปิด LINE เพื่อติดต่อเจ้าของเกม"
+                      >
+                        ติดต่อเจ้าของเกม
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/social/line.png"
+                          alt=""
+                          width={36}
+                          height={36}
+                          className={`${SOCIAL_BRAND_ICON_IMG_CLASS} shrink-0`}
+                        />
+                      </a>
+                    </>
+                  ) : null}
                 </p>
               </div>
             </div>

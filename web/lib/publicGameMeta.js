@@ -100,6 +100,7 @@ export async function fetchPublicCentralGameMetaById(gameRef) {
     const description = String(data.description || "").trim();
     const customCover = String(data.gameCoverUrl || "").trim();
     const cu = String(data.creatorUsername || "").trim().toLowerCase();
+    const creatorSocialLineUrl = String(data.creatorSocialLineUrl || "").trim() || null;
     const pinkHeartCost = Math.max(0, Math.floor(Number(data.pinkHeartCost) || 0));
     const redHeartCost = Math.max(0, Math.floor(Number(data.redHeartCost) || 0));
     const heartCurrencyMode = data.heartCurrencyMode || "both";
@@ -119,6 +120,7 @@ export async function fetchPublicCentralGameMetaById(gameRef) {
       gameCoverUrl: customCover || null,
       coverImageUrl: customCover || DEFAULT_CENTRAL_GAME_COVER_PATH,
       creatorUsername: cu || null,
+      creatorSocialLineUrl,
       pinkHeartCost,
       redHeartCost,
       heartCurrencyMode,

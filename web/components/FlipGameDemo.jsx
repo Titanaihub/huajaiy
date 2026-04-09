@@ -1584,7 +1584,7 @@ export default function FlipGameDemo({
       return "เกมนี้หักหัวใจชมพูด้วย — แดงจากรหัสห้องใช้แทนชมพูไม่ได้ ต้องมีชมพูในบัญชีให้พอตามที่เกมกำหนด";
     }
     if (r > 0 && totalRed < r) {
-      return "หัวใจแดงรวม (ทั่วไป + หัวใจแดงห้องเกมของเจ้าของเกมนี้) ยังไม่พอต่อรอบ — ตรวจว่าเล่นเกมของ @ เดียวกับที่ออกรหัสให้คุณ";
+      return "หัวใจแดงรวม (ทั่วไป + หัวใจแดงเล่นเกมของเจ้าของเกมนี้) ยังไม่พอต่อรอบ — ตรวจว่าเล่นเกมของ @ เดียวกับที่ออกรหัสให้คุณ";
     }
     return "";
   }, [
@@ -1736,11 +1736,11 @@ export default function FlipGameDemo({
                       ? "inline-flex items-center gap-2 rounded-lg border border-red-500/35 bg-red-950/40 px-2.5 py-1.5 text-red-100 ring-1 ring-red-500/25"
                       : "inline-flex items-center gap-2 rounded-lg bg-red-50 px-2.5 py-1.5 text-red-900 ring-1 ring-red-200/80"
                   }
-                  title="หัวใจแดงห้องเกม"
+                  title="หัวใจแดงเล่นเกม"
                 >
                   <InlineHeart size="xl" className="text-red-400" />
                   <span className="text-sm font-bold tabular-nums">{redHeartCost}</span>
-                  <span className="text-sm font-semibold text-red-100">หัวใจแดงห้องเกม</span>
+                  <span className="text-sm font-semibold text-red-100">หัวใจแดงเล่นเกม</span>
                 </span>
               ) : null}
             </span>

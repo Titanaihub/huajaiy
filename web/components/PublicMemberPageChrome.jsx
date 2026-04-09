@@ -6,7 +6,8 @@ import MemberPublicPostsFeed from "./MemberPublicPostsFeed";
 import {
   BrandFacebookGlyph,
   BrandLineWordmark,
-  BrandTiktokGlyph
+  BrandTiktokGlyph,
+  SOCIAL_BRAND_ICON_WRAP_CLASS
 } from "./MemberSocialBrandMarks";
 import { publicMemberPath } from "../lib/memberPublicUrls";
 import PublicMemberPageOwnerPanel from "./PublicMemberPageOwnerPanel";
@@ -18,19 +19,10 @@ function trimUrl(v) {
   return s || "";
 }
 
-/** โลโก้แบรนด์ในแถบแท็บ — ไม่มีกรอบ/เงา (แสดงเป็นภาพลอยบนพื้นหลัง) */
-const SOCIAL_TAB_WRAP =
-  "inline-flex shrink-0 items-center justify-center rounded-lg transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
-
 /** ปุ่มโลโก้แบรนด์เต็มสีทั้งกรณีมีลิงก์และยังไม่ตั้ง (ไม่จาง/ไม่ grayscale) */
-function SocialTabIcon({ href, label, platform, children }) {
+function SocialTabIcon({ href, label, children }) {
   const active = Boolean(href);
-  const brandClsByPlatform = {
-    line: `${SOCIAL_TAB_WRAP} h-10 min-w-[4.5rem] overflow-hidden bg-transparent p-0 hover:opacity-90 focus-visible:ring-[#06C755]/45`,
-    facebook: `${SOCIAL_TAB_WRAP} h-10 w-10 bg-transparent p-0 hover:opacity-90 focus-visible:ring-[#1877F2]/45`,
-    tiktok: `${SOCIAL_TAB_WRAP} h-10 w-10 bg-transparent p-0 hover:opacity-90 focus-visible:ring-neutral-700/45`
-  };
-  const cls = brandClsByPlatform[platform] || brandClsByPlatform.line;
+  const cls = SOCIAL_BRAND_ICON_WRAP_CLASS;
   if (active) {
     return (
       <a
@@ -105,7 +97,6 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
     return [
       {
         key: "line",
-        platform: "line",
         label: "LINE",
         href: trimUrl(member?.socialLineUrl),
         linkClass:
@@ -113,7 +104,6 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
       },
       {
         key: "facebook",
-        platform: "facebook",
         label: "Facebook",
         href: trimUrl(member?.socialFacebookUrl),
         linkClass:
@@ -121,7 +111,6 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
       },
       {
         key: "tiktok",
-        platform: "tiktok",
         label: "TikTok",
         href: trimUrl(member?.socialTiktokUrl),
         linkClass: "break-all text-gray-900 underline decoration-gray-400 hover:text-black"
@@ -240,12 +229,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                 aria-label="โซเชียลจากโปรไฟล์"
               >
                 {socialSlots.map((s) => (
-                  <SocialTabIcon
-                    key={s.key}
-                    href={s.href}
-                    label={s.label}
-                    platform={s.platform}
-                  >
+                  <SocialTabIcon key={s.key} href={s.href} label={s.label}>
                     {s.key === "line" ? (
                       <BrandLineWordmark />
                     ) : s.key === "facebook" ? (

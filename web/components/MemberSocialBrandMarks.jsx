@@ -5,7 +5,19 @@ const FB_SRC = "/social/facebook.png";
 const TT_SRC = "/social/tiktok.png";
 
 /**
- * โลโก้ LINE แนวนอน (ไฟล์มีพื้นเขียวในตัว — ไม่ซ้อนปุ่มเขียวซ้ำ)
+ * ขนาดภาพโลโก้ให้เท่ากันทุกแบรนด์ (จัตุรัสเดียวกัน — object-contain รักษาสัดส่วนในกรอบ)
+ * ใช้กับ `<img>` โดยตรงได้ (เช่น หน้าเกม) หรือผ่านคอมโพเนนต์ด้านล่าง
+ */
+export const SOCIAL_BRAND_ICON_IMG_CLASS = "h-9 w-9 object-contain";
+
+/**
+ * ห่อ `<a>` / `<button>` สำหรับโลโก้ชุดนี้ — ไม่มีกรอบ เงา หรือพื้นหลังกล่องรอบไอคอน
+ */
+export const SOCIAL_BRAND_ICON_WRAP_CLASS =
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-transparent p-0 transition hover:opacity-90 focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-neutral-400/45";
+
+/**
+ * โลโก้ LINE (ไฟล์แนวนอน — ย่อให้พอดีกล่องจัตุรัสเดียวกับ FB/TikTok)
  */
 export function BrandLineWordmark({ className = "" }) {
   return (
@@ -13,9 +25,9 @@ export function BrandLineWordmark({ className = "" }) {
     <img
       src={LINE_SRC}
       alt=""
-      width={120}
-      height={40}
-      className={`h-10 w-auto max-w-[5.25rem] object-contain sm:h-11 sm:max-w-[5.75rem] ${className}`.trim()}
+      width={36}
+      height={36}
+      className={`${SOCIAL_BRAND_ICON_IMG_CLASS} ${className}`.trim()}
       decoding="async"
     />
   );
@@ -27,16 +39,16 @@ export function BrandFacebookGlyph({ className = "" }) {
     <img
       src={FB_SRC}
       alt=""
-      width={40}
-      height={40}
-      className={`h-8 w-8 object-contain sm:h-9 sm:w-9 ${className}`.trim()}
+      width={36}
+      height={36}
+      className={`${SOCIAL_BRAND_ICON_IMG_CLASS} ${className}`.trim()}
       decoding="async"
     />
   );
 }
 
 /**
- * @param {{ className?: string; tone?: "onDark" | "onLight" }} props — tone ใช้กับ SVG เดิมเท่านั้น; PNG ใช้พื้นหลังจากปุ่มห่อ
+ * @param {{ className?: string; tone?: "onDark" | "onLight" }} props — tone คงไว้เพื่อความเข้ากันได้กับโค้ดเดิม (ไม่ใช้กับ PNG)
  */
 export function BrandTiktokGlyph({ className = "", tone: _tone = "onDark" }) {
   return (
@@ -44,9 +56,9 @@ export function BrandTiktokGlyph({ className = "", tone: _tone = "onDark" }) {
     <img
       src={TT_SRC}
       alt=""
-      width={40}
-      height={40}
-      className={`h-8 w-8 object-contain sm:h-9 sm:w-9 ${className}`.trim()}
+      width={36}
+      height={36}
+      className={`${SOCIAL_BRAND_ICON_IMG_CLASS} ${className}`.trim()}
       decoding="async"
     />
   );

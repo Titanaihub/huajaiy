@@ -282,6 +282,37 @@ async function resolveGameCreatedById(game) {
   }
 }
 
+/** ลิงก์ LINE จากโปรไฟล์เจ้าของเกม — ให้หน้าเล่นเกมแสดงปุ่มติดต่อ */
+async function resolveCreatorSocialLineUrl(snap, metaBase) {
+  try {
+    let uid =
+      metaBase.gameCreatedBy && String(metaBase.gameCreatedBy).trim()
+        ? String(metaBase.gameCreatedBy).trim()
+        : "";
+    if (!uid) {
+      const r = await resolveGameCreatedById(snap.game);
+      if (r) uid = String(r).trim();
+    }
+    if (uid) {
+      const u = await userService.findById(uid);
+      const line = u && u.socialLineUrl ? String(u.socialLineUrl).trim() : "";
+      if (line) return line;
+    }
+    const un =
+      snap.game.creatorUsername != null
+        ? String(snap.game.creatorUsername).trim().toLowerCase()
+        : "";
+    if (un) {
+      const u = await userService.findByUsername(un);
+      const line = u && u.socialLineUrl ? String(u.socialLineUrl).trim() : "";
+      if (line) return line;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 function centralMetaFromSnap(snap, givenByRuleId = null) {
   const pink = snap.game.pinkHeartCost ?? 0;
   const red = snap.game.redHeartCost ?? 0;
@@ -321,15 +352,18 @@ async function centralMetaFromSnapWithCounts(snap) {
     const map = await centralPrizeAwardService.countAwardsByRuleForGame(snap.game.id);
     const base = centralMetaFromSnap(snap, map);
     const resolved = await resolveGameCreatedById(snap.game);
-    if (resolved) {
-      return { ...base, gameCreatedBy: resolved };
-    }
-    return base;
+    let meta = resolved ? { ...base, gameCreatedBy: resolved } : base;
+    const lineUrl = await resolveCreatorSocialLineUrl(snap, meta);
+    if (lineUrl) meta = { ...meta, creatorSocialLineUrl: lineUrl };
+    return meta;
   } catch (e) {
     if (e.code === "DB_REQUIRED") {
       const base = centralMetaFromSnap(snap, null);
       const resolved = await resolveGameCreatedById(snap.game);
-      return resolved ? { ...base, gameCreatedBy: resolved } : base;
+      let meta = resolved ? { ...base, gameCreatedBy: resolved } : base;
+      const lineUrl = await resolveCreatorSocialLineUrl(snap, meta);
+      if (lineUrl) meta = { ...meta, creatorSocialLineUrl: lineUrl };
+      return meta;
     }
     throw e;
   }

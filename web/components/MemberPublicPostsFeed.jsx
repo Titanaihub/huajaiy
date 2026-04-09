@@ -26,7 +26,8 @@ import { PostBodyBlocks, needsExpand } from "./MemberPublicPostBlocks";
 import {
   BrandFacebookGlyph,
   BrandLineWordmark,
-  BrandTiktokGlyph
+  BrandTiktokGlyph,
+  SOCIAL_BRAND_ICON_WRAP_CLASS
 } from "./MemberSocialBrandMarks";
 import ShareRewardVisitorBanner from "./ShareRewardVisitorBanner";
 
@@ -501,18 +502,18 @@ function MemberPublicPostCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("line")}
-              className="inline-flex h-10 min-w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-transparent px-0 shadow-sm ring-1 ring-black/10 hover:opacity-90"
+              className={SOCIAL_BRAND_ICON_WRAP_CLASS}
               aria-label="แชร์ LINE"
               title="LINE"
             >
-              <BrandLineWordmark className="!max-w-[5rem]" />
+              <BrandLineWordmark />
             </a>
             <a
               href={facebookShareUrl(shareUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackIntent("facebook")}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/10 hover:bg-gray-50"
+              className={SOCIAL_BRAND_ICON_WRAP_CLASS}
               aria-label="แชร์ Facebook"
               title="Facebook"
             >
@@ -521,7 +522,7 @@ function MemberPublicPostCard({
             <button
               type="button"
               onClick={onTikTokShare}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black p-1 shadow-sm ring-1 ring-black/10 hover:bg-neutral-900"
+              className={SOCIAL_BRAND_ICON_WRAP_CLASS}
               aria-label="คัดลอกลิงก์เพื่อแชร์ TikTok"
               title="คัดลอกลิงก์ (แชร์ TikTok)"
             >
