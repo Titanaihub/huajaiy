@@ -127,6 +127,14 @@ export function isPathAllowed(pathname) {
     return true;
   }
 
+  /** หน้าเนื้อหา CMS — /p/{slug} (slug 2–64 ตัว a-z 0-9 ขีดกลาง) */
+  if (p.startsWith("/p/")) {
+    const rest = p.slice("/p/".length).split("/").filter(Boolean);
+    if (rest.length !== 1) return false;
+    const seg = decodeURIComponent(rest[0]).toLowerCase();
+    return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(seg);
+  }
+
   /** หน้าสมัคร / เข้าสู่ระบบ / ตะกร้า / คำสั่งซื้อ / เจ้าของร้าน / HUI */
   if (
     p === "/register" ||

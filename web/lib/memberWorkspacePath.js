@@ -17,6 +17,7 @@ export const ADMIN_LEGACY_PANEL_PATH = "/admin/embed/panel";
 export const ADMIN_DASH_SLUG_TO_TAB = Object.freeze({
   members: "members",
   theme: "siteTheme",
+  "web-pages": "siteCms",
   "all-shops": "shops",
   "game-settings": "game",
   "central-games": "centralGame",

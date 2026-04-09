@@ -43,6 +43,7 @@ const organicHomeContent = require("./services/organicHomeContent");
 const memberPublicPostService = require("./services/memberPublicPostService");
 const memberPublicPostShareService = require("./services/memberPublicPostShareService");
 const sitePublicSearchService = require("./services/sitePublicSearchService");
+const siteCmsPageService = require("./services/siteCmsPageService");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -753,6 +754,20 @@ app.get("/api/public/site-theme", async (_req, res) => {
   try {
     const theme = await siteThemeService.getSiteTheme();
     return res.json({ ok: true, theme });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/** หน้าเนื้อหา CMS ที่แอดมินสร้าง — สาธารณะ ลิงก์เว็บ /p/:slug */
+app.get("/api/public/cms-pages/:slug", async (req, res) => {
+  try {
+    const slug = req.params?.slug != null ? String(req.params.slug) : "";
+    const page = await siteCmsPageService.getPublishedBySlug(slug);
+    if (!page) {
+      return res.status(404).json({ ok: false, error: "ไม่พบหน้า" });
+    }
+    return res.json({ ok: true, page });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message });
   }

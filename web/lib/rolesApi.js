@@ -532,3 +532,56 @@ export async function apiAdminPatchSiteTheme(token, body) {
   if (!r.ok || !data.ok) throw new Error(data.error || "บันทึกธีมเว็บไม่สำเร็จ");
   return data;
 }
+
+export async function apiAdminListSiteCmsPages(token) {
+  const r = await fetch(`${apiRoot()}/api/admin/site-cms-pages`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "โหลดรายการหน้าเว็บไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminCreateSiteCmsPage(token, body) {
+  const r = await fetch(`${apiRoot()}/api/admin/site-cms-pages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body || {})
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "สร้างหน้าไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminPatchSiteCmsPage(token, id, body) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/site-cms-pages/${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(body || {})
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "บันทึกหน้าไม่สำเร็จ");
+  return data;
+}
+
+export async function apiAdminDeleteSiteCmsPage(token, id) {
+  const r = await fetch(
+    `${apiRoot()}/api/admin/site-cms-pages/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data.ok) throw new Error(data.error || "ลบหน้าไม่สำเร็จ");
+  return data;
+}

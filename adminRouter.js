@@ -29,6 +29,7 @@ const {
   previewMarch2026AunyaweePhongCleanup
 } = require("./services/oneoffUserCleanupMarch2026");
 const siteThemeService = require("./services/siteThemeService");
+const siteCmsPageService = require("./services/siteCmsPageService");
 const auditEventService = require("./services/auditEventService");
 
 const router = express.Router();
@@ -1501,6 +1502,105 @@ router.post(
       }
       if (e.code === "NOT_FOUND") {
         return res.status(404).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+/** หน้าเนื้อหา CMS — แอดมินสร้าง ลิงก์สาธารณะ /p/{slug} */
+router.get(
+  "/site-cms-pages",
+  authMiddleware,
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const pages = await siteCmsPageService.listAll();
+      return res.json({ ok: true, pages });
+    } catch (e) {
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.post(
+  "/site-cms-pages",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const row = await siteCmsPageService.createPage({
+        slug: req.body?.slug,
+        title: req.body?.title,
+        body: req.body?.body,
+        published: req.body?.published
+      });
+      return res.json({ ok: true, page: row });
+    } catch (e) {
+      if (e.code === "VALIDATION" || e.code === "DUPLICATE_SLUG") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.patch(
+  "/site-cms-pages/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      const row = await siteCmsPageService.updatePage(id, {
+        slug: req.body?.slug,
+        title: req.body?.title,
+        body: req.body?.body,
+        published: req.body?.published
+      });
+      return res.json({ ok: true, page: row });
+    } catch (e) {
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      if (e.code === "VALIDATION" || e.code === "DUPLICATE_SLUG") {
+        return res.status(400).json({ ok: false, error: e.message });
+      }
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
+      }
+      return res.status(500).json({ ok: false, error: e.message });
+    }
+  }
+);
+
+router.delete(
+  "/site-cms-pages/:id",
+  authMiddleware,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (!isUuidParam(id)) {
+        return res.status(400).json({ ok: false, error: "รูปแบบ id ไม่ถูกต้อง" });
+      }
+      await siteCmsPageService.deletePage(id);
+      return res.json({ ok: true });
+    } catch (e) {
+      if (e.code === "NOT_FOUND") {
+        return res.status(404).json({ ok: false, error: e.message });
+      }
+      if (e.code === "DB_REQUIRED") {
+        return res.status(503).json({ ok: false, error: e.message });
       }
       return res.status(500).json({ ok: false, error: e.message });
     }

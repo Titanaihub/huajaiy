@@ -1077,6 +1077,23 @@ async function initDb() {
       console.warn("[db] backfill share reward postOwnerId:", e?.message || e);
     }
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS site_cms_pages (
+        id UUID PRIMARY KEY,
+        slug VARCHAR(64) NOT NULL,
+        title VARCHAR(200) NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        published BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT site_cms_pages_slug_unique UNIQUE (slug)
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_site_cms_pages_published
+      ON site_cms_pages (published);
+    `);
+
     console.log(
       "[db] PostgreSQL schema พร้อม — รวมตารางหลักและคอลัมน์เพจสมาชิกบน users (public_page_cover_url, public_page_bio, public_page_listed)"
     );

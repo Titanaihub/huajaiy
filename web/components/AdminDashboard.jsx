@@ -8,6 +8,7 @@ import AdminHeartPurchasesPanel from "./AdminHeartPurchasesPanel";
 import AdminPinkGiftCodesPanel from "./AdminPinkGiftCodesPanel";
 import AdminCentralGamePanel from "./AdminCentralGamePanel";
 import AdminPrizePayoutPanel from "./AdminPrizePayoutPanel";
+import AdminSiteCmsPanel from "./AdminSiteCmsPanel";
 import AdminSiteThemePanel from "./AdminSiteThemePanel";
 import { getMemberToken, IMPERSONATION_RETURN_TOKEN_KEY, setMemberToken } from "../lib/memberApi";
 import { formatHeartCostSummary } from "../lib/formatHeartCostLabel";
@@ -57,6 +58,7 @@ function heartLedgerKindLabelTh(kind) {
 const ADMIN_TAB_KEYS = [
   "members",
   "siteTheme",
+  "siteCms",
   "shops",
   "game",
   "centralGame",
@@ -71,6 +73,7 @@ const ADMIN_TAB_KEYS = [
 const ADMIN_MAIN_NAV = [
   { tab: "members", label: "สมาชิก" },
   { tab: "siteTheme", label: "ธีมเว็บ" },
+  { tab: "siteCms", label: "หน้าเว็บ" },
   { tab: "shops", label: "ร้านทั้งหมด" },
   { tab: "game", label: "เกมและรางวัล" },
   { tab: "centralGame", label: "เกมส่วนกลาง" },
@@ -1713,6 +1716,16 @@ export default function AdminDashboard() {
             <strong>หน้าแรก (/)</strong> กับ<strong>หน้าอื่นทั้งหมด</strong>ตั้งพื้นหลังคนละชุดได้ (รูปหรือไล่สีแยกกัน) · ฟุตเตอร์ใช้สีทึบชุดเดียวทับพื้นหลังของแต่ละหน้า
           </p>
           <AdminSiteThemePanel />
+        </section>
+      ) : tab === "siteCms" ? (
+        <section className="space-y-4">
+          <p className="text-sm text-hui-body">
+            สร้างหน้าเนื้อหาสาธารณะ — ลิงก์จะเป็น{" "}
+            <code className="rounded bg-neutral-100 px-1">/p/ชื่อ-slug</code>{" "}
+            (เช่น <code className="rounded bg-neutral-100 px-1">/p/about</code>) ·
+            เนื้อหาเป็นข้อความล้วน ไม่ใช่ HTML
+          </p>
+          <AdminSiteCmsPanel />
         </section>
       ) : (
         <section className="space-y-4">
