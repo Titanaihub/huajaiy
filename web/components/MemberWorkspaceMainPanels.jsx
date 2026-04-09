@@ -16,7 +16,6 @@ function GameStudioMemberBody() {
   const searchParams = useSearchParams();
   const id = searchParams.get("game");
   const trimmed = id != null ? String(id).trim() : "";
-  const studioEditFull = searchParams.get("edit") === "full";
 
   if (!trimmed) {
     return (
@@ -30,7 +29,7 @@ function GameStudioMemberBody() {
     <AdminCentralGamePanel
       embedded
       memberShellEmbed
-      memberBasicInfoOnly={!studioEditFull}
+      memberBasicInfoOnly={false}
       focusGameId={trimmed}
     />
   );
