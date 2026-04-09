@@ -276,6 +276,10 @@ function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | nul
     return parts.length ? `${base} · ${parts.join(' · ')}` : base
   }
 
+  if (kind === 'legacy_pink_opening_balance') {
+    return String(e.label || '').trim() || 'ยอดหัวใจชมพูสะสมก่อนเริ่มบันทึกรายการในระบบ'
+  }
+
   if (kind === 'heart_purchase_approved' && m) {
     const pkg = m.packageTitle != null ? String(m.packageTitle).trim() : ''
     const base = String(e.label || '').trim() || 'อนุมัติซื้อแพ็กหัวใจ'

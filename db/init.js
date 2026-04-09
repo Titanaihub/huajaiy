@@ -272,6 +272,10 @@ async function initDb() {
     await client.query(
       `CREATE INDEX IF NOT EXISTS idx_heart_ledger_user_created ON heart_ledger(user_id, created_at DESC);`
     );
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_heart_ledger_one_legacy_pink_opening
+      ON heart_ledger(user_id) WHERE kind = 'legacy_pink_opening_balance';
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS central_game_round_outcomes (

@@ -33,6 +33,35 @@ async function insertWithClient(client, row) {
     row.meta != null && typeof row.meta === "object" && !Array.isArray(row.meta)
       ? row.meta
       : null;
+  const createdRaw = row.createdAt;
+  const createdAt =
+    createdRaw instanceof Date
+      ? createdRaw
+      : typeof createdRaw === "string" || typeof createdRaw === "number"
+        ? new Date(createdRaw)
+        : null;
+  const useCreated =
+    createdAt != null && Number.isFinite(createdAt.getTime());
+  if (useCreated) {
+    await client.query(
+      `INSERT INTO heart_ledger (
+        id, user_id, created_at, pink_delta, red_delta, pink_balance_after, red_balance_after, kind, label, meta
+      ) VALUES ($1, $2, $3::timestamptz, $4, $5, $6, $7, $8, $9, $10::jsonb)`,
+      [
+        id,
+        row.userId,
+        createdAt.toISOString(),
+        row.pinkDelta,
+        row.redDelta,
+        row.pinkAfter,
+        row.redAfter,
+        String(row.kind || "unknown").slice(0, 48),
+        row.label != null ? String(row.label).slice(0, 500) : null,
+        metaVal
+      ]
+    );
+    return;
+  }
   await client.query(
     `INSERT INTO heart_ledger (
       id, user_id, pink_delta, red_delta, pink_balance_after, red_balance_after, kind, label, meta
@@ -327,9 +356,127 @@ async function enrichEntriesWithCentralGameCodes(entries) {
   });
 }
 
+/**
+ * ถ้ายอดชมพูในบัญชี ≠ ผลรวม pink_delta ใน ledger (เช่น ย้ายจาก hearts_balance ตอน migration โดยไม่มีแถว)
+ * แทรกแถวชนิด legacy_pink_opening_balance หนึ่งครั้งต่อผู้ใช้ — ให้หน้าประวัติชมพูไม่ว่างทั้งที่มียอด
+ */
+async function ensurePinkLedgerOpeningBalance(userId) {
+  if (!userId || !UUID_RE.test(String(userId).trim())) return;
+  let pool;
+  try {
+    pool = requirePool();
+  } catch (e) {
+    if (e && e.code === "DB_REQUIRED") return;
+    throw e;
+  }
+  const uid = String(userId).trim();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1::text))", [uid]);
+    const leg = await client.query(
+      `SELECT 1 AS o FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind = 'legacy_pink_opening_balance'
+       LIMIT 1`,
+      [uid]
+    );
+    if (leg.rows.length > 0) {
+      await client.query("COMMIT");
+      return;
+    }
+    const uR = await client.query(
+      `SELECT pink_hearts_balance, red_hearts_balance, created_at
+       FROM users WHERE id = $1::uuid FOR UPDATE`,
+      [uid]
+    );
+    if (uR.rows.length === 0) {
+      await client.query("COMMIT");
+      return;
+    }
+    const u = uR.rows[0];
+    const currentPink = Math.max(0, Math.floor(Number(u.pink_hearts_balance) || 0));
+    const currentRed = Math.max(0, Math.floor(Number(u.red_hearts_balance) || 0));
+    const userCreated = u.created_at ? new Date(u.created_at) : new Date(0);
+    const sumR = await client.query(
+      `SELECT COALESCE(SUM(pink_delta), 0)::bigint AS s FROM heart_ledger WHERE user_id = $1::uuid`,
+      [uid]
+    );
+    const sumPink = Math.floor(Number(sumR.rows[0]?.s) || 0);
+    const gap = currentPink - sumPink;
+    if (gap <= 0) {
+      await client.query("COMMIT");
+      return;
+    }
+    const firstR = await client.query(
+      `SELECT red_balance_after, red_delta, created_at
+       FROM heart_ledger
+       WHERE user_id = $1::uuid
+       ORDER BY created_at ASC, id ASC
+       LIMIT 1`,
+      [uid]
+    );
+    let redAfterOpening = currentRed;
+    if (firstR.rows.length > 0) {
+      const fr = firstR.rows[0];
+      redAfterOpening = Math.max(
+        0,
+        Math.floor(Number(fr.red_balance_after) || 0) - Math.floor(Number(fr.red_delta) || 0)
+      );
+    }
+    const minOtherR = await client.query(
+      `SELECT MIN(created_at) AS t
+       FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind IS DISTINCT FROM 'legacy_pink_opening_balance'`,
+      [uid]
+    );
+    const minT = minOtherR.rows[0]?.t ? new Date(minOtherR.rows[0].t) : null;
+    let openingAt;
+    if (minT != null && Number.isFinite(minT.getTime())) {
+      openingAt = new Date(minT.getTime() - 1);
+    } else {
+      openingAt = userCreated;
+    }
+    if (openingAt.getTime() < userCreated.getTime()) {
+      openingAt = userCreated;
+    }
+    try {
+      await insertWithClient(client, {
+        userId: uid,
+        pinkDelta: gap,
+        redDelta: 0,
+        pinkAfter: gap,
+        redAfter: redAfterOpening,
+        kind: "legacy_pink_opening_balance",
+        label: "ยอดหัวใจชมพูสะสมก่อนเริ่มบันทึกรายการ (หรือจากการย้ายข้อมูลเดิม)",
+        meta: { source: "ledger_reconcile", reconciledAt: new Date().toISOString() },
+        createdAt: openingAt
+      });
+    } catch (insErr) {
+      if (insErr && insErr.code === "23505") {
+        /* concurrent insert — ignore */
+      } else {
+        throw insErr;
+      }
+    }
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
 async function listForUser(userId, opts = {}) {
   const pool = requirePool();
   const pinkOnly = Boolean(opts.pinkOnly);
+  if (pinkOnly) {
+    await ensurePinkLedgerOpeningBalance(userId);
+  }
   const defaultLim = pinkOnly ? 400 : 80;
   /** pinkOnly: ดึงได้ลึก — กันประวัติชมพูหายเพราะโควตาแคบ */
   const maxLim = pinkOnly ? 3000 : 200;
@@ -417,6 +564,7 @@ async function recordCentralRoundOutcome(p) {
 
 module.exports = {
   insertWithClient,
+  ensurePinkLedgerOpeningBalance,
   listForUser,
   mergeMetaJsonByPlaySession,
   recordCentralRoundOutcome

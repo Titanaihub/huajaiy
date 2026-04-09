@@ -35,6 +35,7 @@ const PAGE_SIZE = 25;
 /** แสดงในตารางประวัติหัวใจ (แอดมิน) — ค่าใน DB ยังเป็น kind เดิม */
 const HEART_LEDGER_KIND_LABEL_TH = {
   game_start: "เล่นเกม",
+  legacy_pink_opening_balance: "ยอดสะสมก่อนบันทึกรายการ",
   admin_adjust: "แอดมินปรับยอด",
   script_set_exact: "สคริปต์กำหนดยอด (ฉุกเฉิน)",
   marketplace_order: "สั่งซื้อสินค้า",
