@@ -126,9 +126,19 @@ async function listPinkGiftCodesAdmin() {
             c.max_uses AS "maxUses", c.uses_count AS "usesCount",
             c.expires_at AS "expiresAt", c.note, c.canceled_at AS "canceledAt",
             c.created_at AS "createdAt",
-            u.username AS "createdByUsername"
+            u.username AS "createdByUsername",
+            red."redeemedByUsernames",
+            red."lastRedeemedAt"
      FROM pink_gift_codes c
      LEFT JOIN users u ON u.id = c.created_by
+     LEFT JOIN LATERAL (
+       SELECT
+         string_agg(COALESCE(ru.username, ''), ', ' ORDER BY r.redeemed_at DESC) AS "redeemedByUsernames",
+         MAX(r.redeemed_at) AS "lastRedeemedAt"
+       FROM pink_gift_redemptions r
+       LEFT JOIN users ru ON ru.id = r.redeemer_id
+       WHERE r.code_id = c.id
+     ) red ON TRUE
      ORDER BY c.created_at DESC
      LIMIT 500`
   );

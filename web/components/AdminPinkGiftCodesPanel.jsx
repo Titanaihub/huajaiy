@@ -175,6 +175,7 @@ export default function AdminPinkGiftCodesPanel() {
                 <th className="px-3 py-2">รหัส</th>
                 <th className="px-3 py-2">ชมพู</th>
                 <th className="px-3 py-2">ใช้แล้ว / สูงสุด</th>
+                <th className="px-3 py-2">สมาชิกที่กรอกรหัส / เวลาล่าสุด</th>
                 <th className="px-3 py-2">สถานะ</th>
                 <th className="px-3 py-2">สร้างเมื่อ</th>
                 <th className="px-3 py-2" />
@@ -189,12 +190,26 @@ export default function AdminPinkGiftCodesPanel() {
                 if (cancelled) st = "ยกเลิกแล้ว";
                 else if (expired) st = "หมดอายุ";
                 else if (exhausted) st = "ใช้ครบแล้ว";
+                const redeemedBy = String(row.redeemedByUsernames || "")
+                  .split(",")
+                  .map((v) => v.trim())
+                  .filter(Boolean)
+                  .join(", ");
+                const lastRedeemedAtText = row.lastRedeemedAt
+                  ? new Date(row.lastRedeemedAt).toLocaleString("th-TH")
+                  : "";
                 return (
                   <tr key={row.id} className="border-b border-hui-border/70">
                     <td className="px-3 py-2 font-mono font-semibold">{row.code}</td>
                     <td className="px-3 py-2 tabular-nums">{row.pinkAmount}</td>
                     <td className="px-3 py-2 tabular-nums">
                       {row.usesCount} / {row.maxUses}
+                    </td>
+                    <td className="px-3 py-2 text-hui-body">
+                      {redeemedBy || (Number(row.usesCount) > 0 ? "มีการใช้แล้ว" : "—")}
+                      {lastRedeemedAtText ? (
+                        <div className="text-xs text-hui-muted">ล่าสุด: {lastRedeemedAtText}</div>
+                      ) : null}
                     </td>
                     <td className="px-3 py-2">{st}</td>
                     <td className="px-3 py-2 text-hui-muted">
