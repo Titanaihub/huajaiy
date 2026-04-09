@@ -183,7 +183,7 @@ export default function HomeLandingFigmaShell({
               ยินดีต้อนรับ สู่แพลตฟอร์มหัวใจ
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base font-semibold leading-relaxed text-neutral-700 sm:text-lg">
-              เล่นเกม สะสมหัวใจ ช้อปในร้านค้า และติดตามโพสต์ชุมชน — ครบในที่เดียว
+              แพลตฟอร์มเกมการตลาดที่ออกแบบได้เอง เพื่อยกระดับแคมเปญ สร้างการมีส่วนร่วม และขับเคลื่อนยอดขายอย่างมีระดับ
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:mt-12 sm:gap-4">
               <Link
