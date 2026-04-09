@@ -18,17 +18,17 @@ function trimUrl(v) {
   return s || "";
 }
 
-const SOCIAL_BTN =
-  "inline-flex shrink-0 items-center justify-center shadow-md ring-1 ring-black/10 transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
+/** โลโก้แบรนด์ในแถบแท็บ — ไม่มีกรอบ/เงา (แสดงเป็นภาพลอยบนพื้นหลัง) */
+const SOCIAL_TAB_WRAP =
+  "inline-flex shrink-0 items-center justify-center rounded-lg transition focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-1";
 
 /** ปุ่มโลโก้แบรนด์เต็มสีทั้งกรณีมีลิงก์และยังไม่ตั้ง (ไม่จาง/ไม่ grayscale) */
 function SocialTabIcon({ href, label, platform, children }) {
   const active = Boolean(href);
   const brandClsByPlatform = {
-    /* รูป line.png มีพื้นเขียวในตัว — ไม่ล้อมพื้นเขียวซ้ำ */
-    line: `${SOCIAL_BTN} h-11 min-w-[4.75rem] overflow-hidden rounded-lg bg-transparent p-0 shadow-none ring-0 hover:opacity-90 focus-visible:ring-[#06C755]/50`,
-    facebook: `${SOCIAL_BTN} h-11 w-11 rounded-xl bg-white p-1.5 hover:bg-gray-50 focus-visible:ring-[#1877F2]/55`,
-    tiktok: `${SOCIAL_BTN} h-11 w-11 rounded-xl bg-black p-1.5 hover:bg-neutral-900 focus-visible:ring-neutral-700`
+    line: `${SOCIAL_TAB_WRAP} h-10 min-w-[4.5rem] overflow-hidden bg-transparent p-0 hover:opacity-90 focus-visible:ring-[#06C755]/45`,
+    facebook: `${SOCIAL_TAB_WRAP} h-10 w-10 bg-transparent p-0 hover:opacity-90 focus-visible:ring-[#1877F2]/45`,
+    tiktok: `${SOCIAL_TAB_WRAP} h-10 w-10 bg-transparent p-0 hover:opacity-90 focus-visible:ring-neutral-700/45`
   };
   const cls = brandClsByPlatform[platform] || brandClsByPlatform.line;
   if (active) {
@@ -186,27 +186,6 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                   <p className="mt-2 max-w-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-500">
                     {tagline}
                   </p>
-                  <div
-                    className="mt-3 flex flex-wrap items-center gap-2 sm:gap-2.5"
-                    aria-label="โซเชียลจากโปรไฟล์"
-                  >
-                    {socialSlots.map((s) => (
-                      <SocialTabIcon
-                        key={`hero-${s.key}`}
-                        href={s.href}
-                        label={s.label}
-                        platform={s.platform}
-                      >
-                        {s.key === "line" ? (
-                          <BrandLineWordmark />
-                        ) : s.key === "facebook" ? (
-                          <BrandFacebookGlyph />
-                        ) : (
-                          <BrandTiktokGlyph />
-                        )}
-                      </SocialTabIcon>
-                    ))}
-                  </div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 pb-1 sm:justify-end">
@@ -309,7 +288,7 @@ export default function PublicMemberPageChrome({ member, initialPosts = [] }) {
                 <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                   <h2 className="text-lg font-semibold text-gray-900">ช่องทางติดต่อ</h2>
                   <p className="mt-1 text-xs text-gray-500">
-                    ไอคอนด้านบนเป็นโลโก้สีตามแบรนด์ — ตั้งลิงก์ได้ที่แผง「แก้ไขเพจของฉัน」หรือเมนูสมาชิก → โปรไฟล์
+                    ไอคอนแถบแท็บเป็นโลโก้สีตามแบรนด์ — ตั้งลิงก์ได้ที่แผง「แก้ไขเพจของฉัน」หรือเมนูสมาชิก → โปรไฟล์
                   </p>
                   <ul className="mt-4 space-y-2 text-sm">
                     {socialSlots.map((s) => (
