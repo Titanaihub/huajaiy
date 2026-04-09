@@ -25,10 +25,16 @@ export function ShareRewardHeartGlyph({ tint }) {
 
 /**
  * ผู้เยี่ยมชม — แคมเปญแชร์ active: ข้อความคำนวณจาก redPerMember + maxRecipientSlots (เดียวกับการ์ดหน้าแรก)
- * @param {{ shareReward?: Record<string, unknown> | null; className?: string; heartTint?: string | null }} props
+ * @param {{ shareReward?: Record<string, unknown> | null; className?: string; heartTint?: string | null; viewerLoggedIn?: boolean | null }} props
  * heartTint = สีเติม SVG หัวใจ (#rrggbb) จากการตั้งค่าเจ้าของเพจ
+ * viewerLoggedIn = ล็อกอินแล้วหรือไม่ — ใช้เลือกข้อความช่วย (ถ้าไม่ส่ง จะบอกแบบกลาง ๆ)
  */
-export default function ShareRewardVisitorBanner({ shareReward, className = "", heartTint = null }) {
+export default function ShareRewardVisitorBanner({
+  shareReward,
+  className = "",
+  heartTint = null,
+  viewerLoggedIn = null
+}) {
   if (!shareReward) return null;
   const st = String(shareReward.status || "");
   const per = Math.max(0, Math.floor(Number(shareReward.redPerMember) || 0));
@@ -39,21 +45,28 @@ export default function ShareRewardVisitorBanner({ shareReward, className = "", 
   if (st === "active" && per > 0 && maxSlots > 0) {
     const tint =
       typeof heartTint === "string" && heartTint.trim() !== "" ? heartTint.trim() : null;
+    let hint = "ล็อกอิน แล้วกดปุ่มแชร์หรือคัดลอกด้านล่าง — ได้หัวใจทันที · แค่เปิดอ่านไม่นับ";
+    if (viewerLoggedIn === true) {
+      hint = "กดปุ่มแชร์หรือคัดลอกด้านล่าง — ได้หัวใจทันที (คนละครั้ง) · แค่เปิดอ่านไม่นับ";
+    } else if (viewerLoggedIn === false) {
+      hint = "ต้องล็อกอินก่อน แล้วค่อยกดแชร์ — แค่เปิดอ่านไม่ได้หัวใจ";
+    }
     return (
-      <p
-        className={`${box} text-neutral-900 ${className}`.trim()}
+      <div
+        className={`${box} space-y-1.5 text-neutral-900 ${className}`.trim()}
         role="status"
       >
-        <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
-          <span className="font-medium text-neutral-800">แชร์โพสต์นี้</span>
-          <span className="inline-flex flex-wrap items-center gap-0.5 font-bold text-neutral-900">
-            <span>ได้</span>
-            <ShareRewardHeartGlyph tint={tint || DEFAULT_HEART_TINT} />
-            <span className="tabular-nums">{per}</span>
-            <span className="tabular-nums">/{maxSlots}คนแรก</span>
+        <p className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5 font-semibold text-neutral-900">
+          <ShareRewardHeartGlyph tint={tint || DEFAULT_HEART_TINT} />
+          <span>
+            แชร์จากเว็บนี้ รับหัวใจแดง <span className="tabular-nums">{per}</span> ดวง
           </span>
-        </span>
-      </p>
+          <span className="font-normal text-neutral-700">
+            · จำกัด <span className="tabular-nums font-semibold text-neutral-900">{maxSlots}</span> คนแรก
+          </span>
+        </p>
+        <p className="text-[10px] leading-snug text-neutral-700">{hint}</p>
+      </div>
     );
   }
 
@@ -64,7 +77,7 @@ export default function ShareRewardVisitorBanner({ shareReward, className = "", 
   return null;
 }
 
-/** แบนเนอร์มีคำว่า「แชร์โพสต์นี้」แล้ว — ไม่ต้องใส่หัวข้อซ้ำ */
+/** แบนเนอร์ครอบคลุมหัวข้อแชร์แล้ว — ไม่ต้องใส่หัวข้อซ้ำ */
 export function shareRewardBannerIncludesShareHeading(shareReward) {
   if (!shareReward) return false;
   const st = String(shareReward.status || "");

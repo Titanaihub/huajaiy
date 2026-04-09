@@ -24,3 +24,18 @@ export function sanitizePostLoginNext(nextParam) {
   if (!isPathAllowed(pathOnly)) return null;
   return raw.split("#")[0];
 }
+
+/**
+ * ลิงก์เข้า LINE (`auto=1`) พร้อม `next=` หน้าปัจจุบันเมื่อ allowlist อนุญาต
+ * @param {string} pathname - จาก usePathname()
+ * @param {string} search - จาก useSearchParams().toString() (ไม่มี ? นำหน้า)
+ */
+export function lineLoginWithReturnHref(pathname, search) {
+  const path = String(pathname || "/") || "/";
+  const q = search && String(search).trim();
+  const full = q ? `${path}?${q}` : path;
+  const next = sanitizePostLoginNext(full);
+  const base = "/login/line?auto=1";
+  if (!next) return base;
+  return `${base}&next=${encodeURIComponent(next)}`;
+}

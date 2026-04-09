@@ -1,15 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { siteNavLinkClass } from "../lib/siteNavLinkClass";
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState
 } from "react";
+import { lineLoginWithReturnHref } from "../lib/postLoginRedirect";
 import { ADMIN_HOME_PATH } from "../lib/memberWorkspacePath";
 import { useMemberAuth } from "./MemberAuthProvider";
 
@@ -128,6 +130,13 @@ function NavDropdown({ label, menuKey, openKey, setOpenKey, children }) {
 export default function MemberNav() {
   const { user, loading } = useMemberAuth();
   const [openMenu, setOpenMenu] = useState(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchStr = searchParams.toString();
+  const lineLoginHref = useMemo(
+    () => lineLoginWithReturnHref(pathname, searchStr),
+    [pathname, searchStr]
+  );
 
   if (loading) {
     return (
@@ -250,7 +259,7 @@ export default function MemberNav() {
 
   return (
     <span className="flex flex-wrap items-center gap-x-1 gap-y-1">
-      <Link href="/login/line?auto=1" className={siteNavLinkClass}>
+      <Link href={lineLoginHref} className={siteNavLinkClass}>
         เข้าสู่ระบบด้วย LINE
       </Link>
     </span>

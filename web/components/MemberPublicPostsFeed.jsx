@@ -418,6 +418,7 @@ function MemberPublicPostCard({
       ) : null}
       <ShareRewardVisitorBanner
         shareReward={post.shareReward}
+        viewerLoggedIn={Boolean(vu)}
         heartTint={
           (typeof post.shareRewardHeartTint === "string" && post.shareRewardHeartTint) ||
           shareRewardHeartTint ||
@@ -434,8 +435,7 @@ function MemberPublicPostCard({
         <div className="mt-2 rounded-lg border border-rose-100 bg-rose-50/50 px-2.5 py-2">
           <p className="text-[11px] font-semibold text-gray-800">แจกหัวใจแดงเมื่อแชร์</p>
           <p className="mt-0.5 text-[10px] leading-snug text-gray-600">
-            กันวงเงินจากหัวใจแดงกระเป๋า + หัวใจแดงสำหรับแจกของคุณ (หักจากแจกก่อน) ทันที — ผู้เยี่ยมชมที่แชร์จากเว็บและครบเงื่อนไขระบบจะได้หัวใจแดงตามที่ตั้ง
-            (คนละครั้งต่อโพสต์)
+            กันวงเงินจากยอดคุณ — คนที่ล็อกอินแล้วกดแชร์จากเว็บนี้จะได้หัวใจตามที่ตั้ง (คนละครั้งต่อโพสต์ · แค่เปิดอ่านไม่นับ)
           </p>
           {post.shareReward.status === "active" ? (
             <p className="mt-1.5 text-[11px] text-gray-700">
@@ -495,7 +495,7 @@ function MemberPublicPostCard({
       ) : null}
       {shareUrl ? (
         <div className="mt-2 border-t border-gray-100 pt-2">
-          <p className="mb-1.5 text-[11px] font-medium text-gray-600">แชร์โพสต์</p>
+          <p className="mb-1.5 text-[11px] font-medium text-gray-600">กดไอคอนด้านล่างเพื่อแชร์</p>
           <div className="flex flex-wrap items-center gap-2">
             <a
               href={lineShareUrl(shareUrl)}

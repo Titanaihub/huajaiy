@@ -120,7 +120,8 @@ function LineLoginContent() {
 
   const handleLineSignIn = useCallback(async () => {
     setAuthError("");
-    const returnTo = "/login/line";
+    const qs = searchParams.toString();
+    const returnTo = qs ? `/login/line?${qs}` : "/login/line";
     const result = await signIn("line", {
       callbackUrl: returnTo,
       redirect: false
@@ -132,7 +133,7 @@ function LineLoginContent() {
     } else if (result?.url) {
       window.location.href = result.url;
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!autoStartLine || authError) return;

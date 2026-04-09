@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
 import { ShareRewardHeartGlyph } from "./ShareRewardVisitorBanner";
@@ -10,6 +11,7 @@ import { formatRelativeTimeTh } from "../lib/publicMemberPosts";
 import { publicMemberPostPath } from "../lib/memberPublicUrls";
 import { publicCentralGamePlayPath } from "../lib/publicGamePaths";
 import { PUBLIC_SHOP_PATH } from "../lib/publicNavPaths";
+import { lineLoginWithReturnHref } from "../lib/postLoginRedirect";
 
 /** ปิดการแสดงบล็อก「สินค้า」บนหน้าแรก — เปิดเป็น true ถ้าต้องการโชว์การ์ดตัวอย่างอีกครั้ง */
 const SHOW_HOME_PRODUCT_SECTION = false;
@@ -104,6 +106,14 @@ export default function HomeLandingFigmaShell({
     return list.filter((g) => g && String(g.id || "").trim()).slice(0, 4);
   }, [recommendedGames]);
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchStr = searchParams.toString();
+  const lineLoginHref = useMemo(
+    () => lineLoginWithReturnHref(pathname, searchStr),
+    [pathname, searchStr]
+  );
+
   const gamesGridRef = useRef(null);
   const [recGameCols, setRecGameCols] = useState(4);
 
@@ -183,7 +193,7 @@ export default function HomeLandingFigmaShell({
                 เกมและรางวัล
               </Link>
               <Link
-                href="/login/line"
+                href={lineLoginHref}
                 className="inline-flex min-h-[3rem] min-w-[10rem] items-center justify-center gap-2 rounded-full border-2 border-[#06C755]/50 bg-[#06C755] px-6 py-3 text-base font-bold text-white shadow-md transition hover:bg-[#05b34c]"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="white" aria-hidden>
@@ -396,10 +406,15 @@ export default function HomeLandingFigmaShell({
                             แชร์
                           </span>
                           {showShareRewardTeaser ? (
-                            <span className="inline-flex flex-wrap items-center justify-end gap-0.5 text-[10px] font-bold leading-tight text-[#FF2E8C] sm:text-[11px]">
-                              <span>ได้{perHeart}</span>
-                              <ShareRewardHeartGlyph tint={rewardHeartTint} />
-                              <span>/{maxPeople}คนแรก</span>
+                            <span className="inline-flex max-w-[11rem] flex-col items-end gap-0.5 text-[10px] font-bold leading-tight text-[#FF2E8C] sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:gap-0.5 sm:text-[11px]">
+                              <span className="inline-flex flex-wrap items-center justify-end gap-0.5">
+                                <span>แชร์จากเว็บ รับ{perHeart}</span>
+                                <ShareRewardHeartGlyph tint={rewardHeartTint} />
+                                <span>· {maxPeople} คนแรก</span>
+                              </span>
+                              <span className="text-[9px] font-normal text-neutral-500 sm:text-[10px]">
+                                (ล็อกอิน · แค่เปิดอ่านไม่นับ)
+                              </span>
                             </span>
                           ) : null}
                         </button>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import HeartIcon from "./HeartIcon";
 import {
   LineLoginPinkPillInner,
@@ -19,6 +20,7 @@ import {
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
 import { CENTRAL_GAME_ADMIN_LINE_URL } from "../lib/centralGameLimits";
+import { lineLoginWithReturnHref } from "../lib/postLoginRedirect";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -141,6 +143,13 @@ export default function HuajaiyCentralTemplate({
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchStr = searchParams.toString();
+  const lineLoginHref = useMemo(
+    () => lineLoginWithReturnHref(pathname, searchStr),
+    [pathname, searchStr]
+  );
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -375,7 +384,7 @@ export default function HuajaiyCentralTemplate({
               </div>
               {!memberUser ? (
                 <Link
-                  href="/login/line?auto=1"
+                  href={lineLoginHref}
                   className={`${lineLoginPinkPillClassName} lg:hidden`}
                 >
                   <LineLoginPinkPillInner />
@@ -459,7 +468,7 @@ export default function HuajaiyCentralTemplate({
                 </>
               ) : (
                 <Link
-                  href="/login/line?auto=1"
+                  href={lineLoginHref}
                   className={`${lineLoginPinkPillClassName} hidden lg:inline-flex`}
                 >
                   <LineLoginPinkPillInner />

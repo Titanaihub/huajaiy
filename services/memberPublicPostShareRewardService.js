@@ -89,21 +89,11 @@ async function tryGrantShareReward(client, postId, recipientUserId) {
   );
   if (dup.rows.length) return { granted: false };
 
-  const intentR = await client.query(
-    `SELECT 1 FROM member_public_post_share_intents
-     WHERE post_id = $1 AND actor_user_id = $2
-     LIMIT 1`,
-    [postId, recId]
-  );
-  if (!intentR.rows.length) return { granted: false };
-
-  const refCntR = await client.query(
-    `SELECT COUNT(*)::int AS n FROM member_public_post_ref_clicks
-     WHERE post_id = $1 AND ref_user_id = $2`,
-    [postId, recId]
-  );
-  const refClicks = Number(refCntR.rows[0]?.n) || 0;
-  if (refClicks < MIN_REF_CLICKS_FOR_SHARE_REWARD) return { granted: false };
+  /**
+   * ไม่บังคับสอบ share_intents / ref_clicks ที่นี่ — recordShareIntent ใส่ intent ใน tx เดียวกันก่อนเรียกฟังก์ชันนี้
+   * และ recordRefClick ก็ใส่ intent แล้ว · การ SELECT intent เดิมเคยทำให้ไม่จ่าย (UUID/มุมมองใน tx) แม้ครบเงื่อนไข
+   * MIN_REF_CLICKS_FOR_SHARE_REWARD = 0 จึงไม่ใช้ ref_clicks เป็นเกณฑ์
+   */
 
   await client.query(
     `INSERT INTO member_public_post_share_reward_recipients (post_id, user_id, red_amount) VALUES ($1, $2, $3)`,

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo";
 import NavGamesMenuItem from "./NavGamesMenuItem";
 import { useHearts } from "./HeartsProvider";
@@ -16,6 +17,7 @@ import {
 import { useMemberAuth } from "./MemberAuthProvider";
 import { heartTotalsFromPublicUser } from "../lib/memberHeartTotals";
 import { publicMemberPath } from "../lib/memberPublicUrls";
+import { lineLoginWithReturnHref } from "../lib/postLoginRedirect";
 
 /** แหล่งรูป: โฟลเดอร์ `หัวใจ` ที่รากโปรเจกต์ (Pink Heart / Red Heart) → บริการที่ `/hearts/*.png` */
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
@@ -49,9 +51,16 @@ export default function HomeStylePublicHeader({
   const { pinkHearts, redHearts, ready: heartsReady } = useHearts();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchStr = searchParams.toString();
+  const lineLoginHref = useMemo(
+    () => lineLoginWithReturnHref(pathname, searchStr),
+    [pathname, searchStr]
+  );
   const accountHref = memberUser
     ? workspaceShellUrl(TAILADMIN_PROFILE_START, memberUser.role)
-    : "/login/line?auto=1";
+    : lineLoginHref;
 
   let pinkShown = 0;
   let redFromUsersShown = 0;
@@ -239,7 +248,7 @@ export default function HomeStylePublicHeader({
                 ออกจากระบบ
               </button>
             ) : (
-              <Link href="/login/line?auto=1" className={navItemClass}>
+              <Link href={lineLoginHref} className={navItemClass}>
                 เข้าสู่ระบบ
               </Link>
             )}
@@ -367,7 +376,7 @@ export default function HomeStylePublicHeader({
                 </Link>
               ) : (
                 <Link
-                  href="/login/line?auto=1"
+                  href={lineLoginHref}
                   className={iconLink}
                   title="เข้าสู่ระบบ"
                   aria-label="เข้าสู่ระบบ"

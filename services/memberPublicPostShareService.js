@@ -174,6 +174,12 @@ async function recordRefClick(pageUsername, postId, refUsername) {
        VALUES ($1, $2)`,
       [postId, refUser.id]
     );
+    /** tryGrantShareReward ต้องมีแถวใน share_intents — ref ใส่เฉพาะฝั่งเซิร์ฟเวอร์ (ไม่อยู่ใน CHANNELS ของ client) */
+    await client.query(
+      `INSERT INTO member_public_post_share_intents (post_id, actor_user_id, channel)
+       VALUES ($1, $2, 'ref')`,
+      [postId, refUser.id]
+    );
     const memberPublicPostShareRewardService = require("./memberPublicPostShareRewardService");
     await memberPublicPostShareRewardService.tryGrantShareReward(
       client,

@@ -985,7 +985,7 @@ async function initDb() {
         actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
         channel VARCHAR(16) NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT chk_mpp_share_channel CHECK (channel IN ('line', 'facebook', 'copy'))
+        CONSTRAINT chk_mpp_share_channel CHECK (channel IN ('line', 'facebook', 'copy', 'tiktok', 'ref'))
       );
     `);
     /** DB เดิมที่สร้างด้วย actor_user_id NOT NULL — ปรับให้นับแชร์แบบไม่ล็อกอินได้ */
@@ -996,6 +996,20 @@ async function initDb() {
       `);
     } catch {
       /* คอลัมน์ nullable อยู่แล้ว หรือสภาพแวดล้อมไม่รองรับ — ข้าม */
+    }
+    /** เดิมจำกัดแค่ line/facebook/copy — ต้องมี tiktok (ปุ่มแชร์) และ ref (นับจากลิงก์ ?ref=) */
+    try {
+      await client.query(`
+        ALTER TABLE member_public_post_share_intents
+        DROP CONSTRAINT IF EXISTS chk_mpp_share_channel;
+      `);
+      await client.query(`
+        ALTER TABLE member_public_post_share_intents
+        ADD CONSTRAINT chk_mpp_share_channel
+        CHECK (channel IN ('line', 'facebook', 'copy', 'tiktok', 'ref'));
+      `);
+    } catch {
+      /* constraint อาจถูกอัปเดตแล้วหรือชื่อไม่ตรง */
     }
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_mpp_share_intents_post
