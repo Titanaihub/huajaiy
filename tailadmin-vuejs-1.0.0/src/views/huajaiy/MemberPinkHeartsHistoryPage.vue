@@ -234,6 +234,21 @@ function joinMetaList(v: unknown): string {
     .join(', ')
 }
 
+/** แนบหมายเหตุจาก meta (เช่น เหตุผลแอดมิน) ถ้ายังไม่อยู่ในข้อความหลัก */
+function withMetaReason(base: string, m: Record<string, unknown> | null): string {
+  const b = String(base || '').trim()
+  if (!m) return b || 'รายการ'
+  const r =
+    m.reason != null
+      ? String(m.reason).trim()
+      : m.note != null
+        ? String(m.note).trim()
+        : ''
+  if (!r) return b || 'รายการ'
+  if (b.includes('หมายเหตุ:') || b.includes(r.slice(0, 20))) return b
+  return `${b} — หมายเหตุ: ${r.slice(0, 300)}`
+}
+
 function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | null): string {
   const kind = e.kind != null ? String(e.kind) : ''
 
@@ -253,7 +268,8 @@ function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | nul
   }
 
   if (kind === 'marketplace_order' && m) {
-    const base = String(e.label || '').trim() || 'ได้รับหัวใจชมพูจากสั่งซื้อ'
+    const base =
+      String(e.label || '').trim() || 'ได้รับหัวใจชมพูเล่นได้จากสั่งซื้อในตลาด'
     const shops = joinMetaList(m.shopNames)
     const titles = joinMetaList(m.productTitles)
     const parts = [shops && `ร้าน: ${shops}`, titles && `สินค้า: ${titles}`].filter(Boolean)
@@ -263,13 +279,16 @@ function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | nul
   if (kind === 'heart_purchase_approved' && m) {
     const pkg = m.packageTitle != null ? String(m.packageTitle).trim() : ''
     const base = String(e.label || '').trim() || 'อนุมัติซื้อแพ็กหัวใจ'
-    if (pkg) return `${base} · แพ็ก ${pkg}`
-    return base
+    const pinkG = Math.max(0, Math.floor(Number(m.pinkGranted) || 0))
+    const pinkBit =
+      pinkG > 0 ? ` · ชมพูเล่นได้จากสลิป +${fmt(pinkG)}` : ''
+    if (pkg) return `${base} · แพ็ก ${pkg}${pinkBit}`
+    return `${base}${pinkBit}`
   }
 
   if (kind === 'admin_adjust' || kind === 'script_set_exact') {
     const lab = String(e.label || '').trim()
-    if (lab) return lab
+    if (lab) return withMetaReason(lab, m)
     if (kind === 'script_set_exact') {
       const pd = Math.floor(Number(e.pinkDelta) || 0)
       if (pd > 0) return 'ได้รับหัวใจชมพู — สคริปต์กำหนดยอด'
@@ -279,12 +298,23 @@ function buildPinkItemLine(e: HeartLedgerEntry, m: Record<string, unknown> | nul
     const adminUser = m?.adminUsername != null ? String(m.adminUsername).trim() : ''
     const who = adminUser ? `@${adminUser}` : 'แอดมิน'
     const pd = Math.floor(Number(e.pinkDelta) || 0)
-    if (pd > 0) return `ได้รับหัวใจชมพูจากแอดมิน (${who})`
-    if (pd < 0) return `แอดมิน (${who}) หักหัวใจชมพู`
-    return `แอดมิน (${who}) ปรับยอด`
+    if (pd > 0) return withMetaReason(`ได้รับหัวใจชมพูจากแอดมิน (${who})`, m)
+    if (pd < 0) return withMetaReason(`แอดมิน (${who}) หักหัวใจชมพู`, m)
+    return withMetaReason(`แอดมิน (${who}) ปรับยอด`, m)
   }
 
-  return String(e.label || '').trim() || kind || 'รายการ'
+  if (kind === 'adjustment') {
+    const lab = String(e.label || '').trim()
+    const fb =
+      lab ||
+      (Math.floor(Number(e.pinkDelta) || 0) > 0
+        ? 'ได้รับหัวใจชมพู (บันทึกทั่วไป — ติดต่อผู้ดูแลหากไม่ทราบที่มา)'
+        : 'หักหัวใจชมพู (บันทึกทั่วไป)')
+    return withMetaReason(fb, m)
+  }
+
+  const fallback = String(e.label || '').trim() || kind || 'รายการ'
+  return withMetaReason(fallback, m)
 }
 
 function gameIdForRow(m: Record<string, unknown> | null, kind: string): string | null {

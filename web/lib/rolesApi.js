@@ -96,7 +96,7 @@ export async function apiAdminPatchMember(token, id, body) {
   return data;
 }
 
-/** @param body {{ pinkDelta?: number, redDelta?: number, redGiveawayDelta?: number } | { delta: number }} */
+/** @param body {{ pinkDelta?: number, redDelta?: number, redGiveawayDelta?: number, reason?: string } | { delta: number, reason?: string }} */
 export async function apiAdminAdjustMemberHearts(token, id, body) {
   const r = await fetch(
     `${apiRoot()}/api/admin/members/${encodeURIComponent(id)}/hearts`,

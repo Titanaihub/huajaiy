@@ -155,9 +155,10 @@ async function createMarketplaceOrder(userId, payload) {
           kind: "marketplace_order",
           label:
             shopNames.length > 0
-              ? `ได้รับหัวใจจากสั่งซื้อร้าน (${shopNames.join(", ")})`
-              : "ได้รับหัวใจจากสั่งซื้อสินค้า",
+              ? `ได้รับหัวใจชมพูเล่นได้จากสั่งซื้อในตลาด (${shopNames.join(", ")})`
+              : "ได้รับหัวใจชมพูเล่นได้จากสั่งซื้อในตลาด",
           meta: {
+            source: "marketplace_checkout",
             orderId: id,
             heartsGranted,
             productTitles: lineNames,

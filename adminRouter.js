@@ -43,7 +43,13 @@ function isUuidParam(id) {
 }
 
 /** ข้อความบันทึก heart_ledger — สมาชิกเห็นชัดว่าได้/หักจากแอดมิน */
-function buildAdminHeartLedgerLabel(adminUsername, pinkDelta, redDelta, redGiveawayDelta) {
+function buildAdminHeartLedgerLabel(
+  adminUsername,
+  pinkDelta,
+  redDelta,
+  redGiveawayDelta,
+  memberVisibleReason = null
+) {
   const u =
     adminUsername != null && String(adminUsername).trim()
       ? String(adminUsername).trim()
@@ -74,9 +80,16 @@ function buildAdminHeartLedgerLabel(adminUsername, pinkDelta, redDelta, redGivea
         : `แอดมิน (${tag}) หักหัวใจแดงแจก ${gd}`
     );
   }
-  return parts.length > 0
-    ? parts.join(" · ")
-    : `แอดมิน (${tag}) ปรับยอดหัวใจ`;
+  let base =
+    parts.length > 0
+      ? parts.join(" · ")
+      : `แอดมิน (${tag}) ปรับยอดหัวใจ`;
+  const note =
+    memberVisibleReason != null ? String(memberVisibleReason).trim().slice(0, 500) : "";
+  if (note) {
+    base = `${base} — หมายเหตุ: ${note}`;
+  }
+  return base;
 }
 
 function requireGameBuilderRole(req, res, next) {
@@ -368,6 +381,13 @@ router.post(
       if (!u) {
         return res.status(404).json({ ok: false, error: "ไม่พบสมาชิก" });
       }
+      const reasonRaw =
+        req.body?.reason != null
+          ? String(req.body.reason)
+          : req.body?.note != null
+            ? String(req.body.note)
+            : "";
+      const reasonForLedger = reasonRaw.trim().slice(0, 500);
       const updated = await userService.adjustAdminTripleHearts(
         id,
         pinkDelta,
@@ -375,13 +395,20 @@ router.post(
         redGiveawayDelta,
         {
           kind: "admin_adjust",
-          label: buildAdminHeartLedgerLabel(req.username, pinkDelta, redDelta, redGiveawayDelta),
+          label: buildAdminHeartLedgerLabel(
+            req.username,
+            pinkDelta,
+            redDelta,
+            redGiveawayDelta,
+            reasonForLedger || null
+          ),
           meta: {
             adminUsername: req.username || null,
             source: "admin_panel",
             pinkDelta,
             redDelta,
-            redGiveawayDelta
+            redGiveawayDelta,
+            ...(reasonForLedger ? { reason: reasonForLedger } : {})
           }
         }
       );

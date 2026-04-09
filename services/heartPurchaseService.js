@@ -320,8 +320,7 @@ async function approve(purchaseId, adminUserId, note) {
       throw e;
     }
     const buyerId = row.user_id;
-    // นโยบายใหม่: อนุมัติแพ็กซื้อหัวใจเพิ่มเฉพาะ "แดงแจก" เท่านั้น
-    const pink = 0;
+    const pink = Math.max(0, Math.floor(Number(row.pink_qty) || 0));
     const red = Math.max(0, Math.floor(Number(row.red_qty) || 0));
     const pkgR = await client.query(`SELECT title FROM heart_packages WHERE id = $1`, [
       row.package_id
@@ -345,6 +344,10 @@ async function approve(purchaseId, adminUserId, note) {
       const pinkAfter = Math.max(0, Math.floor(Number(rowB.pink_hearts_balance) || 0));
       const redPlayAfter = Math.max(0, Math.floor(Number(rowB.red_hearts_balance) || 0));
       const giveAfter = Math.max(0, Math.floor(Number(rowB.red_giveaway_balance) || 0));
+      const grantParts = [];
+      if (pink > 0) grantParts.push(`หัวใจชมพูเล่นได้ +${pink}`);
+      if (red > 0) grantParts.push(`หัวใจแดงแจกผู้เล่น +${red}`);
+      const grantBit = grantParts.length ? grantParts.join(" · ") : "";
       await heartLedgerService.insertWithClient(client, {
         userId: buyerId,
         pinkDelta: pink,
@@ -352,14 +355,14 @@ async function approve(purchaseId, adminUserId, note) {
         pinkAfter,
         redAfter: redPlayAfter,
         kind: "heart_purchase_approved",
-        label:
-          red > 0
-            ? `อนุมัติซื้อแพ็ก「${pkgTitle}」· แดงแจกผู้เล่น +${red}`
-            : `อนุมัติซื้อแพ็ก「${pkgTitle}」`,
+        label: grantBit
+          ? `อนุมัติซื้อแพ็ก「${pkgTitle}」· ${grantBit}`
+          : `อนุมัติซื้อแพ็ก「${pkgTitle}」`,
         meta: {
           purchaseId,
           packageId: row.package_id != null ? String(row.package_id) : null,
           packageTitle: pkgTitle,
+          source: "heart_purchase_slip_approved",
           pinkGranted: pink,
           redGrantedToGiveaway: red,
           redGiveawayBalanceAfter: giveAfter,

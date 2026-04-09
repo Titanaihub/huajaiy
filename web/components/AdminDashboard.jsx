@@ -100,6 +100,7 @@ export default function AdminDashboard() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailErr, setDetailErr] = useState("");
   const [heartPinkDelta, setHeartPinkDelta] = useState("");
+  const [heartPinkReason, setHeartPinkReason] = useState("");
   const [heartBusy, setHeartBusy] = useState(false);
   const [admUsername, setAdmUsername] = useState("");
   const [admFirstName, setAdmFirstName] = useState("");
@@ -429,9 +430,13 @@ export default function AdminDashboard() {
     setPanelMsg("");
     try {
       const data = await apiAdminAdjustMemberHearts(token, selectedId, {
-        pinkDelta: pd
+        pinkDelta: pd,
+        ...(heartPinkReason.trim()
+          ? { reason: heartPinkReason.trim().slice(0, 500) }
+          : {})
       });
       setHeartPinkDelta("");
+      setHeartPinkReason("");
       if (data?.user) {
         setMemberFull((prev) =>
           prev && prev.user ? { ...prev, user: data.user } : prev
@@ -1082,24 +1087,39 @@ export default function AdminDashboard() {
                     <p className="mt-1 text-sm text-hui-body">
                       ปรับได้เฉพาะหัวใจชมพู — หัวใจแดงเป็นส่วนการแจกของผู้สร้างห้อง/เกม
                     </p>
-                    <form onSubmit={submitHeartAdjust} className="mt-2 flex flex-wrap items-end gap-3">
+                    <form onSubmit={submitHeartAdjust} className="mt-2 space-y-3">
+                      <div className="flex flex-wrap items-end gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-rose-600">ชมพู Δ</label>
+                          <input
+                            type="number"
+                            value={heartPinkDelta}
+                            onChange={(e) => setHeartPinkDelta(e.target.value)}
+                            placeholder="0"
+                            className="w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={heartBusy}
+                          className="hui-btn-pink px-3 py-1.5 text-sm disabled:opacity-50"
+                        >
+                          {heartBusy ? "…" : "บันทึก"}
+                        </button>
+                      </div>
                       <div>
-                        <label className="block text-sm font-medium text-rose-600">ชมพู Δ</label>
+                        <label className="block text-sm text-hui-body">
+                          หมายเหตุ (แสดงในประวัติหัวใจชมพูของสมาชิก — ไม่บังคับ)
+                        </label>
                         <input
-                          type="number"
-                          value={heartPinkDelta}
-                          onChange={(e) => setHeartPinkDelta(e.target.value)}
-                          placeholder="0"
-                          className="w-24 rounded-lg border border-hui-border px-2 py-1.5 text-sm"
+                          type="text"
+                          value={heartPinkReason}
+                          onChange={(e) => setHeartPinkReason(e.target.value)}
+                          placeholder="เช่น โบนัสกิจกรรม, ชดเชยระบบ, รางวัลแนะนำเพื่อน"
+                          maxLength={500}
+                          className="mt-0.5 w-full max-w-lg rounded-lg border border-hui-border px-2 py-1.5 text-sm"
                         />
                       </div>
-                      <button
-                        type="submit"
-                        disabled={heartBusy}
-                        className="hui-btn-pink px-3 py-1.5 text-sm disabled:opacity-50"
-                      >
-                        {heartBusy ? "…" : "บันทึก"}
-                      </button>
                     </form>
                   </div>
 
