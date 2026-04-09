@@ -77,6 +77,12 @@ export default function AdminTailadminWorkspace() {
     }
     if (parsed.segments.length === 1) {
       const seg0 = parsed.segments[0];
+      // ลดความสับสน: เมนู game-settings เดิมพาไปหน้าคนละระบบกับเกมส่วนกลาง
+      // จึงบังคับเข้าหน้า central-games ที่ใช้แก้/ระงับเกมสมาชิกจริง
+      if (seg0 === "game-settings") {
+        router.replace("/admin/central-games");
+        return;
+      }
       if (isAdminDashboardShellSlug(seg0)) return;
       if (closedShellSlug) return;
       if (tailForIframe === null) {
