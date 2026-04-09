@@ -1,22 +1,13 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import ContactForm from "../../components/ContactForm";
 import { siteNavLinkClass } from "../../lib/siteNavLinkClass";
 import SiteFooter from "../../components/SiteFooter";
 import SiteHeader from "../../components/SiteHeader";
+import { CENTRAL_GAME_ADMIN_LINE_URL } from "../../lib/centralGameLimits";
 
 export const metadata = {
   title: "ติดต่อ | HUAJAIY",
-  description: "ส่งข้อความถึงทีม HUAJAIY"
+  description: "ติดต่อทีมงานผ่าน LINE แอดมิน"
 };
-
-function ContactFormFallback() {
-  return (
-    <div className="mt-6 rounded-2xl border border-hui-border bg-hui-surface p-8 text-center text-sm text-hui-muted shadow-soft">
-      กำลังโหลดฟอร์ม…
-    </div>
-  );
-}
 
 export default function ContactPage() {
   return (
@@ -25,16 +16,16 @@ export default function ContactPage() {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="hui-h2">ติดต่อ</h1>
         <p className="mt-2 text-base leading-relaxed text-hui-body">
-          ส่งคำถามหรือข้อความมาที่นี่ — ระบบรับผ่านเว็บไซต์นี้โดยตรง และบันทึกใน log
-          ของเซิร์ฟเวอร์ (เช่น ดูใน Render Dashboard → Logs) จนกว่าจะต่ออีเมลหรือ
-          LINE Notify ภายหลัง
+          กรุณาติดต่อผ่าน LINE แอดมิน เพื่อให้ตอบกลับได้รวดเร็วและตามงานได้ต่อเนื่อง
         </p>
-        <p className="hui-note mt-2">
-          หากมาจาก「ถอนเงินรางวัล」ลิงก์จะเติมหัวข้อและร่างข้อความให้อัตโนมัติ — ตรวจสอบก่อนส่ง
-        </p>
-        <Suspense fallback={<ContactFormFallback />}>
-          <ContactForm />
-        </Suspense>
+        <a
+          href={CENTRAL_GAME_ADMIN_LINE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hui-btn-primary mt-5 inline-flex"
+        >
+          เปิด LINE แอดมิน
+        </a>
         <Link href="/" className={`${siteNavLinkClass} mt-8 inline-flex`}>
           ← หน้าแรก
         </Link>

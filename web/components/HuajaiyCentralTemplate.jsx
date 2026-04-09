@@ -18,6 +18,7 @@ import {
   TAILADMIN_SHOP_DASHBOARD_START,
   workspaceShellUrl
 } from "../lib/memberWorkspacePath";
+import { CENTRAL_GAME_ADMIN_LINE_URL } from "../lib/centralGameLimits";
 
 const HEART_PINK_SRC = "/hearts/pink-heart.png";
 const HEART_RED_SRC = "/hearts/red-heart.png";
@@ -530,12 +531,14 @@ export default function HuajaiyCentralTemplate({
               © {new Date().getFullYear()} HUAJAIY สงวนลิขสิทธิ์ทั้งหมด
             </p>
           </div>
-          <Link
-            href="/contact"
+          <a
+            href={CENTRAL_GAME_ADMIN_LINE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#FF2E8C] to-[#f472b6] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-pink-400/20 transition hover:brightness-105 sm:px-5 sm:py-2 sm:text-sm"
           >
             ติดต่อเรา
-          </Link>
+          </a>
         </div>
       </footer>
     </div>
