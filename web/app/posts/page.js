@@ -1,12 +1,12 @@
 import CommunityPageRoute, {
-  getCommunityPageMetadata
+  getCommunityPostsPageMetadata
 } from "../../components/CommunityPageRoute";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function generateMetadata() {
-  return getCommunityPageMetadata();
+  return getCommunityPostsPageMetadata();
 }
 
 export default async function CommunityPostsPage() {

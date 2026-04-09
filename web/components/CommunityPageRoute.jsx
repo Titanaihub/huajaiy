@@ -7,6 +7,7 @@ import { mergeOrganicHomeFromApi } from "../lib/organicHomeFormDefaults";
 import { fetchPublicGameLobbyTheme } from "../lib/publicGameMeta";
 import { buildSiteRootBackgroundStyle } from "../lib/siteThemeStyle";
 import { mergeCommunityPinkLobbyTheme } from "../lib/communityPinkLobbyTheme";
+import { fetchHomeLatestMemberPosts } from "../lib/publicMemberPosts";
 
 function metaBlogTitle(raw) {
   const t = String(raw ?? "").trim();
@@ -32,6 +33,14 @@ export async function getCommunityPageMetadata() {
   };
 }
 
+/** metadata สำหรับ /posts — โพสต์สมาชิก ไม่ใช่รายการเพจ */
+export async function getCommunityPostsPageMetadata() {
+  return {
+    title: "โพสต์ชุมชน | HUAJAIY",
+    description: "โพสต์ล่าสุดจากสมาชิก — HUAJAIY"
+  };
+}
+
 /**
  * @param {{ activeNavKey: 'posts' | 'page'; scrollToSection?: 'lobby' | 'title' | null; showShortcutNav?: boolean }} props
  */
@@ -40,10 +49,11 @@ export default async function CommunityPageRoute({
   scrollToSection = null,
   showShortcutNav = true
 }) {
-  const [raw, gameLobbyTheme, memberPages] = await Promise.all([
+  const [raw, gameLobbyTheme, memberPages, publicMemberFeedPosts] = await Promise.all([
     fetchOrganicHomePublic(),
     fetchPublicGameLobbyTheme(),
-    fetchPublicMemberPages(24)
+    fetchPublicMemberPages(24),
+    activeNavKey === "posts" ? fetchHomeLatestMemberPosts(48) : Promise.resolve([])
   ]);
   const oh = mergeOrganicHomeFromApi(raw || {});
   const pinkTheme = mergeCommunityPinkLobbyTheme(gameLobbyTheme);
@@ -54,7 +64,10 @@ export default async function CommunityPageRoute({
     bgGradientBottom: pinkTheme.bgGradientBottom,
     imageOverlayPercent: pinkTheme.imageOverlayPercent
   });
-  const pinkBarTitle = metaBlogTitle(oh.sectionHeadings?.blog?.title);
+  const pinkBarTitle =
+    activeNavKey === "posts"
+      ? "โพสต์ชุมชน"
+      : metaBlogTitle(oh.sectionHeadings?.blog?.title);
 
   return (
     <PublicOrganicShell
@@ -68,6 +81,8 @@ export default async function CommunityPageRoute({
         blogBlock={oh.sectionHeadings?.blog}
         communityPage={oh.communityPage}
         memberPages={memberPages}
+        publicMemberFeedPosts={publicMemberFeedPosts}
+        lobbyHeadingOverride={activeNavKey === "posts" ? "โพสต์ชุมชน" : null}
         contentMode={activeNavKey === "posts" ? "posts" : activeNavKey === "page" ? "pages" : "mixed"}
         showShortcutNav={showShortcutNav}
       />

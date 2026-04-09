@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CommunityLobby from "./CommunityLobby";
-import { publicMemberPath } from "../lib/memberPublicUrls";
+import { publicMemberPath, publicMemberPostPath } from "../lib/memberPublicUrls";
+import { formatRelativeTimeTh } from "../lib/publicMemberPosts";
 
 const LEGACY_BLOG_TITLES = new Set([
   "our recent blog",
@@ -58,6 +59,29 @@ function dedupeCommunityPosts(orderedPosts) {
 
 const MEMBER_EXCERPT_LEN = 200;
 
+/** โพสต์สมาชิกจาก API `/api/public/home/member-posts` → รูปแบบการ์ดล็อบบี้ */
+function lobbyCardFromMemberPublicPost(p) {
+  if (!p || typeof p !== "object") return null;
+  const un = String(p.username || "").trim().toLowerCase();
+  const id = String(p.postId || "").trim();
+  if (!un || !id) return null;
+  const displayName = String(p.pageDisplayName || un).trim() || un;
+  const timeLabel = formatRelativeTimeTh(p.createdAt);
+  const title = String(p.title || "").trim() || "โพสต์";
+  const excerpt = String(p.excerpt || "").trim();
+  const img = p.coverImageUrl ? String(p.coverImageUrl).trim() : "";
+  if (!postHasPublicContent({ title, excerpt, imageUrl: img })) return null;
+  return {
+    category: displayName,
+    title,
+    excerpt,
+    imageUrl: img,
+    dateLine: timeLabel || `@${un}`,
+    href: publicMemberPostPath(un, id),
+    avatarUrl: ""
+  };
+}
+
 function memberDirectoryCard(m) {
   const un = String(m?.username || "").trim();
   if (!un) return null;
@@ -106,20 +130,28 @@ function SmartLink({ href, className, children }) {
 
 /**
  * เนื้อหาเพจชุมชน — โครงเดียวกับหน้า /game (หัวข้อ + ล็อบบี้การ์ด + ทางลัด)
- * @param {{ showShortcutNav?: boolean }} props — แถบลิงก์ล่าง (หน้าแรก/เกม/ร้าน/ตะกร้า); ปิดได้ที่ /posts /pages
+ * @param {{ showShortcutNav?: boolean; publicMemberFeedPosts?: object[]; lobbyHeadingOverride?: string | null }} props
  */
 export default function CommunityPageView({
   blogBlock,
   communityPage,
   memberPages = [],
+  publicMemberFeedPosts = [],
+  lobbyHeadingOverride = null,
   contentMode = "mixed",
   showShortcutNav = true
 }) {
   const rawTitle = blogBlock?.title?.trim() || "";
-  const title = normalizeCommunityTitle(rawTitle);
+  const title = lobbyHeadingOverride?.trim()
+    ? lobbyHeadingOverride.trim()
+    : normalizeCommunityTitle(rawTitle);
   const rawSub = blogBlock?.subtitle?.trim() || "";
   const sub =
-    rawSub && !rawSub.toLowerCase().includes("lorem ipsum") ? rawSub : "";
+    contentMode === "posts"
+      ? "โพสต์ล่าสุดจากสมาชิก"
+      : rawSub && !rawSub.toLowerCase().includes("lorem ipsum")
+        ? rawSub
+        : "";
   const cp = communityPage && typeof communityPage === "object" ? communityPage : {};
   const posts = Array.isArray(cp.posts) ? cp.posts : [];
   const visiblePosts = posts.filter(postHasPublicContent);
@@ -127,14 +159,17 @@ export default function CommunityPageView({
     .map(memberDirectoryCard)
     .filter(Boolean)
     .filter(postHasPublicContent);
+  const feedCards = (Array.isArray(publicMemberFeedPosts) ? publicMemberFeedPosts : [])
+    .map(lobbyCardFromMemberPublicPost)
+    .filter(Boolean);
   const lobbyPosts =
     contentMode === "posts"
-      ? dedupeCommunityPosts([...visiblePosts])
+      ? dedupeCommunityPosts([...feedCards])
       : contentMode === "pages"
         ? dedupeCommunityPosts([...memberPosts])
         : dedupeCommunityPosts([...memberPosts, ...visiblePosts]);
   const viewHref = String(cp.viewAllHref || "").trim();
-  const showViewAll = viewHref && viewHref !== "#";
+  const showViewAll = contentMode !== "posts" && viewHref && viewHref !== "#";
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

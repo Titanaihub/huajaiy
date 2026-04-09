@@ -217,7 +217,7 @@ async function listRecentPublicPostsForHome(limit = 6) {
     if (e && e.code === "DB_REQUIRED") return [];
     throw e;
   }
-  const lim = Math.min(12, Math.max(1, Math.floor(Number(limit) || 6)));
+  const lim = Math.min(72, Math.max(1, Math.floor(Number(limit) || 6)));
   const r = await pool.query(
     `SELECT p.id, p.title, p.cover_image_url, p.body_blocks, p.created_at, p.updated_at,
             u.username, u.public_page_title,

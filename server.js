@@ -583,7 +583,7 @@ app.get("/api/public/home/member-posts", async (req, res) => {
   try {
     const raw = req.query.limit;
     const n = raw != null ? parseInt(String(raw), 10) : 6;
-    const limit = Number.isFinite(n) ? Math.min(12, Math.max(1, n)) : 6;
+    const limit = Number.isFinite(n) ? Math.min(72, Math.max(1, n)) : 6;
     const posts = await memberPublicPostService.listRecentPublicPostsForHome(limit);
     return res.json({ ok: true, posts });
   } catch (e) {

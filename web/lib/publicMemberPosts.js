@@ -36,7 +36,7 @@ export function formatRelativeTimeTh(iso) {
  */
 export async function fetchHomeLatestMemberPosts(limit = 6) {
   const base = getApiBase().replace(/\/$/, "");
-  const lim = Math.min(12, Math.max(1, Math.floor(Number(limit) || 6)));
+  const lim = Math.min(72, Math.max(1, Math.floor(Number(limit) || 6)));
   try {
     const r = await fetch(`${base}/api/public/home/member-posts?limit=${lim}&_nc=${Date.now()}`, {
       cache: "no-store",
