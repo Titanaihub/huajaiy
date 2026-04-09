@@ -25,11 +25,14 @@ import {
   CENTRAL_GAME_MAX_PER_MEMBER,
   CENTRAL_GAME_MAX_TILES
 } from "../lib/centralGameLimits";
+import { useMemberAuth } from "./MemberAuthProvider";
 
 const UNITS = ["บาท", "ชิ้น", "อัน", "คัน", "ใบ", "หลัง"];
 
 const PUBLISH_CONFIRM_MESSAGE =
   "โปรดตรวจสอบรูปแบบเกมและรางวัลให้ถูกต้องตรงตามความต้องการ\n\nหากกดเผยแพร่แล้วจะไม่สามารถแก้ไขได้\n\nยืนยันเผยแพร่หรือไม่?";
+const PUBLISH_CONFIRM_MESSAGE_ADMIN =
+  "โปรดตรวจสอบรูปแบบเกมและรางวัลให้ถูกต้อง\n\nในฐานะแอดมิน คุณยังแก้ไขเกมหลังเผยแพร่ได้จากแผงนี้ · สมาชิกทั่วไปจะถูกจำกัดตามกฎระบบ\n\nยืนยันเผยแพร่หรือไม่?";
 
 const DELETE_BLOCKED_HINT =
   "เกมนี้มีผู้ได้รับรางวัลแล้ว — ไม่สามารถลบจากที่นี่ได้ กรุณาติดต่อผู้ดูแลระบบให้ลบแทน";
@@ -457,6 +460,9 @@ export default function AdminCentralGamePanel({
   onAfterSuccessfulSave = null
 }) {
   const router = useRouter();
+  const { can } = useMemberAuth();
+  /** แอดมิน — ปลดล็อกข้อจำกัด UI แบบเดียวกับสมาชิกหลังเผยแพร่/มีรางวัลแล้ว (สอดคล้อง allowUnsafeEdit ฝั่ง API) */
+  const adminFullStudioUnlock = can("*");
   const [games, setGames] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -480,7 +486,7 @@ export default function AdminCentralGamePanel({
   const [tileBackCoverUrl, setTileBackCoverUrl] = useState("");
   /** แสดงในรายการหน้า /game (ล็อบบี้) */
   const [lobbyVisible, setLobbyVisible] = useState(false);
-  const creatorLimitedMode = embedded && lobbyVisible;
+  const creatorLimitedMode = embedded && lobbyVisible && !adminFullStudioUnlock;
   /** อนุญาตให้ใช้หัวใจแดงจากรหัสห้อง (ทุกเจ้าของห้อง) หักเล่นในเกมนี้ — มักใช้กับเกมส่วนกลางที่แอดมินตั้ง */
   const [allowGiftRedPlay, setAllowGiftRedPlay] = useState(false);
   const [rules, setRules] = useState([]);
@@ -1014,7 +1020,12 @@ export default function AdminCentralGamePanel({
       setMsg("");
       return;
     }
-    if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
+    if (
+      !window.confirm(
+        adminFullStudioUnlock ? PUBLISH_CONFIRM_MESSAGE_ADMIN : PUBLISH_CONFIRM_MESSAGE
+      )
+    )
+      return;
     const token = getMemberToken();
     if (!token) {
       setErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองกดเผยแพร่อีกครั้ง");
@@ -1055,7 +1066,12 @@ export default function AdminCentralGamePanel({
       setMsg("");
       return;
     }
-    if (!window.confirm(PUBLISH_CONFIRM_MESSAGE)) return;
+    if (
+      !window.confirm(
+        adminFullStudioUnlock ? PUBLISH_CONFIRM_MESSAGE_ADMIN : PUBLISH_CONFIRM_MESSAGE
+      )
+    )
+      return;
     const token = getMemberToken();
     if (!token) {
       setErr("หมดเซสชัน — ล็อกอินใหม่แล้วลองอีกครั้ง");
@@ -1616,6 +1632,11 @@ export default function AdminCentralGamePanel({
       {selectedId && showMemberBasicIntro ? (
         <div id="central-game-editor" className="relative space-y-4 scroll-mt-24 pb-6">
           {loading ? <p className="text-hui-muted">กำลังโหลด…</p> : null}
+          {embedded && adminFullStudioUnlock && lobbyVisible ? (
+            <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm leading-relaxed text-sky-950">
+              <strong>โหมดแอดมิน</strong> — แก้ไขชื่อ ปก กติกาและรางวัลได้ครบแม้เกมเผยแพร่แล้วหรือมีผู้ได้รางวัล (สมาชิกเจ้าของเกมยังถูกจำกัดตามกฎระบบ)
+            </div>
+          ) : null}
           {awardEditLocked ? (
             <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-950">
               <strong>มีผู้ได้รับรางวัลจากเกมนี้แล้ว ({prizeAwardCount} รายการ)</strong> — แก้ได้เฉพาะเพิ่มจำนวนรางวัลเท่านั้น
