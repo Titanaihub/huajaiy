@@ -980,21 +980,37 @@ app.post("/api/game/start", optionalAuthMiddleware, gameActionRateLimit, async (
         }
         throw err;
       }
-      const { sessionId, sessionProof } = centralGameSession.createSession(
-        snap,
-        playSessionId,
-        { ownerUserId: req.userId || null }
-      );
-      const meta = await centralMetaFromSnapWithCounts(snap);
-      const body = {
-        ok: true,
-        sessionId,
-        sessionProof,
-        ...meta
-      };
-      const hb = heartBalancesPayload(afterUser);
-      if (hb) body.heartBalances = hb;
-      return res.json(body);
+      const chargedHearts = pink > 0 || red > 0;
+      try {
+        const { sessionId, sessionProof } = await centralGameSession.createSession(
+          snap,
+          playSessionId,
+          { ownerUserId: req.userId || null }
+        );
+        const meta = await centralMetaFromSnapWithCounts(snap);
+        const body = {
+          ok: true,
+          sessionId,
+          sessionProof,
+          ...meta
+        };
+        const hb = heartBalancesPayload(afterUser);
+        if (hb) body.heartBalances = hb;
+        return res.json(body);
+      } catch (e) {
+        if (req.userId && chargedHearts) {
+          try {
+            await gameStartDeductionService.refundCentralGameStartAfterFailure(
+              req.userId,
+              playSessionId,
+              { fallbackPink: pink, fallbackRed: red }
+            );
+          } catch (re) {
+            console.error("[game_start refund]", re.message);
+          }
+        }
+        throw e;
+      }
     }
     const heartCost = Number(process.env.GAME_HEART_COST || 0);
     let afterUser = null;
@@ -1042,7 +1058,7 @@ app.post("/api/game/state", optionalAuthMiddleware, gameActionRateLimit, async (
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    let state = centralGameSession.getSessionStateForClient(sessionId, {
+    let state = await centralGameSession.getSessionStateForClient(sessionId, {
       requesterUserId: req.userId || null,
       sessionProof
     });
@@ -1076,7 +1092,7 @@ app.post("/api/game/reveal-remaining", optionalAuthMiddleware, gameActionRateLim
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    const r = centralGameSession.revealRemainingForClient(sessionId, {
+    const r = await centralGameSession.revealRemainingForClient(sessionId, {
       requesterUserId: req.userId || null,
       sessionProof
     });
@@ -1097,7 +1113,7 @@ app.post("/api/game/flip", optionalAuthMiddleware, gameActionRateLimit, async (r
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
     const idx = Number(index);
-    const r = centralGameSession.flip(sessionId, idx, {
+    const r = await centralGameSession.flip(sessionId, idx, {
       requesterUserId: req.userId || null,
       sessionProof
     });
@@ -1199,7 +1215,7 @@ app.post("/api/game/abandon", optionalAuthMiddleware, gameActionRateLimit, async
     if (!sessionId || typeof sessionId !== "string") {
       return res.status(400).json({ ok: false, error: "ต้องมี sessionId" });
     }
-    if (centralGameSession.abandonSession(sessionId)) {
+    if (await centralGameSession.abandonSession(sessionId)) {
       return res.json({ ok: true, removed: true });
     }
     const removed = abandonSession(sessionId);

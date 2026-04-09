@@ -231,6 +231,129 @@ async function deductCentralGameStart(
   return userService.findById(userId);
 }
 
+/**
+ * หลังหักหัวใจสำเร็จแต่สร้างรอบเกม (session) ไม่สำเร็จ — คืนยอด + แดงจากรหัสห้องตาม ledger เดิม
+ * idempotent: มีแถว kind = game_start_void สำหรับ playSessionId นี้แล้วจะไม่คืนซ้ำ
+ */
+async function refundCentralGameStartAfterFailure(
+  userId,
+  playSessionId,
+  { fallbackPink = 0, fallbackRed = 0 } = {}
+) {
+  if (!userId || !playSessionId) return null;
+  const sid = String(playSessionId).trim().slice(0, 64);
+  if (!sid) return null;
+
+  const pool = getPool();
+  if (!pool) {
+    const p = Math.max(0, Math.floor(Number(fallbackPink) || 0));
+    const r = Math.max(0, Math.floor(Number(fallbackRed) || 0));
+    if (p === 0 && r === 0) return null;
+    return userService.adjustDualHearts(userId, p, r, {
+      kind: "game_start_void",
+      label: "คืนหัวใจ — สร้างรอบเกมไม่สำเร็จ",
+      meta: { playSessionId: sid, reason: "session_create_failed" }
+    });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const voided = await client.query(
+      `SELECT 1 FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind = 'game_start_void'
+         AND meta->>'playSessionId' = $2
+       LIMIT 1`,
+      [userId, sid]
+    );
+    if (voided.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return userService.findById(userId);
+    }
+
+    await client.query(`SELECT 1 FROM users WHERE id = $1::uuid FOR UPDATE`, [userId]);
+
+    const ledgerRes = await client.query(
+      `SELECT id, pink_delta, red_delta, meta FROM heart_ledger
+       WHERE user_id = $1::uuid AND kind = 'game_start'
+         AND meta->>'playSessionId' = $2
+       ORDER BY created_at DESC
+       LIMIT 1 FOR UPDATE`,
+      [userId, sid]
+    );
+
+    if (ledgerRes.rows.length === 0) {
+      await client.query("ROLLBACK");
+      const p = Math.max(0, Math.floor(Number(fallbackPink) || 0));
+      const r = Math.max(0, Math.floor(Number(fallbackRed) || 0));
+      if (p === 0 && r === 0) return null;
+      return userService.adjustDualHearts(userId, p, r, {
+        kind: "game_start_void",
+        label: "คืนหัวใจ — สร้างรอบเกมไม่สำเร็จ (ไม่พบ ledger)",
+        meta: { playSessionId: sid, reason: "session_create_failed", fallback: true }
+      });
+    }
+
+    const orig = ledgerRes.rows[0];
+    const meta = orig.meta && typeof orig.meta === "object" ? orig.meta : {};
+    if (meta.voided === true || meta.sessionVoided === true) {
+      await client.query("ROLLBACK");
+      return userService.findById(userId);
+    }
+
+    const pinkBack = -Math.floor(Number(orig.pink_delta) || 0);
+    const redGeneralBack = -Math.floor(Number(orig.red_delta) || 0);
+    const roomGifts =
+      meta.redFromRoomGifts && typeof meta.redFromRoomGifts === "object"
+        ? meta.redFromRoomGifts
+        : {};
+
+    for (const [cid, amt] of Object.entries(roomGifts)) {
+      const a = Math.max(0, Math.floor(Number(amt) || 0));
+      if (a <= 0 || !UUID_RE.test(String(cid))) continue;
+      await client.query(
+        `INSERT INTO user_room_red_balance (user_id, creator_id, balance, updated_at)
+         VALUES ($1::uuid, $2::uuid, $3, NOW())
+         ON CONFLICT (user_id, creator_id) DO UPDATE SET
+           balance = user_room_red_balance.balance + EXCLUDED.balance,
+           updated_at = NOW()`,
+        [userId, cid, a]
+      );
+    }
+
+    await userService.adjustDualHeartsWithClient(client, userId, pinkBack, redGeneralBack, {
+      kind: "game_start_void",
+      label: "คืนหัวใจ — สร้างรอบเกมไม่สำเร็จ",
+      meta: {
+        playSessionId: sid,
+        reason: "session_create_failed",
+        reversesLedgerId: orig.id
+      }
+    });
+
+    await client.query(
+      `UPDATE heart_ledger SET meta = COALESCE(meta, '{}'::jsonb) || $2::jsonb
+       WHERE id = $1::uuid`,
+      [orig.id, JSON.stringify({ voided: true, sessionVoided: true })]
+    );
+
+    await client.query("COMMIT");
+  } catch (e) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  } finally {
+    client.release();
+  }
+
+  return userService.findById(userId);
+}
+
 module.exports = {
-  deductCentralGameStart
+  deductCentralGameStart,
+  refundCentralGameStartAfterFailure
 };

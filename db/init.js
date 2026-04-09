@@ -292,6 +292,19 @@ async function initDb() {
     );
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS central_game_play_sessions (
+        id VARCHAR(64) PRIMARY KEY,
+        owner_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        session_proof VARCHAR(64) NOT NULL,
+        state_json JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_central_game_play_sessions_updated ON central_game_play_sessions(updated_at);`
+    );
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS name_change_requests (
         id UUID PRIMARY KEY,
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

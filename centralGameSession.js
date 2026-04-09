@@ -1,9 +1,7 @@
 const crypto = require("crypto");
 const centralGameService = require("./services/centralGameService");
-const {
-  formatWinnerDisplay,
-  formatLossRuleDisplay
-} = centralGameService;
+const persistence = require("./services/centralGameSessionPersistence");
+const { formatWinnerDisplay, formatLossRuleDisplay } = centralGameService;
 
 const sessions = new Map();
 const PRUNE_MS = 60 * 60 * 1000;
@@ -66,10 +64,30 @@ function imageUrlForCell(snapshot, setIndex, imageIndex) {
   return snapshot.imageUrl.get(`${setIndex}-0`) || "";
 }
 
+async function persistSessionSafe(sessionId, session) {
+  try {
+    await persistence.upsertPlaySession(sessionId, session);
+  } catch (e) {
+    console.warn("[central_game_play_sessions] persist:", e.message);
+  }
+}
+
+/**
+ * โหลดจาก DB ถ้าไม่มีใน Map — หลังรีสตาร์ท API รอบที่หักหัวใจแล้วยังเล่นต่อได้
+ */
+async function hydrateSession(sessionId) {
+  if (!sessionId || typeof sessionId !== "string") return null;
+  if (sessions.has(sessionId)) return sessions.get(sessionId);
+  const loaded = await persistence.loadPlaySession(sessionId);
+  if (!loaded) return null;
+  sessions.set(sessionId, loaded);
+  return loaded;
+}
+
 /**
  * @param {object} snapshot จาก getGameSnapshotById / getActiveGameSnapshot
  */
-function createSession(snapshot, presetSessionId = null, opts = {}) {
+async function createSession(snapshot, presetSessionId = null, opts = {}) {
   const { game, imageUrl, rules } = snapshot;
   const { setImageCounts, tileCount, id: gameId } = game;
   const deck = buildDeck(setImageCounts);
@@ -85,6 +103,9 @@ function createSession(snapshot, presetSessionId = null, opts = {}) {
     if (sessions.has(id)) {
       throw new Error("sessionId ซ้ำ — เริ่มรอบใหม่");
     }
+    if (await persistence.hasPlaySession(id)) {
+      throw new Error("sessionId ซ้ำ — เริ่มรอบใหม่");
+    }
   } else {
     id = crypto.randomBytes(16).toString("hex");
   }
@@ -93,17 +114,20 @@ function createSession(snapshot, presetSessionId = null, opts = {}) {
       ? String(opts.ownerUserId).trim()
       : null;
   const sessionProof = crypto.randomBytes(16).toString("hex");
-  sessions.set(id, {
+  const session = {
     gameId,
     deck,
     revealed: new Array(tileCount).fill(false),
     flips: 0,
     winnerRuleId: null,
+    lossRuleId: null,
     gameSnapshot: { game, imageUrl, rules },
     ownerUserId,
     sessionProof,
     createdAt: Date.now()
-  });
+  };
+  sessions.set(id, session);
+  await persistSessionSafe(id, session);
   return { sessionId: id, sessionProof };
 }
 
@@ -119,8 +143,8 @@ function authorizeSession(session, requesterUserId, sessionProof) {
   return { ok: true };
 }
 
-function flip(sessionId, index, opts = {}) {
-  const session = sessions.get(sessionId);
+async function flip(sessionId, index, opts = {}) {
+  const session = await hydrateSession(sessionId);
   const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
   if (!auth.ok) {
     return { ok: false, status: auth.status, error: auth.error };
@@ -181,7 +205,7 @@ function flip(sessionId, index, opts = {}) {
   const winRule = outcome?.kind === "win" ? outcome.rule : null;
   const lossRule = outcome?.kind === "loss" ? outcome.rule : null;
 
-  return {
+  const payload = {
     ok: true,
     gameMode: "central",
     gameId: session.gameId,
@@ -211,21 +235,38 @@ function flip(sessionId, index, opts = {}) {
       : null,
     finished: !!outcome
   };
+  await persistSessionSafe(sessionId, session);
+  return payload;
 }
 
-function abandonSession(sessionId) {
+async function abandonSession(sessionId) {
   if (!sessionId || typeof sessionId !== "string") return false;
-  return sessions.delete(sessionId);
+  const hadMem = sessions.delete(sessionId);
+  let deletedDb = 0;
+  try {
+    deletedDb = await persistence.deletePlaySession(sessionId);
+  } catch (e) {
+    console.warn("[central_game_play_sessions] delete:", e.message);
+  }
+  return hadMem || deletedDb > 0;
 }
 
 function pruneSessions(maxAgeMs = PRUNE_MS) {
   const now = Date.now();
   for (const [id, s] of sessions.entries()) {
-    if (now - s.createdAt > maxAgeMs) sessions.delete(id);
+    if (now - s.createdAt > maxAgeMs) {
+      sessions.delete(id);
+      persistence.deletePlaySession(id).catch(() => {});
+    }
   }
 }
 
-setInterval(() => pruneSessions(), 10 * 60 * 1000).unref();
+setInterval(() => {
+  pruneSessions();
+  persistence.prunePlaySessionsOlderThan(PRUNE_MS).catch((e) => {
+    console.warn("[central_game_play_sessions] prune:", e.message);
+  });
+}, 10 * 60 * 1000).unref();
 
 function buildWinnerLossPayload(session) {
   const { gameSnapshot, winnerRuleId, lossRuleId } = session;
@@ -265,8 +306,8 @@ function buildWinnerLossPayload(session) {
 /**
  * คืนสถานะรอบเกมให้ฝั่งเว็บหลังรีเฟรช — ไม่หักหัวใจซ้ำ
  */
-function getSessionStateForClient(sessionId, opts = {}) {
-  const session = sessions.get(sessionId);
+async function getSessionStateForClient(sessionId, opts = {}) {
+  const session = await hydrateSession(sessionId);
   const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
   if (!auth.ok) return null;
   const { deck, revealed, flips, gameSnapshot } = session;
@@ -323,8 +364,8 @@ function getSessionStateForClient(sessionId, opts = {}) {
 }
 
 /** หลังจบรอบแล้ว — ส่ง URL ภาพใต้ป้ายที่ยังไม่เปิด (ให้ปุ่มเฉลย) */
-function revealRemainingForClient(sessionId, opts = {}) {
-  const session = sessions.get(sessionId);
+async function revealRemainingForClient(sessionId, opts = {}) {
+  const session = await hydrateSession(sessionId);
   const auth = authorizeSession(session, opts.requesterUserId, opts.sessionProof);
   if (!auth.ok) {
     return { ok: false, status: auth.status, error: auth.error };

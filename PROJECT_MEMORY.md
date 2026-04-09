@@ -31,10 +31,13 @@ Cursor โหลดกฎอัตโนมัติจาก `.cursor/rules/hua
 
 - สมาชิกล็อกอิน: `POST /api/game/start` ส่ง `Authorization: Bearer …` — เซิร์ฟเวอร์หักหัวใจชมพู/แดงใน DB ตามค่าเกม (เกมส่วนกลางหรือ legacy `GAME_HEART_COST`) ก่อนสร้าง session
 - ผู้เล่นทั่วไป: ยังหักจาก localStorage ฝั่งเบราว์เซอร์ตามเดิม
+- **เกมส่วนกลาง — รอบเกมหลังหักหัวใจ:** สถานะรอบเก็บใน PostgreSQL ตาราง `central_game_play_sessions` (พร้อมใน `db/init.js`) ผ่าน `services/centralGameSessionPersistence.js` และ `centralGameSession.js` — รีสตาร์ท API แล้วยังเล่นต่อได้ด้วย `sessionId` + สิทธิ์รอบเกม · ถ้าหักหัวใจแล้วแต่สร้าง session ไม่สำเร็จ มี `refundCentralGameStartAfterFailure` ใน `services/gameStartDeductionService.js`
 
 ## หลังเพิ่มคอลัมน์/ตารางใน `db/init.js`
 
-- รัน migration / init กับ **PostgreSQL บน Render** ให้ตรงกับโค้ดก่อนใช้ฟีเจอร์ใหม่
+- บน **Render:** `huajaiy-api` เรียก `initDb()` ตอนสตาร์ท (`server.js`) — ตารางใหม่ถูกสร้างแบบ idempotent ถ้า `DATABASE_URL` ตั้งค่าแล้ว
+- ถ้าต้องการรันคนเดียวจากเครื่อง: `npm run db:init` (หรือ `node scripts/run-db-init.js`) ใช้ `DATABASE_URL` เดียวกับ production
+- หรือรัน SQL สำรองจาก `db/sql/central_game_play_sessions.sql` ใน Render **PostgreSQL → Connect → SQL** ได้
 
 ## ธีมงานล่าสุด (เกมส่วนกลาง)
 
